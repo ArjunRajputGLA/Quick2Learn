@@ -1,0 +1,34 @@
+{
+  "name": "quick2learn",
+  "private": true,
+  "packageManager": "pnpm@12.10.1",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:up": "node scripts/db-up.cjs",
+    "db:down": "node scripts/db-down.cjs",
+    "db:generate": "pnpm --filter @quick2learn/db generate",
+    "db:migrate": "pnpm --filter @quick2learn/db migrate",
+    "db:seed": "pnpm --filter @quick2learn/db seed",
+    "db:seed:prod": "pnpm --filter @quick2learn/db seed:prod",
+    "db:studio": "pnpm --filter @quick2learn/db studio",
+    "db:reset": "node scripts/db-reset.cjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:storage": "pnpm --filter @quick2learn/db exec tsx ../../scripts/test-storage.ts",
+    "admin:promote": "pnpm --filter @quick2learn/db exec tsx ../../scripts/admin-promote.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.40.0",
+    "pg": "^8.13.3",
+    "prettier": "^3.5.3",
+    "turbo": "^2.11.7",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+} 

@@ -1,0 +1,8 @@
+{
+  "extends": "@quick2learn/config/tsconfig/package.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*"]
+}
