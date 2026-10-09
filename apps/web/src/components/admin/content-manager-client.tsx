@@ -305,8 +305,8 @@ export function ContentManagerClient({
 
   const [contactSettings, setContactSettings] = useState<ContactSetting>(
     (initialSettings.contact as ContactSetting | undefined) || {
-      phone: "+91-9897000000",
-      whatsapp: "+91-9897000000",
+      phone: "+91 76688 75809",
+      whatsapp: "+91 76688 75809",
       email: "contact@quick2learn.in",
       support_hours: "Mon–Sat 9:00 AM – 7:00 PM IST",
     },

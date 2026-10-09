@@ -12,6 +12,7 @@ import {
   jsonb,
   index,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import {
@@ -487,6 +488,11 @@ export const testimonials = pgTable(
   },
   (table) => [
     index("idx_testimonials_published").on(table.isPublished, table.sortOrder),
+    uniqueIndex("uq_testimonials_student_class_year").on(
+      table.studentName,
+      table.classLevel,
+      table.year,
+    ),
   ],
 );
 
@@ -511,6 +517,11 @@ export const results = pgTable(
   },
   (table) => [
     index("idx_results_featured").on(table.isFeatured, table.sortOrder),
+    uniqueIndex("uq_results_student_exam_year").on(
+      table.studentName,
+      table.exam,
+      table.year,
+    ),
   ],
 );
 

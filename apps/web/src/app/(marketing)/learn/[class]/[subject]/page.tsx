@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getSubjectBySlug, getSubjects } from "@/server/data/catalog";
 import {
   getSubjectChaptersWithStats,
@@ -8,11 +9,19 @@ import {
   getRelatedBatchForClass,
 } from "@/server/data/videos";
 import { BreadcrumbsPlacement } from "@/components/layout/breadcrumbs-placement";
-import { Badge } from "@/components/ui/badge";
 import { LectureCard } from "@/components/ui/lecture-card";
 import { RelatedBatchCard } from "@/components/learn/related-batch-card";
 import { slugToClassLevel, formatClassRoman } from "@quick2learn/shared";
-import { BookOpen, Clock, ArrowRight, Video, CheckCircle2 } from "lucide-react";
+import {
+  BookOpen,
+  Clock,
+  ArrowRight,
+  Video,
+  CheckCircle2,
+  Calculator,
+  FlaskConical,
+  GraduationCap,
+} from "lucide-react";
 
 interface LearnSubjectPageProps {
   params: Promise<{
@@ -96,7 +105,18 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
     getRelatedBatchForClass(classLevel, subject.id),
   ]);
 
-  const totalLectures = chaptersWithStats.reduce((acc, ch) => acc + ch.lectureCount, 0);
+  // Ensure unique chapters by slug / number as fail-safe against database duplicates
+  const uniqueChapters = Array.from(
+    new Map(chaptersWithStats.map((ch) => [ch.slug, ch])).values(),
+  ).sort((a, b) => a.sortOrder - b.sortOrder || a.number - b.number);
+
+  const totalLectures = uniqueChapters.reduce((acc, ch) => acc + ch.lectureCount, 0);
+
+  // Theming & Mentorship
+  const isMath = /math/i.test(subject.name);
+  const facultyName = isMath ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput";
+  const facultyRole = isMath ? "25+ Yrs Exp • Senior Mathematics Head" : "15+ Yrs Exp • Head of ICSE Sciences";
+  const facultyAvatar = isMath ? "/images/faculty/dinesh-sir.jpg" : "/images/faculty/namita-maam.jpg";
 
   return (
     <div>
@@ -109,23 +129,87 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
         ]}
       />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12">
-        {/* Header Section */}
-        <div className="max-w-3xl mb-10 space-y-3">
-          <div className="flex items-center gap-2">
-            <Badge variant="primary">Class {classRoman}</Badge>
-            <Badge variant="neutral">CBSE &amp; ICSE/ISC</Badge>
-            {totalLectures > 0 && (
-              <Badge variant="accent">{totalLectures} Video Lessons</Badge>
-            )}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-10">
+        {/* Themed Curriculum Hero Banner */}
+        <div
+          className={`p-6 sm:p-8 lg:p-10 rounded-3xl border border-border/80 shadow-md text-white relative overflow-hidden ${
+            isMath
+              ? "bg-linear-to-br from-slate-950 via-indigo-950 to-blue-900"
+              : "bg-linear-to-br from-slate-950 via-teal-950 to-emerald-900"
+          }`}
+        >
+          {/* Subtle Ambient Glow */}
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="max-w-3xl space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-white/10 text-white backdrop-blur-md border border-white/15 shadow-xs">
+                  {isMath ? <Calculator className="h-3.5 w-3.5 text-sky-400" /> : <FlaskConical className="h-3.5 w-3.5 text-emerald-400" />}
+                  Class {classRoman} Curriculum
+                </span>
+                <span className="text-caption font-semibold text-white/80">
+                  CBSE &amp; ICSE / ISC Board Alignment
+                </span>
+                {totalLectures > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                    <Video className="h-3 w-3" />
+                    {totalLectures} Video Lessons
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-display font-extrabold tracking-tight text-white leading-tight">
+                {subject.name} — Class {classRoman}
+              </h1>
+
+              <p className="text-body text-white/75 leading-relaxed max-w-2xl">
+                Comprehensive chapter-wise syllabus, concept lectures in Hindi, formula sheet summaries,
+                and previous year question walkthroughs mentored by Quick2Learn faculty in Mathura.
+              </p>
+
+              {/* Curriculum Trust Highlights */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-small text-white/85">
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  {uniqueChapters.length} Curriculum Chapters
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  NCERT &amp; ICSE Board Syllabus
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  Free Formula &amp; Concept Sheets
+                </span>
+              </div>
+            </div>
+
+            {/* Mentor Badge */}
+            <div className="shrink-0 pt-2 lg:pt-0">
+              <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
+                <div className="relative h-14 w-14 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
+                  <Image
+                    src={facultyAvatar}
+                    alt={facultyName}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div>
+                  <span className="text-[11px] uppercase tracking-wider font-bold text-white/60">
+                    Lead Mentor
+                  </span>
+                  <p className="text-body font-extrabold text-white leading-snug">
+                    {facultyName}
+                  </p>
+                  <p className="text-[12px] font-medium text-white/75">
+                    {facultyRole}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-display font-extrabold tracking-tight text-ink">
-            {subject.name} — Class {classRoman}
-          </h1>
-          <p className="text-body text-ink-muted">
-            Detailed chapter-wise syllabus, concept lectures, formula breakdowns,
-            and practice sessions mentored by Quick2Learn faculty in Mathura.
-          </p>
         </div>
 
         {/* Content Layout */}
@@ -133,69 +217,76 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
           {/* Main Column: Chapter List */}
           <div className="lg:col-span-2 space-y-8">
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-border">
-                <h2 className="text-h3 font-bold text-ink flex items-center gap-2">
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <h2 className="text-h3 font-bold text-ink flex items-center gap-2.5">
                   <BookOpen className="h-5 w-5 text-primary" />
-                  <span>Curriculum Chapters ({chaptersWithStats.length})</span>
+                  <span>Curriculum Chapters ({uniqueChapters.length})</span>
                 </h2>
-                <span className="text-caption text-ink-muted">
+                <span className="text-caption font-semibold text-ink-muted">
                   Board Approved Order
                 </span>
               </div>
 
-              {chaptersWithStats.length === 0 ? (
-                <div className="rounded-lg border border-border bg-surface p-8 text-center text-ink-muted">
+              {uniqueChapters.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-border bg-surface p-12 text-center text-ink-muted">
                   Chapters for this subject are being updated for the current academic session.
                 </div>
               ) : (
-                <div className="divide-y divide-border rounded-xl border border-border bg-surface shadow-xs overflow-hidden">
-                  {chaptersWithStats.map((ch) => (
+                <div className="divide-y divide-border/60 rounded-2xl border border-border/80 bg-surface shadow-xs overflow-hidden">
+                  {uniqueChapters.map((ch) => (
                     <Link
                       key={ch.id}
                       href={`/learn/${classParam}/${subjectParam}/${ch.slug}`}
-                      className="p-5 flex items-center justify-between gap-4 hover:bg-surface-subtle transition-colors group block"
+                      className="p-5 sm:p-6 flex items-center justify-between gap-4 hover:bg-surface-subtle transition-all group block cursor-pointer"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="h-9 w-9 rounded-full bg-primary-soft text-primary font-bold text-caption flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-primary group-hover:text-surface transition-colors">
+                      <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                        {/* Chapter Number Badge */}
+                        <div className="h-12 w-12 rounded-2xl bg-primary-soft text-primary font-black text-[16px] flex items-center justify-center shrink-0 border border-primary/20 shadow-xs group-hover:bg-primary group-hover:text-white group-hover:scale-105 transition-all">
                           {ch.number}
                         </div>
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-body text-ink group-hover:text-primary transition-colors">
+
+                        <div className="space-y-1.5 min-w-0">
+                          <h3 className="font-bold text-[17px] text-ink group-hover:text-primary transition-colors leading-snug truncate sm:whitespace-normal">
                             {ch.title}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-3 text-caption text-ink-muted">
-                            <span>Chapter {ch.number}</span>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-muted">
+                            <span className="font-medium">Chapter {ch.number}</span>
                             {ch.board && (
                               <>
                                 <span>•</span>
-                                <span className="uppercase">{ch.board}</span>
+                                <span className="uppercase font-semibold text-primary">{ch.board}</span>
                               </>
                             )}
                             {ch.lectureCount > 0 ? (
                               <>
                                 <span>•</span>
-                                <span className="font-medium text-ink flex items-center gap-1">
-                                  <Video className="h-3 w-3 text-primary" />
-                                  {ch.lectureCount} {ch.lectureCount === 1 ? "lecture" : "lectures"}
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {ch.formattedDuration}
+                                <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                                  <Video className="h-3 w-3" />
+                                  {ch.lectureCount} {ch.lectureCount === 1 ? "lesson" : "lessons"} ({ch.formattedDuration})
                                 </span>
                               </>
                             ) : (
                               <>
                                 <span>•</span>
-                                <span className="text-ink-muted italic">Lectures coming soon</span>
+                                <span className="text-ink-muted italic flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-primary/60" />
+                                  Study notes ready • Lectures recording
+                                </span>
                               </>
                             )}
                           </div>
                         </div>
                       </div>
 
+                      {/* Right Action */}
                       <div className="shrink-0 flex items-center gap-2">
-                        <ArrowRight className="h-4 w-4 text-ink-muted group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        <span className="hidden sm:inline-flex text-caption font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                          Explore Chapter
+                        </span>
+                        <div className="h-8 w-8 rounded-full bg-surface-subtle group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-all">
+                          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
                       </div>
                     </Link>
                   ))}
@@ -234,24 +325,43 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
             )}
 
             {/* Highlights Box */}
-            <div className="rounded-xl border border-border bg-surface p-6 space-y-4">
-              <h3 className="font-bold text-body text-ink">
-                About {subject.name} Preparation
-              </h3>
-              <ul className="space-y-2.5 text-small text-ink-muted">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+            <div className="rounded-2xl border border-border/80 bg-surface p-6 space-y-4 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
+                  <GraduationCap className="h-4 w-4" />
+                </div>
+                <h3 className="font-bold text-body text-ink">
+                  About {subject.name} Preparation
+                </h3>
+              </div>
+              <ul className="space-y-3 text-small text-ink-muted">
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Strict alignment with latest CBSE &amp; ICSE marking scheme</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Previous 10 years board examination problems solved</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                  <span>Free formula and theorem summary sheets</span>
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Free formula and theorem summary revision sheets</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Weekly classroom doubt-clearing sessions in Mathura</span>
                 </li>
               </ul>
+
+              <div className="pt-2">
+                <Link
+                  href="/batches"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-surface-subtle hover:bg-primary hover:text-white border border-border/80 font-semibold text-small text-ink transition-all group"
+                >
+                  <span>Explore Coaching Batches</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

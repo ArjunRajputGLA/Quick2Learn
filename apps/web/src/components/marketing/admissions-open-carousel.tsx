@@ -28,7 +28,7 @@ export function AdmissionsOpenCarousel({
             <BatchCard
               key={batch.id}
               id={batch.id}
-              title={batch.title}
+              title={batch.title?.replace(/\s*\[PLACEHOLDER\]/gi, "")}
               grade={batch.grade}
               board={batch.board}
               facultyName={batch.facultyName}

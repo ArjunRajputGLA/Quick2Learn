@@ -11,7 +11,7 @@ export function BreadcrumbsPlacement({ items, className }: BreadcrumbsPlacementP
 
   return (
     <div className={cn("border-b border-border bg-surface-subtle/50 py-3", className)}>
-      <div className="container mx-auto px-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <Breadcrumbs items={items} />
       </div>
     </div>

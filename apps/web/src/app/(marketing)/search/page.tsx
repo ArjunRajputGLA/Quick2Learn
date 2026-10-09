@@ -75,7 +75,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         ]}
       />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Search Input Bar */}
         <div className="max-w-3xl mb-8 space-y-4">
           <h1 className="text-display font-extrabold tracking-tight text-ink">

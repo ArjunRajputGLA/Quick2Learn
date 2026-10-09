@@ -228,6 +228,22 @@ export function SearchTypeahead({
     }
   };
 
+  // Global keyboard shortcut: Cmd+K / Ctrl+K focuses the search input
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        if (query.trim().length >= 2 && data) {
+          setIsOpen(true);
+        }
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [query, data]);
+
   const hasResults =
     data &&
     (data.lectures.length > 0 || data.batches.length > 0 || data.chapters.length > 0);
@@ -237,18 +253,14 @@ export function SearchTypeahead({
       ref={containerRef}
       className={cn("relative w-full max-w-lg", className)}
     >
-      {/* Pill-shaped search form */}
+      {/* Pill-shaped search form matching Coursera's exact styling */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           executeSearch(query);
         }}
-        className="relative flex items-center w-full"
+        className="relative flex items-center w-full group"
       >
-        <div className="pointer-events-none absolute left-3.5 text-ink-muted">
-          <Search className="h-4 w-4" />
-        </div>
-
         <input
           ref={inputRef}
           type="search"
@@ -261,14 +273,14 @@ export function SearchTypeahead({
           }}
           onKeyDown={handleKeyDown}
           autoFocus={autoFocus}
-          placeholder="Search lectures, batches, chapters..."
+          placeholder="What do you want to learn?"
           aria-label="Search Quick2Learn"
           aria-expanded={isOpen}
           aria-autocomplete="list"
           role="combobox"
           className={cn(
-            "h-10 w-full rounded-full border border-border bg-surface pl-10 pr-20 text-small text-ink placeholder:text-ink-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-card hover:shadow-card-hover",
-            isMobileModal && "h-12 text-body pl-11 pr-24",
+            "h-11 w-full rounded-full border border-gray-300 bg-surface pl-5 pr-14 text-small text-ink placeholder:text-ink-muted focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-xs hover:border-gray-400",
+            isMobileModal && "h-12 text-body pl-5 pr-20",
           )}
         />
 
@@ -287,7 +299,7 @@ export function SearchTypeahead({
                 inputRef.current?.focus();
               }}
               aria-label="Clear search input"
-              className="p-1 rounded-full text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors cursor-pointer"
+              className="p-1 rounded-full text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors cursor-pointer mr-0.5"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -296,9 +308,9 @@ export function SearchTypeahead({
           <button
             type="submit"
             aria-label="Submit search"
-            className="h-7 w-7 rounded-full bg-primary text-surface flex items-center justify-center hover:bg-primary-hover transition-colors shadow-xs cursor-pointer"
+            className="h-8 w-8 rounded-full bg-primary text-surface flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all shadow-xs cursor-pointer"
           >
-            <Search className="h-3.5 w-3.5" />
+            <Search className="h-4 w-4 stroke-[2.2]" />
           </button>
         </div>
       </form>
@@ -307,7 +319,7 @@ export function SearchTypeahead({
       {isOpen && query.trim().length >= 2 && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full mt-2 z-50 rounded-lg border border-border bg-surface shadow-xl overflow-hidden max-h-[75vh] overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-150"
+          className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl border border-border bg-surface shadow-2xl overflow-hidden max-h-[75vh] overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-150"
         >
           {hasResults ? (
             <div className="divide-y divide-border">

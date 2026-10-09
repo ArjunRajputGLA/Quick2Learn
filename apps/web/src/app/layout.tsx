@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@/components/analytics";
+import { SmoothScrollLimiter } from "@/components/layout/smooth-scroll";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -85,6 +86,7 @@ export default function RootLayout({
         {children}
         <Toaster />
         <Analytics />
+        <SmoothScrollLimiter />
       </body>
     </html>
   );

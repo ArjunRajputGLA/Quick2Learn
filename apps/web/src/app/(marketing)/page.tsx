@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import {
   getCachedSiteSettings,
-  getCachedLatestVideo,
   getCachedPopularVideos,
   getCachedOpenBatches,
   getCachedPickYourClassData,
@@ -9,10 +8,13 @@ import {
   getCachedResults,
   getCachedTestimonials,
 } from "@/server/data/cached-home";
-import { HeroSection, type HeroSectionProps } from "@/components/marketing/hero-section";
-import type { HeroTilesConfig } from "@/components/marketing/hero-carousel";
+import {
+  HeroBannerCarousel,
+  type HeroBannerSlide,
+  type HeroPromotionalCard,
+} from "@/components/marketing/hero-banner-carousel";
 import { AchievementsStrip, type AchievementItem } from "@/components/marketing/achievements-strip";
-import { NewAndPopularTabs } from "@/components/marketing/new-and-popular-tabs";
+import { NewAndPopularGrid } from "@/components/marketing/new-and-popular-grid";
 import { AdmissionsOpenCarousel } from "@/components/marketing/admissions-open-carousel";
 import { PickYourClass } from "@/components/marketing/pick-your-class";
 import { ExploreTopicsChips, type PopularTopicItem } from "@/components/marketing/explore-topics-chips";
@@ -60,11 +62,50 @@ interface ContactConfig {
   email?: string;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Default hero banner slides (Coursera-style)                        */
+/* ------------------------------------------------------------------ */
+
+const defaultHeroBannerSlides: HeroBannerSlide[] = [
+  {
+    id: "slide-maths",
+    headline: "Master Mathematics with 25+ years of teaching legacy",
+    description:
+      "Courses and coaching from Dinesh Sir — for every board, every class, every chapter. CBSE & ICSE Classes IX–XII.",
+    ctaText: "Explore lectures",
+    ctaHref: "/lectures",
+    imageUrl: "/images/hero/banner-math.jpg",
+    imageAlt:
+      "Dinesh Sir teaching mathematics on a whiteboard with equations and geometric diagrams",
+  },
+  {
+    id: "slide-science",
+    headline: "Chemistry & Biology made crystal clear",
+    description:
+      "Concept-first approach by Namita Ma'am. Lab demonstrations, structured notes, and board-ready question practice.",
+    ctaText: "Explore science lectures",
+    ctaHref: "/lectures?subject=chemistry",
+    imageUrl: "/images/hero/banner-science.jpg",
+    imageAlt:
+      "Namita Ma'am demonstrating chemistry experiments with molecular models in the lab",
+  },
+];
+
+const defaultPromoCard: HeroPromotionalCard = {
+  eyebrow: "Quick2Learn Results",
+  title: "100/100 in Board Maths — proven year after year",
+  description:
+    "Join the institute that has produced top ranks in Mathura for over two decades. Reserve your seat for the 2026–27 session.",
+  ctaText: "Reserve seat",
+  ctaHref: "/batches",
+  imageUrl: "/images/hero/promo-results.jpg",
+  imageAlt: "Happy students celebrating outstanding board exam results",
+};
+
 export default async function MarketingHomePage() {
   // Fetch all cached data concurrently on the server
   const [
     allSettings,
-    latestVideo,
     latestVideos,
     mostWatchedVideos,
     boardExamVideos,
@@ -75,7 +116,6 @@ export default async function MarketingHomePage() {
     testimonials,
   ] = await Promise.all([
     getCachedSiteSettings(),
-    getCachedLatestVideo(),
     getCachedPopularVideos("latest", 8),
     getCachedPopularVideos("most_watched", 8),
     getCachedPopularVideos("board_exam", 8),
@@ -86,8 +126,6 @@ export default async function MarketingHomePage() {
     getCachedTestimonials(),
   ]);
 
-  const heroSettings = (allSettings.hero as HeroSectionProps["heroSettings"]) || null;
-  const heroTilesSettings = (allSettings.hero_tiles as HeroTilesConfig) || null;
   const achievements = (allSettings.achievements as AchievementItem[]) || null;
   const popularTopics = (allSettings.popular_topics as PopularTopicItem[]) || null;
   const whatBringsYouHere = (allSettings.what_brings_you_here as GoalConfig[]) || null;
@@ -96,8 +134,12 @@ export default async function MarketingHomePage() {
   const closingBand = (allSettings.closing_band as ClosingBandConfig) || null;
   const contact = (allSettings.contact as ContactConfig) || null;
 
+  // Build hero banner slides from site_settings or use defaults
+  const heroBannerSlides =
+    (allSettings.hero_banner_slides as HeroBannerSlide[]) || defaultHeroBannerSlides;
+  const heroPromoCard =
+    (allSettings.hero_promo_card as HeroPromotionalCard) || defaultPromoCard;
 
-  const featuredBatch = openBatches.find((b) => b.slug === heroTilesSettings?.featured_batch_slug) || openBatches[0] || null;
 
   const organizationLd = {
     "@context": "https://schema.org",
@@ -110,7 +152,7 @@ export default async function MarketingHomePage() {
         url: "https://quick2learn.in",
         description:
           "Mathura's premier coaching institute for CBSE & ICSE/ISC Classes 9 to 12. Founded by Dinesh Singh Rajput (25+ years experience in Mathematics).",
-        telephone: contact?.phone || "+91-9897000000",
+        telephone: contact?.phone || "+91 76688 75809",
         email: contact?.email || "contact@quick2learn.in",
         priceRange: "₹₹",
         address: {
@@ -142,22 +184,21 @@ export default async function MarketingHomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
       />
-      {/* 1. Hero: H1, supporting line, CTAs, 3-tile carousel (bg-surface) */}
-      <HeroSection
-        heroSettings={heroSettings}
-        heroTilesSettings={heroTilesSettings}
-        latestLecture={latestVideo}
-        featuredBatch={featuredBatch}
+      {/* 1. Hero: Coursera-style banner carousel (left) + promo card (right) */}
+      <HeroBannerCarousel
+        slides={heroBannerSlides}
+        promoCard={heroPromoCard}
       />
 
       {/* 2. Achievements strip from site_settings.achievements (bg-surface-subtle) */}
       <AchievementsStrip items={achievements} />
 
-      {/* 3. "New and popular": tabs Latest / Most watched / Board exam prep (bg-surface) */}
-      <NewAndPopularTabs
+      {/* 3. "New and popular": Coursera-style 3-column grid (bg-surface) */}
+      <NewAndPopularGrid
         latestVideos={latestVideos}
         mostWatchedVideos={mostWatchedVideos}
         boardExamVideos={boardExamVideos}
+        openBatches={openBatches}
       />
 
       {/* 4. "Admissions open": CardCarousel of BatchCards where status = open (bg-surface-subtle) */}
@@ -208,7 +249,7 @@ export default async function MarketingHomePage() {
         subtitle={closingBand?.subtitle}
         enquireButtonText={closingBand?.enquire_button_text}
         whatsappButtonText={closingBand?.whatsapp_button_text}
-        whatsappPhone={contact?.whatsapp || "+91-9897000000"}
+        whatsappPhone={contact?.whatsapp || "+91 76688 75809"}
       />
     </div>
   );

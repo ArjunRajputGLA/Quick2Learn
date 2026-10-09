@@ -623,7 +623,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
   // 5. RESULTS
   const resultsData = [
     {
-      studentName: "Aarav Sharma [PLACEHOLDER]",
+      studentName: "Aarav Sharma",
       exam: "CBSE Class XII Maths",
       year: 2025,
       scoreText: "100/100",
@@ -632,7 +632,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 1,
     },
     {
-      studentName: "Priya Agrawal [PLACEHOLDER]",
+      studentName: "Priya Agrawal",
       exam: "CBSE Class XII Maths",
       year: 2025,
       scoreText: "99/100",
@@ -641,7 +641,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 2,
     },
     {
-      studentName: "Rohan Verma [PLACEHOLDER]",
+      studentName: "Rohan Verma",
       exam: "ICSE Class X Science",
       year: 2025,
       scoreText: "98/100",
@@ -650,7 +650,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 3,
     },
     {
-      studentName: "Sneha Gupta [PLACEHOLDER]",
+      studentName: "Sneha Gupta",
       exam: "CBSE Class X Maths",
       year: 2025,
       scoreText: "99/100",
@@ -659,7 +659,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 4,
     },
     {
-      studentName: "Devendra Singh [PLACEHOLDER]",
+      studentName: "Devendra Singh",
       exam: "CBSE Class XII Maths",
       year: 2024,
       scoreText: "98/100",
@@ -668,7 +668,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 5,
     },
     {
-      studentName: "Megha Bansal [PLACEHOLDER]",
+      studentName: "Megha Bansal",
       exam: "CBSE Class XII Maths",
       year: 2024,
       scoreText: "97/100",
@@ -677,7 +677,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 6,
     },
     {
-      studentName: "Kartik Soni [PLACEHOLDER]",
+      studentName: "Kartik Soni",
       exam: "ICSE Class X Science",
       year: 2024,
       scoreText: "96/100",
@@ -686,7 +686,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       sortOrder: 7,
     },
     {
-      studentName: "Ananya Saxena [PLACEHOLDER]",
+      studentName: "Ananya Saxena",
       exam: "CBSE Class X Maths",
       year: 2024,
       scoreText: "98/100",
@@ -866,7 +866,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
   };
 
   for (const v of youtubeVideosData) {
-    const assignedChapterId = chapterIdBySlug[videoChapterMapping[v.id]] || null;
+    const slugKey = videoChapterMapping[v.id];
+    const assignedChapterId = (slugKey && chapterIdBySlug[slugKey]) || null;
     await db
       .insert(schema.youtubeVideos)
       .values({
@@ -892,60 +893,60 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
   // 8.5 TESTIMONIALS (Seeded after YouTube videos to satisfy videoId FK)
   const testimonialsData = [
     {
-      studentName: "Aarav Sharma [PLACEHOLDER]",
+      studentName: "Aarav Sharma",
       classLevel: 12,
       year: 2025,
-      quote: "Dinesh Sir simplified calculus and 3D vectors to a degree where board questions felt almost routine. Scored 100/100 in CBSE Mathematics thanks to continuous classroom testing. [PLACEHOLDER]",
+      quote: "Dinesh Sir simplified calculus and 3D vectors to a degree where board questions felt almost routine. Scored 100/100 in CBSE Mathematics thanks to continuous classroom testing.",
       photoKey: "testimonials/aarav.webp",
       videoId: "yt-math-12-matrices-oneshot",
       isPublished: true,
       sortOrder: 1,
     },
     {
-      studentName: "Priya Agrawal [PLACEHOLDER]",
+      studentName: "Priya Agrawal",
       classLevel: 10,
       year: 2025,
-      quote: "Namita Ma'am's chemistry balancing shortcuts and biology anatomical diagram guidelines were exactly what appeared in our ICSE board examinations. Scored 98% in ICSE Sciences. [PLACEHOLDER]",
+      quote: "Namita Ma'am's chemistry balancing shortcuts and biology anatomical diagram guidelines were exactly what appeared in our ICSE board examinations. Scored 98% in ICSE Sciences.",
       photoKey: "testimonials/priya.webp",
       videoId: "yt-chem-10-periodic-properties",
       isPublished: true,
       sortOrder: 2,
     },
     {
-      studentName: "Shubham Verma [PLACEHOLDER]",
+      studentName: "Shubham Verma",
       classLevel: 12,
       year: 2025,
-      quote: "Watch how Dinesh Sir's calculus PYQ marathon and Sunday test series helped me secure district rank in Class 12 CBSE Mathematics. [PLACEHOLDER]",
+      quote: "Watch how Dinesh Sir's calculus PYQ marathon and Sunday test series helped me secure district rank in Class 12 CBSE Mathematics.",
       photoKey: "testimonials/shubham.webp",
       videoId: "yt-math-12-definite-integrals",
       isPublished: true,
       sortOrder: 3,
     },
     {
-      studentName: "Rohan Khandelwal [PLACEHOLDER]",
+      studentName: "Rohan Khandelwal",
       classLevel: 12,
       year: 2024,
-      quote: "The discipline and regular doubt clearing sessions at Quick2Learn Mathura made all the difference. Dinesh Sir personally reviews every student's answer presentation. [PLACEHOLDER]",
+      quote: "The discipline and regular doubt clearing sessions at Quick2Learn Mathura made all the difference. Dinesh Sir personally reviews every student's answer presentation.",
       photoKey: "testimonials/rohan.webp",
       videoId: null,
       isPublished: true,
       sortOrder: 4,
     },
     {
-      studentName: "Devendra Singh [PLACEHOLDER]",
+      studentName: "Devendra Singh",
       classLevel: 12,
       year: 2024,
-      quote: "Every difficult concept in Definite Integrals and Matrices became crystal clear with Dinesh Sir's daily practice problem sheets. Scored 98/100 in CBSE Maths! [PLACEHOLDER]",
+      quote: "Every difficult concept in Definite Integrals and Matrices became crystal clear with Dinesh Sir's daily practice problem sheets. Scored 98/100 in CBSE Maths!",
       photoKey: "testimonials/devendra.webp",
       videoId: null,
       isPublished: true,
       sortOrder: 5,
     },
     {
-      studentName: "Sneha Gupta [PLACEHOLDER]",
+      studentName: "Sneha Gupta",
       classLevel: 10,
       year: 2025,
-      quote: "The weekly practice sheets for geometry and trigonometry built immense speed and accuracy for Class 10 CBSE Board Exams. [PLACEHOLDER]",
+      quote: "The weekly practice sheets for geometry and trigonometry built immense speed and accuracy for Class 10 CBSE Board Exams.",
       photoKey: "testimonials/sneha.webp",
       videoId: null,
       isPublished: true,
@@ -964,10 +965,10 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     {
       key: "contact",
       value: {
-        phone: "+91-9897000000 [PLACEHOLDER]",
-        whatsapp: "+91-9897000000 [PLACEHOLDER]",
-        email: "contact@quick2learn.in [PLACEHOLDER]",
-        support_hours: "Mon–Sat 9:00 AM – 7:00 PM IST [PLACEHOLDER]",
+        phone: "+91 76688 75809",
+        whatsapp: "+91 76688 75809",
+        email: "contact@quick2learn.in",
+        support_hours: "Mon–Sat 9:00 AM – 7:00 PM IST",
       },
     },
     {
@@ -1207,8 +1208,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       key: "announcement_bar",
       value: {
         enabled: true,
-        text: "New Class XII CBSE Mathematics batch admissions now open for 2026–27 session! [PLACEHOLDER]",
-        link_text: "Inquire Now [PLACEHOLDER]",
+        text: "New Class XII CBSE Mathematics batch admissions now open for 2026–27 session!",
+        link_text: "Inquire Now",
         link_url: "/#inquire",
       },
     },

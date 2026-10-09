@@ -149,6 +149,8 @@ export function LoginForm() {
     }
   };
 
+  const isAdmin = searchParams.get("admin") === "true" || (nextParam ? nextParam.startsWith("/admin") : false);
+
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="border-border bg-surface shadow-card hover:shadow-card-hover">
@@ -157,10 +159,12 @@ export function LoginForm() {
             <ShieldCheck className="h-6 w-6" />
           </div>
           <CardTitle className="text-h2 font-bold text-ink">
-            {mode === "signup" ? "Create your free account" : "Welcome back"}
+            {isAdmin ? "Staff & Admin Portal" : mode === "signup" ? "Create your free account" : "Welcome back"}
           </CardTitle>
           <CardDescription className="text-body text-ink-muted">
-            {mode === "signup"
+            {isAdmin
+              ? "Sign in to manage Quick2Learn batches, results, and student inquiries."
+              : mode === "signup"
               ? "Join Quick2Learn for CBSE & ICSE Classes IX–XII."
               : "Sign in with Google or your email verification code."}
           </CardDescription>
@@ -319,27 +323,33 @@ export function LoginForm() {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4 border-t border-border pt-4 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              const newMode = mode === "login" ? "signup" : "login";
-              setMode(newMode);
-              setErrorMsg(null);
-            }}
-            className="text-small text-ink-muted hover:text-primary transition-colors"
-          >
-            {mode === "login" ? (
-              <>
-                New to Quick2Learn?{" "}
-                <span className="font-semibold text-primary underline">Join for Free</span>
-              </>
-            ) : (
-              <>
-                Already have an account?{" "}
-                <span className="font-semibold text-primary underline">Log in</span>
-              </>
-            )}
-          </button>
+          {isAdmin ? (
+            <p className="text-caption text-ink-muted">
+              Staff &amp; Administrative portal. Self-service student registration is disabled.
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                const newMode = mode === "login" ? "signup" : "login";
+                setMode(newMode);
+                setErrorMsg(null);
+              }}
+              className="text-small text-ink-muted hover:text-primary transition-colors"
+            >
+              {mode === "login" ? (
+                <>
+                  New to Quick2Learn?{" "}
+                  <span className="font-semibold text-primary underline">Join for Free</span>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <span className="font-semibold text-primary underline">Log in</span>
+                </>
+              )}
+            </button>
+          )}
 
           <Link href="/" className="inline-flex items-center justify-center gap-1 text-caption text-ink-muted hover:text-ink">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Quick2Learn Homepage

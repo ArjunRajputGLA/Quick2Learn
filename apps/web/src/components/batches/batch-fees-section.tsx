@@ -7,7 +7,8 @@ import type { BatchFeePlanItem } from "@/server/data/batches";
 interface BatchFeesSectionProps {
   isOpen: boolean;
   feePlans: BatchFeePlanItem[];
-  enrollBaseHref: string;
+  enrollBaseHref?: string;
+  onOpenEnquiry?: () => void;
   onOpenWaitlist?: () => void;
 }
 
@@ -15,6 +16,7 @@ export function BatchFeesSection({
   isOpen,
   feePlans,
   enrollBaseHref,
+  onOpenEnquiry,
   onOpenWaitlist,
 }: BatchFeesSectionProps) {
   if (!feePlans || feePlans.length === 0) {
@@ -135,13 +137,24 @@ export function BatchFeesSection({
             {/* CTA Button */}
             <div className="pt-6 mt-6 border-t border-border">
               {isOpen ? (
-                <Link
-                  href={`${enrollBaseHref}?plan=${plan.id}`}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-small font-bold text-surface shadow-xs hover:bg-primary-hover active:scale-98 transition-all"
-                >
-                  <span>Enroll with this plan</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                onOpenEnquiry ? (
+                  <button
+                    type="button"
+                    onClick={onOpenEnquiry}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-small font-bold text-surface shadow-xs hover:bg-primary-hover active:scale-98 transition-all cursor-pointer"
+                  >
+                    <span>Inquire for this plan</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <Link
+                    href={`${enrollBaseHref || ""}?plan=${plan.id}`}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-small font-bold text-surface shadow-xs hover:bg-primary-hover active:scale-98 transition-all"
+                  >
+                    <span>Enroll with this plan</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )
               ) : (
                 <button
                   type="button"

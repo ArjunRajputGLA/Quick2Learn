@@ -19,16 +19,18 @@ export interface LectureCardProps {
 }
 
 export function LectureCard({
-  title,
+  title: rawTitle,
   thumbnailUrl,
   duration,
   gradeAndSubject,
-  faculty,
+  faculty: rawFaculty,
   views,
   publishedAt,
   href = "#",
   className,
 }: LectureCardProps) {
+  const title = rawTitle?.replace(/\s*\[PLACEHOLDER\]/gi, "") || "";
+  const faculty = rawFaculty?.replace(/\s*\[PLACEHOLDER\]/gi, "") || "";
   return (
     <div
       className={cn(

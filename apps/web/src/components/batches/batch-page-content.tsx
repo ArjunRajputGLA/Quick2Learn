@@ -227,13 +227,14 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
 
             <div className="flex flex-wrap items-center gap-3">
               {isOpen ? (
-                <NextLink
-                  href={enrollHref}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3.5 text-body font-bold text-surface shadow-md hover:bg-primary-hover active:scale-98 transition-all"
+                <button
+                  type="button"
+                  onClick={handleOpenEnquiry}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3.5 text-body font-bold text-surface shadow-md hover:bg-primary-hover active:scale-98 transition-all cursor-pointer"
                 >
-                  <span>Enroll now — {formatINR(primaryPricePaise)}</span>
+                  <span>Inquire for Admission — {formatINR(primaryPricePaise)}</span>
                   <ArrowRight className="h-4 w-4" />
-                </NextLink>
+                </button>
               ) : (
                 <button
                   type="button"
@@ -251,7 +252,7 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3.5 text-body font-semibold text-ink hover:bg-surface-subtle active:scale-98 transition-all cursor-pointer shadow-xs"
               >
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <span>Enquire</span>
+                <span>Request Callback</span>
               </button>
             </div>
           </div>
@@ -508,6 +509,7 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
             isOpen={isOpen}
             feePlans={feePlans}
             enrollBaseHref={enrollHref}
+            onOpenEnquiry={handleOpenEnquiry}
             onOpenWaitlist={handleOpenWaitlist}
           />
         </section>
@@ -605,6 +607,7 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
         pricePaise={primaryPricePaise}
         isOpen={isOpen}
         enrollHref={enrollHref}
+        onOpenEnquiry={handleOpenEnquiry}
         onOpenWaitlist={handleOpenWaitlist}
       />
 

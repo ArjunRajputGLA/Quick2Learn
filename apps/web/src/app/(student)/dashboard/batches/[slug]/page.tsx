@@ -376,7 +376,7 @@ export default async function StudentBatchClassroomPage({ params }: BatchPagePro
               For batch timetable queries, fee payments, or sick-leave classroom sync, visit the institute office or message Dinesh Sir on WhatsApp.
             </p>
             <a
-              href="https://wa.me/919897000000"
+              href="https://wa.me/917668875809"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-caption font-semibold text-primary hover:underline"

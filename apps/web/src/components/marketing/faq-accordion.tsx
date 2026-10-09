@@ -35,10 +35,10 @@ export function FaqAccordion({ faqs }: FaqAccordionProps) {
           {faqs.map((faq, idx) => (
             <AccordionItem key={idx} value={`faq-${idx}`}>
               <AccordionTrigger itemValue={`faq-${idx}`} className="text-body font-semibold">
-                {faq.question}
+                {faq.question?.replace(/\s*\[PLACEHOLDER\]/gi, "")}
               </AccordionTrigger>
               <AccordionContent itemValue={`faq-${idx}`}>
-                {faq.answer}
+                {faq.answer?.replace(/\s*\[PLACEHOLDER\]/gi, "")}
               </AccordionContent>
             </AccordionItem>
           ))}

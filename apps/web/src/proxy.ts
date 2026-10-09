@@ -1,22 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
 
-const protectedPrefixes = ["/dashboard", "/checkout", "/admin"];
+const disabledPrefixes = [
+  "/admin",
+  "/login",
+  "/dashboard",
+  "/checkout",
+  "/onboarding",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtected = protectedPrefixes.some(
+  const isDisabled = disabledPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
-  if (isProtected) {
-    const sessionCookie = getSessionCookie(request);
-    if (!sessionCookie) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  if (isDisabled) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next({

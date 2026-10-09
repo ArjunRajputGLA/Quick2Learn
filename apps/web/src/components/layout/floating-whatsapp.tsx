@@ -5,7 +5,7 @@ interface FloatingWhatsAppProps {
 }
 
 export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
-  const rawNumber = whatsappNumber || "+91-9897000000";
+  const rawNumber = whatsappNumber || "+91 76688 75809";
   const cleanNumber = rawNumber.replace(/[^0-9]/g, "");
   const defaultText = encodeURIComponent("Hi, I want to know about Quick2Learn batches");
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${defaultText}`;

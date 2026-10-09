@@ -58,7 +58,7 @@ export function AchievementsStrip({ items }: AchievementsStripProps) {
                   <Icon className="h-5 w-5" />
                 </div>
                 <p className="text-small font-semibold text-ink leading-snug">
-                  {item.text}
+                  {item.text?.replace(/\s*\[PLACEHOLDER\]/gi, "")}
                 </p>
               </div>
             );

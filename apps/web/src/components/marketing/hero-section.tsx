@@ -32,7 +32,7 @@ export function HeroSection({
     heroSettings?.subheadline ||
     "Master Class IX–XII Mathematics, Chemistry and Biology with conceptual clarity, Kota-level rigor, and 25+ years of trusted teaching legacy in Mathura.";
   const primaryCtaText = heroSettings?.primary_cta_text || "Join for Free";
-  const primaryCtaHref = heroSettings?.primary_cta_href || "/register";
+  const primaryCtaHref = heroSettings?.primary_cta_href || "/batches";
   const secondaryCtaText = heroSettings?.secondary_cta_text || "Explore free lectures";
   const secondaryCtaHref = heroSettings?.secondary_cta_href || "/#lectures";
 

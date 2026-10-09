@@ -1,8 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { AuthNav } from "./auth-nav";
+import { Bot } from "lucide-react";
 import { MegaMenu } from "./mega-menu";
 import { SearchTypeahead } from "./search-typeahead";
 import { MobileNav } from "./mobile-nav";
+import { EnquiryDialog } from "@/components/marketing/enquiry-dialog";
+import { AiVoicebotDialog } from "./ai-voicebot-dialog";
 import { type MegaMenuData } from "@/server/data/catalog";
 
 interface HeaderProps {
@@ -10,61 +15,99 @@ interface HeaderProps {
 }
 
 export function Header({ megaMenuData }: HeaderProps) {
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
+  const [isVoicebotOpen, setIsVoicebotOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/98 backdrop-blur-md">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Left: Wordmark Logo & Explore Mega-Menu Button */}
-          <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 group select-none"
-              aria-label="Quick2Learn Home"
-            >
-              <span className="font-extrabold text-h3 tracking-tight text-ink group-hover:opacity-95 transition-opacity">
-                Quick<span className="text-primary">2</span>Learn
-              </span>
-            </Link>
-
-            {/* Desktop Explore Mega-Menu */}
-            <div className="hidden lg:block">
-              <MegaMenu data={megaMenuData} />
-            </div>
-          </div>
-
-          {/* Centre: Pill-shaped Search Input with Typeahead (Desktop) */}
-          <div className="hidden lg:flex flex-1 justify-center max-w-lg mx-4">
-            <SearchTypeahead className="w-full" />
-          </div>
-
-          {/* Right: Navigation Links & Auth State */}
-          <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-            {/* Desktop Quick Nav Links */}
-            <nav className="hidden lg:flex items-center gap-5">
+    <>
+      {/* Main Sticky Navigation Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-4 xl:gap-8">
+            {/* Left: Logo + Explore ⌵ + Batches / Free Lectures */}
+            <div className="flex items-center gap-6 xl:gap-8 shrink-0">
+              {/* Wordmark Logo */}
               <Link
-                href="/batches"
-                className="text-small font-medium text-ink hover:text-primary transition-colors"
+                href="/"
+                className="select-none flex items-center group"
+                aria-label="Quick2Learn Home"
               >
-                Batches
+                <span className="font-extrabold text-[24px] sm:text-[26px] tracking-tight text-primary transition-opacity group-hover:opacity-90">
+                  Quick<span className="text-primary">2</span>Learn
+                </span>
               </Link>
-              <Link
-                href="/lectures"
-                className="text-small font-medium text-ink hover:text-primary transition-colors"
-              >
-                Free Lectures
-              </Link>
-            </nav>
 
-            {/* Desktop Auth State */}
-            <div className="hidden lg:block">
-              <AuthNav />
+              {/* Desktop Explore ⌵ Dropdown */}
+              <div className="hidden lg:block">
+                <MegaMenu
+                  data={megaMenuData}
+                  onOpenEnquiry={() => setIsEnquiryOpen(true)}
+                />
+              </div>
+
+              {/* Desktop Quick Nav Links (Degrees removed, relevant Batches & Free Lectures kept) */}
+              <nav className="hidden lg:flex items-center gap-5">
+                <Link
+                  href="/batches"
+                  className="text-small font-medium text-ink hover:text-primary transition-colors"
+                >
+                  Batches
+                </Link>
+                <Link
+                  href="/lectures"
+                  className="text-small font-medium text-ink hover:text-primary transition-colors hidden xl:inline-block"
+                >
+                  Free Lectures
+                </Link>
+              </nav>
             </div>
 
-            {/* Mobile Actions: Search Trigger & Hamburger Sheet (< 1024px) */}
-            <MobileNav data={megaMenuData} />
+            {/* Centre: Centered Pill Search Input with Solid Blue Circular Button */}
+            <div className="hidden lg:flex flex-1 justify-center max-w-xl xl:max-w-2xl mx-2">
+              <SearchTypeahead className="w-full" />
+            </div>
+
+            {/* Right: AI Chatbot Button + Inquire Now Button + Staff Profile (if authenticated) */}
+            <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
+              {/* Minimalist AI Chatbot Icon Button */}
+              <button
+                type="button"
+                onClick={() => setIsVoicebotOpen(true)}
+                className="p-2 rounded-full text-ink-muted hover:text-primary hover:bg-surface-subtle transition-colors cursor-pointer"
+                aria-label="Open AI Chatbot"
+                title="AI Chatbot"
+              >
+                <Bot className="h-5 w-5" />
+              </button>
+
+              {/* Prominent Inquire Now CTA Button */}
+              <button
+                type="button"
+                onClick={() => setIsEnquiryOpen(true)}
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-surface font-semibold text-small hover:bg-primary-hover shadow-xs active:scale-98 transition-all cursor-pointer"
+              >
+                <span>Inquire Now</span>
+              </button>
+
+              {/* Mobile Actions: Search Trigger & Hamburger Sheet */}
+              <MobileNav
+                data={megaMenuData}
+                onOpenEnquiry={() => setIsEnquiryOpen(true)}
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Interactive AI Voicebot Dialog */}
+      <AiVoicebotDialog
+        open={isVoicebotOpen}
+        onOpenChange={setIsVoicebotOpen}
+        onOpenEnquiry={() => setIsEnquiryOpen(true)}
+      />
+
+      {/* Interactive Admissions Enquiry Dialog */}
+      <EnquiryDialog open={isEnquiryOpen} onOpenChange={setIsEnquiryOpen} />
+    </>
   );
 }

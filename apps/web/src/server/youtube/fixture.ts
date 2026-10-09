@@ -15,14 +15,14 @@ export const FIXTURE_PLAYLISTS: YouTubePlaylistItem[] = [
     id: "PLYAOIEphFVGauhO3NwPtrit5V8nilZqpz",
     title: "Chapter 3 Matrices Class 12",
     description: "Detailed video lectures and solved problems on Class 12 Matrices & Determinants by Dinesh Sir.",
-    thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
+    thumbnailUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80",
     itemCount: 12,
   },
   {
     id: "PLYAOIEphFVGYpxvA9MjgZO2-qadqGfOFY",
     title: "Real Numbers",
     description: "Class 10 CBSE Maths Chapter 1 Real Numbers concept clearing and theorem proofs.",
-    thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
+    thumbnailUrl: "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80",
     itemCount: 8,
   },
   {
@@ -464,14 +464,14 @@ export const FIXTURE_VIDEOS: YouTubeVideoItem[] = [
   },
   {
     id: "bu6Hmff0m0U",
-    title: "Class 12 CBSE Maths: Chapter 3 Matrices Complete Revision | Dinesh Sir",
-    description: "Everything you need for Matrices: Operations, Transpose, Symmetric, Skew Symmetric, and Inverse.",
+    title: "ICSE Class 9 Hindi: Sakhi (Kabir Das) Explanation & Notes | Namita Ma'am",
+    description: "Line-by-line explanation of Kabir Das Sakhi, word meanings, and ICSE Class 9 board question answers by Namita Ma'am.",
     publishedAt: new Date("2026-03-18T10:00:00Z"),
     durationSeconds: 4200, // 1h 10m
     thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
     viewCount: 14500,
     likeCount: 1320,
-    playlistIds: ["PLYAOIEphFVGauhO3NwPtrit5V8nilZqpz", "PLYAOIEphFVGaciO6WkPEjm5TLhMr9zfAV"],
+    playlistIds: ["PLYAOIEphFVGYGYLXAfp2cnDOzrOl-x5Bp"],
   },
   {
     id: "real-numbers-concept-lecture",
@@ -479,7 +479,7 @@ export const FIXTURE_VIDEOS: YouTubeVideoItem[] = [
     description: "Euclid's division lemma, fundamental theorem of arithmetic, and irrational proofs.",
     publishedAt: new Date("2026-03-20T11:00:00Z"),
     durationSeconds: 3800,
-    thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
+    thumbnailUrl: "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&auto=format&fit=crop&q=80",
     viewCount: 9800,
     likeCount: 840,
     playlistIds: ["PLYAOIEphFVGYpxvA9MjgZO2-qadqGfOFY"],

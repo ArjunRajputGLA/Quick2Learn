@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { getVideos } from "@/server/data/videos";
 import { BreadcrumbsPlacement } from "@/components/layout/breadcrumbs-placement";
-import { Badge } from "@/components/ui/badge";
 import { YouTubeIcon } from "@/components/ui/icons";
 import { INSTITUTE_INFO } from "@quick2learn/shared";
-import { Video, Clock, Eye, ThumbsUp, ExternalLink } from "lucide-react";
+import { ExternalLink, CheckCircle2 } from "lucide-react";
+import { LecturesCatalog } from "@/components/lectures/lectures-catalog";
 
 export const metadata: Metadata = {
   title: "Free Video Lectures — CBSE & ICSE Mathematics & Science | Quick2Learn",
@@ -37,111 +37,74 @@ export default async function LecturesPage() {
         ]}
       />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12">
-        <div className="max-w-3xl mb-8 space-y-3">
-          <Badge variant="primary" className="mb-1">
-            Free Video Lessons
-          </Badge>
-          <h1 className="text-display font-extrabold tracking-tight text-ink">
-            Official Quick2Learn Lectures
-          </h1>
-          <p className="text-body text-ink-muted">
-            Curated YouTube video lectures by Mr. Dinesh Singh Rajput (Senior Mathematics)
-            and Mrs. Namita Singh Rajput (ICSE Sciences) covering NCERT concepts, formulas,
-            and board previous year questions.
-          </p>
-          <div className="pt-1">
-            <a
-              href={INSTITUTE_INFO.youtube.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-small font-semibold text-danger hover:underline"
-            >
-              <YouTubeIcon className="h-4 w-4" />
-              <span>Subscribe on YouTube (@Quick2Learn)</span>
-              <ExternalLink className="h-3.5 w-3.5 opacity-70" />
-            </a>
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8">
+        {/* YouTube Channel Hero Showcase Card */}
+        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 border border-border/80 shadow-md text-white relative overflow-hidden">
+          {/* Subtle YouTube Crimson Glow Backdrop */}
+          <div className="absolute -right-20 -top-20 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="max-w-3xl space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-red-600 text-white shadow-xs">
+                  <YouTubeIcon className="h-3.5 w-3.5" />
+                  Free Video Lessons
+                </span>
+                <span className="text-caption font-semibold text-white/80">
+                  YouTube Official Portal • NCERT &amp; Board PYQs
+                </span>
+              </div>
+
+              <h1 className="text-display font-extrabold tracking-tight text-white leading-tight">
+                Official Quick2Learn Lectures
+              </h1>
+
+              <p className="text-body text-white/75 leading-relaxed max-w-2xl">
+                Curated video lessons taught by Mr. Dinesh Singh Rajput (25+ yrs Senior Mathematics)
+                and Mrs. Namita Singh Rajput (ICSE Sciences). Learn complex calculus proofs, trigonometry tricks,
+                and board exam questions at zero cost.
+              </p>
+
+              {/* Channel Advantages */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-small text-white/85">
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  CBSE &amp; ICSE Classes IX–XII
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  Formula &amp; Proof Breakdowns
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  Board Exam Marathons
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  100% Free on YouTube
+                </span>
+              </div>
+            </div>
+
+            {/* Subscribe Action Button */}
+            <div className="shrink-0 pt-2 lg:pt-0">
+              <a
+                href={INSTITUTE_INFO.youtube.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#FF0000] hover:bg-[#D90000] text-white font-bold text-small shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 select-none"
+              >
+                <YouTubeIcon className="h-5 w-5" />
+                <span>Subscribe on YouTube (@Quick2Learn)</span>
+                <ExternalLink className="h-4 w-4 opacity-80" />
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videoList.map((v) => (
-            <div
-              key={v.id}
-              className="rounded-lg border border-border bg-surface overflow-hidden shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between"
-            >
-              <div>
-                {/* Video Thumbnail Header */}
-                <div className="relative aspect-video bg-surface-subtle overflow-hidden border-b border-border">
-                  {v.thumbnailUrl ? (
-                    <img
-                      src={v.thumbnailUrl}
-                      alt={v.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-ink-muted">
-                      <Video className="h-10 w-10 text-primary/40" />
-                    </div>
-                  )}
-                  {v.durationSeconds > 0 && (
-                    <span className="absolute bottom-2 right-2 rounded bg-ink/80 px-1.5 py-0.5 text-[11px] font-semibold text-surface flex items-center gap-1 backdrop-blur-xs">
-                      <Clock className="h-3 w-3" />
-                      {Math.floor(v.durationSeconds / 60)}:
-                      {String(v.durationSeconds % 60).padStart(2, "0")}
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    {v.classLevel && (
-                      <Badge variant="primary" className="text-[10px]">
-                        Class {v.classLevel}
-                      </Badge>
-                    )}
-                    <div className="flex items-center gap-3 text-caption text-ink-muted">
-                      {v.viewCount > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {v.viewCount.toLocaleString()}
-                        </span>
-                      )}
-                      {v.likeCount > 0 && (
-                        <span className="flex items-center gap-1">
-                          <ThumbsUp className="h-3 w-3" />
-                          {v.likeCount.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <h2 className="font-semibold text-body text-ink line-clamp-2 leading-snug">
-                    {v.title}
-                  </h2>
-
-                  {v.description && (
-                    <p className="text-caption text-ink-muted line-clamp-2">
-                      {v.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-4 pt-0">
-                <a
-                  href={`https://www.youtube.com/watch?v=${v.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-primary-soft text-primary font-semibold text-small hover:bg-primary hover:text-surface transition-colors"
-                >
-                  <YouTubeIcon className="h-4 w-4" />
-                  <span>Watch on YouTube</span>
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Video Catalog with Live Search & Filtering */}
+        <LecturesCatalog initialVideos={videoList} />
       </div>
     </div>
   );

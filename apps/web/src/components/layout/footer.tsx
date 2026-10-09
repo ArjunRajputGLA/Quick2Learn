@@ -40,27 +40,35 @@ interface FooterProps {
 export function Footer({ settings }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
+  function cleanText(str?: string | null): string {
+    if (!str) return "";
+    return str.replace(/\s*\[PLACEHOLDER\]/gi, "").trim();
+  }
+
   // Contact details with defaults
-  const phone = settings?.contact?.phone || "+91-9897000000";
-  const rawWhatsApp = settings?.contact?.whatsapp || "+91-9897000000";
+  const phone = cleanText(settings?.contact?.phone) || "+91 76688 75809";
+  const rawWhatsApp = cleanText(settings?.contact?.whatsapp) || "+91 76688 75809";
   const cleanWhatsApp = rawWhatsApp.replace(/[^0-9]/g, "");
-  const email = settings?.contact?.email || "contact@quick2learn.in";
+  const email = cleanText(settings?.contact?.email) || "contact@quick2learn.in";
 
   // Address
   const addressLine =
-    settings?.address?.line1 || "Near BSA College Road, Mathura City";
-  const cityState = `${settings?.address?.city || "Mathura"}, ${settings?.address?.state || "Uttar Pradesh"} ${settings?.address?.pincode || "281001"}`;
+    cleanText(settings?.address?.line1) || "Near BSA College Road";
+  const rawCity = cleanText(settings?.address?.city) || "Mathura";
+  const rawState = cleanText(settings?.address?.state) || "Uttar Pradesh";
+  const rawPincode = cleanText(settings?.address?.pincode) || "281001";
+  const cityState = `${rawCity}, ${rawState} ${rawPincode}`;
 
   // Socials
   const youtubeUrl = settings?.socials?.youtube || INSTITUTE_INFO.youtube.url;
   const instagramUrl =
-    settings?.socials?.instagram || "https://instagram.com/quick2learn";
+    cleanText(settings?.socials?.instagram) || "https://instagram.com/quick2learn";
   const facebookUrl =
-    settings?.socials?.facebook || "https://facebook.com/quick2learn";
+    cleanText(settings?.socials?.facebook) || "https://facebook.com/quick2learn";
 
   return (
     <footer className="border-t border-border bg-surface-subtle text-ink-muted">
-      <div className="container mx-auto px-4 py-12 lg:py-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Main Grid: 4 Link Columns + Contact Block */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10 mb-12">
           {/* Column 1: Classes */}

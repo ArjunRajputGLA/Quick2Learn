@@ -7,7 +7,8 @@ import { ArrowRight, UserPlus } from "lucide-react";
 interface BatchMobileBarProps {
   pricePaise: number;
   isOpen: boolean;
-  enrollHref: string;
+  enrollHref?: string;
+  onOpenEnquiry?: () => void;
   onOpenWaitlist?: () => void;
 }
 
@@ -15,6 +16,7 @@ export function BatchMobileBar({
   pricePaise,
   isOpen,
   enrollHref,
+  onOpenEnquiry,
   onOpenWaitlist,
 }: BatchMobileBarProps) {
   return (
@@ -33,13 +35,24 @@ export function BatchMobileBar({
 
       <div className="shrink-0">
         {isOpen ? (
-          <Link
-            href={enrollHref}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-small font-bold text-surface shadow-md hover:bg-primary-hover active:scale-98 transition-all"
-          >
-            <span>Enroll now</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          onOpenEnquiry ? (
+            <button
+              type="button"
+              onClick={onOpenEnquiry}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-small font-bold text-surface shadow-md hover:bg-primary-hover active:scale-98 transition-all cursor-pointer"
+            >
+              <span>Inquire now</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <Link
+              href={enrollHref || ""}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-small font-bold text-surface shadow-md hover:bg-primary-hover active:scale-98 transition-all"
+            >
+              <span>Enroll now</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )
         ) : (
           <button
             type="button"

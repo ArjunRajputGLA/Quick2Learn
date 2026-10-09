@@ -28,12 +28,12 @@ const plugins = [
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; border: 1px solid #E5E7EB; border-radius: 12px; background: #ffffff;">
             <div style="margin-bottom: 24px; text-align: center;">
-              <h1 style="color: #4338CA; font-size: 24px; font-weight: 700; margin: 0;">Quick2Learn</h1>
+              <h1 style="color: #2563EB; font-size: 24px; font-weight: 700; margin: 0;">Quick2Learn</h1>
               <p style="color: #6B7280; font-size: 14px; margin-top: 4px;">Mathematics & Sciences Excellence</p>
             </div>
             <p style="font-size: 15px; color: #1F2937; margin-bottom: 12px;">Hello,</p>
             <p style="font-size: 15px; color: #1F2937; margin-bottom: 24px;">Use the verification code below to sign in to your Quick2Learn account:</p>
-            <div style="background-color: #EEF2FF; color: #4338CA; font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; padding: 18px 24px; border-radius: 8px; margin-bottom: 24px;">
+            <div style="background-color: #EFF6FF; color: #2563EB; font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; padding: 18px 24px; border-radius: 8px; margin-bottom: 24px;">
               ${otp}
             </div>
             <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin-bottom: 8px;">
