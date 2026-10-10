@@ -63,7 +63,7 @@ describe("Marketing Homepage & Enquiry Server Action Suite", () => {
     expect((settings.what_brings_you_here as any[]).length).toBe(4);
 
     expect(settings.headline_result).toBeDefined();
-    expect((settings.headline_result as any).value).toBe("98.4% [PLACEHOLDER]");
+    expect((settings.headline_result as any).value).toBe("98.4%");
 
     expect(Array.isArray(settings.faqs)).toBe(true);
     expect((settings.faqs as any[]).length).toBeGreaterThanOrEqual(4);

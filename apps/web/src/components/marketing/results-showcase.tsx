@@ -126,7 +126,7 @@ export function ResultsShowcase({ headlineResult, results }: ResultsShowcaseProp
             {cleanResults.slice(0, 4).map((res, idx) => {
               const initials = getInitials(res.studentName);
               const avatarGradients = [
-                "from-blue-600 to-indigo-600",
+                "from-blue-500 to-indigo-600",
                 "from-indigo-600 to-purple-600",
                 "from-emerald-600 to-teal-600",
                 "from-amber-600 to-orange-600",

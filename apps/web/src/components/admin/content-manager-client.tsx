@@ -75,6 +75,7 @@ export interface SocialSetting {
   youtube: string;
   instagram: string;
   facebook: string;
+  twitter?: string;
 }
 
 export interface HeroTilesSetting {
@@ -315,8 +316,9 @@ export function ContentManagerClient({
   const [socialSettings, setSocialSettings] = useState<SocialSetting>(
     (initialSettings.socials as SocialSetting | undefined) || {
       youtube: "https://www.youtube.com/@Quick2Learn",
-      instagram: "https://instagram.com/quick2learn",
-      facebook: "https://facebook.com/quick2learn",
+      facebook: "https://facebook.com/quick2learn.in",
+      instagram: "https://instagram.com/quick2learn.in",
+      twitter: "https://twitter.com/Quick2Learn",
     },
   );
 
@@ -858,11 +860,29 @@ export function ContentManagerClient({
                 />
               </div>
               <div className="space-y-1">
+                <label className="text-body-xs font-semibold text-ink">Facebook URL</label>
+                <Input
+                  value={socialSettings.facebook || ""}
+                  onChange={(e) =>
+                    setSocialSettings({ ...socialSettings, facebook: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
                 <label className="text-body-xs font-semibold text-ink">Instagram URL</label>
                 <Input
                   value={socialSettings.instagram || ""}
                   onChange={(e) =>
                     setSocialSettings({ ...socialSettings, instagram: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-body-xs font-semibold text-ink">Twitter / X URL</label>
+                <Input
+                  value={socialSettings.twitter || ""}
+                  onChange={(e) =>
+                    setSocialSettings({ ...socialSettings, twitter: e.target.value })
                   }
                 />
               </div>

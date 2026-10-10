@@ -6,6 +6,7 @@ import {
   type AnnouncementBarData,
 } from "@/components/layout/announcement-bar";
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp";
+import { GeminiChatbot } from "@/components/layout/gemini-chatbot";
 import { getSetting, getAllSettings } from "@/server/data/settings";
 import { getMegaMenuData } from "@/server/data/catalog";
 
@@ -51,6 +52,9 @@ export default async function MarketingLayout({
 
       {/* 5. Floating WhatsApp Direct Access Button */}
       <FloatingWhatsApp whatsappNumber={whatsappNumber} />
+
+      {/* 6. Ask Quick2Learn Full-Page AI Chatbot */}
+      <GeminiChatbot />
     </div>
   );
 }

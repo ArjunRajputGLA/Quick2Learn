@@ -13,6 +13,7 @@ import {
   Users,
   Phone,
   MessageCircle,
+  Bot,
 } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import {
@@ -141,6 +142,23 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
               Direct Access
             </span>
             <div className="grid grid-cols-1 gap-1 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent("open-quick2learn-chat"));
+                }}
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-small font-semibold text-ink hover:bg-primary-soft hover:text-primary transition-colors w-full text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <span>Ask Quick2Learn AI</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                  AI TUTOR
+                </span>
+              </button>
+
               <Link
                 href="/lectures"
                 onClick={() => setMenuOpen(false)}

@@ -57,10 +57,10 @@ export function BatchCard({
   const isNamitaMaam = /namita/i.test(facultyName);
 
   const resolvedAvatar = isDineshSir
-    ? "/images/faculty/dinesh-sir.jpg"
+    ? "/images/assets/Dinesh Singh Rajput.jpeg"
     : isNamitaMaam
       ? "/images/faculty/namita-maam.jpg"
-      : facultyAvatar || "/images/faculty/dinesh-sir.jpg";
+      : facultyAvatar || "/images/assets/Dinesh Singh Rajput.jpeg";
 
   const facultyRole = isDineshSir
     ? "25+ Yrs Exp • Senior Mathematics Head"

@@ -97,6 +97,27 @@ export default async function ResultsPage() {
           <div className="absolute -right-20 -top-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
+          {/* Animated Hero Video Backdrop */}
+          <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-12 sm:-bottom-16 w-96 h-96 sm:w-[460px] sm:h-[460px] pointer-events-none select-none opacity-85">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-contain"
+              aria-hidden="true"
+            >
+              <source
+                src="/images/assets/Student Board Results & Hall of Fame.webm"
+                type="video/webm"
+              />
+              <source
+                src="/images/assets/Student Board Results & Hall of Fame.mp4"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+
           <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="max-w-3xl space-y-4">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -141,7 +162,7 @@ export default async function ResultsPage() {
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
                   <Image
-                    src="/images/faculty/dinesh-sir.jpg"
+                    src="/images/assets/Dinesh Singh Rajput.jpeg"
                     alt="Mr. Dinesh Singh Rajput"
                     fill
                     className="object-cover"

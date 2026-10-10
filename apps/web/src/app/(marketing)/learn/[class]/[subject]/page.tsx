@@ -116,7 +116,17 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
   const isMath = /math/i.test(subject.name);
   const facultyName = isMath ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput";
   const facultyRole = isMath ? "25+ Yrs Exp • Senior Mathematics Head" : "15+ Yrs Exp • Head of ICSE Sciences";
-  const facultyAvatar = isMath ? "/images/faculty/dinesh-sir.jpg" : "/images/faculty/namita-maam.jpg";
+  const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/faculty/namita-maam.jpg";
+
+  const subjectSlug = subjectParam.toLowerCase();
+  let subjectVideo: string | null = null;
+  if (/math/i.test(subject.name) || /math/i.test(subjectSlug)) {
+    subjectVideo = "Mathematics";
+  } else if (/bio/i.test(subject.name) || /bio/i.test(subjectSlug)) {
+    subjectVideo = "Biology";
+  } else if (/chem/i.test(subject.name) || /chem/i.test(subjectSlug)) {
+    subjectVideo = "Chemistry";
+  }
 
   return (
     <div>
@@ -140,6 +150,29 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Animated Subject Video Backdrop */}
+          {subjectVideo && (
+            <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-10 sm:-bottom-14 w-80 h-80 sm:w-[420px] sm:h-[420px] pointer-events-none select-none opacity-85">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-contain"
+                aria-hidden="true"
+              >
+                <source
+                  src={`/images/assets/${subjectVideo}.webm`}
+                  type="video/webm"
+                />
+                <source
+                  src={`/images/assets/${subjectVideo}.mp4`}
+                  type="video/mp4"
+                />
+              </video>
+            </div>
+          )}
 
           <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="max-w-3xl space-y-4">

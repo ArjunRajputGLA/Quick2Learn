@@ -17,10 +17,10 @@ export function SmoothScrollLimiter() {
       return;
     }
 
-    // Limit and damping tuning
-    const LIMIT_PER_SCROLL = 110; // Max pixels traversed per wheel tick
-    const MAX_ACCUMULATED_BUFFER = 280; // Max scroll distance ahead to queue during rapid wheel flicks
-    const LERP_FACTOR = 0.12; // Fluid easing interpolation factor
+    // Limit and damping tuning - optimized for fast, fluid, effortless scrolling
+    const LIMIT_PER_SCROLL = 240; // Generous scroll distance per wheel tick
+    const MAX_ACCUMULATED_BUFFER = 1200; // Allows fast wheel flicks to travel swiftly without hitting an artificial wall
+    const LERP_FACTOR = 0.20; // Snappy, responsive momentum interpolation
     const EPSILON = 0.5; // Snap threshold to cleanly stop the animation loop
 
     let currentY = window.scrollY;
@@ -95,6 +95,11 @@ export function SmoothScrollLimiter() {
       }
 
       if (delta === 0) return;
+
+      // Allow smooth precision trackpads to scroll natively without delay
+      if (e.deltaMode === 0 && Math.abs(e.deltaY) < 25 && !Number.isInteger(e.deltaY)) {
+        return;
+      }
 
       // Intercept native jerky window scroll jump
       e.preventDefault();

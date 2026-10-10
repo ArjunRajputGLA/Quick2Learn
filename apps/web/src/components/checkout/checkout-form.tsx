@@ -175,7 +175,7 @@ export function CheckoutForm({
             contact: cleanedPhone.slice(-10),
           },
           theme: {
-            color: "#2563EB", // primary brand token
+            color: "#3B82F6", // primary brand token
           },
           modal: {
             ondismiss: () => {

@@ -173,7 +173,12 @@ export default async function MarketingHomePage() {
           name: "Dinesh Singh Rajput",
           jobTitle: "Senior Mathematics Educator & Director",
         },
-        sameAs: ["https://www.youtube.com/@Quick2Learn"],
+        sameAs: [
+          "https://www.youtube.com/@Quick2Learn",
+          "https://facebook.com/quick2learn.in",
+          "https://instagram.com/quick2learn.in",
+          "https://twitter.com/Quick2Learn",
+        ],
       },
     ],
   };

@@ -41,10 +41,9 @@ export default async function AboutPage() {
 
   // Photo resolution for Dinesh Sir
   const dineshPhoto =
-    dineshProfile?.photoKey === "faculty/faculty-dinesh.webp"
-      ? "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"
-      : dineshProfile?.photoKey ||
-        "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80";
+    dineshProfile?.photoKey?.startsWith("http") && !dineshProfile.photoKey.includes("unsplash")
+      ? dineshProfile.photoKey
+      : "/images/assets/Dinesh Singh Rajput.jpeg";
 
   // Prestigious honours list
   const dineshHonours = [

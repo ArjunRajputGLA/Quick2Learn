@@ -50,7 +50,7 @@ export function TeachersGrid({ facultyList }: TeachersGridProps) {
 
             // Use authentic generated faculty portrait photos
             const photoUrl = isDinesh
-              ? "/images/faculty/dinesh-sir.jpg"
+              ? "/images/assets/Dinesh Singh Rajput.jpeg"
               : "/images/faculty/namita-maam.jpg";
 
             const experienceText = isDinesh ? "25+ Yrs Experience" : "15+ Yrs Experience";

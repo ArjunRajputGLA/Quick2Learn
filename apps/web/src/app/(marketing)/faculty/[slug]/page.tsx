@@ -61,8 +61,8 @@ export default async function FacultyProfilePage({ params }: FacultyPageProps) {
   const { faculty, batches, lectures } = profileData;
   const isDinesh = faculty.slug.includes("dinesh");
   const avatarUrl = isDinesh
-    ? "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"
-    : "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&auto=format&fit=crop&q=80";
+    ? "/images/assets/Dinesh Singh Rajput.jpeg"
+    : "/images/faculty/namita-maam.jpg";
 
   const personLd = {
     "@context": "https://schema.org",

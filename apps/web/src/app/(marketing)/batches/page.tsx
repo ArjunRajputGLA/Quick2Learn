@@ -64,45 +64,90 @@ export default async function BatchesPage({ searchParams }: BatchesPageProps) {
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Header Hero */}
-        <div className="mb-10 p-6 sm:p-8 rounded-3xl bg-linear-to-br from-primary-soft/60 via-surface-subtle to-surface border border-border/80 shadow-xs space-y-5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-primary text-white shadow-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-              Academic Session 2026–27
-            </span>
-            <span className="text-caption font-semibold text-ink-muted">
-              Enrollments Open for Offline &amp; Hybrid Batches
-            </span>
+        <div className="mb-10 p-6 sm:p-8 rounded-3xl bg-linear-to-br from-primary-soft/60 via-surface-subtle to-surface border border-border/80 shadow-xs relative overflow-hidden">
+          {/* Animated Hero Video Backdrop */}
+          <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-12 sm:-bottom-16 w-96 h-96 sm:w-[460px] sm:h-[460px] pointer-events-none select-none mix-blend-multiply opacity-85">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-contain"
+              aria-hidden="true"
+            >
+              <source
+                src="/images/assets/Coaching Batches in Mathura.webm"
+                type="video/webm"
+              />
+              <source
+                src="/images/assets/Coaching Batches in Mathura.mp4"
+                type="video/mp4"
+              />
+            </video>
           </div>
 
-          <div className="max-w-3xl space-y-2.5">
-            <h1 className="text-display font-extrabold tracking-tight text-ink">
-              Coaching Batches in Mathura
-            </h1>
-            <p className="text-body text-ink-muted leading-relaxed">
-              Intensive classroom and hybrid mentorship by Mr. Dinesh Singh Rajput (25+ years Senior Mathematics)
-              and Mrs. Namita Singh Rajput (ICSE Sciences). Small batch sizes for individual doubt solving.
-            </p>
-          </div>
+          <div className="relative z-1 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div className="space-y-4 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-primary text-white shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                  Academic Session 2026–27
+                </span>
+                <span className="text-caption font-semibold text-ink-muted">
+                  Enrollments Open for Offline &amp; Hybrid Batches
+                </span>
+              </div>
 
-          {/* Key Advantages Strip */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-border/60 text-small text-ink">
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              100/100 Board Track Record
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              Max 25–30 Students / Batch
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              Weekly Sunday Board Mock Tests
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              1-on-1 Dedicated Doubt Clearance
-            </span>
+              <div className="space-y-2.5">
+                <h1 className="text-display font-extrabold tracking-tight text-ink">
+                  Coaching Batches in Mathura
+                </h1>
+                <p className="text-body text-ink-muted leading-relaxed">
+                  Intensive classroom and hybrid mentorship by Mr. Dinesh Singh Rajput (25+ years Senior Mathematics)
+                  and Mrs. Namita Singh Rajput (ICSE Sciences). Small batch sizes for individual doubt solving.
+                </p>
+              </div>
+
+              {/* Key Advantages Strip */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-border/60 text-small text-ink">
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                  100/100 Board Track Record
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                  Max 25–30 Students / Batch
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                  Weekly Sunday Board Mock Tests
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                  1-on-1 Dedicated Doubt Clearance
+                </span>
+              </div>
+            </div>
+
+            {/* Right side Campus Badge in Lower Right Corner */}
+            <div className="shrink-0 pt-4 lg:pt-0 lg:self-end flex items-center justify-start lg:justify-end z-2">
+              <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-surface/95 backdrop-blur-xs border border-border shadow-md hover:shadow-lg transition-all">
+                <div className="text-left space-y-1">
+                  <span className="inline-block text-[11px] font-bold text-primary uppercase tracking-wider bg-primary/10 px-2.5 py-0.5 rounded-full">
+                    Classroom &amp; Hybrid
+                  </span>
+                  <div className="text-h3 font-bold text-ink leading-snug">
+                    Quick2Learn Mathura
+                  </div>
+                  <p className="text-small text-ink-muted">
+                    Near BSA College Road Campus
+                  </p>
+                  <p className="text-caption text-ink-muted/80">
+                    Classes IX–XII CBSE &amp; ICSE
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

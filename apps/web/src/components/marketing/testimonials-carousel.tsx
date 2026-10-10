@@ -31,7 +31,7 @@ const DEFAULT_TESTIMONIALS = [
     year: 2025,
     quote:
       "Dinesh Sir simplified calculus and 3D vectors to a degree where board questions felt almost routine. Scored 100/100 in CBSE Mathematics thanks to continuous weekly testing and personal answer-sheet reviews.",
-    gradient: "from-blue-600 to-indigo-600",
+    gradient: "from-blue-500 to-indigo-600",
   },
   {
     id: "test-2",

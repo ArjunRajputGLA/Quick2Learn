@@ -9,7 +9,7 @@ import {
   Smartphone,
   Apple,
 } from "lucide-react";
-import { YouTubeIcon } from "@/components/ui/icons";
+import { YouTubeIcon, FacebookIcon, InstagramIcon, TwitterIcon } from "@/components/ui/icons";
 
 export interface FooterSettings {
   contact?: {
@@ -30,6 +30,7 @@ export interface FooterSettings {
     youtube_channel_id?: string;
     instagram?: string;
     facebook?: string;
+    twitter?: string;
   };
 }
 
@@ -61,10 +62,12 @@ export function Footer({ settings }: FooterProps) {
 
   // Socials
   const youtubeUrl = settings?.socials?.youtube || INSTITUTE_INFO.youtube.url;
-  const instagramUrl =
-    cleanText(settings?.socials?.instagram) || "https://instagram.com/quick2learn";
   const facebookUrl =
-    cleanText(settings?.socials?.facebook) || "https://facebook.com/quick2learn";
+    cleanText(settings?.socials?.facebook) || "https://facebook.com/quick2learn.in";
+  const instagramUrl =
+    cleanText(settings?.socials?.instagram) || "https://instagram.com/quick2learn.in";
+  const twitterUrl =
+    cleanText(settings?.socials?.twitter) || "https://twitter.com/Quick2Learn";
 
   return (
     <footer className="border-t border-border bg-surface-subtle text-ink-muted">
@@ -327,24 +330,38 @@ export function Footer({ settings }: FooterProps) {
             </a>
 
             <a
+              href={facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook Page"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#1877F2] hover:border-[#1877F2] transition-colors shadow-xs"
+            >
+              <FacebookIcon className="h-4 w-4 text-[#1877F2]" />
+              <span>Facebook</span>
+              <ExternalLink className="h-3 w-3 opacity-60" />
+            </a>
+
+            <a
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram Page"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-pink-600 hover:border-pink-600 transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#E4405F] hover:border-[#E4405F] transition-colors shadow-xs"
             >
+              <InstagramIcon className="h-4 w-4 text-[#E4405F]" />
               <span>Instagram</span>
               <ExternalLink className="h-3 w-3 opacity-60" />
             </a>
 
             <a
-              href={facebookUrl}
+              href={twitterUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Facebook Page"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-blue-600 hover:border-blue-600 transition-colors shadow-xs"
+              aria-label="X / Twitter Page"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-ink hover:border-ink transition-colors shadow-xs"
             >
-              <span>Facebook</span>
+              <TwitterIcon className="h-4 w-4 text-ink" />
+              <span>Twitter / X</span>
               <ExternalLink className="h-3 w-3 opacity-60" />
             </a>
           </div>
@@ -392,8 +409,6 @@ export function Footer({ settings }: FooterProps) {
             <span>Mathura, Uttar Pradesh</span>
             <span>•</span>
             <span>Founder: Dinesh Singh Rajput</span>
-            <span>•</span>
-            <span>Light Theme Official Portal</span>
           </div>
         </div>
       </div>

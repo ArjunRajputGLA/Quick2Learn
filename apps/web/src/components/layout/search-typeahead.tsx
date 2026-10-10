@@ -263,7 +263,7 @@ export function SearchTypeahead({
       >
         <input
           ref={inputRef}
-          type="search"
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => {

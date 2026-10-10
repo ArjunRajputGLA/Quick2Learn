@@ -263,10 +263,10 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
                 : "Quick2Learn Faculty";
 
             const facultyAvatar = isDineshSir
-              ? "/images/faculty/dinesh-sir.jpg"
+              ? "/images/assets/Dinesh Singh Rajput.jpeg"
               : isNamitaMaam
                 ? "/images/faculty/namita-maam.jpg"
-                : "/images/faculty/dinesh-sir.jpg";
+                : "/images/assets/Dinesh Singh Rajput.jpeg";
 
             const facultyBadge = isDineshSir
               ? "Senior Mathematics"

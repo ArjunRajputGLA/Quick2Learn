@@ -44,7 +44,28 @@ export default async function LecturesPage() {
           <div className="absolute -right-20 -top-20 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Animated Hero Video Backdrop */}
+          <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-12 sm:-bottom-16 w-96 h-96 sm:w-[460px] sm:h-[460px] pointer-events-none select-none opacity-85">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-contain"
+              aria-hidden="true"
+            >
+              <source
+                src="/images/assets/Official Quick2Learn Lectures.webm"
+                type="video/webm"
+              />
+              <source
+                src="/images/assets/Official Quick2Learn Lectures.mp4"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+
+          <div className="relative z-1 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="max-w-3xl space-y-4">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-red-600 text-white shadow-xs">
@@ -87,8 +108,8 @@ export default async function LecturesPage() {
               </div>
             </div>
 
-            {/* Subscribe Action Button */}
-            <div className="shrink-0 pt-2 lg:pt-0">
+            {/* Subscribe Action Button in Lower Right Corner */}
+            <div className="shrink-0 pt-4 lg:pt-0 lg:self-end z-2">
               <a
                 href={INSTITUTE_INFO.youtube.url}
                 target="_blank"

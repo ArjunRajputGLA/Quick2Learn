@@ -82,6 +82,8 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
 
   const matchingBatch = batches.find((b) => b.slug === currentGoal.batch_slug) || batches[0];
 
+  const cleanText = (str?: string) => str?.replace(/\s*\[PLACEHOLDER\]/gi, "").trim() || "";
+
   return (
     <section className="bg-surface py-14 md:py-16">
       <div className="container mx-auto px-4 max-w-[1200px] space-y-8">
@@ -107,7 +109,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                 }`}
               >
                 <Target className="h-4 w-4" />
-                <span>{goal.label}</span>
+                <span>{cleanText(goal.label)}</span>
               </button>
             );
           })}
@@ -123,7 +125,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                   currentGoal.playlist_image ||
                   "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=80"
                 }
-                alt={currentGoal.playlist_title}
+                alt={cleanText(currentGoal.playlist_title)}
                 fill
                 sizes="(max-width: 768px) 100vw, 600px"
                 className="object-cover"
@@ -138,7 +140,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                   <span>{currentGoal.playlist_count || 15} Full Lessons</span>
                 </div>
                 <h3 className="text-h3 font-bold text-surface line-clamp-2">
-                  {currentGoal.playlist_title}
+                  {cleanText(currentGoal.playlist_title)}
                 </h3>
               </div>
             </div>
@@ -146,10 +148,10 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
             <div className="flex flex-1 flex-col justify-between p-6 bg-surface space-y-4">
               <div className="space-y-2">
                 <p className="text-small text-ink leading-relaxed">
-                  {currentGoal.description}
+                  {cleanText(currentGoal.description)}
                 </p>
                 <p className="text-caption text-ink-muted">
-                  {currentGoal.playlist_subtitle}
+                  {cleanText(currentGoal.playlist_subtitle)}
                 </p>
               </div>
 
