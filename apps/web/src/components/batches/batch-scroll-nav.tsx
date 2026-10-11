@@ -60,7 +60,7 @@ export function BatchScrollNav({ sections }: BatchScrollNavProps) {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      const yOffset = -95; // account for sticky header and nav
+      const yOffset = -124; // account for sticky header (64px) + subnav (50px) + 10px breathing room
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: "smooth" });
       setActiveSection(id);

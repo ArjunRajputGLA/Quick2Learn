@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -19,6 +21,7 @@ export function Header({ megaMenuData }: HeaderProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const pathname = usePathname();
+  const isChatActive = isChatOpen || pathname === "/chat";
 
   useEffect(() => {
     const chatToggleHandler = (e: Event) => {
