@@ -53,11 +53,14 @@ export function Footer({ settings }: FooterProps) {
   const email = cleanText(settings?.contact?.email) || "contact@quick2learn.in";
 
   // Address
+  const rawAddressLine = cleanText(settings?.address?.line1);
   const addressLine =
-    cleanText(settings?.address?.line1) || "Near BSA College Road";
+    rawAddressLine && !rawAddressLine.toLowerCase().includes("bsa") && rawAddressLine.toLowerCase() !== "mathura"
+      ? rawAddressLine
+      : "";
   const rawCity = cleanText(settings?.address?.city) || "Mathura";
   const rawState = cleanText(settings?.address?.state) || "Uttar Pradesh";
-  const rawPincode = cleanText(settings?.address?.pincode) || "281001";
+  const rawPincode = cleanText(settings?.address?.pincode) || "281004";
   const cityState = `${rawCity}, ${rawState} ${rawPincode}`;
 
   // Socials
@@ -271,7 +274,7 @@ export function Footer({ settings }: FooterProps) {
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <span className="leading-snug">
-                  {addressLine}, {cityState}
+                  {addressLine ? `${addressLine}, ` : ""}{cityState}
                 </span>
               </div>
 

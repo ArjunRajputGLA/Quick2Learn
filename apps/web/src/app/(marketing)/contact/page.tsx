@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact Quick2Learn Mathura — Admissions & Counseling",
     description:
-      "Get in touch with Quick2Learn Coaching Institute in Mathura. Near BSA College Road, Highway Plaza Area.",
+      "Get in touch with Quick2Learn Coaching Institute in Mathura.",
     url: "https://quick2learn.in/contact",
   },
   twitter: {
@@ -34,6 +34,16 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   const contact = await getContactPageData();
+  const displayAddressLine =
+    contact.addressLine &&
+    !contact.addressLine.toLowerCase().includes("bsa") &&
+    contact.addressLine.toLowerCase() !== "mathura"
+      ? contact.addressLine
+      : "";
+  const displayLandmark =
+    contact.landmark && !contact.landmark.toLowerCase().includes("bsa")
+      ? contact.landmark
+      : "";
 
   return (
     <div className="bg-surface">
@@ -77,11 +87,13 @@ export default async function ContactPage() {
                   <div>
                     <div className="font-bold text-ink">Institute Campus</div>
                     <div className="text-ink-muted leading-snug mt-0.5">
-                      {contact.addressLine}, {contact.cityState}
+                      {displayAddressLine ? `${displayAddressLine}, ` : ""}{contact.cityState}
                     </div>
-                    <div className="text-[11px] text-ink-muted font-medium mt-0.5">
-                      Landmark: {contact.landmark}
-                    </div>
+                    {displayLandmark && (
+                      <div className="text-[11px] text-ink-muted font-medium mt-0.5">
+                        Landmark: {displayLandmark}
+                      </div>
+                    )}
                   </div>
                 </div>
 

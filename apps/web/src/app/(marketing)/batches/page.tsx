@@ -140,7 +140,7 @@ export default async function BatchesPage({ searchParams }: BatchesPageProps) {
                     Quick2Learn Mathura
                   </div>
                   <p className="text-small text-ink-muted">
-                    Near BSA College Road Campus
+                    Mathura Campus
                   </p>
                   <p className="text-caption text-ink-muted/80">
                     Classes IX–XII CBSE &amp; ICSE

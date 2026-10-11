@@ -106,10 +106,10 @@ describe("SEO, Performance, Accessibility & Analytics Verification Suite", () =>
           telephone: "+91-9412280000",
           address: {
             "@type": "PostalAddress",
-            streetAddress: "BSA College Road, Near Krishna Nagar",
+            streetAddress: "Mathura",
             addressLocality: "Mathura",
             addressRegion: "Uttar Pradesh",
-            postalCode: "281001",
+            postalCode: "281004",
             addressCountry: "IN",
           },
           geo: {

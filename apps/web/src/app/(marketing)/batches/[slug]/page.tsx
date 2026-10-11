@@ -129,10 +129,10 @@ export default async function BatchDetailPage({
         name: "Quick2Learn Institute Campus",
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Near BSA College Road, Highway Plaza Area",
+          streetAddress: "Mathura",
           addressLocality: "Mathura",
           addressRegion: "Uttar Pradesh",
-          postalCode: "281001",
+          postalCode: "281004",
           addressCountry: "IN",
         },
       },

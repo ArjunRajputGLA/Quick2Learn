@@ -157,10 +157,10 @@ export default async function MarketingHomePage() {
         priceRange: "₹₹",
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Near BSA College Road, Highway Plaza Area",
+          streetAddress: "Mathura",
           addressLocality: "Mathura",
           addressRegion: "Uttar Pradesh",
-          postalCode: "281001",
+          postalCode: "281004",
           addressCountry: "IN",
         },
         geo: {

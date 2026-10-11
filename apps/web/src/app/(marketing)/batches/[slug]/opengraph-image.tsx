@@ -139,7 +139,7 @@ export default async function Image({
             color: "rgba(255, 255, 255, 0.85)",
           }}
         >
-          <span>Mathura Campus · Near BSA College Road · Admissions Open</span>
+          <span>Mathura Campus · Admissions Open</span>
           <span style={{ fontWeight: 700, color: "#FFFFFF" }}>quick2learn.in</span>
         </div>
       </div>

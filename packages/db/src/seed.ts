@@ -974,10 +974,10 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     {
       key: "address",
       value: {
-        line1: "Near BSA College Road",
+        line1: "Mathura",
         city: "Mathura",
         state: "Uttar Pradesh",
-        pincode: "281001",
+        pincode: "281004",
         landmark: "Mathura City",
       },
     },
@@ -1151,7 +1151,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         {
           category: "Admissions",
           question: "How do admissions work at Quick2Learn Mathura?",
-          answer: "Admissions begin with an initial counseling session with the faculty to understand the student's foundation level. You can submit an enquiry online or visit our institute campus near BSA College Road, Mathura to register.",
+          answer: "Admissions begin with an initial counseling session with the faculty to understand the student's foundation level. You can submit an enquiry online or visit our institute campus in Mathura to register.",
         },
         {
           category: "Admissions",
@@ -1186,7 +1186,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         {
           category: "Classes",
           question: "Where is the coaching centre located in Mathura?",
-          answer: "Our institute is centrally located near BSA College Road, Mathura, Uttar Pradesh 281001, easily accessible by local transport.",
+          answer: "Our institute is centrally located in Mathura, Uttar Pradesh 281004, easily accessible by local transport.",
         },
         {
           category: "Online access",

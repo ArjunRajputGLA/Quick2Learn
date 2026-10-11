@@ -96,7 +96,7 @@ export function ClosingBand({
           </div>
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
-            <span>Near BSA College Road, Mathura Centre</span>
+            <span>Mathura Centre</span>
           </div>
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
