@@ -88,9 +88,9 @@ export function VideoDescription({ description, onSeek }: VideoDescriptionProps)
   const isLong = description.length > 300;
 
   return (
-    <div className="rounded-lg border border-border bg-surface-subtle p-5">
+    <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 sm:p-6 shadow-2xs">
       <div
-        className={`text-small text-ink leading-relaxed whitespace-pre-line font-sans ${
+        className={`text-small text-slate-700 leading-relaxed whitespace-pre-line font-sans ${
           !isExpanded && isLong ? "line-clamp-4" : ""
         }`}
       >
@@ -102,7 +102,7 @@ export function VideoDescription({ description, onSeek }: VideoDescriptionProps)
                 href={token.value}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline font-medium break-all"
+                className="text-primary hover:underline font-semibold break-all"
               >
                 {token.value}
               </a>
@@ -114,7 +114,7 @@ export function VideoDescription({ description, onSeek }: VideoDescriptionProps)
                 key={idx}
                 type="button"
                 onClick={() => onSeek?.(token.seconds)}
-                className="inline-flex items-center rounded-sm bg-primary-soft px-1.5 py-0.5 text-primary hover:bg-primary hover:text-surface font-semibold text-caption cursor-pointer transition-colors"
+                className="inline-flex items-center rounded-md bg-blue-100/90 px-2 py-0.5 text-primary hover:bg-primary hover:text-white font-bold text-xs cursor-pointer transition-colors shadow-2xs mr-1"
                 title={`Seek video to ${token.value}`}
               >
                 {token.value}
@@ -129,7 +129,7 @@ export function VideoDescription({ description, onSeek }: VideoDescriptionProps)
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 flex items-center gap-1 text-small font-semibold text-primary hover:underline cursor-pointer"
+          className="mt-3.5 flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer"
         >
           {isExpanded ? (
             <>
@@ -138,7 +138,7 @@ export function VideoDescription({ description, onSeek }: VideoDescriptionProps)
             </>
           ) : (
             <>
-              <span>Show more</span>
+              <span>Show full lecture description</span>
               <ChevronDown className="h-4 w-4" />
             </>
           )}

@@ -60,7 +60,7 @@ export function LiteYouTubeEmbed({
   }`;
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-ink shadow-lg">
+    <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-xl ring-1 ring-slate-900/10">
       {!isPlaying ? (
         <button
           type="button"

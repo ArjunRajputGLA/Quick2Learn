@@ -50,7 +50,7 @@ export function ShareButtons({ videoId, title, url }: ShareButtonsProps) {
         href={`https://wa.me/?text=${encodedText}${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-surface text-ink text-small font-medium hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50/80 text-emerald-800 text-xs sm:text-small font-bold hover:bg-emerald-100 hover:border-emerald-300 transition-all shadow-2xs cursor-pointer"
         title="Share on WhatsApp"
       >
         <WhatsAppIcon className="h-4 w-4 text-emerald-600" />
@@ -61,17 +61,17 @@ export function ShareButtons({ videoId, title, url }: ShareButtonsProps) {
       <button
         type="button"
         onClick={handleCopy}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-surface text-ink text-small font-medium hover:bg-surface-subtle transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs sm:text-small font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-2xs cursor-pointer"
         title="Copy Link to Clipboard"
       >
         {copied ? (
           <>
-            <Check className="h-4 w-4 text-success" />
-            <span className="text-success">Copied!</span>
+            <Check className="h-4 w-4 text-emerald-600" />
+            <span className="text-emerald-700 font-bold">Link Copied!</span>
           </>
         ) : (
           <>
-            <Copy className="h-4 w-4 text-ink-muted" />
+            <Copy className="h-4 w-4 text-slate-500" />
             <span>Copy Link</span>
           </>
         )}
@@ -82,10 +82,10 @@ export function ShareButtons({ videoId, title, url }: ShareButtonsProps) {
         href={`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-surface text-ink text-small font-medium hover:bg-surface-subtle transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs sm:text-small font-bold hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
         title="Share on X (Twitter)"
       >
-        <Share2 className="h-4 w-4 text-ink-muted" />
+        <Share2 className="h-4 w-4 text-slate-500" />
         <span>Share</span>
       </a>
 
@@ -94,11 +94,11 @@ export function ShareButtons({ videoId, title, url }: ShareButtonsProps) {
         href={`https://www.youtube.com/watch?v=${videoId}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-danger/10 text-danger border border-danger/20 text-small font-semibold hover:bg-danger hover:text-surface transition-colors cursor-pointer"
+        className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white text-xs sm:text-small font-bold hover:bg-red-700 transition-all shadow-xs cursor-pointer"
       >
         <YouTubeIcon className="h-4 w-4" />
         <span>Watch on YouTube</span>
-        <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+        <ExternalLink className="h-3.5 w-3.5 opacity-80" />
       </a>
     </div>
   );

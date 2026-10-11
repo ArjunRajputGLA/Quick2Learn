@@ -142,12 +142,9 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
               Direct Access
             </span>
             <div className="grid grid-cols-1 gap-1 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  window.dispatchEvent(new CustomEvent("open-quick2learn-chat"));
-                }}
+              <Link
+                href="/chat"
+                onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg text-small font-semibold text-ink hover:bg-primary-soft hover:text-primary transition-colors w-full text-left cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -157,7 +154,7 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
                   AI TUTOR
                 </span>
-              </button>
+              </Link>
 
               <Link
                 href="/lectures"

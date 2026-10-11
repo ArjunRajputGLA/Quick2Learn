@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   getVideoDetails,
   getUpNextVideos,
@@ -12,14 +13,28 @@ import {
 } from "@/server/data/videos";
 import { getCurrentUser } from "@/server/auth/session";
 import { BreadcrumbsPlacement } from "@/components/layout/breadcrumbs-placement";
-import { Badge } from "@/components/ui/badge";
 import { LectureViewClient } from "@/components/learn/lecture-view-client";
 import { ShareButtons } from "@/components/learn/share-buttons";
 import { ChapterResources } from "@/components/learn/chapter-resources";
 import { RelatedBatchCard } from "@/components/learn/related-batch-card";
 import { LectureCard } from "@/components/ui/lecture-card";
 import { formatClassRoman, classLevelToSlug } from "@quick2learn/shared";
-import { Clock, Eye, Calendar, User, ListVideo } from "lucide-react";
+import {
+  Clock,
+  Eye,
+  Calendar,
+  User,
+  ListVideo,
+  Sparkles,
+  GraduationCap,
+  CheckCircle2,
+  BookOpen,
+  ArrowRight,
+  Download,
+  Building2,
+  FlaskConical,
+  FileText,
+} from "lucide-react";
 
 interface LecturePageProps {
   params: Promise<{
@@ -110,17 +125,22 @@ export default async function LecturePage({ params }: LecturePageProps) {
   const currentUser = await getCurrentUser();
   if (currentUser?.user?.id) {
     await recordLectureView(
-      { id: currentUser.user.id, role: currentUser.role, email: currentUser.user.email, name: currentUser.user.name },
+      {
+        id: currentUser.user.id,
+        role: currentUser.role,
+        email: currentUser.user.email,
+        name: currentUser.user.name,
+      },
       video.id,
     ).catch(() => {});
   }
 
   const classRoman = video.classLevel
     ? formatClassRoman(video.classLevel)
-    : "XII";
+    : "X";
   const classSlug = video.classLevel
-    ? classLevelToSlug(video.classLevel) || "xii"
-    : "xii";
+    ? classLevelToSlug(video.classLevel) || "x"
+    : "x";
 
   // Concurrent fetches for related entities
   const [upNextVideos, resources, relatedBatch] = await Promise.all([
@@ -131,7 +151,7 @@ export default async function LecturePage({ params }: LecturePageProps) {
       : Promise.resolve(null),
   ]);
 
-  // Construct Breadcrumbs: (Learn › Class XII › Maths › Integrals › Video Title)
+  // Construct Breadcrumbs
   const breadcrumbs: Array<{ label: string; href?: string }> = [
     { label: "Home", href: "/" },
     { label: "Learn", href: "/learn" },
@@ -170,6 +190,14 @@ export default async function LecturePage({ params }: LecturePageProps) {
     video.thumbnailUrl ||
     `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
 
+  // Faculty authentic photo
+  const isDinesh = faculty?.slug?.includes("dinesh") || faculty?.name?.toLowerCase().includes("dinesh");
+  const avatarUrl = isDinesh
+    ? "/images/faculty/dinesh-sir.jpg"
+    : "/images/faculty/namita-maam.jpg";
+
+  const isMath = subject?.name?.toLowerCase().includes("math") || video.title.toLowerCase().includes("math");
+
   const videoLd = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -195,82 +223,212 @@ export default async function LecturePage({ params }: LecturePageProps) {
   };
 
   return (
-    <div>
+    <div className="bg-white min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(videoLd) }}
       />
       <BreadcrumbsPlacement items={breadcrumbs} />
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-10">
-          {/* Main Column: Player, Meta, Description, Resources */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 1. Lite YouTube Player with Interactive Description */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
+          {/* Main Column: Player, Meta, Milestones, Takeaways, Mentor, Downloads (8 of 12 cols on lg) */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* 1. Cinematic Video Player + Description + Milestones + AI Tutor Widget */}
             <LectureViewClient
               videoId={video.id}
               title={video.title}
               durationSeconds={video.durationSeconds}
               thumbnailUrl={video.thumbnailUrl}
               description={video.description || ""}
+              subjectName={subject?.name || "Sciences"}
+              classRoman={classRoman}
             />
 
-            {/* 2. Video Title & Metadata */}
+            {/* 2. Video Header & Metadata */}
             <div className="space-y-4 pt-2">
               <div className="flex flex-wrap items-center gap-2">
                 {video.classLevel && (
-                  <Badge variant="primary">Class {classRoman}</Badge>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                    <GraduationCap className="h-3.5 w-3.5" />
+                    Class {classRoman}
+                  </span>
                 )}
-                {subject && <Badge variant="neutral">{subject.name}</Badge>}
+                {subject && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                    <FlaskConical className="h-3.5 w-3.5 text-amber-700" />
+                    {subject.name}
+                  </span>
+                )}
                 {chapter && (
-                  <Badge variant="accent">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
                     Chapter {chapter.number}: {chapter.title}
-                  </Badge>
+                  </span>
                 )}
-                {video.isShort && (
-                  <Badge variant="accent" className="bg-amber-500 text-white">
-                    Short
-                  </Badge>
-                )}
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  Free Board Lecture
+                </span>
               </div>
 
-              <h1 className="text-h2 sm:text-h1 font-extrabold text-ink tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-snug">
                 {video.title}
               </h1>
 
               {/* Stats Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border text-small text-ink-muted">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-1.5 font-medium text-ink">
-                    <Eye className="h-4 w-4 text-ink-muted" />
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 text-xs sm:text-small text-slate-600">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-medium">
+                  <div className="flex items-center gap-1.5 text-slate-800 font-bold">
+                    <Eye className="h-4 w-4 text-slate-400" />
                     <span>{formatViews(video.viewCount)}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-ink-muted" />
+                    <Calendar className="h-4 w-4 text-slate-400" />
                     <span>{publishedDateFormatted}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-ink-muted" />
+                    <Clock className="h-4 w-4 text-slate-400" />
                     <span>{formatDuration(video.durationSeconds)}</span>
                   </div>
                   {faculty && (
-                    <div className="flex items-center gap-1.5">
-                      <User className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-ink">{faculty.name}</span>
+                    <div className="flex items-center gap-1.5 text-primary font-bold">
+                      <User className="h-4 w-4" />
+                      <span>{faculty.name}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* 3. Action Buttons: Share, WhatsApp, YouTube External */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <ShareButtons videoId={video.id} title={video.title} />
               </div>
             </div>
 
-            {/* 4. Attached Chapter Notes & Resources */}
-            {resources.length > 0 && (
-              <section className="pt-6 border-t border-border">
+            {/* 4. WHAT YOU'LL MASTER IN THIS LECTURE (Rich Learning Takeaways Grid) */}
+            <section className="space-y-4 pt-2">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <span>What You&apos;ll Master in This Lecture</span>
+                </h2>
+                <span className="text-xs font-semibold text-slate-500">
+                  Board Curriculum Focus
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Core Theoretical Fundamentals</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                    {isMath
+                      ? "Direct derivation and conceptual proof of key board formulas with step-by-step problem illustrations."
+                      : "Clear breakdown of chemical reaction pathways and physiological processes essential for board exams."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Diagrams &amp; Equation Precision</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                    {isMath
+                      ? "Graph plotting, geometric constructions, and coordinate mapping techniques."
+                      : "Step-by-step anatomical diagram drawing and chemical equation balancing guidelines."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Past 10 Years Board PYQ Insights</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                    Frequently repeated board question patterns, standard mark distributions, and examiner expectation trends.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Examiner Insights &amp; Pitfalls to Avoid</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                    Key presentation tips, units, diagram labeling rules, and how to avoid losing half-marks in board evaluation.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* 5. FACULTY MENTOR PROFILE CARD */}
+            {faculty && (
+              <section className="space-y-4 pt-2">
+                <div className="border-b border-slate-200 pb-2.5">
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                    <span>Faculty Mentor Profile</span>
+                  </h2>
+                </div>
+
+                <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/60 to-blue-50/20 shadow-xs flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                  <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border-2 border-white shadow-md ring-1 ring-slate-200 shrink-0">
+                    <img
+                      src={avatarUrl}
+                      alt={faculty.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div className="space-y-2.5 text-center sm:text-left flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {isDinesh ? "25+ Yrs Senior Mathematics" : "15+ Yrs ICSE Sciences"}
+                      </span>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                        Mathura Campus Mentor
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">
+                        {faculty.name}
+                      </h3>
+                      <p className="text-xs font-semibold text-primary mt-0.5">
+                        {faculty.designation}
+                      </p>
+                    </div>
+
+                    <p className="text-xs sm:text-small text-slate-600 leading-relaxed">
+                      {faculty.bio}
+                    </p>
+
+                    <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                      <Link
+                        href={`/faculty/${faculty.slug}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
+                      >
+                        <span>View all lectures by {faculty.name}</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* 6. ATTACHED STUDY MATERIALS & REVISION NOTES */}
+            <section className="space-y-4 pt-2">
+              <div className="border-b border-slate-200 pb-2.5">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <span>Attached Notes &amp; Practice Materials</span>
+                </h2>
+              </div>
+
+              {resources.length > 0 ? (
                 <ChapterResources
                   resources={resources.map((r) => ({
                     id: r.id,
@@ -278,15 +436,65 @@ export default async function LecturePage({ params }: LecturePageProps) {
                     type: r.type,
                     storageKey: r.storageKey,
                   }))}
-                  title="Attached Notes &amp; Formulas for this Chapter"
+                  title="Chapter Resources"
                 />
-              </section>
-            )}
+              ) : (
+                <div className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+                  <div className="flex items-center gap-3.5 text-center sm:text-left">
+                    <div className="h-11 w-11 rounded-xl bg-blue-100 text-primary flex items-center justify-center shrink-0">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-small font-bold text-slate-900">
+                        Class {classRoman} {subject?.name || "Sciences"} Revision Formula Sheet
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        High-yield summary notes with diagram guidelines prepared by Quick2Learn faculty.
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://wa.me/917668875809?text=Hi%20Quick2Learn%2C%20please%20share%20the%20Class%2010%20Biology%20formula%20sheet%20and%20notes"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-xs hover:bg-primary-hover transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Get Free Revision Notes</span>
+                  </a>
+                </div>
+              )}
+            </section>
+
+            {/* 7. MATHURA CLASSROOM COHORT PROMO BANNER */}
+            <section className="p-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-blue-50/30 to-white flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xs">
+              <div className="space-y-1.5 text-center sm:text-left">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center justify-center sm:justify-start gap-1">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Offline Coaching in Mathura
+                </span>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Want In-Person Classroom Mentorship?
+                </h3>
+                <p className="text-xs sm:text-small text-slate-600 max-w-xl">
+                  Join Dinesh Sir &amp; Namita Ma&apos;am at Highway Plaza, Mathura. Strict 30-student cap with daily personalized doubt solving and weekly Sunday mock tests.
+                </p>
+              </div>
+
+              <Link
+                href="/batches"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-white text-xs sm:text-small font-bold shadow-sm hover:bg-primary-hover active:scale-98 transition-all shrink-0"
+              >
+                <span>Explore Classroom Batches</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </section>
           </div>
 
-          {/* Sidebar: Up next & Related Batch */}
-          <div className="space-y-6">
-            {/* Related Batch Card ("Want structured classes? Join the Class XII batch") */}
+          {/* Sidebar: Related Batch & Horizontal "Up Next" Playlist (4 of 12 cols on lg) */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+            {/* Related Batch Card */}
             {relatedBatch && (
               <RelatedBatchCard
                 batch={relatedBatch.batch}
@@ -295,29 +503,43 @@ export default async function LecturePage({ params }: LecturePageProps) {
               />
             )}
 
-            {/* "Up Next" from the same chapter or subject */}
-            <div className="space-y-4 rounded-xl border border-border bg-surface p-5">
-              <div className="flex items-center justify-between pb-2 border-b border-border">
-                <h2 className="text-body font-bold text-ink flex items-center gap-2">
+            {/* "Up Next" Playlist with Horizontal Video Cards */}
+            <div className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                <h2 className="text-small font-bold text-slate-900 flex items-center gap-2">
                   <ListVideo className="h-4.5 w-4.5 text-primary" />
-                  <span>Up Next</span>
+                  <span>Up Next in This Series</span>
                 </h2>
-                <span className="text-caption text-ink-muted">
+                <span className="text-[11px] font-semibold text-slate-400">
                   {chapter ? "Same Chapter" : "Recommended"}
                 </span>
               </div>
 
               {upNextVideos.length === 0 ? (
-                <p className="text-small text-ink-muted">
+                <p className="text-xs text-slate-500 py-3 text-center">
                   More video lectures will be added soon.
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {upNextVideos.map((upNext) => (
-                    <LectureCard key={upNext.id} {...upNext} />
+                    <LectureCard
+                      key={upNext.id}
+                      {...upNext}
+                      layout="horizontal"
+                    />
                   ))}
                 </div>
               )}
+
+              <div className="pt-2 border-t border-slate-100">
+                <Link
+                  href="/lectures"
+                  className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary hover:underline text-center py-1"
+                >
+                  <span>View All Free Lectures</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -27,6 +27,14 @@ const BASE_SYSTEM_INSTRUCTION = `You are **Quick2Learn Assistant**, the friendly
 ---FOLLOW_UPS---
 ["Follow-up 1", "Follow-up 2", "Follow-up 3"]`;
 
+// Models ordered by speed and stability for low-latency interactive chat
+const CANDIDATE_MODELS = [
+  process.env.GEMINI_MODEL,
+  "gemini-3.5-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3.1-flash-lite",
+].filter((m): m is string => Boolean(m && m.trim()));
+
 export async function POST(request: NextRequest) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -50,9 +58,16 @@ export async function POST(request: NextRequest) {
     const lastUserQuery =
       messages.filter((m) => m.role === "user").pop()?.content || "";
 
-    // 1. Retrieve matching videos and batches from PostgreSQL
-    const { videos, batches, contextSummary } =
-      await retrieveChatContext(lastUserQuery);
+    // 1. Retrieve matching videos and batches from PostgreSQL (with 2s timeout safeguard)
+    const { videos, batches, contextSummary } = await Promise.race([
+      retrieveChatContext(lastUserQuery),
+      new Promise<Awaited<ReturnType<typeof retrieveChatContext>>>((resolve) =>
+        setTimeout(
+          () => resolve({ videos: [], batches: [], contextSummary: "" }),
+          2000,
+        ),
+      ),
+    ]);
 
     const fullSystemInstruction = `${BASE_SYSTEM_INSTRUCTION}
 
@@ -66,26 +81,64 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
       parts: [{ text: msg.content }],
     }));
 
-    // 3. Generate stream with Gemini 3.8 Flash
-    const stream = await ai.models.generateContentStream({
-      model: "gemini-3.8-flash",
-      config: {
-        systemInstruction: fullSystemInstruction,
-        maxOutputTokens: 1024,
-        temperature: 0.7,
-        topP: 0.9,
-      },
-      contents: geminiContents,
-    });
+    // 3. Obtain stream with candidate models & fast fallback
+    let stream: any = null;
+    let selectedModel = CANDIDATE_MODELS[0] || "gemini-3.5-flash-lite";
+
+    for (const model of CANDIDATE_MODELS) {
+      try {
+        const streamPromise = ai.models.generateContentStream({
+          model,
+          config: {
+            systemInstruction: fullSystemInstruction,
+            maxOutputTokens: 800,
+            temperature: 0.7,
+            topP: 0.9,
+          },
+          contents: geminiContents,
+        });
+
+        // 4s connection timeout before falling back to next model
+        stream = await Promise.race([
+          streamPromise,
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Model ${model} connection timed out`)), 4000),
+          ),
+        ]);
+
+        selectedModel = model;
+        break;
+      } catch (modelErr) {
+        console.warn(`Model ${model} unavailable, trying fallback...`, modelErr);
+      }
+    }
 
     const encoder = new TextEncoder();
     const readableStream = new ReadableStream({
       async start(controller) {
+        // Immediately send eager metadata with matching cards for instantaneous UI feedback
+        if (videos.length > 0 || batches.length > 0) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                metadata: {
+                  relatedVideos: videos,
+                  relatedBatches: batches,
+                },
+              })}\n\n`,
+            ),
+          );
+        }
+
         let accumulated = "";
         let sentLength = 0;
         let followUps: string[] = [];
 
         try {
+          if (!stream) {
+            throw new Error("No available Gemini model stream");
+          }
+
           for await (const chunk of stream) {
             const text = chunk.text;
             if (text) {
@@ -158,7 +211,7 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
             }
           }
 
-          // Send metadata payload with cards and follow-up prompts
+          // Send final follow-up questions metadata payload
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({
@@ -174,7 +227,7 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
         } catch (err) {
-          console.error("Gemini streaming error:", err);
+          console.error(`Gemini streaming error (${selectedModel}):`, err);
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({

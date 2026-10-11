@@ -16,6 +16,7 @@ export interface LectureCardProps {
   publishedAt: string; // e.g. "3 days ago"
   href?: string;
   className?: string;
+  layout?: "vertical" | "horizontal";
 }
 
 export function LectureCard({
@@ -28,13 +29,62 @@ export function LectureCard({
   publishedAt,
   href = "#",
   className,
+  layout = "vertical",
 }: LectureCardProps) {
   const title = rawTitle?.replace(/\s*\[PLACEHOLDER\]/gi, "") || "";
   const faculty = rawFaculty?.replace(/\s*\[PLACEHOLDER\]/gi, "") || "";
+
+  if (layout === "horizontal") {
+    return (
+      <div
+        className={cn(
+          "group flex items-start gap-3 p-2.5 rounded-xl border border-slate-200/80 bg-white hover:border-primary/40 hover:bg-slate-50/60 hover:shadow-xs transition-all duration-200",
+          className,
+        )}
+      >
+        <Link
+          href={href}
+          className="block relative aspect-video w-32 sm:w-36 shrink-0 rounded-lg overflow-hidden bg-slate-100"
+        >
+          {thumbnailUrl ? (
+            <Image
+              src={thumbnailUrl}
+              alt={title}
+              fill
+              sizes="144px"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary">
+              <Play className="h-5 w-5 fill-current" />
+            </div>
+          )}
+          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 backdrop-blur-xs px-1.5 py-0.5 text-[10px] font-bold text-white">
+            {duration}
+          </span>
+        </Link>
+
+        <div className="flex-1 min-w-0 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-primary truncate">
+            {gradeAndSubject}
+          </p>
+          <Link href={href} className="block">
+            <h4 className="line-clamp-2 text-xs sm:text-small font-bold text-slate-900 group-hover:text-primary transition-colors leading-snug">
+              <MathText>{title}</MathText>
+            </h4>
+          </Link>
+          <p className="text-[11px] text-slate-500 font-medium truncate pt-0.5">
+            {faculty} · {views}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "group flex flex-col overflow-hidden rounded-md border border-border bg-surface shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200",
+        "group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200",
         className,
       )}
     >

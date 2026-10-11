@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bot } from "lucide-react";
 import { MegaMenu } from "./mega-menu";
@@ -9,7 +10,6 @@ import { MobileNav } from "./mobile-nav";
 import { EnquiryDialog } from "@/components/marketing/enquiry-dialog";
 import { AiVoicebotDialog } from "./ai-voicebot-dialog";
 import { type MegaMenuData } from "@/server/data/catalog";
-import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   megaMenuData: MegaMenuData;
@@ -19,17 +19,14 @@ export function Header({ megaMenuData }: HeaderProps) {
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
   const [isVoicebotOpen, setIsVoicebotOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const lastScrollY = useRef(0);
+
+  const pathname = usePathname();
 
   useEffect(() => {
     const chatToggleHandler = (e: Event) => {
       const ce = e as CustomEvent<{ isOpen?: boolean }>;
       if (typeof ce.detail?.isOpen === "boolean") {
         setIsChatOpen(ce.detail.isOpen);
-        if (ce.detail.isOpen) {
-          setHeaderHidden(false);
-        }
       }
     };
     window.addEventListener("quick2learn-chat-toggled", chatToggleHandler);
@@ -37,42 +34,15 @@ export function Header({ megaMenuData }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    const THRESHOLD = 10; // Minimum scroll delta to trigger hide/show
-
-    function handleScroll() {
-      if (isChatOpen) {
-        setHeaderHidden(false);
-        return;
-      }
-
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY.current;
-
-      // Always show header when near the top
-      if (currentY < 80) {
-        setHeaderHidden(false);
-      } else if (delta > THRESHOLD) {
-        // Scrolling DOWN → hide
-        setHeaderHidden(true);
-      } else if (delta < -THRESHOLD) {
-        // Scrolling UP → show
-        setHeaderHidden(false);
-      }
-
-      lastScrollY.current = currentY;
+    if (pathname === "/chat") {
+      setIsChatOpen(true);
     }
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isChatOpen]);
+  }, [pathname]);
 
   return (
     <>
       {/* Main Sticky Navigation Header (Kept visible above AI Chatbot at z-50) */}
-      <header
-        className="sticky top-0 z-50 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md transition-transform duration-300 ease-in-out"
-        style={{ transform: headerHidden && !isChatOpen ? "translateY(-100%)" : "translateY(0)" }}
-      >
+      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4 xl:gap-8">
             {/* Left: Logo + Explore ⌵ + Batches / Free Lectures */}
@@ -120,27 +90,29 @@ export function Header({ megaMenuData }: HeaderProps) {
 
             {/* Right: AI Chatbot Button + Inquire Now Button + Staff Profile (if authenticated) */}
             <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
-              {/* Minimalist AI Chatbot Icon Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("open-quick2learn-chat", {
-                      detail: { toggle: true },
-                    }),
-                  );
-                }}
-                className={cn(
-                  "p-2 rounded-full transition-colors cursor-pointer",
-                  isChatOpen
-                    ? "bg-primary text-white hover:bg-primary-hover shadow-xs"
-                    : "text-ink-muted hover:text-primary hover:bg-surface-subtle",
-                )}
-                aria-label={isChatOpen ? "Close AI Chatbot" : "Open AI Chatbot"}
-                title={isChatOpen ? "Close AI Chatbot" : "Open AI Chatbot"}
-              >
-                <Bot className="h-5 w-5" />
-              </button>
+              {/* Minimalist AI Chatbot Link Button */}
+              {isChatActive ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent("close-quick2learn-chat"));
+                  }}
+                  className="p-2 rounded-full bg-primary text-white hover:bg-primary-hover shadow-xs transition-colors cursor-pointer"
+                  aria-label="Close AI Chatbot"
+                  title="Close AI Chatbot"
+                >
+                  <Bot className="h-5 w-5" />
+                </button>
+              ) : (
+                <Link
+                  href="/chat"
+                  className="p-2 rounded-full text-ink-muted hover:text-primary hover:bg-surface-subtle transition-colors cursor-pointer"
+                  aria-label="Open AI Chatbot"
+                  title="Open AI Chatbot"
+                >
+                  <Bot className="h-5 w-5" />
+                </Link>
+              )}
 
               {/* Prominent Inquire Now CTA Button */}
               <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, FormEvent } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -43,7 +44,12 @@ const GREETING_MESSAGE: Message = {
 };
 
 export function GeminiChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const isChatRoute = pathname === "/chat" || searchParams?.get("chat") === "open";
+  const [isOpen, setIsOpen] = useState(isChatRoute);
   const [messages, setMessages] = useState<Message[]>([GREETING_MESSAGE]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -56,6 +62,89 @@ export function GeminiChatbot() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const sendMessageRef = useRef<(text: string) => void>(() => {});
+
+  // Track whether user navigated from within Quick2Learn before reaching /chat
+  const hasInAppNavRef = useRef(false);
+  useEffect(() => {
+    if (pathname && pathname !== "/chat") {
+      hasInAppNavRef.current = true;
+    }
+  }, [pathname]);
+
+  // Handle explicitly closing chatbot (via X button or Escape)
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    if (pathname === "/chat") {
+      if (hasInAppNavRef.current && typeof window !== "undefined" && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push("/");
+      }
+    }
+  }, [pathname, router]);
+
+  // On clicking an internal card link (video lecture or batch), smoothly dismiss chat overlay without router.back
+  const handleCardNavigate = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  // Synchronize chat open state with URL/pathname
+  // If navigating to ANY page other than /chat (homepage, batches, lectures, etc.), close chat immediately
+  useEffect(() => {
+    if (isChatRoute) {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [pathname, isChatRoute]);
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, handleClose]);
+
+  // Hoverbot animation states
+  const [showHoverbot, setShowHoverbot] = useState(false);
+  const [isHoverbotFading, setIsHoverbotFading] = useState(false);
+  const hoverbotVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Play Hoverbot video and trigger fade animation every time the chatbot is opened
+  useEffect(() => {
+    let fadeTimer: NodeJS.Timeout;
+    let removeTimer: NodeJS.Timeout;
+
+    if (isOpen) {
+      setShowHoverbot(true);
+      setIsHoverbotFading(false);
+
+      if (hoverbotVideoRef.current) {
+        hoverbotVideoRef.current.currentTime = 0;
+        hoverbotVideoRef.current.play().catch(() => {});
+      }
+
+      // Play for 5 seconds, then smoothly fade out
+      fadeTimer = setTimeout(() => {
+        setIsHoverbotFading(true);
+        removeTimer = setTimeout(() => {
+          setShowHoverbot(false);
+        }, 700);
+      }, 5000);
+    } else {
+      setShowHoverbot(false);
+      setIsHoverbotFading(false);
+    }
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
+  }, [isOpen]);
 
   // Synchronize chat open state to Header and other global listeners cleanly after render
   useEffect(() => {
@@ -72,8 +161,16 @@ export function GeminiChatbot() {
     const handleOpenEvent = (event: Event) => {
       const customEvent = event as CustomEvent<{ prompt?: string; toggle?: boolean }>;
       if (customEvent.detail?.toggle) {
-        setIsOpen((prev) => !prev);
+        if (isOpen || isChatRoute) {
+          handleClose();
+        } else {
+          router.push("/chat");
+          setIsOpen(true);
+        }
       } else {
+        if (!isChatRoute) {
+          router.push("/chat");
+        }
         setIsOpen(true);
       }
 
@@ -85,11 +182,17 @@ export function GeminiChatbot() {
       }
     };
 
+    const handleCloseEvent = () => {
+      handleClose();
+    };
+
     window.addEventListener("open-quick2learn-chat", handleOpenEvent);
+    window.addEventListener("close-quick2learn-chat", handleCloseEvent);
     return () => {
       window.removeEventListener("open-quick2learn-chat", handleOpenEvent);
+      window.removeEventListener("close-quick2learn-chat", handleCloseEvent);
     };
-  }, []);
+  }, [isOpen, isChatRoute, handleClose, router]);
 
   // Lock body scroll when full-page modal is open below header
   useEffect(() => {
@@ -146,10 +249,6 @@ export function GeminiChatbot() {
     setInput("");
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-
   const sendMessage = useCallback(
     async (messageText: string) => {
       const trimmed = messageText.trim();
@@ -197,13 +296,16 @@ export function GeminiChatbot() {
 
         const decoder = new TextDecoder();
         let accumulated = "";
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const text = decoder.decode(value, { stream: true });
-          const lines = text.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          // Keep whatever incomplete line segment remains at the end in the buffer
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
             if (line.startsWith("data: ")) {
@@ -229,9 +331,18 @@ export function GeminiChatbot() {
                       m.id === assistantId
                         ? {
                             ...m,
-                            relatedVideos: meta.relatedVideos || [],
-                            relatedBatches: meta.relatedBatches || [],
-                            suggestedQuestions: meta.suggestedQuestions || [],
+                            relatedVideos:
+                              meta.relatedVideos !== undefined
+                                ? meta.relatedVideos
+                                : m.relatedVideos,
+                            relatedBatches:
+                              meta.relatedBatches !== undefined
+                                ? meta.relatedBatches
+                                : m.relatedBatches,
+                            suggestedQuestions:
+                              meta.suggestedQuestions !== undefined
+                                ? meta.suggestedQuestions
+                                : m.suggestedQuestions,
                           }
                         : m,
                     ),
@@ -311,8 +422,30 @@ export function GeminiChatbot() {
           aria-label="Quick2Learn AI Academic Chatbot"
           className="fixed inset-x-0 bottom-0 top-16 z-40 bg-white text-slate-900 flex flex-col animate-in fade-in-0 duration-200 select-text"
         >
-          {/* Top Controls: Just the two action options aligned on the right */}
-          <div className="w-full px-4 sm:px-8 pt-3 pb-1 flex items-center justify-end shrink-0">
+          {/* Top Controls: Right-aligned action buttons with Hoverbot video in the top left */}
+          <div className="w-full px-4 sm:px-8 pt-3 pb-1 flex items-center justify-end shrink-0 relative">
+            {/* Top Left: Chatbot Video (No text around it, smoothly fades out after playing) */}
+            {showHoverbot && (
+              <div
+                className={cn(
+                  "absolute top-8 sm:top-12 md:top-14 left-6 sm:left-10 md:left-14 z-30 w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 transition-all duration-700 ease-out select-none pointer-events-none",
+                  isHoverbotFading
+                    ? "opacity-0 -translate-y-3 scale-90"
+                    : "opacity-100 translate-y-0 scale-100 animate-in fade-in-0 duration-300",
+                )}
+              >
+                <video
+                  ref={hoverbotVideoRef}
+                  src="/images/assets/Hoverbot.mp4"
+                  autoPlay
+                  muted
+                  playsInline
+                  className="w-full h-full object-contain mix-blend-multiply"
+                />
+              </div>
+            )}
+
+            {/* Top Right: New Chat and Close */}
             <div className="flex items-center gap-2">
               <button
                 onClick={resetChat}
@@ -375,7 +508,10 @@ export function GeminiChatbot() {
                       {/* Related Video Lectures Cards Carousel (Coursera Style) */}
                       {msg.relatedVideos && msg.relatedVideos.length > 0 && (
                         <div className="pt-2">
-                          <ContentCardsCarousel videos={msg.relatedVideos} />
+                          <ContentCardsCarousel
+                            videos={msg.relatedVideos}
+                            onCardClick={handleCardNavigate}
+                          />
                         </div>
                       )}
 
@@ -390,6 +526,7 @@ export function GeminiChatbot() {
                               <Link
                                 key={batch.id}
                                 href={batch.href}
+                                onClick={handleCardNavigate}
                                 className="group p-4 rounded-xl border border-slate-200 bg-white hover:border-primary/50 hover:shadow-sm transition-all flex flex-col justify-between"
                               >
                                 <div className="space-y-1.5">
@@ -597,7 +734,13 @@ export function GeminiChatbot() {
  * Horizontal Carousel Component for Recommended Video Courses
  * Matches Coursera's cards with image thumbnail, institution/faculty row, bold title, and rating/duration meta.
  */
-function ContentCardsCarousel({ videos }: { videos: ChatVideoCard[] }) {
+function ContentCardsCarousel({
+  videos,
+  onCardClick,
+}: {
+  videos: ChatVideoCard[];
+  onCardClick?: () => void;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(videos.length > 2);
@@ -650,6 +793,7 @@ function ContentCardsCarousel({ videos }: { videos: ChatVideoCard[] }) {
           <Link
             key={v.id}
             href={v.href}
+            onClick={onCardClick}
             className="w-[280px] sm:w-[310px] shrink-0 border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col group cursor-pointer"
             style={{ scrollSnapAlign: "start" }}
           >
