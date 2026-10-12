@@ -105,7 +105,7 @@ This checklist tracks every security, infrastructure, database, payment, and dep
 - [ ] **Initial YouTube Channel Import**: Trigger initial synchronization to import all public playlists and video lectures.
 - [ ] **Admin Review Pass**: Audit lectures under `/admin/lectures` to verify class assignments, chapter mappings, and thumbnail rendering.
 - [ ] **Faculty Profiles**: Review Dinesh Sir's and Namita Ma'am's profile pages, achievements, and active batches.
-- [ ] **Policy Pages**: Ensure `/privacy`, `/terms`, `/refund-policy`, and `/delivery-policy` reflect accurate legal names and contact hours.
+- [ ] **Policy Pages**: Ensure `/privacy`, `/terms`, and `/refund-policy` reflect accurate legal names and contact hours.
 
 ---
 

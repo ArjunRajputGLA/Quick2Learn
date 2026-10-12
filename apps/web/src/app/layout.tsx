@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -87,6 +88,59 @@ export default function RootLayout({
         <Toaster />
         <Analytics />
         <SmoothScrollLimiter />
+
+        {/* Global Google Translate Off-screen Container (keeps DOM layout active for TranslateElement) */}
+        <div
+          id="google_translate_element"
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            bottom: "-9999px",
+            left: "-9999px",
+            width: "1px",
+            height: "1px",
+            opacity: 0,
+            pointerEvents: "none",
+            overflow: "hidden",
+            zIndex: -1,
+          }}
+        />
+        <Script
+          id="google-translate-loader"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                window.googleTranslateElementInit = function() {
+                  try {
+                    if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+                      new window.google.translate.TranslateElement({
+                        pageLanguage: 'en',
+                        autoDisplay: true
+                      }, 'google_translate_element');
+                    }
+                  } catch (e) {
+                    console.error('Google Translate init error:', e);
+                  }
+                };
+
+                if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+                  window.googleTranslateElementInit();
+                  return;
+                }
+
+                if (!document.getElementById('google-translate-core-script')) {
+                  var gt = document.createElement('script');
+                  gt.id = 'google-translate-core-script';
+                  gt.type = 'text/javascript';
+                  gt.async = true;
+                  gt.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+                  document.head.appendChild(gt);
+                }
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ interface PaymentsClientProps {
   payments: PaymentRow[];
 }
 
-export function PaymentsClient({ payments }: PaymentsClientProps) {
+function PaymentsClientContent({ payments }: PaymentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -332,5 +332,13 @@ export function PaymentsClient({ payments }: PaymentsClientProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function PaymentsClient(props: PaymentsClientProps) {
+  return (
+    <Suspense fallback={null}>
+      <PaymentsClientContent {...props} />
+    </Suspense>
   );
 }

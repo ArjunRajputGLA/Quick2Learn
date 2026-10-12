@@ -8,6 +8,7 @@ import { Bot } from "lucide-react";
 import { MegaMenu } from "./mega-menu";
 import { SearchTypeahead } from "./search-typeahead";
 import { MobileNav } from "./mobile-nav";
+import { LanguageSwitcher } from "./language-switcher";
 import { EnquiryDialog } from "@/components/marketing/enquiry-dialog";
 import { AiVoicebotDialog } from "./ai-voicebot-dialog";
 import { type MegaMenuData } from "@/server/data/catalog";
@@ -125,9 +126,9 @@ export function Header({ megaMenuData }: HeaderProps) {
                 <Image
                   src="/images/assets/unnamed-removebg-preview.png"
                   alt="Quick2Learn"
-                  width={220}
-                  height={48}
-                  className="h-10 sm:h-12 lg:h-[50px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                  width={180}
+                  height={40}
+                  className="h-8 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                   priority
                 />
               </Link>
@@ -162,8 +163,11 @@ export function Header({ megaMenuData }: HeaderProps) {
               <SearchTypeahead className="w-full" />
             </div>
 
-            {/* Right: AI Chatbot Button + Inquire Now Button + Staff Profile (if authenticated) */}
-            <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
+            {/* Right: Language Switcher + AI Chatbot Button + Inquire Now Button */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Language Switcher (Hindi, English & Indian Languages) */}
+              <LanguageSwitcher />
+
               {/* Minimalist AI Chatbot Link Button */}
               {isChatActive ? (
                 <button

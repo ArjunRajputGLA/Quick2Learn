@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Sheet, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ interface SearchFilterRailProps {
   totalCount: number;
 }
 
-export function SearchFilterRail({ activeFilters, totalCount }: SearchFilterRailProps) {
+function SearchFilterRailContent({ activeFilters, totalCount }: SearchFilterRailProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -289,5 +289,13 @@ export function SearchFilterRail({ activeFilters, totalCount }: SearchFilterRail
         {FilterContent}
       </aside>
     </>
+  );
+}
+
+export function SearchFilterRail(props: SearchFilterRailProps) {
+  return (
+    <Suspense fallback={null}>
+      <SearchFilterRailContent {...props} />
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ArrowUpDown } from "lucide-react";
 
@@ -8,7 +9,7 @@ interface SearchHeaderBarProps {
   currentSort: string;
 }
 
-export function SearchHeaderBar({ totalCount, currentSort }: SearchHeaderBarProps) {
+function SearchHeaderBarContent({ totalCount, currentSort }: SearchHeaderBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,5 +49,13 @@ export function SearchHeaderBar({ totalCount, currentSort }: SearchHeaderBarProp
         </select>
       </div>
     </div>
+  );
+}
+
+export function SearchHeaderBar(props: SearchHeaderBarProps) {
+  return (
+    <Suspense fallback={null}>
+      <SearchHeaderBarContent {...props} />
+    </Suspense>
   );
 }

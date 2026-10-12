@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Header } from "@/components/layout/header";
 import { Footer, type FooterSettings } from "@/components/layout/footer";
 import {
@@ -54,7 +54,9 @@ export default async function MarketingLayout({
       <FloatingWhatsApp whatsappNumber={whatsappNumber} />
 
       {/* 6. Ask Quick2Learn Full-Page AI Chatbot */}
-      <GeminiChatbot />
+      <Suspense fallback={null}>
+        <GeminiChatbot />
+      </Suspense>
     </div>
   );
 }

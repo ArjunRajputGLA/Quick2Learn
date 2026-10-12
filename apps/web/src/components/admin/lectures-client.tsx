@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ interface LecturesClientProps {
   chapters: Array<{ id: string; title: string; classLevel: number; subjectId: string }>;
 }
 
-export function LecturesClient({
+function LecturesClientContent({
   initialVideos,
   totalCount,
   subjects,
@@ -618,5 +618,13 @@ export function LecturesClient({
         onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
+  );
+}
+
+export function LecturesClient(props: LecturesClientProps) {
+  return (
+    <Suspense fallback={null}>
+      <LecturesClientContent {...props} />
+    </Suspense>
   );
 }

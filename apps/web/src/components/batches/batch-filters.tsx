@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { RotateCcw, X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ interface BatchFiltersProps {
   totalCount: number;
 }
 
-export function BatchFilters({ currentFilters, totalCount }: BatchFiltersProps) {
+function BatchFiltersContent({ currentFilters, totalCount }: BatchFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -297,5 +298,13 @@ export function BatchFilters({ currentFilters, totalCount }: BatchFiltersProps) 
         </div>
       )}
     </div>
+  );
+}
+
+export function BatchFilters(props: BatchFiltersProps) {
+  return (
+    <Suspense fallback={null}>
+      <BatchFiltersContent {...props} />
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -8,7 +9,7 @@ interface SearchPaginationProps {
   totalPages: number;
 }
 
-export function SearchPagination({ currentPage, totalPages }: SearchPaginationProps) {
+function SearchPaginationContent({ currentPage, totalPages }: SearchPaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,5 +68,13 @@ export function SearchPagination({ currentPage, totalPages }: SearchPaginationPr
         <ChevronRight className="h-4 w-4" />
       </button>
     </nav>
+  );
+}
+
+export function SearchPagination(props: SearchPaginationProps) {
+  return (
+    <Suspense fallback={null}>
+      <SearchPaginationContent {...props} />
+    </Suspense>
   );
 }

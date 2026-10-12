@@ -23,6 +23,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { SearchTypeahead } from "./search-typeahead";
+import { LanguageSwitcher } from "./language-switcher";
 import { type MegaMenuData } from "@/server/data/catalog";
 
 interface MobileNavProps {
@@ -119,8 +120,8 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
       {/* 5. Hamburger Sheet Drawer */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen} side="right">
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* Drawer Header */}
-          <div className="pb-4 border-b border-border pr-8">
+          {/* Drawer Header with Language Switcher */}
+          <div className="pb-4 border-b border-border pr-8 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-primary to-blue-500 text-white flex items-center justify-center shadow-xs">
                 <GraduationCap className="h-5 w-5" />
@@ -134,6 +135,7 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
                 </p>
               </div>
             </div>
+            <LanguageSwitcher compact />
           </div>
 
           {/* Quick Direct Links */}

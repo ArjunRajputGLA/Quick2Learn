@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { completeOnboardingAction } from "@/server/profile-actions";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ interface OnboardingFormProps {
   initialEmail?: string;
 }
 
-export function OnboardingForm({ initialName = "", initialEmail = "" }: OnboardingFormProps) {
+function OnboardingFormContent({ initialName = "", initialEmail = "" }: OnboardingFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
@@ -284,5 +284,13 @@ export function OnboardingForm({ initialName = "", initialEmail = "" }: Onboardi
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export function OnboardingForm(props: OnboardingFormProps) {
+  return (
+    <Suspense fallback={null}>
+      <OnboardingFormContent {...props} />
+    </Suspense>
   );
 }

@@ -309,7 +309,6 @@ describe("Trust & Policy Pages Suite", () => {
       { file: "privacy/page.tsx", name: "Privacy Policy" },
       { file: "terms/page.tsx", name: "Terms of Service" },
       { file: "refund-policy/page.tsx", name: "Refund Policy" },
-      { file: "delivery-policy/page.tsx", name: "Delivery Policy" },
     ];
 
     for (const page of legalPages) {
@@ -345,7 +344,7 @@ describe("Trust & Policy Pages Suite", () => {
     expect(urls.some((u) => u.endsWith("/privacy"))).toBe(true);
     expect(urls.some((u) => u.endsWith("/terms"))).toBe(true);
     expect(urls.some((u) => u.endsWith("/refund-policy"))).toBe(true);
-    expect(urls.some((u) => u.endsWith("/delivery-policy"))).toBe(true);
+    expect(urls.some((u) => u.endsWith("/delivery-policy"))).toBe(false);
 
     // Verify dynamic faculty routes
     expect(urls.some((u) => u.includes("/faculty/dinesh-singh-rajput"))).toBe(true);

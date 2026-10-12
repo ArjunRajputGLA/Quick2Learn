@@ -254,14 +254,6 @@ export function Footer({ settings }: FooterProps) {
                   Refund &amp; Fee Policy
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/delivery-policy"
-                  className="hover:text-primary transition-colors hover:underline underline-offset-2"
-                >
-                  Delivery &amp; Shipping Policy
-                </Link>
-              </li>
             </ul>
           </div>
 

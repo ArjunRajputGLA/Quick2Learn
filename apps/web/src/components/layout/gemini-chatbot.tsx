@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, FormEvent } from "react";
+import { useState, useRef, useEffect, useCallback, FormEvent, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -43,7 +43,7 @@ const GREETING_MESSAGE: Message = {
   ],
 };
 
-export function GeminiChatbot() {
+function GeminiChatbotInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -727,6 +727,14 @@ export function GeminiChatbot() {
         </div>
       )}
     </>
+  );
+}
+
+export function GeminiChatbot() {
+  return (
+    <Suspense fallback={null}>
+      <GeminiChatbotInner />
+    </Suspense>
   );
 }
 
