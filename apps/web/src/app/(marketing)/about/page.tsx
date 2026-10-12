@@ -222,56 +222,68 @@ export default async function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {facultyList.map((fac) => {
-              const isDinesh = fac.slug.includes("dinesh");
-              const avatar = isDinesh
-                ? "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"
-                : "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&auto=format&fit=crop&q=80";
+            {facultyList
+              .filter(
+                (fac) =>
+                  !fac.slug.toLowerCase().includes("dinesh") &&
+                  !fac.name.toLowerCase().includes("dinesh")
+              )
+              .map((fac) => {
+                const isNamita = fac.slug.toLowerCase().includes("namita");
+                const avatar = isNamita
+                  ? "/images/faculty/namita-maam.jpg"
+                  : fac.photoKey && !fac.photoKey.includes("unsplash")
+                    ? fac.photoKey.startsWith("http")
+                      ? fac.photoKey
+                      : fac.photoKey.startsWith("/")
+                        ? fac.photoKey
+                        : `/images/${fac.photoKey.replace(/^images\//, "")}`
+                    : "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&auto=format&fit=crop&q=80";
 
-              return (
-                <div
-                  key={fac.id}
-                  className="rounded-xl border border-border bg-surface p-6 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between space-y-4"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border">
-                      <Image
-                        src={avatar}
-                        alt={fac.name}
-                        fill
-                        className="object-cover"
-                      />
+                return (
+                  <div
+                    key={fac.id}
+                    className="rounded-xl border border-border bg-surface p-6 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between space-y-4"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border">
+                        <Image
+                          src={avatar}
+                          alt={fac.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <h3 className="text-h3 font-bold text-ink">{fac.name}</h3>
+                        <p className="text-caption font-semibold text-primary">
+                          {fac.designation}
+                        </p>
+                        <Badge variant="neutral" className="text-[11px] mt-1">
+                          15+ Years Experience
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="space-y-1 flex-1">
-                      <h3 className="text-h3 font-bold text-ink">{fac.name}</h3>
-                      <p className="text-caption font-semibold text-primary">
-                        {fac.designation}
-                      </p>
-                      <Badge variant="neutral" className="text-[11px] mt-1">
-                        {isDinesh ? "25+ Years Experience" : "15+ Years Experience"}
-                      </Badge>
+
+                    <p className="text-small text-ink-muted leading-relaxed">
+                      {fac.bio}
+                    </p>
+
+                    <div className="pt-3 border-t border-border flex items-center justify-between">
+                      <span className="text-caption text-ink-muted">
+                        Mathura Campus Mentor
+                      </span>
+                      <Link
+                        href={`/faculty/${fac.slug}`}
+                        className="text-small font-bold text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>View Profile &amp; Batches</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
                   </div>
-
-                  <p className="text-small text-ink-muted leading-relaxed">
-                    {fac.bio}
-                  </p>
-
-                  <div className="pt-3 border-t border-border flex items-center justify-between">
-                    <span className="text-caption text-ink-muted">
-                      Mathura Campus Mentor
-                    </span>
-                    <Link
-                      href={`/faculty/${fac.slug}`}
-                      className="text-small font-bold text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      <span>View Profile &amp; Batches</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
 
