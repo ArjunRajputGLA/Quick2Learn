@@ -67,6 +67,17 @@ export const metadata: Metadata = {
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
       undefined,
   },
+  icons: {
+    icon: [
+      { url: "/images/assets/app%20logo.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/images/assets/app%20logo.png", type: "image/png" },
+      { url: "/apple-icon.png", type: "image/png" },
+    ],
+    shortcut: "/images/assets/app%20logo.png",
+  },
 };
 
 export default function RootLayout({
