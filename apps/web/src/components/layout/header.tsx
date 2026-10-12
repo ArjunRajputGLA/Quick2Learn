@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Bot } from "lucide-react";
 import { MegaMenu } from "./mega-menu";
 import { SearchTypeahead } from "./search-typeahead";
@@ -10,6 +11,7 @@ import { MobileNav } from "./mobile-nav";
 import { EnquiryDialog } from "@/components/marketing/enquiry-dialog";
 import { AiVoicebotDialog } from "./ai-voicebot-dialog";
 import { type MegaMenuData } from "@/server/data/catalog";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   megaMenuData: MegaMenuData;
@@ -19,7 +21,9 @@ export function Header({ megaMenuData }: HeaderProps) {
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
   const [isVoicebotOpen, setIsVoicebotOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
+  const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const isChatActive = isChatOpen || pathname === "/chat";
 
@@ -38,25 +42,94 @@ export function Header({ megaMenuData }: HeaderProps) {
     if (pathname === "/chat") {
       setIsChatOpen(true);
     }
+    // Always make header visible on route change
+    setIsVisible(true);
   }, [pathname]);
+
+  // Smart auto-hide header: hides when scrolling down, slides back down when scrolling up
+  useEffect(() => {
+    let lastScrollY = typeof window !== "undefined" ? Math.max(0, window.scrollY) : 0;
+    let accumulatedDelta = 0;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = Math.max(0, window.scrollY);
+
+          // Keyboard accessibility: retain visibility if focus is inside header
+          if (headerRef.current?.contains(document.activeElement)) {
+            setIsVisible(true);
+            lastScrollY = currentScrollY;
+            accumulatedDelta = 0;
+            ticking = false;
+            return;
+          }
+
+          // Always visible at or near the top of the page
+          if (currentScrollY <= 60) {
+            setIsVisible(true);
+            accumulatedDelta = 0;
+          } else {
+            const delta = currentScrollY - lastScrollY;
+
+            // Reset accumulated delta if direction reverses
+            if ((delta > 0 && accumulatedDelta < 0) || (delta < 0 && accumulatedDelta > 0)) {
+              accumulatedDelta = 0;
+            }
+            accumulatedDelta += delta;
+
+            // Scrolled down by threshold -> hide header
+            if (accumulatedDelta > 20) {
+              setIsVisible(false);
+            }
+            // Scrolled up by threshold -> reveal header
+            else if (accumulatedDelta < -20) {
+              setIsVisible(true);
+            }
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      {/* Main Sticky Navigation Header (Kept visible above AI Chatbot at z-50) */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md">
+      {/* Main Sticky Navigation Header with smart auto-hide on scroll */}
+      <header
+        ref={headerRef}
+        className={cn(
+          "sticky top-0 z-50 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md transition-transform duration-300 ease-in-out will-change-transform",
+          isVisible || isEnquiryOpen || isVoicebotOpen
+            ? "translate-y-0"
+            : "-translate-y-full"
+        )}
+      >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4 xl:gap-8">
             {/* Left: Logo + Explore ⌵ + Batches / Free Lectures */}
             <div className="flex items-center gap-6 xl:gap-8 shrink-0">
-              {/* Wordmark Logo */}
+              {/* Logo */}
               <Link
                 href="/"
-                className="select-none flex items-center group"
+                className="select-none flex items-center group shrink-0 py-0.5"
                 aria-label="Quick2Learn Home"
               >
-                <span className="font-extrabold text-[24px] sm:text-[26px] tracking-tight text-primary transition-opacity group-hover:opacity-90">
-                  Quick<span className="text-primary">2</span>Learn
-                </span>
+                <Image
+                  src="/images/assets/unnamed-removebg-preview.png"
+                  alt="Quick2Learn"
+                  width={220}
+                  height={48}
+                  className="h-10 sm:h-12 lg:h-[50px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                  priority
+                />
               </Link>
 
               {/* Desktop Explore ⌵ Dropdown */}

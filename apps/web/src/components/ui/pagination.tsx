@@ -45,7 +45,7 @@ export function Pagination({
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
         aria-label="Previous page"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-ink hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-ink hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -70,7 +70,7 @@ export function Pagination({
             aria-current={isCurrent ? "page" : undefined}
             onClick={() => onPageChange(page)}
             className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-md text-small font-medium transition-colors select-none",
+              "inline-flex h-9 w-9 items-center justify-center rounded-md text-small font-medium transition-colors select-none cursor-pointer",
               isCurrent
                 ? "bg-primary text-surface font-semibold shadow-xs"
                 : "border border-border bg-surface text-ink hover:bg-surface-subtle",
@@ -86,7 +86,7 @@ export function Pagination({
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
         aria-label="Next page"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-ink hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-ink hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

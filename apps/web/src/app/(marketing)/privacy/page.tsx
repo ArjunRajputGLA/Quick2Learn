@@ -165,7 +165,7 @@ export default function PrivacyPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary shrink-0" />
-                <span><strong>Phone:</strong> +91 76688 75809</span>
+                <span><strong>Phone:</strong> [PHONE] (+91 76688 75809)</span>
               </div>
               <p className="text-caption text-ink-muted pt-2 border-t border-border">
                 Grievances are acknowledged within 48 hours and resolved within 30 business days.

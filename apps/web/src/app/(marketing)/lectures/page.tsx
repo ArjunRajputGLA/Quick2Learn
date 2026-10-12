@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getVideos } from "@/server/data/videos";
 import { BreadcrumbsPlacement } from "@/components/layout/breadcrumbs-placement";
 import { YouTubeIcon } from "@/components/ui/icons";
@@ -38,11 +39,24 @@ export default async function LecturesPage() {
       />
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8">
-        {/* YouTube Channel Hero Showcase Card */}
-        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 border border-border/80 shadow-md text-white relative overflow-hidden">
-          {/* Subtle YouTube Crimson Glow Backdrop */}
-          <div className="absolute -right-20 -top-20 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        {/* YouTube Channel Hero Showcase Card with Official Channel Banner */}
+        <div className="rounded-3xl border border-border/80 shadow-md overflow-hidden bg-slate-950 text-white">
+          {/* Official YouTube Channel Panorama Banner */}
+          <div className="relative w-full aspect-[1060/175] min-h-[90px] sm:min-h-[140px] md:min-h-[175px] bg-slate-900 border-b border-white/10">
+            <Image
+              src="/images/assets/channels4_banner.jpg"
+              alt="Quick2Learn Official YouTube Channel Banner — Dinesh Singh Rajput & Namita Singh Rajput"
+              fill
+              priority
+              className="object-cover object-center"
+              sizes="(max-width: 1440px) 100vw, 1440px"
+            />
+          </div>
+
+          <div className="p-6 sm:p-8 lg:p-10 bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 relative overflow-hidden">
+            {/* Subtle YouTube Crimson Glow Backdrop */}
+            <div className="absolute -right-20 -top-20 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Animated Hero Video Backdrop */}
           <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-12 sm:-bottom-16 w-96 h-96 sm:w-[460px] sm:h-[460px] pointer-events-none select-none opacity-85">
@@ -123,6 +137,7 @@ export default async function LecturesPage() {
             </div>
           </div>
         </div>
+      </div>
 
         {/* Video Catalog with Live Search & Filtering */}
         <LecturesCatalog initialVideos={videoList} />

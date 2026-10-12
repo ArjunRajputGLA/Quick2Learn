@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Calculator,
   FlaskConical,
+  BookOpen,
 } from "lucide-react";
 import { YouTubeIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
@@ -70,11 +71,14 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
         /calculus|matrices|algebra|vector|integral|trig/i.test(v.title) ||
         /dinesh/i.test(v.title);
       const isScienceOrCivics =
-        /science|chemistry|biology|civics|icse/i.test(v.title) ||
-        /namita/i.test(v.title);
+        /science|chemistry|biology|civics/i.test(v.title) ||
+        (/namita/i.test(v.title) && !/hindi|sakhi|kabir/i.test(v.title));
+      const isHindi =
+        /hindi|sakhi|kabir/i.test(v.title);
 
       if (selectedSubject === "math" && !isMath) return false;
       if (selectedSubject === "science" && !isScienceOrCivics) return false;
+      if (selectedSubject === "hindi" && !isHindi) return false;
 
       // Text search query
       if (searchQuery.trim()) {
@@ -198,6 +202,11 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
                   label: "Sciences & Civics (Namita Ma'am)",
                   value: "science",
                   icon: FlaskConical,
+                },
+                {
+                  label: "ICSE 9 Hindi (Namita Ma'am)",
+                  value: "hindi",
+                  icon: BookOpen,
                 },
               ].map((s) => {
                 const isSelected = selectedSubject === s.value;

@@ -114,8 +114,13 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
 
   // Theming & Mentorship
   const isMath = /math/i.test(subject.name);
+  const isHindi = /hindi/i.test(subject.name) || /hindi/i.test(subjectParam);
   const facultyName = isMath ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput";
-  const facultyRole = isMath ? "25+ Yrs Exp • Senior Mathematics Head" : "15+ Yrs Exp • Head of ICSE Sciences";
+  const facultyRole = isMath
+    ? "25+ Yrs Exp • Senior Mathematics Head"
+    : isHindi
+    ? "15+ Yrs Exp • ICSE Sciences & Hindi Mentor"
+    : "15+ Yrs Exp • Head of ICSE Sciences";
   const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/faculty/namita-maam.jpg";
 
   const subjectSlug = subjectParam.toLowerCase();
@@ -126,6 +131,8 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
     subjectVideo = "Biology";
   } else if (/chem/i.test(subject.name) || /chem/i.test(subjectSlug)) {
     subjectVideo = "Chemistry";
+  } else if (/hindi/i.test(subject.name) || /hindi/i.test(subjectSlug)) {
+    subjectVideo = "Hindi";
   }
 
   return (
@@ -145,6 +152,8 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
           className={`p-6 sm:p-8 lg:p-10 rounded-3xl border border-border/80 shadow-md text-white relative overflow-hidden ${
             isMath
               ? "bg-linear-to-br from-slate-950 via-indigo-950 to-blue-900"
+              : isHindi
+              ? "bg-linear-to-br from-slate-950 via-emerald-950 to-teal-950"
               : "bg-linear-to-br from-slate-950 via-teal-950 to-emerald-900"
           }`}
         >
@@ -178,7 +187,13 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
             <div className="max-w-3xl space-y-4">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-white/10 text-white backdrop-blur-md border border-white/15 shadow-xs">
-                  {isMath ? <Calculator className="h-3.5 w-3.5 text-sky-400" /> : <FlaskConical className="h-3.5 w-3.5 text-emerald-400" />}
+                  {isMath ? (
+                    <Calculator className="h-3.5 w-3.5 text-sky-400" />
+                  ) : isHindi ? (
+                    <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                  ) : (
+                    <FlaskConical className="h-3.5 w-3.5 text-emerald-400" />
+                  )}
                   Class {classRoman} Curriculum
                 </span>
                 <span className="text-caption font-semibold text-white/80">

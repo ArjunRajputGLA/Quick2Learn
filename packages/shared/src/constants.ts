@@ -4,7 +4,7 @@ export type AcademicClass = (typeof ACADEMIC_CLASSES)[number];
 export const ACADEMIC_BOARDS = ["CBSE", "ICSE", "ISC"] as const;
 export type AcademicBoard = (typeof ACADEMIC_BOARDS)[number];
 
-export const SUBJECTS = ["Mathematics", "Chemistry", "Biology"] as const;
+export const SUBJECTS = ["Mathematics", "Chemistry", "Biology", "Hindi"] as const;
 export type Subject = (typeof SUBJECTS)[number];
 
 export interface FacultyMember {
@@ -28,10 +28,10 @@ export const FACULTY_MEMBERS: readonly FacultyMember[] = [
   {
     id: "namita-singh-rajput",
     name: "Mrs. Namita Singh Rajput",
-    title: "Senior ICSE Science Educator",
-    subjects: ["Chemistry", "Biology"] as const,
+    title: "Senior ICSE Science & Language Educator",
+    subjects: ["Chemistry", "Biology", "Hindi"] as const,
     experience: "15+ Years",
-    bio: "Specialist mentor for ICSE Chemistry and Biology, simplifying complex science curricula with conceptual mastery.",
+    bio: "Specialist mentor for ICSE Chemistry, Biology, and Hindi literature, simplifying complex curricula with conceptual mastery.",
   },
 ] as const;
 

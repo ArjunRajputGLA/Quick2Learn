@@ -157,6 +157,7 @@ export function SearchFilterRail({ activeFilters, totalCount }: SearchFilterRail
             { label: "Physics", value: "physics" },
             { label: "Chemistry", value: "chemistry" },
             { label: "Biology", value: "biology" },
+            { label: "Hindi", value: "hindi" },
           ].map((item) => {
             const isSelected =
               item.value === "all"

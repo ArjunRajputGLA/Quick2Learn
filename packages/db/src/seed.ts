@@ -39,6 +39,12 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       name: "Biology",
       sortOrder: 4,
     },
+    {
+      id: "a0000000-0000-0000-0000-000000000005",
+      slug: "hindi",
+      name: "Hindi",
+      sortOrder: 5,
+    },
   ];
 
   for (const s of subjectsData) {
@@ -50,7 +56,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         set: { name: s.name, sortOrder: s.sortOrder },
       });
   }
-  console.log("  ✓ Subjects seeded (4 rows)");
+  console.log("  ✓ Subjects seeded (5 rows)");
 
   // 2. CHAPTERS
   const mathSubjectId = "a0000000-0000-0000-0000-000000000001";
@@ -119,6 +125,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
 
   const chemistrySubjectId = "a0000000-0000-0000-0000-000000000003";
   const biologySubjectId = "a0000000-0000-0000-0000-000000000004";
+  const hindiSubjectId = "a0000000-0000-0000-0000-000000000005";
 
   const class10Chapters = [
     { subjectId: mathSubjectId, board: "cbse" as const, number: 1, title: "Real Numbers", slug: "class-10-maths-ch-1-real-numbers", sortOrder: 1 },
@@ -156,6 +163,11 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     { subjectId: chemistrySubjectId, board: "icse" as const, number: 1, title: "Matter in Our Surroundings", slug: "class-9-chem-ch-1-matter-in-our-surroundings", sortOrder: 1 },
     { subjectId: chemistrySubjectId, board: "icse" as const, number: 2, title: "Atomic Structure and Chemical Bonding", slug: "class-9-chem-ch-2-atomic-structure", sortOrder: 2 },
     { subjectId: biologySubjectId, board: "icse" as const, number: 1, title: "Plant and Animal Tissues", slug: "class-9-bio-ch-1-plant-animal-tissues", sortOrder: 1 },
+    { subjectId: hindiSubjectId, board: "icse" as const, number: 1, title: "Sakhi (Kabir Das)", slug: "class-9-hindi-ch-1-sakhi-kabir-das", sortOrder: 1 },
+    { subjectId: hindiSubjectId, board: "icse" as const, number: 2, title: "Girdhar Ki Kundaliyan", slug: "class-9-hindi-ch-2-girdhar-ki-kundaliyan", sortOrder: 2 },
+    { subjectId: hindiSubjectId, board: "icse" as const, number: 3, title: "Swarg Bana Sakte Hain", slug: "class-9-hindi-ch-3-swarg-bana-sakte-hain", sortOrder: 3 },
+    { subjectId: hindiSubjectId, board: "icse" as const, number: 4, title: "Baat Athanni Ki", slug: "class-9-hindi-ch-4-baat-athanni-ki", sortOrder: 4 },
+    { subjectId: hindiSubjectId, board: "icse" as const, number: 5, title: "Kaki", slug: "class-9-hindi-ch-5-kaki", sortOrder: 5 },
   ];
 
   for (const ch of class9Chapters) {
@@ -172,7 +184,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       })
       .onConflictDoNothing();
   }
-  console.log("  ✓ Chapters seeded (44 rows across classes IX, X, XI, XII)");
+  console.log("  ✓ Chapters seeded (49 rows across classes IX, X, XI, XII)");
 
   if (!options?.prodOnly) {
     // 3. FACULTY
@@ -210,10 +222,10 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       id: "f0000000-0000-0000-0000-000000000002",
       name: "Mrs. Namita Singh Rajput",
       slug: "namita-singh-rajput",
-      designation: "Head of ICSE Sciences (Chemistry & Biology)",
-      bio: "Specialist educator in ICSE and Secondary Sciences with a focus on chemical reactions, equation balancing, anatomical diagrams, and rigorous board paper preparation.",
+      designation: "Head of ICSE Sciences & Hindi",
+      bio: "Specialist educator in ICSE Secondary Sciences and Hindi literature with a focus on chemical reactions, equation balancing, anatomical diagrams, and rigorous board paper preparation.",
       photoKey: "faculty/faculty-namita.webp",
-      subjectIds: ["a0000000-0000-0000-0000-000000000003", "a0000000-0000-0000-0000-000000000004"],
+      subjectIds: ["a0000000-0000-0000-0000-000000000003", "a0000000-0000-0000-0000-000000000004", "a0000000-0000-0000-0000-000000000005"],
       achievements: [
         { title: "ICSE Curriculum Expert", description: "15+ years guiding students to distinction in ICSE Board examinations" },
       ],
@@ -739,6 +751,15 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       classLevel: 12,
       subjectId: mathSubjectId,
     },
+    {
+      id: "PLYAOIEphFVGaPMuJA66CKmgdngG-6jrDd",
+      title: "ICSE 9 HINDI",
+      description: "ICSE Class 9 Hindi literature (Sahitya Sagar) and grammar discussions with comprehensive chapter explanations and notes.",
+      thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
+      itemCount: 11,
+      classLevel: 9,
+      subjectId: hindiSubjectId,
+    },
   ];
 
   for (const pl of playlistsData) {
@@ -755,7 +776,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         },
       });
   }
-  console.log("  ✓ YouTube Playlists seeded (4 rows)");
+  console.log("  ✓ YouTube Playlists seeded (5 rows)");
 
   // 8. YOUTUBE LECTURES
   const youtubeVideosData = [
@@ -849,6 +870,21 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       isPublished: true,
       needsReview: false,
     },
+    {
+      id: "bu6Hmff0m0U",
+      title: "ICSE Class 9 Hindi: Sakhi (Kabir Das) Explanation & Notes | Namita Ma'am",
+      description: "Line-by-line explanation of Kabir Das Sakhi, word meanings, and ICSE Class 9 board question answers by Namita Ma'am.",
+      publishedAt: new Date("2026-03-18T10:00:00Z"),
+      durationSeconds: 4200,
+      thumbnailUrl: "https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg",
+      viewCount: 14500,
+      likeCount: 1320,
+      classLevel: 9,
+      subjectId: hindiSubjectId,
+      facultyId: namitaFacultyId,
+      isPublished: true,
+      needsReview: false,
+    },
   ];
 
   const allDbChapters = await db
@@ -863,6 +899,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     "yt-math-12-continuity-calculus": "class-12-maths-ch-5-continuity-and-differentiability",
     "yt-math-12-definite-integrals": "class-12-maths-ch-7-integrals",
     "yt-math-11-trigonometry-identities": "class-11-maths-ch-3-trigonometric-functions",
+    "bu6Hmff0m0U": "class-9-hindi-ch-1-sakhi-kabir-das",
   };
 
   for (const v of youtubeVideosData) {
@@ -888,7 +925,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         },
       });
   }
-  console.log("  ✓ YouTube videos seeded (6 lectures)");
+  console.log("  ✓ YouTube videos seeded (7 lectures)");
 
   // 8.5 TESTIMONIALS (Seeded after YouTube videos to satisfy videoId FK)
   const testimonialsData = [

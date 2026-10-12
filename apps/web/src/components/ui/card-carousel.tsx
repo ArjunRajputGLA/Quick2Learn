@@ -125,7 +125,7 @@ export function CardCarousel({
               onClick={() => scrollByDistance("left")}
               disabled={!canScrollLeft}
               aria-label="Previous items"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -134,7 +134,7 @@ export function CardCarousel({
               onClick={() => scrollByDistance("right")}
               disabled={!canScrollRight}
               aria-label="Next items"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

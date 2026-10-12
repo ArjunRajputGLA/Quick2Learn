@@ -52,7 +52,7 @@ export function Sheet({
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm p-1 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+          className="absolute right-4 top-4 rounded-sm p-1 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors cursor-pointer"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close drawer</span>

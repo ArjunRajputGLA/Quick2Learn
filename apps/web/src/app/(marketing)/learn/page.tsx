@@ -55,7 +55,7 @@ export default async function LearnOverviewPage() {
       roman: "IX",
       slug: "ix",
       title: "Class IX Foundation",
-      description: "Build strong concepts in Algebra, Geometry, Biology, and Basic Chemistry.",
+      description: "Build strong concepts in Algebra, Geometry, Biology, Chemistry, and ICSE 9 Hindi.",
       badge: "Class 9th",
       featuredSubject: "mathematics",
       accentBorder: "hover:border-emerald-500/40",
