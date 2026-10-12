@@ -44,7 +44,7 @@ export function ClosingBand({
     <section id="inquire" className="bg-surface-subtle border-t border-border py-16 md:py-24 scroll-mt-20">
       <div className="container mx-auto px-4 max-w-[960px] text-center space-y-7">
         {/* Top Tag Badge */}
-        <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft border border-primary/20 px-4 py-1.5 text-caption font-bold text-primary">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft border border-primary/25 px-4 py-1.5 text-caption font-bold text-primary animate-float shadow-2xs hover:scale-105 transition-transform duration-300">
           <Sparkles className="h-3.5 w-3.5 text-accent" />
           <span>Academic Session 2026–27 &bull; Limited Batch Seats</span>
         </div>
@@ -65,9 +65,9 @@ export function ClosingBand({
             size="lg"
             variant="primary"
             onClick={() => setDialogOpen(true)}
-            className="w-full sm:w-auto gap-2.5 px-6 py-3.5 text-small font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+            className="group w-full sm:w-auto gap-2.5 px-6 py-3.5 text-small font-bold rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             <span>{cleanEnquireText}</span>
           </Button>
 
@@ -80,9 +80,9 @@ export function ClosingBand({
             <Button
               size="lg"
               variant="outline"
-              className="w-full sm:w-auto gap-2.5 px-6 py-3.5 border-emerald-600/40 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-600 rounded-xl font-bold cursor-pointer"
+              className="group w-full sm:w-auto gap-2.5 px-6 py-3.5 border-emerald-600/40 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-600 rounded-xl font-bold transition-all cursor-pointer"
             >
-              <MessageCircle className="h-4 w-4 fill-emerald-600" />
+              <MessageCircle className="h-4 w-4 fill-emerald-600 transition-transform duration-200 group-hover:scale-115" />
               <span>{cleanWhatsAppText}</span>
             </Button>
           </a>

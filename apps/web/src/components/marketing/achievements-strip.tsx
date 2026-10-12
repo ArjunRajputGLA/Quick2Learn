@@ -52,12 +52,12 @@ export function AchievementsStrip({ items }: AchievementsStripProps) {
             return (
               <div
                 key={index}
-                className="flex items-center gap-3.5 p-3 rounded-lg bg-surface/60 border border-border/60 shadow-xs hover:bg-surface hover:shadow-card transition-all"
+                className="group flex items-center gap-3.5 p-3.5 rounded-xl bg-surface/80 border border-border/80 shadow-xs hover:bg-surface hover:shadow-card hover:-translate-y-1 hover:border-primary/40 transition-all duration-300 ease-out cursor-default"
               >
-                <div className="h-10 w-10 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <Icon className="h-5 w-5" />
+                <div className="h-10 w-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-2xs">
+                  <Icon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-6" />
                 </div>
-                <p className="text-small font-semibold text-ink leading-snug">
+                <p className="text-small font-semibold text-ink leading-snug group-hover:text-primary transition-colors">
                   {item.text?.replace(/\s*\[PLACEHOLDER\]/gi, "")}
                 </p>
               </div>

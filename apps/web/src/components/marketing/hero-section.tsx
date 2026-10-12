@@ -37,60 +37,64 @@ export function HeroSection({
   const secondaryCtaHref = heroSettings?.secondary_cta_href || "/#lectures";
 
   return (
-    <section className="bg-surface py-12 md:py-20 border-b border-border">
+    <section className="relative overflow-hidden bg-surface py-12 md:py-20 border-b border-border">
+      {/* Dynamic ambient background glows */}
+      <div className="absolute top-1/4 right-10 -z-10 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none animate-pulse-subtle" />
+      <div className="absolute bottom-0 left-10 -z-10 w-80 h-80 rounded-full bg-amber-500/5 blur-3xl pointer-events-none animate-float" />
+
       <div className="container mx-auto px-4 max-w-[1200px]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Heading, Supporting Line, CTAs */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3.5 py-1 text-caption font-semibold text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary-soft/90 px-3.5 py-1 text-caption font-semibold text-primary animate-float shadow-2xs hover:scale-105 transition-transform duration-300 cursor-default">
+              <Sparkles className="h-3.5 w-3.5 text-accent" />
               <span>Mathura’s Premier Coaching Institute</span>
             </div>
 
             <div className="space-y-4">
-              <h1 className="text-display font-extrabold tracking-tight text-ink leading-[1.12]">
+              <h1 className="text-display font-extrabold tracking-tight text-ink leading-[1.12] animate-fade-in-up">
                 {headline}
               </h1>
-              <p className="text-body text-ink-muted max-w-xl leading-relaxed">
+              <p className="text-body text-ink-muted max-w-xl leading-relaxed animate-fade-in-up delay-150">
                 {subheadline}
               </p>
             </div>
 
             {/* CTAs */}
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 animate-fade-in-up delay-200">
               <Link href={primaryCtaHref}>
-                <Button size="lg" variant="primary" className="w-full sm:w-auto gap-2 shadow-sm font-semibold">
+                <Button size="lg" variant="primary" className="group w-full sm:w-auto gap-2 shadow-sm font-semibold">
                   <span>{primaryCtaText}</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link href={secondaryCtaHref}>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 font-semibold">
-                  <Play className="h-4 w-4 fill-current text-primary" />
+                <Button size="lg" variant="outline" className="group w-full sm:w-auto gap-2 font-semibold">
+                  <Play className="h-4 w-4 fill-current text-primary transition-transform duration-300 group-hover:scale-110" />
                   <span>{secondaryCtaText}</span>
                 </Button>
               </Link>
             </div>
 
             {/* Bullet Trust Points */}
-            <div className="pt-4 border-t border-border/80 space-y-2">
+            <div className="pt-4 border-t border-border/80 space-y-2 animate-fade-in-up delay-300">
               <div className="flex items-center gap-2.5 text-small text-ink">
                 <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                 <span>
-                  <strong>Classes IX–XII</strong> · CBSE & ICSE / ISC Boards
+                  <strong>Classes IX–XII</strong> · CBSE &amp; ICSE / ISC Boards
                 </span>
               </div>
               <div className="flex items-center gap-2.5 text-small text-ink">
                 <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                 <span>
-                  <strong>25+ Years Legacy</strong> · Guided by Mr. Dinesh Singh Rajput & Mrs. Namita Singh Rajput
+                  <strong>25+ Years Legacy</strong> · Guided by Mr. Dinesh Singh Rajput &amp; Mrs. Namita Singh Rajput
                 </span>
               </div>
             </div>
           </div>
 
           {/* Right Column: 3-Tile Carousel */}
-          <div className="lg:col-span-5 w-full">
+          <div className="lg:col-span-5 w-full animate-scale-in delay-200">
             <HeroCarousel
               latestLecture={latestLecture}
               featuredBatch={featuredBatch}

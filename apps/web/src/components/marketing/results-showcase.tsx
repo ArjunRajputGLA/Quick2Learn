@@ -68,14 +68,14 @@ export function ResultsShowcase({ headlineResult, results }: ResultsShowcaseProp
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left: Prestigious Hall of Fame Headline Stat Card */}
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-2xl border border-primary/20 bg-gradient-to-br from-primary-soft/40 via-surface to-surface p-7 shadow-sm">
+          <div className="lg:col-span-5 flex flex-col justify-between rounded-2xl border border-primary/20 bg-gradient-to-br from-primary-soft/40 via-surface to-surface p-7 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 hover:-translate-y-1">
             <div className="space-y-5">
               {/* Top Row: Trophy Icon & Trend */}
               <div className="flex items-center justify-between">
                 <div className="h-11 w-11 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-300/40 flex items-center justify-center shadow-2xs">
-                  <Trophy className="h-6 w-6 stroke-[2.2]" />
+                  <Trophy className="h-6 w-6 stroke-[2.2] animate-bounce-subtle" />
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold hover:scale-105 transition-transform">
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span>{stat.trend}</span>
                 </div>
@@ -113,10 +113,10 @@ export function ResultsShowcase({ headlineResult, results }: ResultsShowcaseProp
             <div className="pt-6 border-t border-border mt-6">
               <Link
                 href="/results"
-                className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline"
+                className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/link"
               >
                 <span>View Full Merit List &amp; Toppers</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/link:translate-x-1" />
               </Link>
             </div>
           </div>
@@ -136,11 +136,11 @@ export function ResultsShowcase({ headlineResult, results }: ResultsShowcaseProp
               return (
                 <div
                   key={res.id}
-                  className="group flex items-center justify-between p-5 rounded-xl border border-border/80 bg-surface shadow-2xs hover:shadow-card-hover hover:border-primary/40 transition-all duration-200"
+                  className="group flex items-center justify-between p-5 rounded-xl border border-border/80 bg-surface shadow-2xs hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-200 will-change-transform"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div
-                      className={`h-11 w-11 rounded-full bg-gradient-to-tr ${grad} text-white font-bold text-caption flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
+                      className={`h-11 w-11 rounded-full bg-gradient-to-tr ${grad} text-white font-bold text-caption flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}
                     >
                       {initials}
                     </div>
@@ -155,7 +155,7 @@ export function ResultsShowcase({ headlineResult, results }: ResultsShowcaseProp
                   </div>
 
                   <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
-                    <div className="px-2.5 py-0.5 rounded-full font-black text-small bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs">
+                    <div className="px-2.5 py-0.5 rounded-full font-black text-small bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs group-hover:scale-105 group-hover:bg-amber-100 transition-all duration-200">
                       {res.scoreText}
                     </div>
                     <span className="text-[11px] font-bold text-primary uppercase tracking-wider flex items-center gap-1">

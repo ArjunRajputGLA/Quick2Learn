@@ -142,16 +142,16 @@ export function Header({ megaMenuData }: HeaderProps) {
               </div>
 
               {/* Desktop Quick Nav Links (Degrees removed, relevant Batches & Free Lectures kept) */}
-              <nav className="hidden lg:flex items-center gap-5">
+              <nav className="hidden lg:flex items-center gap-6">
                 <Link
                   href="/batches"
-                  className="text-small font-medium text-ink hover:text-primary transition-colors"
+                  className="text-small font-semibold text-ink hover:text-primary transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-300"
                 >
                   Batches
                 </Link>
                 <Link
                   href="/lectures"
-                  className="text-small font-medium text-ink hover:text-primary transition-colors hidden xl:inline-block"
+                  className="text-small font-semibold text-ink hover:text-primary transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-300 hidden xl:inline-block"
                 >
                   Free Lectures
                 </Link>
@@ -175,7 +175,7 @@ export function Header({ megaMenuData }: HeaderProps) {
                   onClick={() => {
                     window.dispatchEvent(new CustomEvent("close-quick2learn-chat"));
                   }}
-                  className="p-2 rounded-full bg-primary text-white hover:bg-primary-hover shadow-xs transition-colors cursor-pointer"
+                  className="p-2 rounded-full bg-primary text-white hover:bg-primary-hover shadow-xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                   aria-label="Close AI Chatbot"
                   title="Close AI Chatbot"
                 >
@@ -184,7 +184,7 @@ export function Header({ megaMenuData }: HeaderProps) {
               ) : (
                 <Link
                   href="/chat"
-                  className="p-2 rounded-full text-ink-muted hover:text-primary hover:bg-surface-subtle transition-colors cursor-pointer"
+                  className="p-2 rounded-full text-ink-muted hover:text-primary hover:bg-surface-subtle hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                   aria-label="Open AI Chatbot"
                   title="Open AI Chatbot"
                 >
@@ -196,7 +196,7 @@ export function Header({ megaMenuData }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setIsEnquiryOpen(true)}
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-surface font-semibold text-small hover:bg-primary-hover shadow-xs active:scale-98 transition-all cursor-pointer"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-surface font-semibold text-small hover:bg-primary-hover shadow-xs hover:shadow-card hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
               >
                 <span>Inquire Now</span>
               </button>

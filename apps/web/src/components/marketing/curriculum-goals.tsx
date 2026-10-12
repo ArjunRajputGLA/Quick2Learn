@@ -102,7 +102,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                 key={goal.id}
                 type="button"
                 onClick={() => setActiveGoalId(goal.id)}
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-small font-semibold transition-all cursor-pointer select-none shrink-0 ${
+                className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-small font-semibold transition-all duration-200 cursor-pointer select-none shrink-0 hover:scale-105 active:scale-95 ${
                   isSelected
                     ? "bg-primary text-surface shadow-xs"
                     : "bg-surface-subtle text-ink border border-border hover:bg-surface hover:border-primary/40"
@@ -118,7 +118,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
         {/* Dynamic Recommendation Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2">
           {/* Left: Recommended Playlist Card */}
-          <div className="lg:col-span-7 flex flex-col justify-between rounded-xl border border-border bg-surface shadow-card overflow-hidden">
+          <div className="group lg:col-span-7 flex flex-col justify-between rounded-2xl border border-border bg-surface shadow-card hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden">
             <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-surface-subtle">
               <Image
                 src={
@@ -128,7 +128,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                 alt={cleanText(currentGoal.playlist_title)}
                 fill
                 sizes="(max-width: 768px) 100vw, 600px"
-                className="object-cover"
+                className="object-cover group-hover:scale-106 transition-transform duration-500 ease-out"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
               <div className="absolute top-4 left-4">
@@ -158,14 +158,14 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
               <div className="pt-4 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-caption text-success font-semibold">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>100% Free on YouTube & Web</span>
+                  <span>100% Free on YouTube &amp; Web</span>
                 </div>
                 <Link
                   href="/lectures"
-                  className="inline-flex items-center gap-1 text-small font-semibold text-primary hover:underline"
+                  className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/link"
                 >
                   <span>Watch series now</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/link:translate-x-1" />
                 </Link>
               </div>
             </div>

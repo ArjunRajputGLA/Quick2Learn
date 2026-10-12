@@ -93,14 +93,14 @@ export function PickYourClass({ data }: PickYourClassProps) {
           {subjects.map((sub) => (
             <div
               key={sub.id}
-              className="group flex flex-col justify-between rounded-lg border border-border bg-surface p-6 shadow-card hover:shadow-card-hover hover:border-primary/40 transition-all"
+              className="group flex flex-col justify-between rounded-xl border border-border bg-surface p-6 shadow-card hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform"
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="h-11 w-11 rounded-md bg-primary-soft text-primary flex items-center justify-center">
+                  <div className="h-11 w-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shadow-2xs group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
                     <BookOpen className="h-5 w-5" />
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-subtle border border-border/80 px-2.5 py-0.5 text-caption font-semibold text-ink-muted">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-subtle border border-border/80 px-2.5 py-0.5 text-caption font-semibold text-ink-muted group-hover:border-primary/30 transition-colors">
                     <Video className="h-3.5 w-3.5 text-primary" />
                     <span>{sub.lectureCount} Lectures</span>
                   </span>
@@ -123,10 +123,10 @@ export function PickYourClass({ data }: PickYourClassProps) {
                 </span>
                 <Link
                   href={sub.href}
-                  className="inline-flex items-center gap-1 text-small font-semibold text-primary group-hover:text-primary-hover group-hover:underline"
+                  className="inline-flex items-center gap-1.5 text-small font-semibold text-primary group-hover:text-primary-hover group-hover:underline"
                 >
                   <span>Start free</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
                 </Link>
               </div>
             </div>

@@ -80,7 +80,7 @@ export function BatchCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-surface shadow-xs hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 transition-all duration-300",
+        "group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-surface shadow-xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform",
         className,
       )}
     >
@@ -97,7 +97,7 @@ export function BatchCard({
             alt={title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-108"
           />
         ) : isMath ? (
           /* Mathematics Signature Royal Navy/Indigo Banner */
@@ -274,9 +274,9 @@ export function BatchCard({
           </div>
 
           {/* Interactive Button */}
-          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-small font-semibold shadow-xs group-hover:bg-primary-hover group-hover:shadow-card transition-all shrink-0">
+          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-small font-semibold shadow-xs group-hover:bg-primary-hover group-hover:shadow-card group-hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shrink-0">
             <span>Explore Batch</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
         </div>
       </div>

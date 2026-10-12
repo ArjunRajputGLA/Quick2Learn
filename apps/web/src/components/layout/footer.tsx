@@ -317,7 +317,7 @@ export function Footer({ settings }: FooterProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Official YouTube Channel"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-danger hover:border-danger transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-danger hover:border-danger hover:shadow-card hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shadow-xs"
             >
               <YouTubeIcon className="h-4 w-4 text-danger" />
               <span>@Quick2Learn YouTube</span>
@@ -329,7 +329,7 @@ export function Footer({ settings }: FooterProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook Page"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#1877F2] hover:border-[#1877F2] transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#1877F2] hover:border-[#1877F2] hover:shadow-card hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shadow-xs"
             >
               <FacebookIcon className="h-4 w-4 text-[#1877F2]" />
               <span>Facebook</span>
@@ -341,7 +341,7 @@ export function Footer({ settings }: FooterProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram Page"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#E4405F] hover:border-[#E4405F] transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-[#E4405F] hover:border-[#E4405F] hover:shadow-card hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shadow-xs"
             >
               <InstagramIcon className="h-4 w-4 text-[#E4405F]" />
               <span>Instagram</span>
@@ -353,7 +353,7 @@ export function Footer({ settings }: FooterProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="X / Twitter Page"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-ink hover:border-ink transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-border text-caption font-medium text-ink hover:text-primary hover:border-primary hover:shadow-card hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shadow-xs"
             >
               <TwitterIcon className="h-4 w-4 text-ink" />
               <span>Twitter / X</span>

@@ -145,7 +145,7 @@ export function TestimonialsCarousel({
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Previous testimonials"
-              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-colors shadow-2xs cursor-pointer"
+              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -154,7 +154,7 @@ export function TestimonialsCarousel({
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Next testimonials"
-              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-colors shadow-2xs cursor-pointer"
+              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -178,7 +178,7 @@ export function TestimonialsCarousel({
             return (
               <div
                 key={item.id}
-                className="w-[320px] sm:w-[380px] shrink-0 snap-start flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-6 shadow-2xs hover:shadow-card-hover hover:border-primary/30 transition-all duration-200"
+                className="group w-[320px] sm:w-[380px] shrink-0 snap-start flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-6 shadow-2xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform"
               >
                 <div className="space-y-4">
                   {/* Rating Stars & Quote Icon */}

@@ -55,7 +55,7 @@ export function ExploreTopicsChips({
               <Link
                 key={sub.id}
                 href={`/lectures?subject=${sub.slug}`}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-small font-semibold text-ink shadow-xs hover:border-primary hover:text-primary hover:bg-surface-subtle transition-all"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-small font-semibold text-ink shadow-xs hover:border-primary hover:text-primary hover:bg-primary-soft hover:-translate-y-0.5 hover:shadow-card hover:scale-[1.03] active:scale-95 transition-all duration-200"
               >
                 <span>{sub.name}</span>
               </Link>
@@ -74,7 +74,7 @@ export function ExploreTopicsChips({
               <Link
                 key={idx}
                 href={`/search?q=${encodeURIComponent(topic.query)}`}
-                className="inline-flex items-center rounded-full border border-border bg-surface px-3.5 py-1.5 text-caption font-medium text-ink-muted shadow-xs hover:border-primary/60 hover:text-ink hover:bg-primary-soft/30 transition-all"
+                className="inline-flex items-center rounded-full border border-border bg-surface px-3.5 py-1.5 text-caption font-semibold text-ink-muted shadow-xs hover:border-primary/60 hover:text-primary hover:bg-primary-soft/50 hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 transition-all duration-200"
               >
                 <span>{topic.label}</span>
               </Link>

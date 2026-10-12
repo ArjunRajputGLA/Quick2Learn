@@ -69,22 +69,22 @@ export function TeachersGrid({ facultyList }: TeachersGridProps) {
             return (
               <div
                 key={faculty.id}
-                className="group flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-7 shadow-xs hover:shadow-card-hover hover:border-primary/40 transition-all duration-200"
+                className="group flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-7 shadow-xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform"
               >
                 <div className="space-y-6">
                   {/* Top: Portrait Image, Verified Badge, Name & Role */}
                   <div className="flex items-start gap-5">
                     <div className="relative shrink-0">
-                      <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-sm ring-2 ring-primary/20 relative">
+                      <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-sm ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all duration-300 relative">
                         <Image
                           src={photoUrl}
                           alt={cleanName}
                           fill
                           sizes="(max-width: 640px) 96px, 112px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
                         />
                       </div>
-                      <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white rounded-full p-1 shadow-xs" title="Verified Faculty">
+                      <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white rounded-full p-1 shadow-xs group-hover:scale-110 transition-transform duration-200" title="Verified Faculty">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                       </div>
                     </div>
@@ -134,10 +134,10 @@ export function TeachersGrid({ facultyList }: TeachersGridProps) {
 
                   <Link
                     href={`/faculty/${faculty.slug}`}
-                    className="inline-flex items-center gap-1 text-small font-semibold text-primary hover:text-primary-hover hover:underline"
+                    className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/link"
                   >
                     <span>View Profile</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/link:translate-x-1" />
                   </Link>
                 </div>
               </div>

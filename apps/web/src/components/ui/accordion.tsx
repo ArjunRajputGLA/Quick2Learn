@@ -89,7 +89,7 @@ export function AccordionTrigger({
       onClick={() => context.toggleItem(itemValue)}
       aria-expanded={isOpen}
       className={cn(
-        "flex w-full items-center justify-between py-3.5 text-left text-body font-medium text-ink transition-all hover:text-primary cursor-pointer select-none",
+        "flex w-full items-center justify-between py-3.5 text-left text-body font-medium text-ink transition-all duration-200 hover:text-primary hover:translate-x-0.5 cursor-pointer select-none",
         className,
       )}
       {...props}
@@ -97,7 +97,7 @@ export function AccordionTrigger({
       <span>{children}</span>
       <ChevronDown
         className={cn(
-          "h-4 w-4 text-ink-muted transition-transform duration-200 shrink-0",
+          "h-4 w-4 text-ink-muted transition-transform duration-300 shrink-0",
           isOpen && "rotate-180 text-primary",
         )}
       />
@@ -125,7 +125,7 @@ export function AccordionContent({
 
   return (
     <div
-      className={cn("pb-4 pt-1 text-small text-ink-muted leading-relaxed", className)}
+      className={cn("pb-4 pt-1 text-small text-ink-muted leading-relaxed animate-fade-in-up", className)}
       {...props}
     >
       {children}

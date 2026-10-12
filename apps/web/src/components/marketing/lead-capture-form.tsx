@@ -208,10 +208,10 @@ export function LeadCaptureForm() {
                 key={sub}
                 type="button"
                 onClick={() => handleSubjectToggle(sub)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-caption font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-caption font-medium transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 ${
                   isSelected
                     ? "border-primary bg-primary text-white font-semibold shadow-xs"
-                    : "border-border bg-surface text-ink hover:bg-surface-subtle"
+                    : "border-border bg-surface text-ink hover:bg-surface-subtle hover:border-primary/40"
                 }`}
               >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -230,20 +230,20 @@ export function LeadCaptureForm() {
           rows={2}
           placeholder="e.g. Looking for Mathematics batch for Class XII Board exam preparation..."
           {...register("message")}
-          className="flex w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary placeholder:text-ink-muted"
+          className="flex w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary placeholder:text-ink-muted transition-colors"
         />
       </div>
 
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full bg-primary hover:bg-primary-hover text-white font-medium py-2.5 h-11"
+        className="group w-full bg-primary hover:bg-primary-hover text-white font-semibold py-2.5 h-11 rounded-xl shadow-sm hover:shadow-card-hover hover:-translate-y-0.5 active:scale-98 transition-all cursor-pointer"
       >
         {isPending ? (
           "Submitting Inquiry..."
         ) : (
           <span className="inline-flex items-center gap-2">
-            Register Early Interest <Send className="h-4 w-4" />
+            Register Early Interest <Send className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </span>
         )}
       </Button>

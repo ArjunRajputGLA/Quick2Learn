@@ -92,10 +92,10 @@ export function CardCarousel({
                     type="button"
                     onClick={() => onTabChange?.(tab.id)}
                     className={cn(
-                      "rounded-full px-3 py-1 text-caption font-medium transition-colors select-none cursor-pointer",
+                      "rounded-full px-3.5 py-1 text-caption font-semibold transition-all duration-200 select-none cursor-pointer hover:scale-105 active:scale-95",
                       isActive
-                        ? "bg-primary text-surface"
-                        : "bg-surface text-ink-muted hover:text-ink hover:bg-surface-subtle border border-border/80",
+                        ? "bg-primary text-surface shadow-xs"
+                        : "bg-surface text-ink-muted hover:text-primary hover:bg-surface-subtle border border-border/80 hover:border-primary/40",
                     )}
                   >
                     {tab.label}
@@ -111,21 +111,21 @@ export function CardCarousel({
           {viewAllHref && (
             <Link
               href={viewAllHref}
-              className="inline-flex items-center gap-1 text-small font-semibold text-primary hover:text-primary-hover hover:underline"
+              className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/all"
             >
               <span>{viewAllText}</span>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/all:translate-x-1" />
             </Link>
           )}
 
           {/* Prev/Next buttons on desktop */}
-          <div className="hidden sm:flex items-center gap-1 pl-2">
+          <div className="hidden sm:flex items-center gap-1.5 pl-2">
             <button
               type="button"
               onClick={() => scrollByDistance("left")}
               disabled={!canScrollLeft}
               aria-label="Previous items"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-primary-soft hover:border-primary/40 hover:text-primary hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -134,7 +134,7 @@ export function CardCarousel({
               onClick={() => scrollByDistance("right")}
               disabled={!canScrollRight}
               aria-label="Next items"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-ink shadow-xs hover:bg-primary-soft hover:border-primary/40 hover:text-primary hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

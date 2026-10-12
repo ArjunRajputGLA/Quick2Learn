@@ -38,7 +38,7 @@ export function LectureCard({
     return (
       <div
         className={cn(
-          "group flex items-start gap-3 p-2.5 rounded-xl border border-slate-200/80 bg-white hover:border-primary/40 hover:bg-slate-50/60 hover:shadow-xs transition-all duration-200",
+          "group flex items-start gap-3 p-2.5 rounded-xl border border-slate-200/80 bg-white hover:border-primary/50 hover:bg-slate-50/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out",
           className,
         )}
       >
@@ -52,11 +52,11 @@ export function LectureCard({
               alt={title}
               fill
               sizes="144px"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-108"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary">
-              <Play className="h-5 w-5 fill-current" />
+              <Play className="h-5 w-5 fill-current transition-transform duration-300 group-hover:scale-110" />
             </div>
           )}
           <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 backdrop-blur-xs px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -84,7 +84,7 @@ export function LectureCard({
   return (
     <div
       className={cn(
-        "group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200",
+        "group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform",
         className,
       )}
     >
@@ -95,11 +95,11 @@ export function LectureCard({
             alt={title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-108"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary-soft text-primary">
-            <div className="h-12 w-12 rounded-full bg-primary text-surface flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+            <div className="h-12 w-12 rounded-full bg-primary text-surface flex items-center justify-center shadow-md group-hover:scale-115 group-hover:bg-primary-hover group-hover:shadow-lg transition-all duration-300">
               <Play className="h-6 w-6 ml-0.5 fill-current" />
             </div>
           </div>
