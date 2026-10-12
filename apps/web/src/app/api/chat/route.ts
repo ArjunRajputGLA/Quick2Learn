@@ -82,7 +82,7 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
     }));
 
     // 3. Obtain stream with candidate models & fast fallback
-    let stream: any = null;
+    let stream: Awaited<ReturnType<typeof ai.models.generateContentStream>> | null = null;
     let selectedModel = CANDIDATE_MODELS[0] || "gemini-3.5-flash-lite";
 
     for (const model of CANDIDATE_MODELS) {
