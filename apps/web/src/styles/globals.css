@@ -396,10 +396,16 @@
 .goog-te-banner-frame,
 iframe.goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
-#goog-gt-tt,
-.goog-te-balloon-frame {
+iframe.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+body > .skiptranslate:not(.notranslate),
+body > iframe[id*=":"]:not(#google_translate_element iframe) {
   display: none !important;
   visibility: hidden !important;
+  height: 0px !important;
+  width: 0px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 body {
@@ -420,8 +426,11 @@ body {
 }
 
 .goog-tooltip,
-.goog-tooltip:hover {
+.goog-tooltip:hover,
+#goog-gt-tt,
+.goog-te-balloon-frame {
   display: none !important;
+  visibility: hidden !important;
 }
 
 .goog-text-highlight {

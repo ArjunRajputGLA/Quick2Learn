@@ -12,12 +12,12 @@ try {
 
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com https://images.unsplash.com ${storageOrigin}`.trim(),
-  "font-src 'self' data:",
-  "frame-src 'self' https://www.youtube-nocookie.com https://checkout.razorpay.com https://api.razorpay.com https://www.google.com https://maps.google.com",
-  `connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://vitals.vercel-insights.com ${storageOrigin}`.trim(),
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com https://va.vercel-scripts.com",
+  "style-src 'self' 'unsafe-inline' https://www.gstatic.com https://translate.googleapis.com",
+  `img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com https://images.unsplash.com https://www.google.com https://www.gstatic.com https://fonts.gstatic.com https://translate.google.com https://translate.googleapis.com ${storageOrigin}`.trim(),
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "frame-src 'self' https://www.youtube-nocookie.com https://checkout.razorpay.com https://api.razorpay.com https://www.google.com https://maps.google.com https://translate.googleapis.com",
+  `connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://vitals.vercel-insights.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com ${storageOrigin}`.trim(),
   `media-src 'self' blob: ${storageOrigin}`.trim(),
   "object-src 'none'",
   "base-uri 'self'",

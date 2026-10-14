@@ -127,7 +127,7 @@ export default function RootLayout({
                     if (window.google && window.google.translate && window.google.translate.TranslateElement) {
                       new window.google.translate.TranslateElement({
                         pageLanguage: 'en',
-                        autoDisplay: true
+                        autoDisplay: false
                       }, 'google_translate_element');
                     }
                   } catch (e) {

@@ -135,7 +135,10 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
                 </p>
               </div>
             </div>
-            <LanguageSwitcher compact />
+            <LanguageSwitcher
+              compact
+              onLanguageChange={() => setMenuOpen(false)}
+            />
           </div>
 
           {/* Quick Direct Links */}
