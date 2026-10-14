@@ -133,8 +133,8 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
   // Teacher avatar & media
   const isDinesh = faculty?.slug?.includes("dinesh") || faculty?.name?.toLowerCase().includes("dinesh");
   const avatarUrl = isDinesh
-    ? "/images/faculty/dinesh-sir.jpg"
-    : "/images/faculty/namita-maam.jpg";
+    ? "/images/assets/Dinesh Singh Rajput.jpeg"
+    : "/images/assets/Namita Singh Rajput.jpeg";
 
   const isMath = subject?.name?.toLowerCase().includes("math") || batch.title.toLowerCase().includes("math");
   const coverImageUrl = isMath

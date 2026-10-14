@@ -6,11 +6,12 @@ const BASE_SYSTEM_INSTRUCTION = `You are **Quick2Learn Assistant**, the friendly
 
 ## About Quick2Learn
 - **Founder & Senior Mathematics Faculty**: Mr. Dinesh Singh Rajput (25+ years of Mathematics teaching experience, hundreds of board 100/100 scorers).
-- **Senior ICSE Science Specialist**: Mrs. Namita Singh Rajput (Expert in ICSE/ISC Chemistry & Biology).
+- **Senior ICSE Science, Humanities & Languages Specialist**: Mrs. Namita Singh Rajput (Expert in ICSE/ISC Chemistry, Biology, Hindi literature, and Class 9 History & Civics).
 - **Curricula**: CBSE & ICSE / ISC Classes 9, 10, 11, and 12.
-- **Subjects**: Mathematics, Science (Physics, Chemistry, Biology).
+- **Subjects**: Mathematics, Science (Physics, Chemistry, Biology), Hindi, and History & Civics.
 - **Study Modes**: Offline classroom batches at Mathura centre + Live Online interactive batches.
 - **Contact**: +91 76688 75809 (Phone & WhatsApp).
+- **Official Email & Enquiries**: quick2learn23203@gmail.com
 - **Website**: https://quick2learn.in
 
 ## Coursera-Inspired Answering Style & UX:
@@ -26,6 +27,91 @@ const BASE_SYSTEM_INSTRUCTION = `You are **Quick2Learn Assistant**, the friendly
 4. **Follow-Up Suggestions**: Always end your response with exactly 3 contextual follow-up questions formatted as:
 ---FOLLOW_UPS---
 ["Follow-up 1", "Follow-up 2", "Follow-up 3"]`;
+
+const LANGUAGE_DETAILS: Record<string, { name: string; nativeName: string }> = {
+  en: { name: "English", nativeName: "English" },
+  hi: { name: "Hindi", nativeName: "हिन्दी" },
+  mr: { name: "Marathi", nativeName: "मराठी" },
+  bn: { name: "Bengali", nativeName: "বাংলা" },
+  gu: { name: "Gujarati", nativeName: "ગુજરાતી" },
+  ta: { name: "Tamil", nativeName: "தமிழ்" },
+  te: { name: "Telugu", nativeName: "తెలుగు" },
+  kn: { name: "Kannada", nativeName: "ಕನ್ನಡ" },
+  ml: { name: "Malayalam", nativeName: "മലയാളം" },
+  pa: { name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
+  or: { name: "Odia", nativeName: "ଓଡ଼ିଆ" },
+  ur: { name: "Urdu", nativeName: "اردو" },
+  as: { name: "Assamese", nativeName: "অসমীয়া" },
+  sa: { name: "Sanskrit", nativeName: "संस्कृतम्" },
+};
+
+const FALLBACK_FOLLOW_UPS_BY_LANG: Record<string, string[]> = {
+  hi: [
+    "कक्षा 12 गणित के महत्वपूर्ण अध्याय कौन-से हैं?",
+    "दिनेश सर के क्लासरूम बैच का समय क्या है?",
+    "कक्षा 10 और 12 के बोर्ड परीक्षा रिवीजन वीडियो दिखाएं",
+  ],
+  mr: [
+    "इयत्ता 12 वी गणिताचे महत्त्वाचे धडे कोणते आहेत?",
+    "दिनेश सरांच्या क्लासरूम बॅचची वेळ काय आहे?",
+    "बोर्ड परीक्षेसाठी मोफत रिव्हिजन लेक्चर्स दाखवा",
+  ],
+  bn: [
+    "ক্লাস ১২ গণিতের গুরুত্বপূর্ণ অধ্যায় কোনগুলি?",
+    "দীনেশ স্যারের ক্লাসরুম ব্যাচের সময়সূচী কী?",
+    "বোর্ড পরীক্ষার ফ্রি রিভিশন ভিডিওগুলি দেখান",
+  ],
+  gu: [
+    "ધોરણ 12 ગણિતના મહત્વના પ્રકરણો કયા છે?",
+    "દિનેશ સરના ક્લાસરૂમ બેચનો સમય શું છે?",
+    "બોર્ડ પરીક્ષાના રિવિઝન વિડીયો બતાવો",
+  ],
+  ta: [
+    "வகுப்பு 12 கணிதத்தின் முக்கியமான பாடங்கள் எவை?",
+    "தினேஷ் சாரின் நேரடி வகுப்புகளின் நேரம் என்ன?",
+    "போர்டு தேர்வு திருப்புதல் வீடியோக்களைக் காட்டு",
+  ],
+  te: [
+    "క్లాస్ 12 గణితంలో ముఖ్యమైన పాఠాలు ఏవి?",
+    "దినేష్ సర్ క్లాస్‌రూమ్ బ్యాచ్ సమయాలు ఏమిటి?",
+    "బోర్డు పరీక్ష రివిజన్ వీడియోలు చూపించండి",
+  ],
+  kn: [
+    "ತರಗತಿ 12 ರ ಗಣಿತದ ಮುಖ್ಯ ಅಧ್ಯಾಯಗಳು ಯಾವುವು?",
+    "ದಿನೇಶ್ ಸರ್ ಅವರ ತರಗತಿ ಬ್ಯಾಚ್ ಸಮಯ ಯಾವುದು?",
+    "ಬೋರ್ಡ್ ಪರೀಕ್ಷೆಯ ಪುನರಾವರ್ತನೆ ವೀಡಿಯೊಗಳನ್ನು ತೋರಿಸಿ",
+  ],
+  ml: [
+    "ക്ലാസ് 12 ഗണിതത്തിലെ പ്രധാന പാഠങ്ങൾ ഏതെല്ലാം?",
+    "ദിനേഷ് സാറിന്റെ ക്ലാസ് റൂം ബാച്ച് സമയം എപ്പോഴാണ്?",
+    "ബോർഡ് പരീക്ഷ റിവിഷൻ ക്ലാസുകൾ കാണിക്കുക",
+  ],
+  pa: [
+    "ਕਲਾਸ 12 ਗਣਿਤ ਦੇ ਮਹੱਤਵਪੂਰਨ ਚੈਪਟਰ ਕਿਹੜੇ ਹਨ?",
+    "ਦਿਨੇਸ਼ ਸਰ ਦੇ ਕਲਾਸਰੂਮ ਬੈਚ ਦਾ ਸਮਾਂ ਕੀ ਹੈ?",
+    "ਬੋਰਡ ਪ੍ਰੀਖਿਆ ਰਿਵੀਜ਼ਨ ਵੀਡੀਓ ਦਿਖਾਓ",
+  ],
+  or: [
+    "କ୍ଲାସ 12 ଗଣିତର ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ଅଧ୍ୟାୟ କେଉଁଗୁଡ଼ିକ?",
+    "ଦିନେଶ ସାରଙ୍କ କ୍ଲାସରୁମ ବ୍ୟାଚ ସମୟ କଣ?",
+    "ବୋର୍ଡ ପରୀକ୍ଷା ରିଭିଜନ ଭିଡିଓ ଦେଖାନ୍ତୁ",
+  ],
+  ur: [
+    "کلاس 12 ریاضی کے اہم اسباق کون سے ہیں؟",
+    "دنیش سر کے کلاس روم بیچ کے اوقات کیا ہیں؟",
+    "بورڈ امتحان کے ریویژن ویڈیوز دکھائیں",
+  ],
+  as: [
+    "শ্ৰেণী ১২ গণিতৰ গুৰুত্বপূৰ্ণ অধ্যায়বোৰ কি কি?",
+    "দিনেশ ছাৰৰ শ্ৰেণীকোঠা বেচৰ সময় কি?",
+    "ব'ৰ্ড পৰীক্ষাৰ ৰিভিজন ভিডিঅ'বোৰ দেখুৱাওক",
+  ],
+  sa: [
+    "द्वादशकक्षायाः गणितस्य प्रमुखाः अध्यायाः के?",
+    "दिनेशमहोदयस्य कक्षासत्रस्य समयः कः?",
+    "बोर्ड-पुनरावृत्ति-पाठाः दर्श्यन्ताम्",
+  ],
+};
 
 // Models ordered by speed and stability for low-latency interactive chat
 const CANDIDATE_MODELS = [
@@ -55,6 +141,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Detect language from body, or header cookie googtrans
+    const cookieHeader = request.headers.get("cookie") || "";
+    const cookieMatch = cookieHeader.match(/googtrans=(?:\/auto|\/en)\/([a-z]{2,3})/i);
+    const cookieLang = cookieMatch ? cookieMatch[1].toLowerCase() : null;
+    const langCode = (body.language || cookieLang || "en").toLowerCase();
+    const langInfo = LANGUAGE_DETAILS[langCode] || LANGUAGE_DETAILS.en;
+    const isNonEnglish = langCode !== "en" && Boolean(LANGUAGE_DETAILS[langCode]);
+
     const lastUserQuery =
       messages.filter((m) => m.role === "user").pop()?.content || "";
 
@@ -69,7 +163,19 @@ export async function POST(request: NextRequest) {
       ),
     ]);
 
+    const languageInstruction = isNonEnglish
+      ? `
+## CRITICAL LANGUAGE REQUIREMENT (HIGHEST PRIORITY):
+- The user has selected the website language as **${langInfo.name} (${langInfo.nativeName})**.
+- You MUST generate your response completely in **${langInfo.name} (${langInfo.nativeName})** using fluent, natural ${langInfo.name} script.
+- Even if the user message or question is written in English or transliterated, ALWAYS formulate your explanations and answer in **${langInfo.name} (${langInfo.nativeName})**.
+- Keep institute name ("Quick2Learn"), teacher names ("Dinesh Sir", "Namita Ma'am"), and standard curricula/exam identifiers ("CBSE", "ICSE", "Class 10", "Class 12") easily understandable.
+- The 3 follow-up questions at the end after \`---FOLLOW_UPS---\` MUST also be written in **${langInfo.name} (${langInfo.nativeName})**.`
+      : "";
+
     const fullSystemInstruction = `${BASE_SYSTEM_INSTRUCTION}
+
+${languageInstruction}
 
 ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${contextSummary}\n\nUse these exact lectures and courses when recommending options!` : ""}`;
 
@@ -116,20 +222,6 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
     const encoder = new TextEncoder();
     const readableStream = new ReadableStream({
       async start(controller) {
-        // Immediately send eager metadata with matching cards for instantaneous UI feedback
-        if (videos.length > 0 || batches.length > 0) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                metadata: {
-                  relatedVideos: videos,
-                  relatedBatches: batches,
-                },
-              })}\n\n`,
-            ),
-          );
-        }
-
         let accumulated = "";
         let sentLength = 0;
         let followUps: string[] = [];
@@ -183,31 +275,35 @@ ${contextSummary ? `## Real Available Content from Quick2Learn Catalog:\n${conte
 
           // Fallback follow-ups if none were parsed
           if (followUps.length === 0) {
-            const q = lastUserQuery.toLowerCase();
-            if (q.includes("matrix") || q.includes("matrices")) {
-              followUps = [
-                "How to solve adjoint and inverse of matrices?",
-                "Show me Class 12 board PYQs on matrices",
-                "What is Dinesh Sir's calculus schedule?",
-              ];
-            } else if (q.includes("calculus") || q.includes("integral") || q.includes("derivative")) {
-              followUps = [
-                "Show me Definite Integrals PYQ marathon",
-                "Which formulas are most important in Calculus?",
-                "How to join Dinesh Sir's offline batch in Mathura?",
-              ];
-            } else if (q.includes("chem") || q.includes("bio") || q.includes("science")) {
-              followUps = [
-                "Show me Namita Ma'am's ICSE Biology lectures",
-                "Tips for scoring 95+ in ICSE Chemistry",
-                "Compare Class 10 offline vs online batches",
-              ];
+            if (isNonEnglish && FALLBACK_FOLLOW_UPS_BY_LANG[langCode]) {
+              followUps = FALLBACK_FOLLOW_UPS_BY_LANG[langCode]!;
             } else {
-              followUps = [
-                "Show me Class 12 CBSE Maths revision",
-                "Tell me about Dinesh Sir's experience",
-                "How can I join Quick2Learn in Mathura?",
-              ];
+              const q = lastUserQuery.toLowerCase();
+              if (q.includes("matrix") || q.includes("matrices")) {
+                followUps = [
+                  "How to solve adjoint and inverse of matrices?",
+                  "Show me Class 12 board PYQs on matrices",
+                  "What is Dinesh Sir's calculus schedule?",
+                ];
+              } else if (q.includes("calculus") || q.includes("integral") || q.includes("derivative")) {
+                followUps = [
+                  "Show me Definite Integrals PYQ marathon",
+                  "Which formulas are most important in Calculus?",
+                  "How to join Dinesh Sir's offline batch in Mathura?",
+                ];
+              } else if (q.includes("chem") || q.includes("bio") || q.includes("science")) {
+                followUps = [
+                  "Show me Namita Ma'am's ICSE Biology lectures",
+                  "Tips for scoring 95+ in ICSE Chemistry",
+                  "Compare Class 10 offline vs online batches",
+                ];
+              } else {
+                followUps = [
+                  "Show me Class 12 CBSE Maths revision",
+                  "Tell me about Dinesh Sir's experience",
+                  "How can I join Quick2Learn in Mathura?",
+                ];
+              }
             }
           }
 

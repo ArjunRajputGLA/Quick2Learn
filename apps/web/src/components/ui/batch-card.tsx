@@ -59,7 +59,7 @@ export function BatchCard({
   const resolvedAvatar = isDineshSir
     ? "/images/assets/Dinesh Singh Rajput.jpeg"
     : isNamitaMaam
-      ? "/images/faculty/namita-maam.jpg"
+      ? "/images/assets/Namita Singh Rajput.jpeg"
       : facultyAvatar || "/images/assets/Dinesh Singh Rajput.jpeg";
 
   const facultyRole = isDineshSir

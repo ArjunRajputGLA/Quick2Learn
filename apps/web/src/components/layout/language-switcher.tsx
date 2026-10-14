@@ -33,7 +33,7 @@ interface LanguageSwitcherProps {
   onLanguageChange?: (lang: LanguageOption) => void;
 }
 
-function getStoredLanguageCode(): string {
+export function getStoredLanguageCode(): string {
   if (typeof window === "undefined" || typeof document === "undefined") return "en";
   
   // 1. Check URL hash (Google Translate native format: #googtrans(en|hi) or #googtrans/en/hi)
@@ -179,6 +179,11 @@ export function LanguageSwitcher({
     setCurrentCode(targetCode);
     setIsOpen(false);
     onLanguageChange?.(lang);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("quick2learn-language-changed", { detail: lang }),
+      );
+    }
 
     // 3. Trigger Google Translate combo element
     const combo = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;

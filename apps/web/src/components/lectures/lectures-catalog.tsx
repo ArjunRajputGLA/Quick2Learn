@@ -15,6 +15,7 @@ import {
   Calculator,
   FlaskConical,
   BookOpen,
+  Landmark,
 } from "lucide-react";
 import { YouTubeIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
@@ -70,14 +71,17 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
         /math/i.test(v.title) ||
         /calculus|matrices|algebra|vector|integral|trig/i.test(v.title) ||
         /dinesh/i.test(v.title);
-      const isScienceOrCivics =
-        /science|chemistry|biology|civics/i.test(v.title) ||
-        (/namita/i.test(v.title) && !/hindi|sakhi|kabir/i.test(v.title));
+      const isScience =
+        /science|chemistry|biology/i.test(v.title) ||
+        (/namita/i.test(v.title) && !/hindi|sakhi|kabir|history|civics|harappan|vedic|mauryan|gupta/i.test(v.title));
+      const isHistoryCivics =
+        /history|civics|harappan|indus valley|vedic|mauryan|gupta|constitution/i.test(v.title);
       const isHindi =
         /hindi|sakhi|kabir/i.test(v.title);
 
       if (selectedSubject === "math" && !isMath) return false;
-      if (selectedSubject === "science" && !isScienceOrCivics) return false;
+      if (selectedSubject === "science" && !isScience) return false;
+      if (selectedSubject === "history-civics" && !isHistoryCivics) return false;
       if (selectedSubject === "hindi" && !isHindi) return false;
 
       // Text search query
@@ -199,9 +203,14 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
                   icon: Calculator,
                 },
                 {
-                  label: "Sciences & Civics (Namita Ma'am)",
+                  label: "Sciences (Namita Ma'am)",
                   value: "science",
                   icon: FlaskConical,
+                },
+                {
+                  label: "History & Civics (Namita Ma'am)",
+                  value: "history-civics",
+                  icon: Landmark,
                 },
                 {
                   label: "ICSE 9 Hindi (Namita Ma'am)",
@@ -274,7 +283,7 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
             const facultyAvatar = isDineshSir
               ? "/images/assets/Dinesh Singh Rajput.jpeg"
               : isNamitaMaam
-                ? "/images/faculty/namita-maam.jpg"
+                ? "/images/assets/Namita Singh Rajput.jpeg"
                 : "/images/assets/Dinesh Singh Rajput.jpeg";
 
             const facultyBadge = isDineshSir

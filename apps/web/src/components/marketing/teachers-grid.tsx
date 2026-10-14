@@ -48,10 +48,10 @@ export function TeachersGrid({ facultyList }: TeachersGridProps) {
               ? "Over 25 years of teaching excellence in Senior Secondary Mathematics in Mathura, mentoring thousands of CBSE & ISC students to 99+ percentile board scores."
               : "Specialist educator in ICSE and Secondary Sciences with a focus on chemical reactions, equation balancing, anatomical diagrams, and rigorous board paper preparation.");
 
-            // Use authentic generated faculty portrait photos
+            // Use authentic faculty portrait photos
             const photoUrl = isDinesh
               ? "/images/assets/Dinesh Singh Rajput.jpeg"
-              : "/images/faculty/namita-maam.jpg";
+              : "/images/assets/Namita Singh Rajput.jpeg";
 
             const experienceText = isDinesh ? "25+ Yrs Experience" : "15+ Yrs Experience";
             const subjectBadge = isDinesh ? "Senior Mathematics (Class 11 & 12)" : "Chemistry & Biology (Class 9 & 10)";

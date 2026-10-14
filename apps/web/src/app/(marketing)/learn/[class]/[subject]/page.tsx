@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getSubjectBySlug, getSubjects } from "@/server/data/catalog";
+import { getSubjectBySlug, getSubjects, getClassSubjectsWithDetails } from "@/server/data/catalog";
+import { ScrollAnimatedList, type ScrollAnimatedItem } from "@/components/learn/scroll-animated-list";
 import {
   getSubjectChaptersWithStats,
   getVideosWithoutChapter,
@@ -21,6 +22,8 @@ import {
   Calculator,
   FlaskConical,
   GraduationCap,
+  Landmark,
+  Atom,
 } from "lucide-react";
 
 interface LearnSubjectPageProps {
@@ -98,11 +101,12 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
 
   const classRoman = formatClassRoman(classLevel);
 
-  // Fetch chapters with lecture count and total duration
-  const [chaptersWithStats, unassignedVideos, relatedBatch] = await Promise.all([
+  // Fetch chapters with lecture count and total duration, plus all class subjects
+  const [chaptersWithStats, unassignedVideos, relatedBatch, classSubjects] = await Promise.all([
     getSubjectChaptersWithStats(classLevel, subject.id),
     getVideosWithoutChapter(subject.id, classLevel),
     getRelatedBatchForClass(classLevel, subject.id),
+    getClassSubjectsWithDetails(classLevel),
   ]);
 
   // Ensure unique chapters by slug / number as fail-safe against database duplicates
@@ -112,16 +116,37 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
 
   const totalLectures = uniqueChapters.reduce((acc, ch) => acc + ch.lectureCount, 0);
 
+  const animatedChapters: ScrollAnimatedItem[] = uniqueChapters.map((ch) => ({
+    id: ch.id,
+    number: ch.number,
+    title: ch.title,
+    badge: ch.board ? ch.board.toUpperCase() : undefined,
+    href: `/learn/${classParam}/${subjectParam}/${ch.slug}`,
+    meta: [
+      `Chapter ${ch.number}`,
+      ...(ch.lectureCount > 0
+        ? [`${ch.lectureCount} ${ch.lectureCount === 1 ? "lesson" : "lessons"} (${ch.formattedDuration})`]
+        : ["Study notes ready • Lectures recording"]),
+    ],
+  }));
+
   // Theming & Mentorship
   const isMath = /math/i.test(subject.name);
+  const isPhysics = /physics/i.test(subject.name) || /physics/i.test(subjectParam);
   const isHindi = /hindi/i.test(subject.name) || /hindi/i.test(subjectParam);
+  const isHistoryCivics =
+    /history/i.test(subject.name) ||
+    /civics/i.test(subject.name) ||
+    /history/i.test(subjectParam);
   const facultyName = isMath ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput";
   const facultyRole = isMath
     ? "25+ Yrs Exp • Senior Mathematics Head"
     : isHindi
     ? "15+ Yrs Exp • ICSE Sciences & Hindi Mentor"
+    : isHistoryCivics
+    ? "15+ Yrs Exp • Head of ICSE Sciences, Humanities & Hindi"
     : "15+ Yrs Exp • Head of ICSE Sciences";
-  const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/faculty/namita-maam.jpg";
+  const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/assets/Namita Singh Rajput.jpeg";
 
   const subjectSlug = subjectParam.toLowerCase();
   let subjectVideo: string | null = null;
@@ -133,6 +158,10 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
     subjectVideo = "Chemistry";
   } else if (/hindi/i.test(subject.name) || /hindi/i.test(subjectSlug)) {
     subjectVideo = "Hindi";
+  } else if (/history|civics/i.test(subject.name) || /history|civics/i.test(subjectSlug)) {
+    subjectVideo = "history&civics";
+  } else if (/physics/i.test(subject.name) || /physics/i.test(subjectSlug)) {
+    subjectVideo = "physics";
   }
 
   return (
@@ -141,7 +170,7 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
         items={[
           { label: "Home", href: "/" },
           { label: "Learn", href: "/learn" },
-          { label: `Class ${classRoman}`, href: `/learn/${classParam}/${subjectParam}` },
+          { label: `Class ${classRoman}`, href: `/learn/${classParam}` },
           { label: subject.name },
         ]}
       />
@@ -154,33 +183,54 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
               ? "bg-linear-to-br from-slate-950 via-indigo-950 to-blue-900"
               : isHindi
               ? "bg-linear-to-br from-slate-950 via-emerald-950 to-teal-950"
+              : isHistoryCivics
+              ? "bg-linear-to-br from-slate-950 via-amber-950 to-stone-900"
               : "bg-linear-to-br from-slate-950 via-teal-950 to-emerald-900"
           }`}
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Animated Subject Video Backdrop */}
-          {subjectVideo && (
-            <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-10 sm:-bottom-14 w-80 h-80 sm:w-[420px] sm:h-[420px] pointer-events-none select-none opacity-85">
+          {/* Full Background Video for History & Civics */}
+          {isHistoryCivics ? (
+            <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden">
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover scale-105 filter blur-[1px] opacity-80 brightness-90"
                 aria-hidden="true"
               >
                 <source
-                  src={`/images/assets/${subjectVideo}.webm`}
-                  type="video/webm"
-                />
-                <source
-                  src={`/images/assets/${subjectVideo}.mp4`}
+                  src="/images/assets/history&civics.mp4"
                   type="video/mp4"
                 />
               </video>
+              <div className="absolute inset-0 bg-linear-to-r from-slate-950/85 via-slate-950/45 to-slate-950/20" />
             </div>
+          ) : (
+            subjectVideo && (
+              <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-10 sm:-bottom-14 w-80 h-80 sm:w-[420px] sm:h-[420px] pointer-events-none select-none opacity-85">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-contain"
+                  aria-hidden="true"
+                >
+                  <source
+                    src={`/images/assets/${subjectVideo}.webm`}
+                    type="video/webm"
+                  />
+                  <source
+                    src={`/images/assets/${subjectVideo}.mp4`}
+                    type="video/mp4"
+                  />
+                </video>
+              </div>
+            )
           )}
 
           <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -189,8 +239,12 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-white/10 text-white backdrop-blur-md border border-white/15 shadow-xs">
                   {isMath ? (
                     <Calculator className="h-3.5 w-3.5 text-sky-400" />
+                  ) : isPhysics ? (
+                    <Atom className="h-3.5 w-3.5 text-teal-300" />
                   ) : isHindi ? (
                     <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                  ) : isHistoryCivics ? (
+                    <Landmark className="h-3.5 w-3.5 text-amber-300" />
                   ) : (
                     <FlaskConical className="h-3.5 w-3.5 text-emerald-400" />
                   )}
@@ -234,7 +288,7 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
             </div>
 
             {/* Mentor Badge */}
-            <div className="shrink-0 pt-2 lg:pt-0">
+            <div className={`shrink-0 pt-2 lg:pt-0 ${isHistoryCivics ? "lg:self-end relative z-10" : ""}`}>
               <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
                 <div className="relative h-14 w-14 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
                   <Image
@@ -260,6 +314,31 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
           </div>
         </div>
 
+        {/* Class Subjects Switcher Bar */}
+        {classSubjects.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <span className="text-caption font-bold text-ink-muted shrink-0 mr-1">
+              Class {classRoman} Subjects:
+            </span>
+            {classSubjects.map((s) => {
+              const isActive = s.slug === subjectParam.toLowerCase();
+              return (
+                <Link
+                  key={s.id}
+                  href={`/learn/${classParam}/${s.slug}`}
+                  className={`px-3.5 py-1.5 rounded-full text-caption font-semibold transition-all shrink-0 ${
+                    isActive
+                      ? "bg-primary text-white shadow-xs"
+                      : "bg-surface border border-border text-ink-muted hover:text-ink hover:border-ink"
+                  }`}
+                >
+                  {s.name} ({s.chapterCount})
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
         {/* Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Column: Chapter List */}
@@ -275,71 +354,11 @@ export default async function LearnSubjectPage({ params }: LearnSubjectPageProps
                 </span>
               </div>
 
-              {uniqueChapters.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border bg-surface p-12 text-center text-ink-muted">
-                  Chapters for this subject are being updated for the current academic session.
-                </div>
-              ) : (
-                <div className="divide-y divide-border/60 rounded-2xl border border-border/80 bg-surface shadow-xs overflow-hidden">
-                  {uniqueChapters.map((ch) => (
-                    <Link
-                      key={ch.id}
-                      href={`/learn/${classParam}/${subjectParam}/${ch.slug}`}
-                      className="p-5 sm:p-6 flex items-center justify-between gap-4 hover:bg-surface-subtle transition-all group block cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4 sm:gap-5 min-w-0">
-                        {/* Chapter Number Badge */}
-                        <div className="h-12 w-12 rounded-2xl bg-primary-soft text-primary font-black text-[16px] flex items-center justify-center shrink-0 border border-primary/20 shadow-xs group-hover:bg-primary group-hover:text-white group-hover:scale-105 transition-all">
-                          {ch.number}
-                        </div>
-
-                        <div className="space-y-1.5 min-w-0">
-                          <h3 className="font-bold text-[17px] text-ink group-hover:text-primary transition-colors leading-snug truncate sm:whitespace-normal">
-                            {ch.title}
-                          </h3>
-
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-muted">
-                            <span className="font-medium">Chapter {ch.number}</span>
-                            {ch.board && (
-                              <>
-                                <span>•</span>
-                                <span className="uppercase font-semibold text-primary">{ch.board}</span>
-                              </>
-                            )}
-                            {ch.lectureCount > 0 ? (
-                              <>
-                                <span>•</span>
-                                <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                                  <Video className="h-3 w-3" />
-                                  {ch.lectureCount} {ch.lectureCount === 1 ? "lesson" : "lessons"} ({ch.formattedDuration})
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span>•</span>
-                                <span className="text-ink-muted italic flex items-center gap-1">
-                                  <Clock className="h-3 w-3 text-primary/60" />
-                                  Study notes ready • Lectures recording
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Action */}
-                      <div className="shrink-0 flex items-center gap-2">
-                        <span className="hidden sm:inline-flex text-caption font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                          Explore Chapter
-                        </span>
-                        <div className="h-8 w-8 rounded-full bg-surface-subtle group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-all">
-                          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              {/* Scroll Animated Chapters List */}
+              <ScrollAnimatedList
+                items={animatedChapters}
+                emptyMessage="Chapters for this subject are being updated for the current academic session."
+              />
             </div>
 
             {/* "More from this subject" section (Videos not in a specific chapter) */}

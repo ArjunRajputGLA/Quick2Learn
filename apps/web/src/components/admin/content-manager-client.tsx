@@ -308,7 +308,7 @@ export function ContentManagerClient({
     (initialSettings.contact as ContactSetting | undefined) || {
       phone: "+91 76688 75809",
       whatsapp: "+91 76688 75809",
-      email: "contact@quick2learn.in",
+      email: "quick2learn23203@gmail.com",
       support_hours: "Mon–Sat 9:00 AM – 7:00 PM IST",
     },
   );

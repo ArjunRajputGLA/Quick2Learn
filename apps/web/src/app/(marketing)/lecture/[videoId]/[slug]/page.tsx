@@ -193,8 +193,8 @@ export default async function LecturePage({ params }: LecturePageProps) {
   // Faculty authentic photo
   const isDinesh = faculty?.slug?.includes("dinesh") || faculty?.name?.toLowerCase().includes("dinesh");
   const avatarUrl = isDinesh
-    ? "/images/faculty/dinesh-sir.jpg"
-    : "/images/faculty/namita-maam.jpg";
+    ? "/images/assets/Dinesh Singh Rajput.jpeg"
+    : "/images/assets/Namita Singh Rajput.jpeg";
 
   const isMath = subject?.name?.toLowerCase().includes("math") || video.title.toLowerCase().includes("math");
 

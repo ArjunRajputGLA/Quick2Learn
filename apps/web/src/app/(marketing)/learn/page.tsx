@@ -18,6 +18,7 @@ import {
   Calculator,
   FlaskConical,
   Sparkles,
+  Landmark,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -55,7 +56,7 @@ export default async function LearnOverviewPage() {
       roman: "IX",
       slug: "ix",
       title: "Class IX Foundation",
-      description: "Build strong concepts in Algebra, Geometry, Biology, Chemistry, and ICSE 9 Hindi.",
+      description: "Build strong concepts in Algebra, Geometry, Biology, Chemistry, ICSE 9 Hindi, and History & Civics.",
       badge: "Class 9th",
       featuredSubject: "mathematics",
       accentBorder: "hover:border-emerald-500/40",
@@ -181,7 +182,7 @@ export default async function LearnOverviewPage() {
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
                   <Image
-                    src="/images/faculty/namita-maam.jpg"
+                    src="/images/assets/Namita Singh Rajput.jpeg"
                     alt="Mrs. Namita Singh Rajput"
                     fill
                     className="object-cover"
@@ -261,28 +262,37 @@ export default async function LearnOverviewPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {subjects.map((sub) => {
               const isMath = /math/i.test(sub.name);
+              const isHistoryCivics = sub.slug === "history-civics";
+              const isHindi = sub.slug === "hindi";
               const faculty = isMath
                 ? "Mr. Dinesh Singh Rajput"
-                : sub.slug === "chemistry" || sub.slug === "biology"
+                : sub.slug === "chemistry" || sub.slug === "biology" || isHindi || isHistoryCivics
                   ? "Mrs. Namita Singh Rajput"
                   : "Senior Subject Mentor";
+
+              const hrefClass = isHindi || isHistoryCivics ? "ix" : "xii";
+              const badgeClass = isHindi || isHistoryCivics ? "Class IX" : "Classes IX–XII";
 
               return (
                 <Link
                   key={sub.id}
-                  href={`/learn/xii/${sub.slug}`}
+                  href={`/learn/${hrefClass}/${sub.slug}`}
                   className="rounded-2xl border border-border/80 bg-surface p-5 hover:border-primary/40 hover:shadow-card transition-all group block"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="h-9 w-9 rounded-xl bg-primary-soft text-primary flex items-center justify-center border border-primary/10">
                       {isMath ? (
                         <Calculator className="h-4.5 w-4.5" />
+                      ) : isHistoryCivics ? (
+                        <Landmark className="h-4.5 w-4.5" />
+                      ) : isHindi ? (
+                        <BookOpen className="h-4.5 w-4.5" />
                       ) : (
                         <FlaskConical className="h-4.5 w-4.5" />
                       )}
                     </div>
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-surface-subtle text-ink-muted border border-border">
-                      Classes IX–XII
+                      {badgeClass}
                     </span>
                   </div>
                   <h3 className="font-bold text-[16px] text-ink group-hover:text-primary transition-colors mb-1">

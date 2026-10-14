@@ -303,7 +303,7 @@ describe("Trust & Policy Pages Suite", () => {
     expect(ipRes4.error).toContain("Too many enquiries submitted from this network");
   });
 
-  it("Test 8: Legal policy pages contain placeholders, last updated date, and draft review comments", () => {
+  it("Test 8: Legal policy pages contain complete real business details, last updated date, and zero placeholders", () => {
     const webRoot = path.resolve(__dirname, "../apps/web/src/app/(marketing)");
     const legalPages = [
       { file: "privacy/page.tsx", name: "Privacy Policy" },
@@ -317,15 +317,18 @@ describe("Trust & Policy Pages Suite", () => {
 
       const content = fs.readFileSync(fullPath, "utf-8");
 
-      // Verify draft code comments
-      expect(content).toContain("// DRAFT: This text is a draft to be reviewed before going live.");
-      expect(content).toContain("DRAFT: This legal policy is a draft to be reviewed and approved by legal counsel before going live.");
+      // Verify NO draft placeholders remain
+      expect(content).not.toContain("[BUSINESS NAME]");
+      expect(content).not.toContain("[ADDRESS]");
+      expect(content).not.toContain("[EMAIL]");
+      expect(content).not.toContain("[PHONE]");
+      expect(content).not.toContain("[PLACEHOLDER]");
 
-      // Verify mandatory placeholders
-      expect(content).toContain("[BUSINESS NAME]");
-      expect(content).toContain("[ADDRESS]");
-      expect(content).toContain("[EMAIL]");
-      expect(content).toContain("[PHONE]");
+      // Verify real business details
+      expect(content).toContain("Quick2Learn");
+      expect(content).toContain("Mathura");
+      expect(content).toContain("quick2learn23203@gmail.com");
+      expect(content).toContain("+91 76688 75809");
 
       // Verify Last updated date
       expect(content).toContain("Last updated: October 2026");

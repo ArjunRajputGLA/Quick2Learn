@@ -45,6 +45,12 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       name: "Hindi",
       sortOrder: 5,
     },
+    {
+      id: "a0000000-0000-0000-0000-000000000006",
+      slug: "history-civics",
+      name: "History & Civics",
+      sortOrder: 6,
+    },
   ];
 
   for (const s of subjectsData) {
@@ -56,7 +62,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         set: { name: s.name, sortOrder: s.sortOrder },
       });
   }
-  console.log("  ✓ Subjects seeded (5 rows)");
+  console.log(`  ✓ Subjects seeded (${subjectsData.length} rows)`);
 
   // 2. CHAPTERS
   const mathSubjectId = "a0000000-0000-0000-0000-000000000001";
@@ -126,6 +132,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
   const chemistrySubjectId = "a0000000-0000-0000-0000-000000000003";
   const biologySubjectId = "a0000000-0000-0000-0000-000000000004";
   const hindiSubjectId = "a0000000-0000-0000-0000-000000000005";
+  const historyCivicsSubjectId = "a0000000-0000-0000-0000-000000000006";
 
   const class10Chapters = [
     { subjectId: mathSubjectId, board: "cbse" as const, number: 1, title: "Real Numbers", slug: "class-10-maths-ch-1-real-numbers", sortOrder: 1 },
@@ -168,6 +175,14 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     { subjectId: hindiSubjectId, board: "icse" as const, number: 3, title: "Swarg Bana Sakte Hain", slug: "class-9-hindi-ch-3-swarg-bana-sakte-hain", sortOrder: 3 },
     { subjectId: hindiSubjectId, board: "icse" as const, number: 4, title: "Baat Athanni Ki", slug: "class-9-hindi-ch-4-baat-athanni-ki", sortOrder: 4 },
     { subjectId: hindiSubjectId, board: "icse" as const, number: 5, title: "Kaki", slug: "class-9-hindi-ch-5-kaki", sortOrder: 5 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 1, title: "The Harappan Civilisation (Indus Valley)", slug: "class-9-history-civics-ch-1-harappan-civilisation", sortOrder: 1 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 2, title: "Early & Later Vedic Period", slug: "class-9-history-civics-ch-2-vedic-period", sortOrder: 2 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 3, title: "Jainism & Buddhism", slug: "class-9-history-civics-ch-3-jainism-buddhism", sortOrder: 3 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 4, title: "The Mauryan Empire", slug: "class-9-history-civics-ch-4-mauryan-empire", sortOrder: 4 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 5, title: "The Sangam Age", slug: "class-9-history-civics-ch-5-sangam-age", sortOrder: 5 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 6, title: "The Golden Age of the Guptas", slug: "class-9-history-civics-ch-6-guptas-age", sortOrder: 6 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 7, title: "Our Constitution & Salient Features", slug: "class-9-history-civics-ch-7-our-constitution", sortOrder: 7 },
+    { subjectId: historyCivicsSubjectId, board: "icse" as const, number: 8, title: "Elections & Local Self-Government", slug: "class-9-history-civics-ch-8-elections-local-government", sortOrder: 8 },
   ];
 
   for (const ch of class9Chapters) {
@@ -184,7 +199,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       })
       .onConflictDoNothing();
   }
-  console.log("  ✓ Chapters seeded (49 rows across classes IX, X, XI, XII)");
+  const totalChapters = class12Chapters.length + class11Chapters.length + class10Chapters.length + class9Chapters.length;
+  console.log(`  ✓ Chapters seeded (${totalChapters} rows across classes IX, X, XI, XII)`);
 
   if (!options?.prodOnly) {
     // 3. FACULTY
@@ -222,10 +238,10 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       id: "f0000000-0000-0000-0000-000000000002",
       name: "Mrs. Namita Singh Rajput",
       slug: "namita-singh-rajput",
-      designation: "Head of ICSE Sciences & Hindi",
-      bio: "Specialist educator in ICSE Secondary Sciences and Hindi literature with a focus on chemical reactions, equation balancing, anatomical diagrams, and rigorous board paper preparation.",
-      photoKey: "faculty/faculty-namita.webp",
-      subjectIds: ["a0000000-0000-0000-0000-000000000003", "a0000000-0000-0000-0000-000000000004", "a0000000-0000-0000-0000-000000000005"],
+      designation: "Head of ICSE Sciences, Humanities & Hindi",
+      bio: "Specialist educator in ICSE Secondary Sciences, History-Civics, and Hindi literature with a focus on chemical reactions, equation balancing, anatomical diagrams, historical timelines, and rigorous board paper preparation.",
+      photoKey: "/images/assets/Namita Singh Rajput.jpeg",
+      subjectIds: ["a0000000-0000-0000-0000-000000000003", "a0000000-0000-0000-0000-000000000004", "a0000000-0000-0000-0000-000000000005", "a0000000-0000-0000-0000-000000000006"],
       achievements: [
         { title: "ICSE Curriculum Expert", description: "15+ years guiding students to distinction in ICSE Board examinations" },
       ],
@@ -760,6 +776,15 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       classLevel: 9,
       subjectId: hindiSubjectId,
     },
+    {
+      id: "PLYAOIEphFVGYGYLXAfp2cnDOzrOl-x5Bp",
+      title: "ICSE 9 HISTORY & CIVICS",
+      description: "Comprehensive ICSE Class 9 History and Civics lecture playlist covering the Harappan Civilisation, Vedic Age, Indian Constitution, and board exam paper pattern discussions.",
+      thumbnailUrl: "https://i.ytimg.com/vi/Sa6vSiYCqyo/hqdefault.jpg",
+      itemCount: 54,
+      classLevel: 9,
+      subjectId: historyCivicsSubjectId,
+    },
   ];
 
   for (const pl of playlistsData) {
@@ -776,7 +801,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         },
       });
   }
-  console.log("  ✓ YouTube Playlists seeded (5 rows)");
+  console.log(`  ✓ YouTube Playlists seeded (${playlistsData.length} rows)`);
 
   // 8. YOUTUBE LECTURES
   const youtubeVideosData = [
@@ -885,6 +910,36 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       isPublished: true,
       needsReview: false,
     },
+    {
+      id: "Sa6vSiYCqyo",
+      title: "ICSE 9 History & Civics: Paper Pattern & Strategy Discussion | Namita Ma'am",
+      description: "Detailed analysis of ICSE Class 9 History and Civics question paper pattern, marks distribution, and answer-writing tips by Namita Singh Rajput.",
+      publishedAt: new Date("2025-09-12T14:00:00Z"),
+      durationSeconds: 1530,
+      thumbnailUrl: "https://i.ytimg.com/vi/Sa6vSiYCqyo/hqdefault.jpg",
+      viewCount: 14200,
+      likeCount: 1250,
+      classLevel: 9,
+      subjectId: historyCivicsSubjectId,
+      facultyId: namitaFacultyId,
+      isPublished: true,
+      needsReview: false,
+    },
+    {
+      id: "GbbKJ9RppR0",
+      title: "ICSE Class 9 History: The Harappan Civilisation (Indus Valley) L-1 | Namita Ma'am",
+      description: "In-depth lecture on Harappan Civilisation, archaeological sources, extent of the civilization, and town planning features for ICSE Class 9.",
+      publishedAt: new Date("2025-09-15T15:00:00Z"),
+      durationSeconds: 1380,
+      thumbnailUrl: "https://i.ytimg.com/vi/GbbKJ9RppR0/hqdefault.jpg",
+      viewCount: 11800,
+      likeCount: 980,
+      classLevel: 9,
+      subjectId: historyCivicsSubjectId,
+      facultyId: namitaFacultyId,
+      isPublished: true,
+      needsReview: false,
+    },
   ];
 
   const allDbChapters = await db
@@ -900,6 +955,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
     "yt-math-12-definite-integrals": "class-12-maths-ch-7-integrals",
     "yt-math-11-trigonometry-identities": "class-11-maths-ch-3-trigonometric-functions",
     "bu6Hmff0m0U": "class-9-hindi-ch-1-sakhi-kabir-das",
+    "GbbKJ9RppR0": "class-9-history-civics-ch-1-harappan-civilisation",
+    "Sa6vSiYCqyo": "class-9-history-civics-ch-1-harappan-civilisation",
   };
 
   for (const v of youtubeVideosData) {
@@ -925,7 +982,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         },
       });
   }
-  console.log("  ✓ YouTube videos seeded (7 lectures)");
+  console.log(`  ✓ YouTube videos seeded (${youtubeVideosData.length} lectures)`);
 
   // 8.5 TESTIMONIALS (Seeded after YouTube videos to satisfy videoId FK)
   const testimonialsData = [
@@ -1004,7 +1061,7 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       value: {
         phone: "+91 76688 75809",
         whatsapp: "+91 76688 75809",
-        email: "contact@quick2learn.in",
+        email: "quick2learn23203@gmail.com",
         support_hours: "Mon–Sat 9:00 AM – 7:00 PM IST",
       },
     },
@@ -1188,57 +1245,110 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         {
           category: "Admissions",
           question: "How do admissions work at Quick2Learn Mathura?",
-          answer: "Admissions begin with an initial counseling session with the faculty to understand the student's foundation level. You can submit an enquiry online or visit our institute campus in Mathura to register.",
+          answer:
+            "Admissions begin with an initial counseling session with our faculty to assess the student's foundation level and learning needs. You can submit an enquiry online, contact our admissions desk (+91 76688 75809), or visit our campus in Mathura (PIN 281004) to complete registration.",
         },
         {
           category: "Admissions",
           question: "What is the typical batch size at Quick2Learn?",
-          answer: "We strictly cap batch sizes to 35–40 students. This guarantees that Dinesh Sir and Namita Ma'am can personally review every student's homework, test answers, and doubt clearing needs.",
+          answer:
+            "We strictly cap classroom batch sizes to 35–40 students. This guarantees that Dinesh Sir and Namita Ma'am can personally review every student's homework, evaluate weekly mock test scripts, and provide focused one-on-one doubt clearing.",
         },
         {
           category: "Admissions",
           question: "Can I attend trial or demo classes before enrolling?",
-          answer: "Yes, prospective students are welcome to attend up to two demo classroom sessions to experience our concept-first teaching methodology before formal batch enrollment.",
+          answer:
+            "Yes, prospective students are welcome to attend up to two (2) complimentary classroom demo sessions to experience our concept-first teaching methodology and classroom environment before formal batch enrollment.",
+        },
+        {
+          category: "Admissions",
+          question: "Which academic boards and classes are covered?",
+          answer:
+            "We provide dedicated coaching for CBSE, ICSE, and UP Board students from Class 9 to Class 12, focusing on Mathematics, Physics, Chemistry, and Biology, as well as Senior Secondary Board preparation.",
+        },
+        {
+          category: "Admissions",
+          question: "Can students join mid-session or during term revision?",
+          answer:
+            "Yes. Students joining mid-session receive foundation backup lectures and full access to recorded video sessions on our digital portal to bridge any syllabus gaps smoothly.",
         },
         {
           category: "Fees",
           question: "What fee payment options and instalment plans are available?",
-          answer: "We accept online payments via Razorpay (UPI, Debit/Credit Cards, NetBanking) and cash/cheque at the campus. Both full one-time payment discounts and two/three-instalment fee plans are supported.",
+          answer:
+            "We accept online payments via Razorpay (UPI, Debit/Credit Cards, NetBanking) and cash/cheque at our campus office. We offer both one-time payment discounts (saving up to 25%) and flexible two- or three-instalment fee plans.",
         },
         {
           category: "Fees",
           question: "What is the fee refund policy?",
-          answer: "Refund requests submitted in writing within 7 calendar days of batch commencement are eligible for a refund, minus a nominal registration and study material fee.",
+          answer:
+            "Refund requests submitted in writing within 7 calendar days of batch commencement (or before the second attended lecture) qualify for a refund, minus a nominal ₹1,500 registration charge and issued book costs. Students can also transfer between cohorts within 14 days at zero penalty.",
+        },
+        {
+          category: "Fees",
+          question: "Are there merit scholarships or sibling discounts available?",
+          answer:
+            "Yes. Quick2Learn offers merit-based fee concessions for students scoring 90%+ in their previous board or school examinations, as well as sibling discounts when two family members enroll together.",
+        },
+        {
+          category: "Fees",
+          question: "Will I receive an official fee receipt?",
+          answer:
+            "Yes, every transaction generates an official serialized receipt issued by our institute administration and sent to the parent's registered email and mobile number for record-keeping.",
         },
         {
           category: "Classes",
           question: "Are classes conducted offline, online, or in hybrid mode?",
-          answer: "We offer dedicated offline classroom batches in Mathura equipped with synchronized digital access, as well as live and recorded online modules so students never miss a lecture during illness or travel.",
+          answer:
+            "We offer dedicated offline classroom batches in Mathura equipped with digital projection, supplemented by synchronized online portal access so students never miss a lecture during illness or travel.",
+        },
+        {
+          category: "Classes",
+          question: "Who will teach the classes at Quick2Learn?",
+          answer:
+            "Classes are directly led by veteran educators: Mr. Dinesh Singh Rajput (25+ years teaching experience, recipient of the Best Teacher Award & Teacher Innovation Award, recognized by the HRD Minister) for Mathematics, and Mrs. Namita Singh Rajput for Sciences and Humanities.",
         },
         {
           category: "Classes",
           question: "How are tests and board preparations tracked?",
-          answer: "Full board-pattern mock examinations take place every Sunday. Detailed answer scripts are returned with step-wise marks and presentation feedback, accompanied by regular parent progress updates.",
+          answer:
+            "Full board-pattern mock examinations take place every Sunday morning. Detailed answer scripts are evaluated with step-wise marks and presentation feedback, followed by individual doubt resolution and parent updates.",
+        },
+        {
+          category: "Classes",
+          question: "What happens if a student misses a lecture?",
+          answer:
+            "Enrolled students can log in to the Quick2Learn digital portal to view the recorded lecture and download the corresponding lecture slides and handwritten notes, ensuring zero syllabus loss.",
         },
         {
           category: "Classes",
           question: "Where is the coaching centre located in Mathura?",
-          answer: "Our institute is centrally located in Mathura, Uttar Pradesh 281004, easily accessible by local transport.",
+          answer:
+            "Our institute campus is centrally located in Mathura, Uttar Pradesh 281004, within convenient commuting distance from major residential sectors and schools across the city.",
         },
         {
           category: "Online access",
           question: "How do I access lecture recordings and class notes online?",
-          answer: "Enrolled students receive instant login access to the digital portal on this website, where chapter video lectures, PDF formula sheets, and past mock tests are organized by module.",
+          answer:
+            "Enrolled students receive instant login credentials to the digital portal on this website, where chapter video lectures, PDF formula sheets, practice question banks, and past mock tests are systematically cataloged.",
         },
         {
           category: "Online access",
           question: "Can I access free lectures before enrolling in a batch?",
-          answer: "Yes! We have hundreds of hours of free concept lectures and one-shot chapter revisions available on our official YouTube channel (@Quick2Learn) and right here on this website.",
+          answer:
+            "Yes! We have hundreds of hours of free concept lectures, formula derivations, and one-shot chapter revisions available on our official YouTube channel (@Quick2Learn) and right here on this website.",
         },
         {
           category: "Online access",
           question: "Is there a student mobile app?",
-          answer: "Our dedicated Android and iOS mobile app is currently in development and will launch shortly, sharing identical credentials with this web portal.",
+          answer:
+            "Our dedicated Android and iOS mobile app is currently in active development and will launch shortly, sharing identical credentials with this web portal.",
+        },
+        {
+          category: "Online access",
+          question: "Can study notes and practice papers be downloaded and printed?",
+          answer:
+            "Yes, all chapter summary sheets, formula booklets, and sample test papers available in the student dashboard are formatted for easy download and high-resolution printing.",
         },
       ],
     },

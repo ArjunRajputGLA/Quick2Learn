@@ -49,6 +49,7 @@ export const INSTITUTE_INFO = {
     url: "https://www.youtube.com/@Quick2Learn",
     channelId: "UCy1XY9I1Yeyy59Y5LMgqa8g",
   },
+  email: "quick2learn23203@gmail.com",
   isMultiTenant: false,
   timezone: "Asia/Kolkata",
   currency: "INR",

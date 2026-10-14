@@ -181,7 +181,7 @@ export default async function ResultsPage() {
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
                   <Image
-                    src="/images/faculty/namita-maam.jpg"
+                    src="/images/assets/Namita Singh Rajput.jpeg"
                     alt="Mrs. Namita Singh Rajput"
                     fill
                     className="object-cover"

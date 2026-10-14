@@ -153,7 +153,7 @@ export default async function MarketingHomePage() {
         description:
           "Mathura's premier coaching institute for CBSE & ICSE/ISC Classes 9 to 12. Founded by Dinesh Singh Rajput (25+ years experience in Mathematics).",
         telephone: contact?.phone || "+91 76688 75809",
-        email: contact?.email || "contact@quick2learn.in",
+        email: contact?.email || "quick2learn23203@gmail.com",
         priceRange: "₹₹",
         address: {
           "@type": "PostalAddress",

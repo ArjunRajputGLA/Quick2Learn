@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { INSTITUTE_INFO } from "@quick2learn/shared";
 import {
   MapPin,
@@ -50,7 +51,7 @@ export function Footer({ settings }: FooterProps) {
   const phone = cleanText(settings?.contact?.phone) || "+91 76688 75809";
   const rawWhatsApp = cleanText(settings?.contact?.whatsapp) || "+91 76688 75809";
   const cleanWhatsApp = rawWhatsApp.replace(/[^0-9]/g, "");
-  const email = cleanText(settings?.contact?.email) || "contact@quick2learn.in";
+  const email = cleanText(settings?.contact?.email) || "quick2learn23203@gmail.com";
 
   // Address
   const rawAddressLine = cleanText(settings?.address?.line1);
@@ -85,7 +86,7 @@ export function Footer({ settings }: FooterProps) {
             <ul className="space-y-2 text-small">
               <li>
                 <Link
-                  href="/learn/ix/mathematics"
+                  href="/learn/ix"
                   className="hover:text-primary transition-colors hover:underline underline-offset-2"
                 >
                   Class IX (CBSE &amp; ICSE)
@@ -93,7 +94,7 @@ export function Footer({ settings }: FooterProps) {
               </li>
               <li>
                 <Link
-                  href="/learn/x/mathematics"
+                  href="/learn/x"
                   className="hover:text-primary transition-colors hover:underline underline-offset-2"
                 >
                   Class X (CBSE &amp; ICSE)
@@ -101,7 +102,7 @@ export function Footer({ settings }: FooterProps) {
               </li>
               <li>
                 <Link
-                  href="/learn/xi/mathematics"
+                  href="/learn/xi"
                   className="hover:text-primary transition-colors hover:underline underline-offset-2"
                 >
                   Class XI (CBSE &amp; ISC)
@@ -109,7 +110,7 @@ export function Footer({ settings }: FooterProps) {
               </li>
               <li>
                 <Link
-                  href="/learn/xii/mathematics"
+                  href="/learn/xii"
                   className="hover:text-primary transition-colors hover:underline underline-offset-2"
                 >
                   Class XII (CBSE &amp; ISC)
@@ -397,9 +398,31 @@ export function Footer({ settings }: FooterProps) {
           </div>
         </div>
 
-        {/* Copyright Line */}
-        <div className="border-t border-border pt-6 mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-caption text-ink-muted">
+        {/* Copyright & Attribution Line */}
+        <div className="border-t border-border pt-6 mt-4 flex flex-col md:flex-row items-center justify-between gap-4 text-caption text-ink-muted">
           <p>© {currentYear} Quick2Learn Coaching Institute. All rights reserved.</p>
+
+          {/* GLAD Studio Attribution */}
+          <div className="inline-flex items-center gap-2">
+            <span>Developed by</span>
+            <a
+              href="https://gladstudio.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GLAD Studio website (opens in a new tab)"
+              className="inline-flex items-center transition-all hover:opacity-85 hover:scale-105 active:scale-95 duration-200"
+              title="GLAD Studio"
+            >
+              <Image
+                src="/images/website logo(white background compatible).png"
+                alt="GLAD Studio"
+                width={105}
+                height={29}
+                className="h-6 w-auto object-contain inline-block"
+              />
+            </a>
+          </div>
+
           <div className="flex items-center gap-4">
             <span>Mathura, Uttar Pradesh</span>
             <span>•</span>

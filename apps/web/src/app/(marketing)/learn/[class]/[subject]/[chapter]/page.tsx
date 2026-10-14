@@ -30,6 +30,8 @@ import {
   ArrowRight,
   ExternalLink,
   BookOpen,
+  Landmark,
+  Atom,
 } from "lucide-react";
 
 interface LearnChapterPageProps {
@@ -134,14 +136,21 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
 
   // Theming & Mentorship
   const isMath = /math/i.test(subject.name);
+  const isPhysics = /physics/i.test(subject.name) || /physics/i.test(subjectParam);
   const isHindi = /hindi/i.test(subject.name) || /hindi/i.test(subjectParam);
+  const isHistoryCivics =
+    /history/i.test(subject.name) ||
+    /civics/i.test(subject.name) ||
+    /history/i.test(subjectParam);
   const facultyName = isMath ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput";
   const facultyRole = isMath
     ? "25+ Yrs Exp • Senior Mathematics Head"
     : isHindi
     ? "15+ Yrs Exp • ICSE Sciences & Hindi Mentor"
+    : isHistoryCivics
+    ? "15+ Yrs Exp • Head of ICSE Sciences, Humanities & Hindi"
     : "15+ Yrs Exp • Head of ICSE Sciences";
-  const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/faculty/namita-maam.jpg";
+  const facultyAvatar = isMath ? "/images/assets/Dinesh Singh Rajput.jpeg" : "/images/assets/Namita Singh Rajput.jpeg";
 
   const subjectSlug = subjectParam.toLowerCase();
   let subjectVideo: string | null = null;
@@ -153,6 +162,10 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
     subjectVideo = "Chemistry";
   } else if (/hindi/i.test(subject.name) || /hindi/i.test(subjectSlug)) {
     subjectVideo = "Hindi";
+  } else if (/history|civics/i.test(subject.name) || /history|civics/i.test(subjectSlug)) {
+    subjectVideo = "history&civics";
+  } else if (/physics/i.test(subject.name) || /physics/i.test(subjectSlug)) {
+    subjectVideo = "physics";
   }
 
   return (
@@ -192,33 +205,54 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
               ? "bg-linear-to-br from-slate-950 via-indigo-950 to-blue-900"
               : isHindi
               ? "bg-linear-to-br from-slate-950 via-emerald-950 to-teal-950"
+              : isHistoryCivics
+              ? "bg-linear-to-br from-slate-950 via-amber-950 to-stone-900"
               : "bg-linear-to-br from-slate-950 via-teal-950 to-emerald-900"
           }`}
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Animated Subject Video Backdrop */}
-          {subjectVideo && (
-            <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-10 sm:-bottom-14 w-80 h-80 sm:w-[420px] sm:h-[420px] pointer-events-none select-none opacity-85">
+          {/* Full Background Video for History & Civics */}
+          {isHistoryCivics ? (
+            <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden">
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover scale-105 filter blur-[1px] opacity-80 brightness-90"
                 aria-hidden="true"
               >
                 <source
-                  src={`/images/assets/${subjectVideo}.webm`}
-                  type="video/webm"
-                />
-                <source
-                  src={`/images/assets/${subjectVideo}.mp4`}
+                  src="/images/assets/history&civics.mp4"
                   type="video/mp4"
                 />
               </video>
+              <div className="absolute inset-0 bg-linear-to-r from-slate-950/85 via-slate-950/45 to-slate-950/20" />
             </div>
+          ) : (
+            subjectVideo && (
+              <div className="absolute right-16 sm:right-36 lg:right-60 -bottom-10 sm:-bottom-14 w-80 h-80 sm:w-[420px] sm:h-[420px] pointer-events-none select-none opacity-85">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-contain"
+                  aria-hidden="true"
+                >
+                  <source
+                    src={`/images/assets/${subjectVideo}.webm`}
+                    type="video/webm"
+                  />
+                  <source
+                    src={`/images/assets/${subjectVideo}.mp4`}
+                    type="video/mp4"
+                  />
+                </video>
+              </div>
+            )
           )}
 
           <div className="relative z-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -227,8 +261,12 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-white/10 text-white backdrop-blur-md border border-white/15 shadow-xs">
                   {isMath ? (
                     <Calculator className="h-3.5 w-3.5 text-sky-400" />
+                  ) : isPhysics ? (
+                    <Atom className="h-3.5 w-3.5 text-teal-300" />
                   ) : isHindi ? (
                     <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                  ) : isHistoryCivics ? (
+                    <Landmark className="h-3.5 w-3.5 text-amber-300" />
                   ) : (
                     <FlaskConical className="h-3.5 w-3.5 text-emerald-400" />
                   )}
@@ -273,7 +311,7 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
             </div>
 
             {/* Mentor Attribution */}
-            <div className="shrink-0 pt-2 lg:pt-0">
+            <div className={`shrink-0 pt-2 lg:pt-0 ${isHistoryCivics ? "lg:self-end relative z-10" : ""}`}>
               <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md shadow-xs">
                 <div className="relative h-14 w-14 rounded-xl overflow-hidden border-2 border-white/30 shrink-0">
                   <Image

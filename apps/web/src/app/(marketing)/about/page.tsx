@@ -231,7 +231,7 @@ export default async function AboutPage() {
               .map((fac) => {
                 const isNamita = fac.slug.toLowerCase().includes("namita");
                 const avatar = isNamita
-                  ? "/images/faculty/namita-maam.jpg"
+                  ? "/images/assets/Namita Singh Rajput.jpeg"
                   : fac.photoKey && !fac.photoKey.includes("unsplash")
                     ? fac.photoKey.startsWith("http")
                       ? fac.photoKey

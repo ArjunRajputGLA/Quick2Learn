@@ -20,7 +20,7 @@ async function main() {
     const updatedValue = {
       phone: "+91 76688 75809",
       whatsapp: "+91 76688 75809",
-      email: res.rows[0]?.value?.email || "contact@quick2learn.in",
+      email: "quick2learn23203@gmail.com",
       support_hours: res.rows[0]?.value?.support_hours || "Mon–Sat 9:00 AM – 7:00 PM IST",
     };
 
