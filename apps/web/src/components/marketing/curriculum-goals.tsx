@@ -85,8 +85,8 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
   const cleanText = (str?: string) => str?.replace(/\s*\[PLACEHOLDER\]/gi, "").trim() || "";
 
   return (
-    <section className="bg-surface py-14 md:py-16">
-      <div className="container mx-auto px-4 max-w-[1200px] space-y-8">
+    <section className="bg-surface py-10 sm:py-14 md:py-16">
+      <div className="container mx-auto px-4 max-w-[1200px] space-y-6 sm:space-y-8">
         <SectionHeader
           eyebrow="Personalized Path"
           title="What brings you here today?"
@@ -94,7 +94,7 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
         />
 
         {/* Goal selector chips */}
-        <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
+        <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar pb-1.5">
           {activeGoals.map((goal) => {
             const isSelected = goal.id === activeGoalId;
             return (
@@ -102,13 +102,13 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                 key={goal.id}
                 type="button"
                 onClick={() => setActiveGoalId(goal.id)}
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-small font-semibold transition-all duration-200 cursor-pointer select-none shrink-0 hover:scale-105 active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-small font-semibold transition-all duration-200 cursor-pointer select-none shrink-0 hover:scale-105 active:scale-95 whitespace-nowrap ${
                   isSelected
                     ? "bg-primary text-surface shadow-xs"
                     : "bg-surface-subtle text-ink border border-border hover:bg-surface hover:border-primary/40"
                 }`}
               >
-                <Target className="h-4 w-4" />
+                <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>{cleanText(goal.label)}</span>
               </button>
             );
@@ -116,10 +116,10 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
         </div>
 
         {/* Dynamic Recommendation Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch pt-2">
           {/* Left: Recommended Playlist Card */}
           <div className="group lg:col-span-7 flex flex-col justify-between rounded-2xl border border-border bg-surface shadow-card hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden">
-            <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-surface-subtle">
+            <div className="relative h-52 sm:h-64 lg:h-72 w-full overflow-hidden bg-surface-subtle">
               <Image
                 src={
                   currentGoal.playlist_image ||
@@ -139,15 +139,15 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                   <Play className="h-4 w-4 fill-current" />
                   <span>{currentGoal.playlist_count || 15} Full Lessons</span>
                 </div>
-                <h3 className="text-h3 font-bold text-surface line-clamp-2">
+                <h3 className="text-lg sm:text-h3 font-bold text-surface line-clamp-2">
                   {cleanText(currentGoal.playlist_title)}
                 </h3>
               </div>
             </div>
 
-            <div className="flex flex-1 flex-col justify-between p-6 bg-surface space-y-4">
+            <div className="flex flex-1 flex-col justify-between p-5 sm:p-6 bg-surface space-y-3.5 sm:space-y-4">
               <div className="space-y-2">
-                <p className="text-small text-ink leading-relaxed">
+                <p className="text-xs sm:text-small text-ink leading-relaxed">
                   {cleanText(currentGoal.description)}
                 </p>
                 <p className="text-caption text-ink-muted">
@@ -155,14 +155,14 @@ export function CurriculumGoals({ goals, batches }: CurriculumGoalsProps) {
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-border flex items-center justify-between">
+              <div className="pt-3 sm:pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-1.5 text-caption text-success font-semibold">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>100% Free on YouTube &amp; Web</span>
                 </div>
                 <Link
                   href="/lectures"
-                  className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/link"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-small font-semibold text-primary hover:text-primary-hover hover:underline group/link"
                 >
                   <span>Watch series now</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/link:translate-x-1" />

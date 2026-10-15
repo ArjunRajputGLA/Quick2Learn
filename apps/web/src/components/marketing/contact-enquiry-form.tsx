@@ -191,7 +191,7 @@ export function ContactEnquiryForm() {
             placeholder="9876543210"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className={`w-full rounded-lg border bg-surface pl-13 pr-3.5 py-2.5 text-body text-ink placeholder:text-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+            className={`w-full rounded-lg border bg-surface pl-12 pr-3.5 py-2.5 text-body text-ink placeholder:text-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 ${
               fieldErrors.phone ? "border-danger focus:border-danger" : "border-border focus:border-primary"
             }`}
           />

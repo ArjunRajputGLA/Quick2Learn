@@ -113,10 +113,10 @@ export function Header({ megaMenuData }: HeaderProps) {
             : "-translate-y-full"
         )}
       >
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4 xl:gap-8">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4 xl:gap-8">
             {/* Left: Logo + Explore ⌵ + Batches / Free Lectures */}
-            <div className="flex items-center gap-6 xl:gap-8 shrink-0">
+            <div className="flex items-center gap-3 sm:gap-6 xl:gap-8 shrink-0">
               {/* Logo */}
               <Link
                 href="/"
@@ -128,7 +128,7 @@ export function Header({ megaMenuData }: HeaderProps) {
                   alt="Quick2Learn"
                   width={180}
                   height={40}
-                  className="h-8 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                  className="h-7 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                   priority
                 />
               </Link>
@@ -164,7 +164,7 @@ export function Header({ megaMenuData }: HeaderProps) {
             </div>
 
             {/* Right: Language Switcher + AI Chatbot Button + Inquire Now Button */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
               {/* Language Switcher (Hindi, English & Indian Languages) */}
               <LanguageSwitcher />
 

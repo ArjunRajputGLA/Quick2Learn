@@ -103,7 +103,7 @@ function BatchFiltersContent({ currentFilters, totalCount }: BatchFiltersProps) 
         <label className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
           Select Target Class
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {classOptions.map((c) => {
             const isSelected =
               c.value === "all"
@@ -115,7 +115,7 @@ function BatchFiltersContent({ currentFilters, totalCount }: BatchFiltersProps) 
                 type="button"
                 onClick={() => updateFilter("class", c.value)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-small font-medium transition-all cursor-pointer",
+                  "px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-small font-medium transition-all cursor-pointer",
                   isSelected
                     ? "bg-primary text-white font-semibold shadow-xs ring-2 ring-primary/20"
                     : "bg-surface-subtle/70 text-ink border border-border/80 hover:bg-surface hover:border-primary/40",

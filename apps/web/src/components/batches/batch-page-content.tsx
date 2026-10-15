@@ -185,7 +185,7 @@ export function BatchPageContent({ data, isLoggedIn }: BatchPageContentProps) {
   );
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen pb-20 md:pb-0">
       {/* Staff Preview Notice Banner */}
       {isStaffPreview && (
         <aside

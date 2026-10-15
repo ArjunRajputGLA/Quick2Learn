@@ -125,27 +125,27 @@ export function TestimonialsCarousel({
   };
 
   return (
-    <section id="testimonials" className="bg-surface-subtle border-y border-border py-14 md:py-20">
-      <div className="container mx-auto px-4 max-w-[1200px] space-y-8">
+    <section id="testimonials" className="bg-surface-subtle border-y border-border py-10 sm:py-14 md:py-20">
+      <div className="container mx-auto px-4 max-w-[1200px] space-y-6 sm:space-y-8">
         {/* Header row with Title and Arrow Controls */}
         <div className="flex items-center justify-between">
           <div>
             <span className="text-caption font-bold uppercase tracking-wider text-primary block mb-1">
               Parent &amp; Student Trust
             </span>
-            <h2 className="text-h2 md:text-h1 font-bold text-ink tracking-tight">
+            <h2 className="text-xl sm:text-h2 md:text-h1 font-bold text-ink tracking-tight">
               {heading}
             </h2>
           </div>
 
           {/* Carousel Arrows */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Previous testimonials"
-              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -154,7 +154,7 @@ export function TestimonialsCarousel({
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Next testimonials"
-              className="h-9 w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-border bg-surface hover:bg-primary-soft hover:border-primary/40 hover:text-primary active:scale-95 hover:scale-105 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-ink transition-all duration-200 shadow-2xs cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -164,7 +164,7 @@ export function TestimonialsCarousel({
         {/* Testimonial Cards Carousel Row */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-5 overflow-x-auto no-scrollbar scroll-smooth pb-3 snap-x snap-mandatory"
+          className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth pb-3 snap-x snap-mandatory"
         >
           {displayItems.map((item) => {
             const initials = item.studentName
@@ -178,46 +178,46 @@ export function TestimonialsCarousel({
             return (
               <div
                 key={item.id}
-                className="group w-[320px] sm:w-[380px] shrink-0 snap-start flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-6 shadow-2xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform"
+                className="group w-[84vw] max-w-[340px] sm:w-[380px] shrink-0 snap-start flex flex-col justify-between rounded-2xl border border-border/80 bg-surface p-5 sm:p-6 shadow-2xs hover:shadow-xl hover:border-primary/50 hover:-translate-y-1.5 transition-all duration-300 ease-out will-change-transform"
               >
-                <div className="space-y-4">
+                <div className="space-y-3.5 sm:space-y-4">
                   {/* Rating Stars & Quote Icon */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        <Star key={i} className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
-                    <div className="h-8 w-8 rounded-full bg-primary-soft text-primary flex items-center justify-center">
-                      <Quote className="h-4 w-4" />
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary-soft text-primary flex items-center justify-center">
+                      <Quote className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </div>
                   </div>
 
                   {/* Quote Text */}
-                  <p className="text-small text-ink leading-relaxed italic">
+                  <p className="text-xs sm:text-small text-ink leading-relaxed italic line-clamp-4">
                     &ldquo;{item.quote}&rdquo;
                   </p>
                 </div>
 
                 {/* Author Info & Score Pill */}
-                <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="mt-5 sm:mt-6 pt-3 sm:pt-4 border-t border-border flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                     <div
-                      className={`h-10 w-10 rounded-full bg-gradient-to-tr ${item.gradient || "from-primary to-indigo-600"} text-white font-bold text-caption flex items-center justify-center shrink-0 shadow-2xs`}
+                      className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-tr ${item.gradient || "from-primary to-indigo-600"} text-white font-bold text-[11px] sm:text-caption flex items-center justify-center shrink-0 shadow-2xs`}
                     >
                       {initials}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-small font-bold text-ink truncate">
+                      <h4 className="text-xs sm:text-small font-bold text-ink truncate">
                         {item.studentName}
                       </h4>
-                      <span className="text-[11px] text-ink-muted block truncate">
+                      <span className="text-[10px] sm:text-[11px] text-ink-muted block truncate">
                         {item.role || "Student"} &bull; Mathura
                       </span>
                     </div>
                   </div>
 
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+                  <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
                     {item.achievement}
                   </span>
                 </div>

@@ -144,9 +144,9 @@ export async function POST(request: NextRequest) {
     // Detect language from body, or header cookie googtrans
     const cookieHeader = request.headers.get("cookie") || "";
     const cookieMatch = cookieHeader.match(/googtrans=(?:\/auto|\/en)\/([a-z]{2,3})/i);
-    const cookieLang = cookieMatch ? cookieMatch[1].toLowerCase() : null;
+    const cookieLang = cookieMatch && cookieMatch[1] ? cookieMatch[1].toLowerCase() : null;
     const langCode = (body.language || cookieLang || "en").toLowerCase();
-    const langInfo = LANGUAGE_DETAILS[langCode] || LANGUAGE_DETAILS.en;
+    const langInfo = LANGUAGE_DETAILS[langCode] || LANGUAGE_DETAILS.en || { name: "English", nativeName: "English" };
     const isNonEnglish = langCode !== "en" && Boolean(LANGUAGE_DETAILS[langCode]);
 
     const lastUserQuery =

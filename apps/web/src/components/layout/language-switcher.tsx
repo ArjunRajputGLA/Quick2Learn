@@ -236,7 +236,7 @@ export function LanguageSwitcher({
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-surface/90 text-ink hover:text-primary hover:border-primary/40 hover:bg-surface-subtle transition-all cursor-pointer shadow-2xs active:scale-98 select-none focus-visible:outline-2 focus-visible:outline-primary",
-          compact ? "p-2" : "px-3 py-1.5 text-small font-medium"
+          compact ? "p-2" : "p-2 sm:px-3 sm:py-1.5 text-small font-medium"
         )}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -246,12 +246,12 @@ export function LanguageSwitcher({
         <Languages className="h-4 w-4 text-primary shrink-0" />
         {!compact && (
           <>
-            <span className="font-semibold text-small tracking-tight">
+            <span className="hidden sm:inline font-semibold text-small tracking-tight">
               {activeLanguage.nativeName}
             </span>
             <ChevronDown
               className={cn(
-                "h-3.5 w-3.5 text-ink-muted transition-transform duration-200",
+                "hidden sm:inline h-3.5 w-3.5 text-ink-muted transition-transform duration-200",
                 isOpen && "rotate-180"
               )}
             />
@@ -263,7 +263,7 @@ export function LanguageSwitcher({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute right-0 mt-2 w-72 rounded-2xl border border-border/90 bg-surface/98 backdrop-blur-md shadow-xl z-50 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
+          className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-24px)] rounded-2xl border border-border/90 bg-surface/98 backdrop-blur-md shadow-xl z-50 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
         >
           {/* Header & Search */}
           <div className="p-3 border-b border-border/80 bg-surface-subtle/50 space-y-2">

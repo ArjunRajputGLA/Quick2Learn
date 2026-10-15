@@ -77,13 +77,13 @@ export function CardCarousel({
   return (
     <div className={cn("w-full space-y-4", className)}>
       {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-1 border-b border-border/60">
-        <div className="space-y-2">
-          <h3 className="text-h2 font-semibold text-ink">{heading}</h3>
+      <div className="flex items-center justify-between gap-3 pb-2 border-b border-border/60">
+        <div className="space-y-1 min-w-0">
+          <h3 className="text-xl sm:text-h2 font-semibold text-ink truncate">{heading}</h3>
 
           {/* Optional Tabs */}
           {tabs && tabs.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
               {tabs.map((tab) => {
                 const isActive = tab.id === activeTabId;
                 return (
@@ -92,7 +92,7 @@ export function CardCarousel({
                     type="button"
                     onClick={() => onTabChange?.(tab.id)}
                     className={cn(
-                      "rounded-full px-3.5 py-1 text-caption font-semibold transition-all duration-200 select-none cursor-pointer hover:scale-105 active:scale-95",
+                      "rounded-full px-3 py-1 text-caption font-semibold transition-all duration-200 select-none cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap",
                       isActive
                         ? "bg-primary text-surface shadow-xs"
                         : "bg-surface text-ink-muted hover:text-primary hover:bg-surface-subtle border border-border/80 hover:border-primary/40",
@@ -107,14 +107,14 @@ export function CardCarousel({
         </div>
 
         {/* Right side controls: view all and desktop arrows */}
-        <div className="flex items-center gap-3 self-end sm:self-auto">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {viewAllHref && (
             <Link
               href={viewAllHref}
-              className="inline-flex items-center gap-1.5 text-small font-semibold text-primary hover:text-primary-hover hover:underline group/all"
+              className="inline-flex items-center gap-1 text-xs sm:text-small font-semibold text-primary hover:text-primary-hover hover:underline group/all whitespace-nowrap"
             >
               <span>{viewAllText}</span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/all:translate-x-1" />
+              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-200 group-hover/all:translate-x-1" />
             </Link>
           )}
 
@@ -148,10 +148,10 @@ export function CardCarousel({
         tabIndex={0}
         onKeyDown={handleKeyDown}
         aria-label={`${heading} carousel`}
-        className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md no-scrollbar"
+        className="flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md no-scrollbar"
       >
         {React.Children.map(children, (child) => (
-          <div className="snap-start shrink-0 w-[280px] sm:w-[320px] md:w-[360px]">
+          <div className="snap-start shrink-0 w-[84vw] max-w-[320px] sm:w-[320px] md:w-[360px]">
             {child}
           </div>
         ))}

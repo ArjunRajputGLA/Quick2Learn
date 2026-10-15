@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BreadcrumbsPlacement } from "@/components/layout/breadcrumbs-placement";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Mail, Phone, MapPin, CheckCircle2, BookOpen, AlertTriangle } from "lucide-react";
+import { ShieldAlert, Mail, Phone, MapPin, BookOpen, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Enrolment & Anti-Piracy Policy | Quick2Learn",

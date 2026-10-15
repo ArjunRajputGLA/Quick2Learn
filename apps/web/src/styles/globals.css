@@ -75,6 +75,12 @@
     border-color: var(--color-border);
   }
 
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -123,31 +129,31 @@
   }
 }
 
-/* Typography scale utility classes matching prompt specification */
+/* Fluid responsive typography scale */
 .text-display {
-  font-size: 48px;
-  line-height: 56px;
+  font-size: clamp(30px, 4.8vw, 48px);
+  line-height: clamp(36px, 5.4vw, 56px);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .text-h1 {
-  font-size: 36px;
-  line-height: 44px;
+  font-size: clamp(24px, 3.8vw, 36px);
+  line-height: clamp(30px, 4.4vw, 44px);
   font-weight: 600;
   letter-spacing: -0.015em;
 }
 
 .text-h2 {
-  font-size: 28px;
-  line-height: 36px;
+  font-size: clamp(20px, 2.8vw, 28px);
+  line-height: clamp(26px, 3.4vw, 36px);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .text-h3 {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: clamp(24px, 2.8vw, 28px);
   font-weight: 600;
 }
 
@@ -176,6 +182,13 @@
   padding-right: 16px;
 }
 
+@media (min-width: 640px) {
+  .container-custom {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
 @media (min-width: 768px) {
   .container-custom {
     padding-left: 24px;
@@ -184,8 +197,15 @@
 }
 
 .section-padding {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+  .section-padding {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
 }
 
 @media (min-width: 1024px) {

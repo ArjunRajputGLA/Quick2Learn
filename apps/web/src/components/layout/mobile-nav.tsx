@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Search,
@@ -34,6 +35,22 @@ interface MobileNavProps {
 export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen) {
+      document.body.style.overflow = "hidden";
+    } else if (!menuOpen) {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [searchOpen, menuOpen]);
 
   return (
     <div className="flex items-center gap-1.5 lg:hidden">
@@ -47,12 +64,12 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
         <Search className="h-5 w-5" />
       </button>
 
-      {/* 2. Mobile Quick "Inquire" CTA Pill */}
+      {/* 2. Mobile Quick "Inquire" CTA Pill (visible on tablet/large mobile, inside drawer on small phones) */}
       {onOpenEnquiry && (
         <button
           type="button"
           onClick={onOpenEnquiry}
-          className="flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary hover:text-surface transition-colors cursor-pointer select-none"
+          className="hidden sm:inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary hover:text-surface transition-colors cursor-pointer select-none"
         >
           <span>Inquire</span>
         </button>
@@ -68,9 +85,9 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* 4. Full-Screen / Modal Search Overlay */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-surface/98 backdrop-blur-md flex flex-col p-4 animate-in fade-in-0 duration-150">
+      {/* 4. Full-Screen / Modal Search Overlay (Portaled to document.body to prevent containing block trapping) */}
+      {searchOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] bg-surface/98 backdrop-blur-md flex flex-col p-4 animate-in fade-in-0 duration-150">
           <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-lg bg-primary text-white flex items-center justify-center">
@@ -114,7 +131,8 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 5. Hamburger Sheet Drawer */}

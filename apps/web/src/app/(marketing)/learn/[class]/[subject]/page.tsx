@@ -15,7 +15,6 @@ import { RelatedBatchCard } from "@/components/learn/related-batch-card";
 import { slugToClassLevel, formatClassRoman } from "@quick2learn/shared";
 import {
   BookOpen,
-  Clock,
   ArrowRight,
   Video,
   CheckCircle2,

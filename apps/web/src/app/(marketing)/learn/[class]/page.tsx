@@ -12,9 +12,6 @@ import {
   GraduationCap,
   Sparkles,
   ArrowRight,
-  Calculator,
-  FlaskConical,
-  Landmark,
 } from "lucide-react";
 
 interface LearnClassPageProps {

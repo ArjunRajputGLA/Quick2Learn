@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Calculator, FlaskConical, Landmark, CheckCircle2, Video } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export interface ScrollAnimatedItem {
   id: string;
@@ -52,7 +52,7 @@ function AnimatedRow({ item, index }: { item: ScrollAnimatedItem; index: number 
     // Use IntersectionObserver to trigger animation when scrolled into view
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry && entry.isIntersecting) {
           setIsVisible(true);
           observer.unobserve(el);
         }
