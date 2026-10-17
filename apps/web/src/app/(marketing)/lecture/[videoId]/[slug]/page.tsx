@@ -163,7 +163,7 @@ export default async function LecturePage({ params }: LecturePageProps) {
       href: `/learn/${classSlug}/${subject.slug}`,
     });
     breadcrumbs.push({
-      label: subject.name,
+      label: subject.name || "Subject",
       href: `/learn/${classSlug}/${subject.slug}`,
     });
   }
@@ -377,7 +377,7 @@ export default async function LecturePage({ params }: LecturePageProps) {
                   <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border-2 border-white shadow-md ring-1 ring-slate-200 shrink-0">
                     <img
                       src={avatarUrl}
-                      alt={faculty.name}
+                      alt={faculty?.name || "Faculty Mentor"}
                       className="h-full w-full object-cover"
                     />
                   </div>

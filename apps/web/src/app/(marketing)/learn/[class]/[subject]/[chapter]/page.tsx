@@ -45,12 +45,17 @@ interface LearnChapterPageProps {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const rows = await getAllChaptersWithSubject();
-  return rows.map((r) => ({
-    class: classLevelToSlug(r.classLevel) || "xii",
-    subject: r.subjectSlug,
-    chapter: r.chapterSlug,
-  }));
+  try {
+    const rows = await getAllChaptersWithSubject();
+    return rows.map((r) => ({
+      class: classLevelToSlug(r.classLevel) || "xii",
+      subject: r.subjectSlug,
+      chapter: r.chapterSlug,
+    }));
+  } catch (err) {
+    console.warn("generateStaticParams failed to fetch chapters (fallback to dynamic rendering):", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -68,7 +73,7 @@ export async function generateMetadata({
     classLevel,
     subjectParam.toLowerCase(),
     chapterParam.toLowerCase(),
-  );
+  ).catch(() => null);
 
   if (!data) {
     return { title: "Chapter Not Found | Quick2Learn" };
@@ -119,7 +124,7 @@ export default async function LearnChapterPage({ params }: LearnChapterPageProps
     classLevel,
     subjectParam.toLowerCase(),
     chapterParam.toLowerCase(),
-  );
+  ).catch(() => null);
 
   if (!data) {
     notFound();
