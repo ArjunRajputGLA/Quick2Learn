@@ -157,7 +157,7 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
               Select Class:
             </span>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-2">
               {[
                 { label: "All Classes", value: "all" },
                 { label: "Class XII", value: 12 },
@@ -172,7 +172,7 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
                     type="button"
                     onClick={() => setSelectedClass(c.value as number | "all")}
                     className={cn(
-                      "px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs sm:text-small font-medium transition-all cursor-pointer",
+                      "px-3.5 py-1.5 rounded-xl text-small font-medium transition-all cursor-pointer",
                       isSelected
                         ? "bg-primary text-white font-semibold shadow-xs ring-2 ring-primary/20"
                         : "bg-surface-subtle/70 text-ink border border-border/80 hover:bg-surface hover:border-primary/40",
@@ -190,7 +190,7 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
               Subject &amp; Mentor:
             </span>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-2">
               {[
                 {
                   label: "All Subjects",
@@ -226,7 +226,7 @@ export function LecturesCatalog({ initialVideos }: LecturesCatalogProps) {
                     type="button"
                     onClick={() => setSelectedSubject(s.value)}
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs sm:text-small font-medium transition-all cursor-pointer",
+                      "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-small font-medium transition-all cursor-pointer",
                       isSelected
                         ? "bg-primary text-white font-semibold shadow-xs ring-2 ring-primary/20"
                         : "bg-surface-subtle/70 text-ink border border-border/80 hover:bg-surface hover:border-primary/40",

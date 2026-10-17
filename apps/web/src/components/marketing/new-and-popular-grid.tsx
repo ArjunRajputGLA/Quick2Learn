@@ -74,9 +74,9 @@ function CategoryColumnCard({ heading, items, viewAllHref }: CategoryColumn) {
       {/* Column heading */}
       <Link
         href={viewAllHref}
-        className="group/head flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2.5 sm:pb-3"
+        className="group/head flex items-center justify-between px-5 pt-5 pb-3"
       >
-        <h4 className="text-small sm:text-body font-bold text-ink group-hover/head:text-primary transition-colors">
+        <h4 className="text-body font-bold text-ink group-hover/head:text-primary transition-colors">
           {heading}
         </h4>
         <ArrowRight className="h-4 w-4 text-ink-muted group-hover/head:text-primary group-hover/head:translate-x-0.5 transition-all" />
@@ -88,10 +88,10 @@ function CategoryColumnCard({ heading, items, viewAllHref }: CategoryColumn) {
           <Link
             key={item.id}
             href={item.href}
-            className="group/item flex items-start gap-3 sm:gap-3.5 px-4 sm:px-5 py-3 sm:py-4 hover:bg-surface-subtle transition-colors"
+            className="group/item flex items-start gap-3.5 px-5 py-4 hover:bg-surface-subtle transition-colors"
           >
             {/* Thumbnail */}
-            <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-lg overflow-hidden bg-surface-subtle shrink-0 border border-border/60">
+            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-surface-subtle shrink-0 border border-border/60">
               {item.thumbnailUrl ? (
                 <Image
                   src={item.thumbnailUrl}
@@ -109,18 +109,18 @@ function CategoryColumnCard({ heading, items, viewAllHref }: CategoryColumn) {
 
             {/* Text content */}
             <div className="flex-1 min-w-0 space-y-0.5">
-              <p className="text-[11px] sm:text-caption font-medium text-ink-muted truncate">
+              <p className="text-caption font-medium text-ink-muted truncate">
                 {item.provider}
               </p>
-              <h5 className="text-xs sm:text-small font-semibold text-ink leading-snug line-clamp-2 group-hover/item:text-primary transition-colors">
+              <h5 className="text-small font-semibold text-ink leading-snug line-clamp-2 group-hover/item:text-primary transition-colors">
                 <MathText>{item.title}</MathText>
               </h5>
               <div className="flex items-center gap-2 pt-0.5">
-                <span className="text-[11px] sm:text-caption text-ink-muted">{item.type}</span>
+                <span className="text-caption text-ink-muted">{item.type}</span>
                 {item.rating && (
                   <>
                     <span className="text-caption text-ink-muted">·</span>
-                    <span className="inline-flex items-center gap-0.5 text-[11px] sm:text-caption font-semibold text-ink">
+                    <span className="inline-flex items-center gap-0.5 text-caption font-semibold text-ink">
                       <Star className="h-3 w-3 fill-accent text-accent" />
                       {item.rating}
                     </span>
@@ -195,11 +195,11 @@ export function NewAndPopularGrid({
   ];
 
   return (
-    <section id="lectures" className="bg-surface py-8 sm:py-10 md:py-14">
-      <div className="container mx-auto px-4 max-w-[1200px] space-y-4 sm:space-y-6">
+    <section id="lectures" className="bg-surface py-10 md:py-14">
+      <div className="container mx-auto px-4 max-w-[1200px] space-y-6">
         {/* Section heading */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xl sm:text-h2 font-semibold text-ink">{heading}</h3>
+          <h3 className="text-h2 font-semibold text-ink">{heading}</h3>
         </div>
 
         {/* Mobile Tab Pills (visible on screens < 768px) */}

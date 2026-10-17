@@ -122,14 +122,14 @@ export function HeroBannerCarousel({
                   <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-transparent" />
 
                   {/* Text content overlaid on the banner */}
-                  <div className="absolute inset-0 flex flex-col justify-center p-5 sm:p-8 lg:p-10 max-w-lg pb-14 sm:pb-8">
-                    <h2 className="text-xl sm:text-h2 lg:text-h1 font-extrabold text-surface leading-tight tracking-tight drop-shadow-xs">
+                  <div className="absolute inset-0 flex flex-col justify-center p-6 sm:p-10 max-w-lg pb-14 sm:pb-8">
+                    <h2 className="text-h2 sm:text-h1 font-extrabold text-surface leading-tight tracking-tight drop-shadow-sm">
                       {slide.headline}
                     </h2>
-                    <p className="mt-2.5 sm:mt-3 text-xs sm:text-small text-surface/90 leading-relaxed line-clamp-3 drop-shadow-xs">
+                    <p className="mt-3 text-small sm:text-body text-surface/90 leading-relaxed line-clamp-3 drop-shadow-sm">
                       {slide.description}
                     </p>
-                    <div className="mt-4 sm:mt-5">
+                    <div className="mt-5">
                       <Link href={slide.ctaHref}>
                         <Button
                           size="md"
@@ -204,15 +204,15 @@ export function HeroBannerCarousel({
                 </div>
 
                 {/* Card body */}
-                <div className="flex flex-col justify-between p-5 sm:p-6 space-y-3">
-                  <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex flex-col justify-between p-6 space-y-3">
+                  <div className="space-y-2">
                     <span className="inline-flex items-center gap-1.5 text-caption font-bold uppercase tracking-wider text-primary">
                       {promoCard.eyebrow}
                     </span>
-                    <h3 className="text-lg sm:text-h3 font-bold text-ink leading-snug">
+                    <h3 className="text-h3 font-bold text-ink leading-snug">
                       {promoCard.title}
                     </h3>
-                    <p className="text-xs sm:text-small text-ink-muted leading-relaxed line-clamp-2">
+                    <p className="text-small text-ink-muted leading-relaxed line-clamp-2">
                       {promoCard.description}
                     </p>
                   </div>

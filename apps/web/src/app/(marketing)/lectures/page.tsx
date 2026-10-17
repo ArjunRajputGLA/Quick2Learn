@@ -58,8 +58,8 @@ export default async function LecturesPage() {
             <div className="absolute -right-20 -top-20 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Animated Hero Video Backdrop */}
-          <div className="absolute right-8 sm:right-36 lg:right-60 -bottom-8 sm:-bottom-16 w-64 h-64 sm:w-96 sm:h-96 pointer-events-none select-none opacity-70 sm:opacity-85">
+          {/* Animated Hero Video Backdrop - Perfectly Balanced & Positioned */}
+          <div className="absolute right-2 sm:right-6 md:right-12 lg:right-20 xl:right-28 -bottom-6 sm:-bottom-10 md:-bottom-12 lg:-bottom-14 xl:-bottom-16 w-72 h-72 sm:w-[400px] sm:h-[400px] md:w-[460px] md:h-[460px] lg:w-[500px] lg:h-[500px] xl:w-[540px] xl:h-[540px] pointer-events-none select-none opacity-50 sm:opacity-80 lg:opacity-90 transition-all z-0">
             <video
               autoPlay
               loop
@@ -79,30 +79,30 @@ export default async function LecturesPage() {
             </video>
           </div>
 
-          <div className="relative z-1 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="max-w-3xl space-y-3.5 sm:space-y-4">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-caption font-bold bg-red-600 text-white shadow-xs">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="max-w-xl xl:max-w-2xl space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-bold bg-red-600 text-white shadow-xs">
                   <YouTubeIcon className="h-3.5 w-3.5" />
                   Free Video Lessons
                 </span>
-                <span className="text-xs sm:text-caption font-semibold text-white/80">
+                <span className="text-caption font-semibold text-white/80">
                   YouTube Official Portal • NCERT &amp; Board PYQs
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-h1 lg:text-display font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-display font-extrabold tracking-tight text-white leading-tight">
                 Official Quick2Learn Lectures
               </h1>
 
-              <p className="text-xs sm:text-body text-white/75 leading-relaxed max-w-2xl">
+              <p className="text-body text-white/75 leading-relaxed max-w-2xl">
                 Curated video lessons taught by Mr. Dinesh Singh Rajput (25+ yrs Senior Mathematics)
                 and Mrs. Namita Singh Rajput (ICSE Sciences). Learn complex calculus proofs, trigonometry tricks,
                 and board exam questions at zero cost.
               </p>
 
               {/* Channel Advantages */}
-              <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 pt-2 text-xs sm:text-small text-white/85">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-small text-white/85">
                 <span className="inline-flex items-center gap-1.5 font-medium">
                   <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                   CBSE &amp; ICSE Classes IX–XII
@@ -123,16 +123,16 @@ export default async function LecturesPage() {
             </div>
 
             {/* Subscribe Action Button in Lower Right Corner */}
-            <div className="shrink-0 pt-4 lg:pt-0 lg:self-end z-2 w-full sm:w-auto">
+            <div className="shrink-0 pt-4 lg:pt-0 lg:self-end relative z-10 w-full sm:w-auto">
               <a
                 href={INSTITUTE_INFO.youtube.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-[#FF0000] hover:bg-[#D90000] text-white font-bold text-xs sm:text-small shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 select-none w-full sm:w-auto text-center"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#FF0000] hover:bg-[#D90000] text-white font-bold text-small shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 select-none w-full sm:w-auto text-center"
               >
-                <YouTubeIcon className="h-4 sm:h-5 w-4 sm:w-5 shrink-0" />
+                <YouTubeIcon className="h-5 w-5 shrink-0" />
                 <span>Subscribe on YouTube (@Quick2Learn)</span>
-                <ExternalLink className="h-3.5 sm:h-4 w-3.5 sm:w-4 opacity-80 shrink-0" />
+                <ExternalLink className="h-4 w-4 opacity-80 shrink-0" />
               </a>
             </div>
           </div>

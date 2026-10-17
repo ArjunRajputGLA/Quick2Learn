@@ -23,6 +23,7 @@ export function Header({ megaMenuData }: HeaderProps) {
   const [isVoicebotOpen, setIsVoicebotOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
@@ -45,54 +46,59 @@ export function Header({ megaMenuData }: HeaderProps) {
     }
     // Always make header visible on route change
     setIsVisible(true);
+    setIsScrolled(false);
   }, [pathname]);
 
-  // Smart auto-hide header: hides when scrolling down, slides back down when scrolling up
+  // High-performance animated auto-hide header:
+  // Glides up out of view on scroll down; instantly glides down into view on scroll up.
   useEffect(() => {
     let lastScrollY = typeof window !== "undefined" ? Math.max(0, window.scrollY) : 0;
-    let accumulatedDelta = 0;
     let ticking = false;
+
+    const updateScroll = () => {
+      const currentScrollY = Math.max(0, window.scrollY);
+
+      // 1. Always keep header docked and flat at or near top of the page
+      if (currentScrollY <= 15) {
+        setIsVisible(true);
+        setIsScrolled(false);
+        lastScrollY = currentScrollY;
+        ticking = false;
+        return;
+      }
+
+      setIsScrolled(true);
+
+      const maxScrollY =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      // Avoid edge bouncing jitter when rubber-banding near bottom of document
+      if (currentScrollY >= maxScrollY - 20) {
+        lastScrollY = currentScrollY;
+        ticking = false;
+        return;
+      }
+
+      const deltaY = currentScrollY - lastScrollY;
+
+      // Only toggle state once a noticeable scroll delta is reached (prevents micro-jitter)
+      if (Math.abs(deltaY) >= 6) {
+        if (deltaY > 0 && currentScrollY > 70) {
+          // User is scrolling DOWN past header -> glide up smoothly out of view
+          setIsVisible(false);
+        } else if (deltaY < 0) {
+          // User is scrolling UP -> glide down smoothly into view
+          setIsVisible(true);
+        }
+        lastScrollY = currentScrollY;
+      }
+
+      ticking = false;
+    };
 
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = Math.max(0, window.scrollY);
-
-          // Keyboard accessibility: retain visibility if focus is inside header
-          if (headerRef.current?.contains(document.activeElement)) {
-            setIsVisible(true);
-            lastScrollY = currentScrollY;
-            accumulatedDelta = 0;
-            ticking = false;
-            return;
-          }
-
-          // Always visible at or near the top of the page
-          if (currentScrollY <= 60) {
-            setIsVisible(true);
-            accumulatedDelta = 0;
-          } else {
-            const delta = currentScrollY - lastScrollY;
-
-            // Reset accumulated delta if direction reverses
-            if ((delta > 0 && accumulatedDelta < 0) || (delta < 0 && accumulatedDelta > 0)) {
-              accumulatedDelta = 0;
-            }
-            accumulatedDelta += delta;
-
-            // Scrolled down by threshold -> hide header
-            if (accumulatedDelta > 20) {
-              setIsVisible(false);
-            }
-            // Scrolled up by threshold -> reveal header
-            else if (accumulatedDelta < -20) {
-              setIsVisible(true);
-            }
-          }
-
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
+        window.requestAnimationFrame(updateScroll);
         ticking = true;
       }
     };
@@ -103,20 +109,24 @@ export function Header({ megaMenuData }: HeaderProps) {
 
   return (
     <>
-      {/* Main Sticky Navigation Header with smart auto-hide on scroll */}
+      {/* Main Sticky Navigation Header with smooth animated slide-up and slide-down */}
       <header
         ref={headerRef}
+        onFocusCapture={() => setIsVisible(true)}
         className={cn(
-          "sticky top-0 z-50 w-full border-b border-border/80 bg-surface/98 backdrop-blur-md transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed top-0 left-0 right-0 z-50 w-full transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform",
+          isScrolled
+            ? "border-b border-border/80 bg-surface/95 backdrop-blur-md shadow-md"
+            : "border-b border-border/60 bg-surface/98 backdrop-blur-md shadow-none",
           isVisible || isEnquiryOpen || isVoicebotOpen
             ? "translate-y-0"
-            : "-translate-y-full"
+            : "-translate-y-full pointer-events-none"
         )}
       >
-        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4 xl:gap-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-4 xl:gap-8">
             {/* Left: Logo + Explore ⌵ + Batches / Free Lectures */}
-            <div className="flex items-center gap-3 sm:gap-6 xl:gap-8 shrink-0">
+            <div className="flex items-center gap-4 sm:gap-6 xl:gap-8 shrink-0">
               {/* Logo */}
               <Link
                 href="/"
@@ -128,7 +138,7 @@ export function Header({ megaMenuData }: HeaderProps) {
                   alt="Quick2Learn"
                   width={180}
                   height={40}
-                  className="h-7 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                  className="h-8 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                   priority
                 />
               </Link>
@@ -164,7 +174,7 @@ export function Header({ megaMenuData }: HeaderProps) {
             </div>
 
             {/* Right: Language Switcher + AI Chatbot Button + Inquire Now Button */}
-            <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Language Switcher (Hindi, English & Indian Languages) */}
               <LanguageSwitcher />
 
@@ -210,6 +220,9 @@ export function Header({ megaMenuData }: HeaderProps) {
           </div>
         </div>
       </header>
+
+      {/* Structural Spacer: Preserves exact document height beneath fixed header */}
+      <div className="h-16 w-full shrink-0" aria-hidden="true" />
 
       {/* Interactive AI Voicebot Dialog */}
       <AiVoicebotDialog

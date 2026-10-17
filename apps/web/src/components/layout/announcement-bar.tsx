@@ -98,7 +98,7 @@ export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
       <div
         role="region"
         aria-label="Announcement"
-        className="relative z-40 bg-primary text-surface px-4 py-1.5 sm:py-2 text-xs sm:text-small font-medium shadow-xs"
+        className="relative z-40 bg-primary text-surface px-4 py-2 text-small font-medium shadow-xs"
       >
         <div className="container mx-auto flex items-center justify-center gap-2 sm:gap-3 text-center pr-8 pl-2">
           <span className="line-clamp-1">{announcement.text}</span>

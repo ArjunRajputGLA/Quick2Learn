@@ -7,6 +7,7 @@ import {
 } from "@/components/layout/announcement-bar";
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp";
 import { GeminiChatbot } from "@/components/layout/gemini-chatbot";
+import { MobileBottomBar } from "@/components/layout/mobile-bottom-bar";
 import { getSetting, getAllSettings } from "@/server/data/settings";
 import { getMegaMenuData } from "@/server/data/catalog";
 
@@ -42,8 +43,8 @@ export default async function MarketingLayout({
       {/* 2. Sticky Header with Mega-Menu & Typeahead Search */}
       <Header megaMenuData={megaMenuData} />
 
-      {/* 3. Main Content Area */}
-      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+      {/* 3. Main Content Area (pb-16 on mobile gives breathing room for app bottom bar) */}
+      <main id="main-content" tabIndex={-1} className="flex-1 pb-16 lg:pb-0 focus:outline-none">
         {children}
       </main>
 
@@ -57,6 +58,9 @@ export default async function MarketingLayout({
       <Suspense fallback={null}>
         <GeminiChatbot />
       </Suspense>
+
+      {/* 7. Native Mobile App-Style Bottom Navigation Bar */}
+      <MobileBottomBar />
     </div>
   );
 }

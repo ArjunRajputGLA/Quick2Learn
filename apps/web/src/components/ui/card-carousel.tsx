@@ -151,7 +151,7 @@ export function CardCarousel({
         className="flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md no-scrollbar"
       >
         {React.Children.map(children, (child) => (
-          <div className="snap-start shrink-0 w-[84vw] max-w-[320px] sm:w-[320px] md:w-[360px]">
+          <div className="snap-start shrink-0 w-[84vw] max-w-[330px] sm:w-[330px] md:w-[360px]">
             {child}
           </div>
         ))}

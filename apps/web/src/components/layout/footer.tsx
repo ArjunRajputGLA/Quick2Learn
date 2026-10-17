@@ -363,18 +363,18 @@ export function Footer({ settings }: FooterProps) {
           </div>
 
           {/* Two "App coming soon" badges */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-3">
             {/* Google Play Badge */}
             <div
-              className="flex items-center gap-2.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg bg-ink text-surface border border-ink shadow-sm select-none"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-ink text-surface border border-ink shadow-sm select-none"
               title="Quick2Learn Android App coming soon"
             >
-              <Smartphone className="h-4 sm:h-5 w-4 sm:w-5 text-accent shrink-0" />
+              <Smartphone className="h-5 w-5 text-accent shrink-0" />
               <div className="flex flex-col text-left">
-                <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-surface/70 leading-none">
+                <span className="text-[10px] uppercase font-semibold text-surface/70 leading-none">
                   App Coming Soon
                 </span>
-                <span className="text-xs sm:text-small font-bold text-surface leading-tight">
+                <span className="text-small font-bold text-surface leading-tight">
                   Google Play
                 </span>
               </div>
@@ -382,15 +382,15 @@ export function Footer({ settings }: FooterProps) {
 
             {/* Apple App Store Badge */}
             <div
-              className="flex items-center gap-2.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg bg-ink text-surface border border-ink shadow-sm select-none"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-ink text-surface border border-ink shadow-sm select-none"
               title="Quick2Learn iOS App coming soon"
             >
-              <Apple className="h-4 sm:h-5 w-4 sm:w-5 text-surface shrink-0" />
+              <Apple className="h-5 w-5 text-surface shrink-0" />
               <div className="flex flex-col text-left">
-                <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-surface/70 leading-none">
+                <span className="text-[10px] uppercase font-semibold text-surface/70 leading-none">
                   App Coming Soon
                 </span>
-                <span className="text-xs sm:text-small font-bold text-surface leading-tight">
+                <span className="text-small font-bold text-surface leading-tight">
                   App Store
                 </span>
               </div>
@@ -418,7 +418,7 @@ export function Footer({ settings }: FooterProps) {
                 alt="GLAD Studio"
                 width={105}
                 height={29}
-                className="h-5 sm:h-6 w-auto object-contain inline-block"
+                className="h-6 w-auto object-contain inline-block"
               />
             </a>
           </div>

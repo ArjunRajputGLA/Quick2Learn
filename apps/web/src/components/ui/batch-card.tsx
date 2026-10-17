@@ -201,16 +201,16 @@ export function BatchCard({
       </div>
 
       {/* Main Card Body */}
-      <div className="flex flex-1 flex-col p-5 sm:p-6 justify-between space-y-4">
+      <div className="flex flex-1 flex-col p-4 sm:p-5 justify-between space-y-3.5">
         {/* Title */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <h3 className="text-[17px] sm:text-[18px] font-bold text-ink group-hover:text-primary transition-colors line-clamp-2 leading-snug">
             {title}
           </h3>
 
           {/* Teacher Profile Row with Real Portrait */}
-          <div className="flex items-center gap-3 pt-1">
-            <div className="relative h-11 w-11 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-xs bg-surface-subtle">
+          <div className="flex items-center gap-3 pt-0.5">
+            <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-xs bg-surface-subtle">
               <Image
                 src={resolvedAvatar}
                 alt={facultyName}
@@ -229,7 +229,7 @@ export function BatchCard({
         </div>
 
         {/* Schedule & Highlights Box */}
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2 pt-0.5">
           <div className="flex items-center gap-2 text-[12px] font-medium text-ink bg-surface-subtle/70 px-3 py-2 rounded-lg border border-border/60">
             <Clock className="h-4 w-4 text-primary shrink-0" />
             <span className="truncate">{schedule}</span>
@@ -254,29 +254,29 @@ export function BatchCard({
         </div>
 
         {/* Price & CTA Action */}
-        <div className="pt-4 border-t border-border/70 flex items-center justify-between gap-3">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-[22px] sm:text-[24px] font-extrabold text-ink leading-none">
-                {formatINR(pricePaise)}
-              </span>
+        <div className="pt-3.5 border-t border-border/70 flex items-center justify-between gap-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="text-[19px] sm:text-[21px] font-extrabold text-ink leading-tight truncate">
+              {formatINR(pricePaise)}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
               {originalPricePaise && originalPricePaise > pricePaise && (
-                <span className="text-[13px] text-ink-muted line-through font-medium">
+                <span className="text-[12px] text-ink-muted line-through font-medium">
                   {formatINR(originalPricePaise)}
                 </span>
               )}
+              {savingsPercent > 0 && (
+                <span className="inline-block text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                  {savingsPercent}% OFF
+                </span>
+              )}
             </div>
-            {savingsPercent > 0 && (
-              <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-1">
-                Save {savingsPercent}% Early Bird
-              </span>
-            )}
           </div>
 
           {/* Interactive Button */}
-          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-small font-semibold shadow-xs group-hover:bg-primary-hover group-hover:shadow-card group-hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shrink-0">
+          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl bg-primary text-white text-xs sm:text-[13px] font-semibold shadow-xs group-hover:bg-primary-hover group-hover:shadow-card group-hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shrink-0 whitespace-nowrap">
             <span>Explore Batch</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </div>
         </div>
       </div>

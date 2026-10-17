@@ -54,7 +54,7 @@ export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
     <aside aria-label="WhatsApp Contact Support">
       {/* Tooltip bubble */}
       {showTooltip && !dismissed && (
-        <div className="fixed bottom-[88px] right-6 z-40 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+        <div className="fixed bottom-[140px] right-4 sm:bottom-[88px] sm:right-6 z-40 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
           <div className="relative bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 max-w-[220px]">
             <button
               onClick={() => setDismissed(true)}
@@ -78,7 +78,7 @@ export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with Quick2Learn on WhatsApp"
-        className="fixed bottom-6 right-6 z-40 group flex items-center gap-0 rounded-full shadow-[0_4px_14px_rgba(37,211,102,0.45)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.55)] transition-all duration-300 hover:scale-105 active:scale-95"
+        className="fixed bottom-[74px] right-4 sm:bottom-6 sm:right-6 z-40 group flex items-center gap-0 rounded-full shadow-[0_4px_14px_rgba(37,211,102,0.45)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.55)] transition-all duration-300 hover:scale-105 active:scale-95"
       >
         {/* Icon circle */}
         <div className="relative flex items-center justify-center h-[56px] w-[56px] rounded-full bg-[#25D366]">
