@@ -497,6 +497,7 @@ function GeminiChatbotInner() {
   const resetChat = () => {
     setMessages([getGreetingMessage(currentLanguage)]);
     setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
   };
 
   const sendMessage = useCallback(
@@ -514,6 +515,7 @@ function GeminiChatbotInner() {
       const updatedMessages = [...messages, userMessage];
       setMessages(updatedMessages);
       setInput("");
+      if (inputRef.current) inputRef.current.style.height = "auto";
       setIsStreaming(true);
 
       const assistantId = `assistant-${Date.now()}`;
@@ -691,63 +693,82 @@ function GeminiChatbotInner() {
 
   return (
     <>
-      {/* Full-Page Chat View: Starts right below the normal header (top-16 = 64px) */}
+      {/* Full-Page Chat View: Dedicated fullscreen AI Assistant overlay */}
       {isOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Quick2Learn AI Academic Chatbot"
-          className="fixed inset-x-0 bottom-0 top-14 sm:top-16 z-40 bg-white text-slate-900 flex flex-col animate-in fade-in-0 duration-200 select-text"
+          aria-label="Quick2Learn AI Academic Assistant"
+          className="fixed inset-0 z-50 h-[100dvh] max-h-[100dvh] w-full bg-white text-slate-900 flex flex-col animate-in fade-in-0 duration-200 select-text overflow-hidden overscroll-contain"
         >
           {/* Top Controls: Clean responsive bar with brand badge, new chat & close actions */}
-          <div className="w-full px-4 sm:px-8 py-2.5 flex items-center justify-between shrink-0 border-b border-slate-100 bg-white/95 backdrop-blur-xs">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Bot className="h-4 w-4" />
+          <header className="w-full shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
+            <div className="max-w-4xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
+              {/* Left: Brand Identity & Status */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-tr from-primary to-blue-600 text-white flex items-center justify-center shadow-xs shrink-0 font-black text-sm">
+                  Q
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                      Quick2Learn AI
+                    </span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 tracking-wide inline-flex items-center gap-1">
+                      <Bot className="h-2.5 w-2.5" />
+                      TUTOR
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 hidden sm:inline truncate">
+                    Academic Assistant · Classes 9–12 CBSE &amp; ICSE
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs sm:text-small font-bold text-slate-900">Quick2Learn AI</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">TUTOR</span>
-              </div>
-            </div>
 
-            {/* Top Right: New Chat and Close */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                onClick={resetChat}
-                aria-label="New conversation"
-                title="Start new conversation"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200/60"
-              >
-                <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
-                <span className="hidden sm:inline">New Chat</span>
-              </button>
-              <button
-                onClick={handleClose}
-                aria-label="Close Chat"
-                title="Close Chat"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-slate-200/60 hover:border-red-100"
-              >
-                <X className="h-4 w-4" />
-                <span>Close</span>
-              </button>
+              {/* Right: Actions */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={resetChat}
+                  aria-label="New conversation"
+                  title="Start new conversation"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200/80 active:scale-95"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
+                  <span className="hidden sm:inline">New Chat</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  aria-label="Close Chat"
+                  title="Close Chat"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-slate-200/80 hover:border-red-200 active:scale-95"
+                >
+                  <X className="h-4 w-4" />
+                  <span>Close</span>
+                </button>
+              </div>
             </div>
-          </div>
+          </header>
 
           {/* Central Scrollable Chat Stream */}
           <main
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8 scroll-smooth bg-white"
+            className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8 scroll-smooth bg-white"
           >
             <div className="max-w-3xl w-full mx-auto space-y-6 sm:space-y-8">
-              {/* Mascot Intro Animation: Positioned in-flow so it NEVER overlaps any text */}
+              {/* Mascot Intro Animation: Positioned on the left side in desktop POV, centered on mobile */}
               {showHoverbot && (
                 <div
                   className={cn(
-                    "flex flex-col items-center justify-center pt-1 pb-2 sm:pb-3 transition-all duration-700 ease-out select-none",
+                    "transition-all duration-700 ease-out select-none pointer-events-none",
+                    // Mobile POV (< lg): centered in-flow above the greeting
+                    "flex flex-col items-center justify-center pt-1 pb-2",
+                    // Desktop POV (lg+): positioned on the left side of the screen
+                    "lg:fixed lg:top-20 xl:top-24 lg:left-4 xl:left-10 2xl:left-16 lg:z-20 lg:pt-0 lg:pb-0",
                     isHoverbotFading
-                      ? "opacity-0 -translate-y-2 scale-90"
+                      ? "opacity-0 -translate-y-3 scale-90"
                       : "opacity-100 translate-y-0 scale-100 animate-in fade-in-0 duration-300",
                   )}
                 >
@@ -757,12 +778,8 @@ function GeminiChatbotInner() {
                     autoPlay
                     muted
                     playsInline
-                    className="h-20 w-20 sm:h-28 sm:w-28 object-contain mix-blend-multiply"
+                    className="h-20 w-20 sm:h-24 sm:w-24 lg:h-32 lg:w-32 xl:h-40 xl:w-40 object-contain mix-blend-multiply"
                   />
-                  <div className="flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Quick2Learn AI Academic Tutor Active</span>
-                  </div>
                 </div>
               )}
               {messages.map((msg) => {
@@ -946,29 +963,33 @@ function GeminiChatbotInner() {
             <button
               onClick={scrollToBottom}
               aria-label="Scroll to bottom"
-              className="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 h-9 w-9 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-all cursor-pointer animate-in fade-in-0 duration-150 hover:text-primary"
+              className="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-20 h-9 w-9 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-all cursor-pointer animate-in fade-in-0 duration-150 hover:text-primary"
             >
               <ArrowDown className="h-4 w-4" />
             </button>
           )}
 
-          {/* Enhanced Pinned Bottom Input Bar (Cohesive Single Pill, No Inner Borders) */}
-          <footer className="w-full shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md pt-2.5 sm:pt-3 pb-3 sm:pb-3.5 px-3 sm:px-6">
-            <div className="max-w-3xl w-full mx-auto space-y-1.5">
+          {/* Enhanced Pinned Bottom Input Bar */}
+          <footer className="w-full shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md pt-2 sm:pt-3 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:pb-3.5 px-3 sm:px-6">
+            <div className="max-w-3xl w-full mx-auto space-y-1">
               <form
                 onSubmit={handleSubmit}
                 className={cn(
-                  "relative flex items-end gap-2 sm:gap-3 rounded-2xl border bg-white px-3.5 py-2 sm:px-4 sm:py-3 transition-all duration-200 ease-out",
+                  "relative flex items-end gap-2 sm:gap-3 rounded-2xl border bg-white px-3 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-200 ease-out",
                   isInputFocused
-                    ? "border-primary ring-4 ring-primary/10 shadow-[0_8px_30px_rgb(0,0,0,0.06),0_2px_8px_rgba(37,99,235,0.08)]"
+                    ? "border-primary ring-3 sm:ring-4 ring-primary/10 shadow-[0_4px_20px_rgb(0,0,0,0.06),0_2px_8px_rgba(37,99,235,0.08)]"
                     : "border-slate-300 shadow-2xs hover:border-slate-400",
                 )}
               >
-                {/* Seamless Textarea without Any Browser Outline/Border */}
+                {/* Seamless Textarea without iOS Auto-Zoom (16px base font size on mobile) */}
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 130)}px`;
+                  }}
                   onFocus={() => setIsInputFocused(true)}
                   onBlur={() => setIsInputFocused(false)}
                   onKeyDown={handleKeyDown}
@@ -979,7 +1000,7 @@ function GeminiChatbotInner() {
                   }
                   rows={1}
                   disabled={isStreaming}
-                  className="w-full flex-1 resize-none bg-transparent text-small sm:text-[15px] text-slate-900 placeholder:text-slate-400 leading-relaxed max-h-36 py-1 disabled:opacity-50 border-0 outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none focus-visible:ring-0 focus-visible:border-none caret-primary"
+                  className="w-full flex-1 resize-none bg-transparent text-base sm:text-[15px] text-slate-900 placeholder:text-slate-400 leading-relaxed max-h-32 py-1 disabled:opacity-50 border-0 outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none focus-visible:ring-0 focus-visible:border-none caret-primary"
                   style={{
                     outline: "none",
                     border: "none",
@@ -994,7 +1015,10 @@ function GeminiChatbotInner() {
                     type="button"
                     onClick={() => {
                       setInput("");
-                      inputRef.current?.focus();
+                      if (inputRef.current) {
+                        inputRef.current.style.height = "auto";
+                        inputRef.current.focus();
+                      }
                     }}
                     aria-label="Clear input"
                     className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 mb-1 cursor-pointer"
@@ -1010,7 +1034,7 @@ function GeminiChatbotInner() {
                   aria-label="Send query"
                   title={input.trim() ? "Send (Enter)" : "Type your question"}
                   className={cn(
-                    "h-9 w-9 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer mb-0.5",
+                    "h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer mb-0.5",
                     input.trim() && !isStreaming
                       ? "bg-primary text-white hover:bg-primary-hover shadow-xs hover:scale-105 active:scale-95"
                       : "bg-slate-100 text-slate-400 cursor-not-allowed",
@@ -1025,8 +1049,8 @@ function GeminiChatbotInner() {
               </form>
 
               {/* Disclaimer Notice & Keyboard Helper */}
-              <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 px-1 pt-0.5 leading-normal gap-1">
-                <p className="text-center sm:text-left text-[10.5px] sm:text-[11px]">
+              <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-[11px] text-slate-500 px-1 pt-0.5 leading-tight sm:leading-normal gap-0.5 sm:gap-1">
+                <p className="text-center sm:text-left">
                   Ask Quick2Learn is powered by AI. Check important academic details with faculty mentors.
                 </p>
                 <span className="hidden sm:inline text-slate-400 text-[10px] shrink-0">
@@ -1079,23 +1103,23 @@ function ContentCardsCarousel({
 
   return (
     <div className="relative group/carousel">
-      {/* Left Navigation Arrow */}
+      {/* Left Navigation Arrow (desktop only) */}
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
           aria-label="Scroll left"
-          className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
       )}
 
-      {/* Right Navigation Arrow */}
+      {/* Right Navigation Arrow (desktop only) */}
       {canScrollRight && (
         <button
           onClick={() => scroll("right")}
           aria-label="Scroll right"
-          className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          className="hidden sm:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

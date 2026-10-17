@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface FloatingWhatsAppProps {
   whatsappNumber?: string;
 }
 
 export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
+  const pathname = usePathname();
+  const [isChatOpen, setIsChatOpen] = useState(pathname === "/chat");
+
   const rawNumber = whatsappNumber || "+91 76688 75809";
   const cleanNumber = rawNumber.replace(/[^0-9]/g, "");
   const defaultText = encodeURIComponent("Hi, I want to know about Quick2Learn batches");
@@ -14,6 +18,23 @@ export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
 
   const [showTooltip, setShowTooltip] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    setIsChatOpen(pathname === "/chat");
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleChatToggled = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isOpen?: boolean }>;
+      if (typeof customEvent.detail?.isOpen === "boolean") {
+        setIsChatOpen(customEvent.detail.isOpen);
+      }
+    };
+    window.addEventListener("quick2learn-chat-toggled", handleChatToggled);
+    return () => {
+      window.removeEventListener("quick2learn-chat-toggled", handleChatToggled);
+    };
+  }, []);
 
   // Show tooltip after 3 seconds, auto-hide after 6 more seconds
   useEffect(() => {
@@ -24,6 +45,10 @@ export function FloatingWhatsApp({ whatsappNumber }: FloatingWhatsAppProps) {
       clearTimeout(hideTimer);
     };
   }, []);
+
+  if (isChatOpen || pathname === "/chat") {
+    return null;
+  }
 
   return (
     <aside aria-label="WhatsApp Contact Support">
