@@ -46,9 +46,9 @@ blob-report/
 playwright/.cache/
 
 # Local databases and runtime dumps
-data/
-postgres-data/
-minio-data/
+/data/
+/postgres-data/
+/minio-data/
 
 .vercel
 .env*
