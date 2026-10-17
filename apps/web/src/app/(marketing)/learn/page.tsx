@@ -44,10 +44,10 @@ export const revalidate = 3600; // Tag-based and hourly revalidation
 
 export default async function LearnOverviewPage() {
   const [latestLectures, shortVideos, playlists, subjects] = await Promise.all([
-    getPopularVideos("latest", 8).catch(() => []),
-    getShortVideos(12).catch(() => []),
-    getPlaylistsWithDetails(8).catch(() => []),
-    getSubjects().catch(() => []),
+    getPopularVideos("latest", 8),
+    getShortVideos(12),
+    getPlaylistsWithDetails(8),
+    getSubjects(),
   ]);
 
   const classTiles = [

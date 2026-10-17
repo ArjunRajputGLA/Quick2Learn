@@ -1,9 +1,0 @@
-node_modules
-.next
-.turbo
-dist
-.git
-postgres-data
-*.log
-.DS_Store
-Thumbs.db

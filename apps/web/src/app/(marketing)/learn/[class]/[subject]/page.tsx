@@ -35,24 +35,19 @@ interface LearnSubjectPageProps {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  try {
-    const classes = ["ix", "x", "xi", "xii"];
-    const subjects = await getSubjects();
+  const classes = ["ix", "x", "xi", "xii"];
+  const subjects = await getSubjects();
 
-    const params: Array<{ class: string; subject: string }> = [];
-    for (const c of classes) {
-      for (const s of subjects) {
-        params.push({
-          class: c,
-          subject: s.slug,
-        });
-      }
+  const params: Array<{ class: string; subject: string }> = [];
+  for (const c of classes) {
+    for (const s of subjects) {
+      params.push({
+        class: c,
+        subject: s.slug,
+      });
     }
-    return params;
-  } catch (err) {
-    console.warn("generateStaticParams failed to fetch subjects (fallback to dynamic rendering):", err);
-    return [];
   }
+  return params;
 }
 
 export async function generateMetadata({

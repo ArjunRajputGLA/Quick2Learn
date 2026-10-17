@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LecturesPage() {
-  const videoList = await getVideos().catch(() => []);
+  const videoList = await getVideos();
 
   return (
     <div>
