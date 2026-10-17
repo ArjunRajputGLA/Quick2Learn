@@ -49,3 +49,6 @@ playwright/.cache/
 data/
 postgres-data/
 minio-data/
+
+.vercel
+.env*

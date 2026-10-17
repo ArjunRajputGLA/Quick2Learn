@@ -45,12 +45,17 @@ interface LearnChapterPageProps {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const rows = await getAllChaptersWithSubject();
-  return rows.map((r) => ({
-    class: classLevelToSlug(r.classLevel) || "xii",
-    subject: r.subjectSlug,
-    chapter: r.chapterSlug,
-  }));
+  try {
+    const rows = await getAllChaptersWithSubject();
+    return rows.map((r) => ({
+      class: classLevelToSlug(r.classLevel) || "xii",
+      subject: r.subjectSlug,
+      chapter: r.chapterSlug,
+    }));
+  } catch (err) {
+    console.warn("generateStaticParams failed to fetch chapters (fallback to dynamic rendering):", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({

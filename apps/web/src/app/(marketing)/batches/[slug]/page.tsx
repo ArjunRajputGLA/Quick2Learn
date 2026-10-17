@@ -13,17 +13,22 @@ interface BatchPageProps {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const batches = await getBatchesWithFilters();
-  return batches.map((b) => ({
-    slug: b.slug,
-  }));
+  try {
+    const batches = await getBatchesWithFilters();
+    return batches.map((b) => ({
+      slug: b.slug,
+    }));
+  } catch (err) {
+    console.warn("generateStaticParams failed to fetch batches (fallback to dynamic rendering):", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({
   params,
 }: BatchPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getBatchDetailBySlug(slug);
+  const data = await getBatchDetailBySlug(slug).catch(() => null);
 
   if (!data) {
     return { title: "Batch Not Found | Quick2Learn" };
@@ -75,7 +80,7 @@ export default async function BatchDetailPage({
   const data = await getBatchDetailBySlug(slug, {
     preview: preview === "1",
     user: authUser,
-  });
+  }).catch(() => null);
 
   if (!data) {
     notFound();
