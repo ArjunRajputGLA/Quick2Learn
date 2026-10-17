@@ -23,12 +23,18 @@ interface LearnClassPageProps {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  return [
-    { class: "ix" },
-    { class: "x" },
-    { class: "xi" },
-    { class: "xii" },
-  ];
+  try {
+    const subjects = await getClassSubjectsWithDetails(9);
+    if (!subjects || subjects.length === 0) return [];
+    return [
+      { class: "ix" },
+      { class: "x" },
+      { class: "xi" },
+      { class: "xii" },
+    ];
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -72,7 +78,7 @@ export default async function LearnClassPage({ params }: LearnClassPageProps) {
   }
 
   const classRoman = formatClassRoman(classLevel);
-  const subjects = await getClassSubjectsWithDetails(classLevel);
+  const subjects = await getClassSubjectsWithDetails(classLevel).catch(() => []);
 
   if (!subjects || subjects.length === 0) {
     notFound();
