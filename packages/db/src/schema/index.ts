@@ -82,6 +82,21 @@ export type NewSyncRun = InferInsertModel<typeof appTables.syncRuns>;
 export type AuditLog = InferSelectModel<typeof appTables.auditLog>;
 export type NewAuditLog = InferInsertModel<typeof appTables.auditLog>;
 
+export type DeviceToken = InferSelectModel<typeof appTables.deviceTokens>;
+export type NewDeviceToken = InferInsertModel<typeof appTables.deviceTokens>;
+
+export type Notification = InferSelectModel<typeof appTables.notifications>;
+export type NewNotification = InferInsertModel<typeof appTables.notifications>;
+
+export type NotificationPref = InferSelectModel<typeof appTables.notificationPrefs>;
+export type NewNotificationPref = InferInsertModel<typeof appTables.notificationPrefs>;
+
+export type ParentLink = InferSelectModel<typeof appTables.parentLinks>;
+export type NewParentLink = InferInsertModel<typeof appTables.parentLinks>;
+
+export type ParentInviteCode = InferSelectModel<typeof appTables.parentInviteCodes>;
+export type NewParentInviteCode = InferInsertModel<typeof appTables.parentInviteCodes>;
+
 // Enum Types
 export type UserRole = (typeof enums.userRoleEnum.enumValues)[number];
 export type Board = (typeof enums.boardEnum.enumValues)[number];

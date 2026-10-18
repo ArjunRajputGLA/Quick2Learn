@@ -1,6 +1,6 @@
 import type { AcademicBoard, AcademicClass, Subject } from "../constants";
 
-export type UserRole = "student" | "teacher" | "admin";
+export type UserRole = "student" | "teacher" | "admin" | "parent";
 export type Board = "cbse" | "icse" | "isc";
 export type BatchMode = "offline" | "online" | "hybrid";
 export type BatchStatus = "draft" | "open" | "closed" | "completed";

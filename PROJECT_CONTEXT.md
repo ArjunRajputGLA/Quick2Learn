@@ -87,3 +87,22 @@ Quick2Learn is the coaching platform of Mr. Dinesh Singh Rajput (Mathematics, 25
   - **Test UPI**:
     - VPA: `success@razorpay` (simulates immediate successful UPI payment)
     - VPA: `failure@razorpay` (simulates UPI payment decline / failure)
+
+## MOBILE APP (`apps/mobile`)
+- **Framework**: Expo SDK (New Architecture enabled), Expo Router (file-based routing in `apps/mobile/app`), TypeScript strict.
+- **Android Package**: `in.quick2learn.app`
+- **URL Scheme**: `q2l`
+- **Build Target**: Development build (`expo-dev-client`), not Expo Go.
+- **Design & Tokens**: Styled with NativeWind v4 + Tailwind CSS 3.4. Single source of truth is `packages/shared/src/tokens.ts`, imported directly by `apps/mobile/tailwind.config.js` and compiled into web CSS via `pnpm tokens:build`.
+- **Target Devices**: Budget Android devices (360 dp width, 2–3 GB RAM), slow 4G, one-handed touch ergonomics.
+- **Accessible Touch Targets**: Minimum 48 dp on all interactive elements. Robust under 130% system font scaling without text clipping.
+- **Writing & Content Rules**:
+  - Sentence case or title case, never ALL CAPS titles.
+  - The teacher's name is shown once per batch card, never repeated on every row.
+  - No "Uncategorized" labels anywhere in the app.
+  - Dates formatted as "Mon, 22 Apr" and times as "8:00 PM" in `Asia/Kolkata` timezone.
+  - Every list must have:
+    1. Skeleton loading state (subtle pulse, low RAM overhead).
+    2. Pull-to-refresh (`RefreshControl` with primary color tint).
+    3. Empty state with an illustration, title, one helpful line, and an action (never a dead end).
+    4. Offline state with connectivity detection and banner indicator.

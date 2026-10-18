@@ -10,3 +10,8 @@ export * from "./settings";
 export * from "./search";
 export * from "./cached-home";
 export * from "./admin";
+export * from "./user";
+export * from "./devices";
+export * from "./notifications";
+export * from "./rate-limit";
+export * from "./parent";

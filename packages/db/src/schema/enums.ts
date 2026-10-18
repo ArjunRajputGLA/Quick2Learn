@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const userRoleEnum = pgEnum("user_role", ["student", "teacher", "admin"]);
+export const userRoleEnum = pgEnum("user_role", ["student", "teacher", "admin", "parent"]);
 export const boardEnum = pgEnum("board", ["cbse", "icse", "isc"]);
 export const batchModeEnum = pgEnum("batch_mode", ["offline", "online", "hybrid"]);
 export const batchStatusEnum = pgEnum("batch_status", ["draft", "open", "closed", "completed"]);

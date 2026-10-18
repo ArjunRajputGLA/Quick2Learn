@@ -60,3 +60,28 @@ export async function updateSetting(user: AuthUser, key: string, value: unknown,
     .returning();
   return updated;
 }
+
+export async function getAppConfig(tx?: DatabaseExecutor) {
+  const customConfig = await getSetting<{
+    minSupportedVersion?: string;
+    latestVersion?: string;
+    maintenance?: boolean;
+    featureFlags?: Record<string, boolean>;
+  }>("mobile_app_config", tx);
+
+  return {
+    minSupportedVersion: customConfig?.minSupportedVersion ?? "1.0.0",
+    latestVersion: customConfig?.latestVersion ?? "1.0.0",
+    maintenance: customConfig?.maintenance ?? false,
+    featureFlags: {
+      enablePushNotifications: true,
+      enableOfflineDownloads: false,
+      enableParentPortal: true,
+      enablePhoneLogin:
+        process.env.AUTH_PHONE_ENABLED === "true" ||
+        process.env.NODE_ENV !== "production",
+      ...(customConfig?.featureFlags ?? {}),
+    },
+  };
+}
+

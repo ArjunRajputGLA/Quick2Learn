@@ -7,6 +7,7 @@ async function notifyAdminOfEnquiry(enquiry: schema.Enquiry) {
     const adminEmail = process.env.ENQUIRY_NOTIFICATION_EMAIL || "quick2learn23203@gmail.com";
     const studentName = enquiry.name || "Prospective Student";
     const phone = enquiry.phone || "Not provided";
+    const cleanPhone = phone.replace(/\D/g, "").slice(-10);
     const grade = enquiry.classLevel ? `Class ${enquiry.classLevel}` : "Not specified";
     const board = enquiry.board ? enquiry.board.toUpperCase() : "Not specified";
     const source = enquiry.sourcePath || "/";
@@ -46,7 +47,7 @@ View in Admin Portal: https://quick2learn.in/admin/enquiries
             <td style="padding: 8px 0;">
               <a href="tel:${phone}" style="color: #2563EB; font-weight: 700; text-decoration: none;">${phone}</a>
               &nbsp;|&nbsp;
-              <a href="https://wa.me/91${phone.replace(/\\D/g, '').slice(-10)}" target="_blank" style="color: #059669; font-weight: 600; text-decoration: none;">WhatsApp</a>
+              <a href="https://wa.me/91${cleanPhone}" target="_blank" style="color: #059669; font-weight: 600; text-decoration: none;">WhatsApp</a>
             </td>
           </tr>
           <tr style="border-bottom: 1px solid #F1F5F9;">

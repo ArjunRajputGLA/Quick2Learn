@@ -631,3 +631,131 @@ export const auditLog = pgTable(
     index("idx_audit_log_actor").on(table.actorId, table.createdAt),
   ],
 );
+
+// 22. DEVICE TOKENS
+export const deviceTokens = pgTable(
+  "device_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    expoPushToken: text("expo_push_token").notNull().unique(),
+    platform: text("platform").notNull(), // 'android' | 'ios'
+    appVersion: text("app_version"),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+    disabledAt: timestamp("disabled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+  },
+  (table) => [
+    index("idx_device_tokens_user").on(table.userId),
+    index("idx_device_tokens_token").on(table.expoPushToken),
+  ],
+);
+
+// 23. NOTIFICATIONS
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    data: jsonb("data")
+      .$type<{ route?: string; [key: string]: any }>()
+      .default(sql`'{}'::jsonb`)
+      .notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+  },
+  (table) => [
+    index("idx_notifications_user_created").on(table.userId, table.createdAt),
+    index("idx_notifications_user_read").on(table.userId, table.readAt),
+  ],
+);
+
+// 24. NOTIFICATION PREFERENCES
+export const notificationPrefs = pgTable(
+  "notification_prefs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+  },
+  (table) => [
+    unique("uq_notification_prefs_user_type").on(table.userId, table.type),
+    index("idx_notification_prefs_user").on(table.userId),
+  ],
+);
+
+// 25. PARENT LINKS
+export const parentLinks = pgTable(
+  "parent_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    parentUserId: text("parent_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    studentUserId: text("student_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    relation: text("relation").default("parent").notNull(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+  },
+  (table) => [
+    unique("uq_parent_student").on(table.parentUserId, table.studentUserId),
+    index("idx_parent_links_parent").on(table.parentUserId),
+    index("idx_parent_links_student").on(table.studentUserId),
+  ],
+);
+
+// 26. PARENT INVITE CODES
+export const parentInviteCodes = pgTable(
+  "parent_invite_codes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    studentUserId: text("student_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    usedByParentId: text("used_by_parent_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`timezone('utc'::text, now())`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_parent_invite_codes_code").on(table.code),
+    index("idx_parent_invite_codes_student").on(table.studentUserId),
+  ],
+);
+

@@ -4,7 +4,7 @@ import * as schema from "./schema";
 export * from "./client";
 export * from "./schema";
 export { schema };
-export { eq, and, or, sql, desc, asc, ilike, inArray, ne } from "drizzle-orm";
+export { eq, and, or, sql, desc, asc, ilike, inArray, ne, lt, lte, gt, gte, isNull, isNotNull } from "drizzle-orm";
 
 // Inferred Models for Better Auth Tables
 export type User = InferSelectModel<typeof schema.user>;
@@ -81,7 +81,20 @@ export type NewSyncRun = InferInsertModel<typeof schema.syncRuns>;
 
 export type AuditLog = InferSelectModel<typeof schema.auditLog>;
 export type NewAuditLog = InferInsertModel<typeof schema.auditLog>;
+export type DeviceToken = InferSelectModel<typeof schema.deviceTokens>;
+export type NewDeviceToken = InferInsertModel<typeof schema.deviceTokens>;
 
+export type Notification = InferSelectModel<typeof schema.notifications>;
+export type NewNotification = InferInsertModel<typeof schema.notifications>;
+
+export type NotificationPref = InferSelectModel<typeof schema.notificationPrefs>;
+export type NewNotificationPref = InferInsertModel<typeof schema.notificationPrefs>;
+
+export type ParentLink = InferSelectModel<typeof schema.parentLinks>;
+export type NewParentLink = InferInsertModel<typeof schema.parentLinks>;
+
+export type ParentInviteCode = InferSelectModel<typeof schema.parentInviteCodes>;
+export type NewParentInviteCode = InferInsertModel<typeof schema.parentInviteCodes>;
 // Enum Types
 export type UserRole = (typeof schema.userRoleEnum.enumValues)[number];
 export type Board = (typeof schema.boardEnum.enumValues)[number];

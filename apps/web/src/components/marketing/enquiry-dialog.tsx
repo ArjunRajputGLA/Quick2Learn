@@ -40,6 +40,12 @@ export function EnquiryDialog({
     }
   }, [state.success]);
 
+  React.useEffect(() => {
+    if (!open) {
+      setSubmitted(false);
+    }
+  }, [open]);
+
   const handleClose = () => {
     onOpenChange(false);
     // Reset submitted state when closed
@@ -47,6 +53,8 @@ export function EnquiryDialog({
       setTimeout(() => setSubmitted(false), 300);
     }
   };
+
+  const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -90,7 +98,7 @@ export function EnquiryDialog({
             />
           </div>
 
-          <input type="hidden" name="sourcePath" value="/" />
+          <input type="hidden" name="sourcePath" value={currentPath} />
 
           <div className="space-y-1.5">
             <label htmlFor="enquiry-name" className="text-caption font-semibold text-ink">
@@ -156,6 +164,8 @@ export function EnquiryDialog({
                 <option value="cbse">CBSE</option>
                 <option value="icse">ICSE</option>
                 <option value="isc">ISC</option>
+                <option value="up_board">UP Board</option>
+                <option value="other">Other State Board</option>
               </select>
             </div>
           </div>

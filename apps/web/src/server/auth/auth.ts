@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP, phoneNumber } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
+import { expo } from "@better-auth/expo";
 import { after } from "next/server";
 import { db } from "@quick2learn/db";
 import * as schema from "@quick2learn/db/schema";
@@ -9,6 +10,54 @@ import { sendEmail } from "../email";
 
 const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+const isDev = process.env.NODE_ENV !== "production";
+
+async function sendSmsOtp({
+  phoneNumber,
+  code,
+}: {
+  phoneNumber: string;
+  code: string;
+}) {
+  const isDev = process.env.NODE_ENV !== "production";
+  const appHash = process.env.ANDROID_SMS_APP_HASH || "Quick2LearnAppHash";
+
+  // In development/test, log the code to console
+  if (isDev || !process.env.SMS_PROVIDER_KEY) {
+    console.log(
+      `[auth:phone] Verification OTP for ${phoneNumber}: ${code} [APP_HASH: ${appHash}]`
+    );
+    return;
+  }
+
+  // DLT-registered SMS provider (MSG91) using approved template
+  const authKey = process.env.SMS_PROVIDER_KEY;
+  const senderId = process.env.SMS_SENDER_ID || "Q2LRN";
+  const templateId = process.env.SMS_OTP_TEMPLATE_ID || "";
+  const mobile = phoneNumber.replace(/\+/g, "");
+
+  const url = `https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=${mobile}&authkey=${authKey}&otp=${code}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sender: senderId,
+      otp: code,
+      app_hash: appHash,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("[auth:phone] MSG91 SMS send error:", response.status, errText);
+  }
+}
+
+const isPhoneAuthEnabled =
+  process.env.AUTH_PHONE_ENABLED === "true" ||
+  process.env.NODE_ENV === "test" ||
+  isDev;
 
 const plugins = [
   emailOTP({
@@ -60,27 +109,70 @@ const plugins = [
       }
     },
   }),
-  ...(process.env.AUTH_PHONE_ENABLED === "true"
+  ...(isPhoneAuthEnabled
     ? [
         phoneNumber({
-          sendOTP: async () => {
-            throw new Error("SMS not configured");
+          otpLength: 6,
+          expiresIn: 300,
+          allowedAttempts: 3,
+          sendOTP: async ({ phoneNumber: phone, code }) => {
+            const sendPromise = sendSmsOtp({ phoneNumber: phone, code }).catch((err) => {
+              console.error("[auth:phone] Failed to send SMS OTP:", err);
+            });
+            try {
+              after(async () => {
+                await sendPromise;
+              });
+            } catch {
+              sendPromise.catch(() => {});
+            }
+          },
+          phoneNumberValidator: (phone: string) => {
+            const cleaned = phone.replace(/[\s\-\(\)]/g, "");
+            return /^(\+91|91|0)?[6-9]\d{9}$/.test(cleaned);
+          },
+          signUpOnVerification: {
+            getTempEmail: (phone: string) => {
+              const digits = phone.replace(/\D/g, "").slice(-10);
+              return `${digits}@phone.quick2learn.invalid`;
+            },
+            getTempName: () => "Student",
+          },
+          callbackOnVerification: async ({ phoneNumber: phone, user: verifiedUser }) => {
+            try {
+              const { linkParentToMatchingStudents } = await import("../data/parent");
+              await linkParentToMatchingStudents(verifiedUser.id, phone);
+            } catch (err) {
+              console.error("[auth:phone] callbackOnVerification error:", err);
+            }
           },
         }),
       ]
     : []),
+  expo(),
   nextCookies(),
 ];
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "quick2learn_dev_secret_key_at_least_32_characters_long",
   baseURL,
-  trustedOrigins: [siteUrl, baseURL],
+  trustedOrigins: [
+    siteUrl,
+    baseURL,
+    "q2l://",
+    ...(isDev ? ["exp://"] : []),
+  ],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       redirectURI: `${baseURL}/api/auth/callback/google`,
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
     },
   },
   rateLimit: {
@@ -105,6 +197,7 @@ export const auth = betterAuth({
               .values({
                 userId: user.id,
                 fullName: user.name || "Student",
+                phone: (user as any).phoneNumber || null,
                 role: "student",
               })
               .onConflictDoNothing();

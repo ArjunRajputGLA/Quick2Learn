@@ -31,7 +31,7 @@ export const contactEnquirySchema = z.object({
       return isNaN(num) ? null : num;
     }),
   board: z
-    .enum(["cbse", "icse", "up_board", "other"])
+    .enum(["cbse", "icse", "isc", "up_board", "other"])
     .optional()
     .nullable(),
   message: z
@@ -56,87 +56,107 @@ export async function submitContactEnquiryAction(
   data: unknown,
   context?: { clientIp?: string }
 ): Promise<ContactActionResult> {
-  // 1. Zod validation
-  const parsed = contactEnquirySchema.safeParse(data);
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) {
-      const field = issue.path[0]?.toString() || "form";
-      if (!fieldErrors[field]) {
-        fieldErrors[field] = issue.message;
+  try {
+    // 1. Zod validation
+    const parsed = contactEnquirySchema.safeParse(data);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const field = issue.path[0]?.toString() || "form";
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      return {
+        success: false,
+        error: "Please correct the highlighted errors.",
+        fieldErrors,
+      };
+    }
+
+    const { name, phone, classLevel, board, message, website_hp } = parsed.data;
+
+    // 2. Honeypot check: If the hidden honeypot field is filled, silently succeed without storing to DB
+    if (website_hp && website_hp.trim().length > 0) {
+      return {
+        success: true,
+        message: "Thank you! Your enquiry has been received. Our team will contact you shortly.",
+      };
+    }
+
+    // 3. Extract IP address from request headers or context override
+    let clientIp = context?.clientIp;
+    if (!clientIp) {
+      try {
+        const headerList = await headers();
+        const forwardedFor = headerList.get("x-forwarded-for");
+        const realIp = headerList.get("x-real-ip");
+        clientIp = (forwardedFor ? forwardedFor.split(",")[0]?.trim() : null) || realIp || "127.0.0.1";
+      } catch {
+        clientIp = "127.0.0.1";
       }
     }
-    return {
-      success: false,
-      error: "Please correct the highlighted errors.",
-      fieldErrors,
-    };
-  }
 
-  const { name, phone, classLevel, board, message, website_hp } = parsed.data;
-
-  // 2. Honeypot check: If the hidden honeypot field is filled, silently succeed without storing to DB
-  if (website_hp && website_hp.trim().length > 0) {
-    return {
-      success: true,
-      message: "Thank you! Your enquiry has been received. Our team will contact you shortly.",
-    };
-  }
-
-  // 3. Extract IP address from request headers or context override
-  let clientIp = context?.clientIp;
-  if (!clientIp) {
+    // 4. Rate limit check per IP and per Phone
     try {
-      const headerList = await headers();
-      const forwardedFor = headerList.get("x-forwarded-for");
-      const realIp = headerList.get("x-real-ip");
-      clientIp = (forwardedFor ? forwardedFor.split(",")[0]?.trim() : null) || realIp || "127.0.0.1";
-    } catch {
-      clientIp = "127.0.0.1";
+      const ipLimitKey = `contact:ip:${clientIp}`;
+      const ipLimitResult = await checkRateLimit(ipLimitKey, 3, 600000);
+      if (!ipLimitResult.success) {
+        return {
+          success: false,
+          error: "Too many enquiries submitted from this network. Please wait a few minutes before trying again.",
+        };
+      }
+
+      const phoneLimitKey = `contact:phone:${phone}`;
+      const phoneLimitResult = await checkRateLimit(phoneLimitKey, 2, 600000);
+      if (!phoneLimitResult.success) {
+        return {
+          success: false,
+          error: "Too many enquiries submitted for this phone number. Please wait a few minutes before trying again.",
+        };
+      }
+    } catch (rateLimitErr) {
+      console.warn("[submitContactEnquiryAction] Rate limit check skipped due to error:", rateLimitErr);
     }
-  }
 
-  // 4. Rate limit check per IP: max 3 requests per 10 minutes (600,000 ms)
-  const ipLimitKey = `contact:ip:${clientIp}`;
-  const ipLimitResult = await checkRateLimit(ipLimitKey, 3, 600000);
-  if (!ipLimitResult.success) {
+    // 5. Board mapping & validation against postgres enum ('cbse' | 'icse' | 'isc')
+    const mappedBoard: Board | null =
+      board === "cbse" || board === "icse" || board === "isc" ? board : null;
+    const boardNote =
+      !mappedBoard && board
+        ? `Board: ${board === "up_board" ? "UP Board" : "Other Board"}`
+        : null;
+
+    // 6. Store enquiry in PostgreSQL database (status: 'new' automatically appears on /admin/enquiries)
+    try {
+      await createEnquiry({
+        name,
+        phone,
+        classLevel: classLevel || null,
+        board: mappedBoard,
+        message: message || null,
+        notes: boardNote,
+        sourcePath: "/contact",
+        status: "new",
+      });
+
+      return {
+        success: true,
+        message: "Thank you! Your enquiry has been received. Our counseling team will contact you shortly.",
+      };
+    } catch (err: unknown) {
+      console.error("Failed to store contact enquiry:", err);
+      return {
+        success: false,
+        error: "An unexpected error occurred while saving your enquiry. Please try again or call our centre directly.",
+      };
+    }
+  } catch (fatalErr: unknown) {
+    console.error("[submitContactEnquiryAction] Fatal error:", fatalErr);
     return {
       success: false,
-      error: "Too many enquiries submitted from this network. Please wait a few minutes before trying again.",
-    };
-  }
-
-  // 5. Rate limit check per Phone: max 2 requests per 10 minutes (600,000 ms)
-  const phoneLimitKey = `contact:phone:${phone}`;
-  const phoneLimitResult = await checkRateLimit(phoneLimitKey, 2, 600000);
-  if (!phoneLimitResult.success) {
-    return {
-      success: false,
-      error: "Too many enquiries submitted for this phone number. Please wait a few minutes before trying again.",
-    };
-  }
-
-  // 6. Store enquiry in PostgreSQL database (status: 'new' automatically appears on /admin/enquiries)
-  try {
-    await createEnquiry({
-      name,
-      phone,
-      classLevel: classLevel || null,
-      board: (board as Board) || null,
-      message: message || null,
-      sourcePath: "/contact",
-      status: "new",
-    });
-
-    return {
-      success: true,
-      message: "Thank you! Your enquiry has been received. Our counseling team will contact you shortly.",
-    };
-  } catch (err: unknown) {
-    console.error("Failed to store contact enquiry:", err);
-    return {
-      success: false,
-      error: "An unexpected error occurred while saving your enquiry. Please try again or call our centre directly.",
+      error: "An unexpected error occurred while sending your enquiry. Please try again.",
     };
   }
 }

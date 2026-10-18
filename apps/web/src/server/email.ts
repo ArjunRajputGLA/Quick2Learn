@@ -11,7 +11,7 @@ const host = process.env.SMTP_HOST || "localhost";
 const port = Number(process.env.SMTP_PORT || 1025);
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASS?.replace(/\s+/g, "");
-const from = process.env.EMAIL_FROM || "Quick2Learn Admissions <quick2learn23203@gmail.com>";
+const from = (process.env.EMAIL_FROM || "Quick2Learn Admissions <quick2learn23203@gmail.com>").replace(/^"|"$/g, "");
 
 const isGmail = process.env.SMTP_SERVICE === "gmail" || host === "smtp.gmail.com";
 
