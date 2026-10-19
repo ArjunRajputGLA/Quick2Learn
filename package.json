@@ -9,6 +9,7 @@
     "typecheck": "turbo typecheck",
     "tokens:build": "tsx scripts/build-tokens.ts",
     "tokens:check": "tsx scripts/build-tokens.ts --check",
+    "postinstall": "node scripts/patch-css-interop.js",
     "mobile:start": "pnpm --filter mobile start",
     "mobile:clean": "pnpm --filter mobile start --clear",
     "mobile:android": "pnpm --filter mobile android",

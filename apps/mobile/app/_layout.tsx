@@ -85,8 +85,8 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="dark" />
       <SafeAreaProvider>
-        <StatusBar style="dark" />
         <PersistQueryClientProvider
           client={queryClient}
           persistOptions={{
