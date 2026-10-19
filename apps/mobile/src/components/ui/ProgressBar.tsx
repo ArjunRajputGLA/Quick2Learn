@@ -21,13 +21,21 @@ export function ProgressBar({
   return (
     <View
       className={`w-full rounded-full overflow-hidden ${className}`}
-      style={{ height, backgroundColor: trackColor }}
+      style={{
+        width: '100%',
+        height,
+        backgroundColor: trackColor,
+        borderRadius: height / 2,
+        overflow: 'hidden',
+      }}
     >
       <View
         className="h-full rounded-full"
         style={{
           width: `${normalized}%`,
+          height: '100%',
           backgroundColor: color,
+          borderRadius: height / 2,
         }}
       />
     </View>

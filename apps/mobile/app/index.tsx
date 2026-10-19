@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Image, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import { useMe, DEMO_MODE_STORAGE_KEY } from '../src/api/hooks';
 
@@ -40,6 +41,7 @@ export default function RootIndex() {
       style={{ flex: 1, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: 24 }}
       className="flex-1 bg-surface items-center justify-center p-6"
     >
+      <StatusBar style="dark" />
       <View style={{ alignItems: 'center' }} className="items-center">
         <View
           style={{

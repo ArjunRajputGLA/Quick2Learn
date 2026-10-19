@@ -101,24 +101,31 @@ export function scrubEvent(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
   return event;
 }
 
-const SENTRY_DSN =
-  process.env.EXPO_PUBLIC_SENTRY_DSN ||
-  'https://00000000000000000000000000000000@o0.ingest.sentry.io/0';
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
 export function initSentry() {
+  if (__DEV__ || !SENTRY_DSN) {
+    // In local development or when DSN is not configured, do not initialize Sentry SDK
+    return;
+  }
+
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
-  Sentry.init({
-    dsn: SENTRY_DSN,
-    enabled: true,
-    release: `in.quick2learn.app@${appVersion}`,
-    dist: '1',
-    environment: process.env.NODE_ENV || 'production',
-    enableAutoSessionTracking: true,
-    sessionTrackingIntervalMillis: 30000,
-    beforeBreadcrumb: (breadcrumb) => scrubBreadcrumb(breadcrumb),
-    beforeSend: (event) => scrubEvent(event),
-  });
+  try {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      enabled: !__DEV__,
+      release: `in.quick2learn.app@${appVersion}`,
+      dist: '1',
+      environment: process.env.NODE_ENV || 'production',
+      enableAutoSessionTracking: true,
+      sessionTrackingIntervalMillis: 30000,
+      beforeBreadcrumb: (breadcrumb) => scrubBreadcrumb(breadcrumb),
+      beforeSend: (event) => scrubEvent(event),
+    });
+  } catch (err) {
+    console.warn('[Sentry] Initialization error:', err);
+  }
 }
 
 /**

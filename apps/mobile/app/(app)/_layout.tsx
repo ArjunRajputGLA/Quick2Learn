@@ -1,15 +1,19 @@
 import React from 'react';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 export default function AppLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-        contentStyle: { backgroundColor: '#F9FAFB' },
-      }}
-    >
+    <>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: '#F9FAFB' },
+          statusBarStyle: 'dark',
+        }}
+      >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
@@ -28,5 +32,6 @@ export default function AppLayout() {
       <Stack.Screen name="results" options={{ headerShown: false }} />
       <Stack.Screen name="payments/result" options={{ headerShown: false }} />
     </Stack>
+    </>
   );
 }

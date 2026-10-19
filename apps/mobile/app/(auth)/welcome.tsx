@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Phone, Mail, Sparkles, Zap } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Phone, Mail, Zap } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../src/components/ui/Button';
@@ -85,6 +86,7 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} className="flex-1 bg-surface">
+      <StatusBar style="dark" />
       <View
         style={{ flex: 1, paddingHorizontal: 24, paddingVertical: 24, justifyContent: 'space-between' }}
         className="flex-1 px-6 justify-between py-6"
@@ -106,36 +108,6 @@ export default function WelcomeScreen() {
               style={{ width: 88, height: 88 }}
               resizeMode="contain"
             />
-          </View>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 10,
-              backgroundColor: 'rgba(239, 246, 255, 0.8)',
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              borderRadius: radii.full,
-              borderWidth: 1,
-              borderColor: 'rgba(59, 130, 246, 0.2)',
-            }}
-            className="flex-row items-center space-x-1.5 mb-2 bg-primary-soft/50 px-3 py-1 rounded-full border border-primary/15"
-          >
-            <Sparkles size={14} color="#3B82F6" />
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '700',
-                color: colors.primary,
-                textTransform: 'uppercase',
-                letterSpacing: 0.8,
-                marginLeft: 6,
-              }}
-              className="text-caption font-semibold text-primary uppercase tracking-wide"
-            >
-              Quick2Learn
-            </Text>
           </View>
 
           <Text

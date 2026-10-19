@@ -13,6 +13,7 @@ import {
   Briefcase,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useMe } from '../../../src/api/hooks';
 
 export default function TabsLayout() {
@@ -24,7 +25,9 @@ export default function TabsLayout() {
   const isTeacherOrStaff = role === 'teacher' || role === 'admin';
 
   return (
-    <Tabs
+    <>
+      <StatusBar style="dark" />
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#2563EB', // Primary
@@ -158,5 +161,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </>
   );
 }

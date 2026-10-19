@@ -27,6 +27,7 @@ import { useStudentBatches } from '../../../src/api/hooks';
 import { BatchCard } from '../../../src/components/batches/BatchCard';
 import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
 import { cleanupOrphanedBatchDownloads } from '../../../src/lib/offline-downloads';
+import { colors, radii } from '@quick2learn/shared';
 
 export default function BatchesScreen() {
   const router = useRouter();
@@ -53,11 +54,21 @@ export default function BatchesScreen() {
           rightActions={
             <TouchableOpacity
               onPress={() => setShowJoinModal(true)}
-              className="px-3 py-1.5 rounded-full bg-primary-soft border border-primary/20 flex-row items-center space-x-1 min-h-[48px] justify-center"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors['primary-soft'],
+                borderWidth: 1,
+                borderColor: 'rgba(37, 99, 235, 0.2)',
+                borderRadius: radii.full,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                minHeight: 38,
+              }}
               accessibilityLabel="Join a Batch"
             >
-              <Plus size={16} color="#2563EB" />
-              <Text className="text-caption font-bold text-primary ml-1">
+              <Plus size={16} color={colors.primary} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary, marginLeft: 4 }}>
                 Join Batch
               </Text>
             </TouchableOpacity>
@@ -74,8 +85,8 @@ export default function BatchesScreen() {
             onRefresh={() => {
               refetch();
             }}
-            tintColor="#2563EB"
-            colors={['#2563EB']}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
       >
@@ -144,9 +155,9 @@ export default function BatchesScreen() {
 
         {/* Enrolled Batches Section */}
         {!isLoading && batches.length > 0 && (
-          <View className="space-y-3">
-            <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-caption font-bold text-ink-muted uppercase tracking-wider">
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.8 }}>
                 My Enrolled Batches ({batches.length})
               </Text>
             </View>

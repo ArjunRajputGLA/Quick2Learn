@@ -44,6 +44,7 @@ import { TextField } from '../../../src/components/ui/TextField';
 import { ProgressBar } from '../../../src/components/ui/ProgressBar';
 import { LiveBanner } from '../../../src/components/composite/LiveBanner';
 import { analytics } from '../../../src/lib/analytics';
+import { colors, radii } from '@quick2learn/shared';
 import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -172,21 +173,46 @@ export default function HomeScreen() {
       <OfflineBanner />
 
       {/* 1. Header: "Hi, [first name]", class/board chip, notification bell */}
-      <View className="px-4 py-3 flex-row items-center justify-between bg-surface border-b border-border/70">
-        <View className="flex-1 pr-2">
-          <View className="flex-row items-center flex-wrap">
-            <Text className="text-h2 font-bold text-ink mr-2">
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        }}
+        className="px-4 py-3 flex-row items-center justify-between bg-surface border-b border-border/70"
+      >
+        <View style={{ flex: 1, paddingRight: 8 }} className="flex-1 pr-2">
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }} className="flex-row items-center flex-wrap">
+            <Text
+              style={{ fontSize: 20, fontWeight: '700', color: colors.ink }}
+              className="text-h2 font-bold text-ink mr-2"
+            >
               Hi, {header?.firstName || 'Student'}
             </Text>
             {header?.chipLabel ? (
-              <View className="bg-primary-soft px-2.5 py-0.5 rounded-full border border-primary/20">
-                <Text className="text-[11px] font-semibold text-primary">
+              <View
+                style={{
+                  backgroundColor: colors['primary-soft'],
+                  paddingHorizontal: 10,
+                  paddingVertical: 2,
+                  borderRadius: radii.full,
+                  borderWidth: 1,
+                  borderColor: 'rgba(37, 99, 235, 0.2)',
+                }}
+                className="bg-primary-soft px-2.5 py-0.5 rounded-full border border-primary/20"
+              >
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primary }} className="text-[11px] font-semibold text-primary">
                   {header.chipLabel}
                 </Text>
               </View>
             ) : null}
           </View>
-          <Text className="text-caption text-ink-muted mt-0.5">
+          <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted mt-0.5">
             Welcome to Quick2Learn
           </Text>
         </View>
@@ -197,12 +223,37 @@ export default function HomeScreen() {
           onPress={() => router.push('/(app)/notifications' as any)}
           accessibilityRole="button"
           accessibilityLabel={`Notifications, ${unreadCount} unread`}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            backgroundColor: colors['surface-subtle'],
+          }}
           className="w-12 h-12 rounded-full items-center justify-center relative active:bg-surface-subtle"
         >
-          <Bell size={22} color="#1F2937" />
+          <Bell size={20} color={colors.ink} />
           {unreadCount > 0 ? (
-            <View className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-danger items-center justify-center border-2 border-surface">
-              <Text className="text-[10px] font-bold text-white">
+            <View
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                minWidth: 18,
+                height: 18,
+                paddingHorizontal: 4,
+                borderRadius: 9,
+                backgroundColor: colors.danger,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: colors.surface,
+              }}
+              className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-danger items-center justify-center border-2 border-surface"
+            >
+              <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFFFFF' }} className="text-[10px] font-bold text-white">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </Text>
             </View>
@@ -427,49 +478,62 @@ export default function HomeScreen() {
 
         {/* 5. Today's Classes (from batch timetables) */}
         {todayClasses.length > 0 ? (
-          <View className="px-4 pt-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center">
-                <Calendar size={18} color="#2563EB" />
-                <Text className="text-h3 font-bold text-ink ml-2">
+          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }} className="flex-row items-center justify-between mb-3">
+              <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
+                <Calendar size={18} color={colors.primary} />
+                <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink, marginLeft: 8 }} className="text-h3 font-bold text-ink ml-2">
                   Classes Today
                 </Text>
               </View>
               <Badge label="Today" variant="primary" size="sm" />
             </View>
 
-            <View className="space-y-2.5">
+            <View style={{ gap: 10 }} className="space-y-2.5">
               {todayClasses.map((cls) => (
                 <TouchableOpacity
                   key={cls.batchId}
                   activeOpacity={0.8}
                   onPress={() => router.push(cls.route as any)}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: radii.xl,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    marginBottom: 10,
+                    elevation: 2,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 3,
+                  }}
                   className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
                 >
-                  <View className="flex-row items-center justify-between mb-1.5">
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
                     <Badge
                       label={cls.mode.toUpperCase()}
                       variant={cls.mode === 'offline' ? 'neutral' : 'primary'}
                       size="sm"
                     />
-                    <View className="flex-row items-center">
-                      <Clock size={13} color="#2563EB" />
-                      <Text className="text-small font-bold text-primary ml-1">
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
+                      <Clock size={13} color={colors.primary} />
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary, marginLeft: 4 }} className="text-small font-bold text-primary ml-1">
                         {cls.timeText}
                       </Text>
                     </View>
                   </View>
 
-                  <Text className="text-body font-bold text-ink mb-1">
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
                     {cls.batchTitle}
                   </Text>
-                  <Text className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 13, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
                   </Text>
                   {cls.locationText ? (
-                    <View className="flex-row items-center mt-2">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} className="flex-row items-center mt-2">
                       <MapPin size={12} color="#6B7280" />
-                      <Text className="text-[11px] text-ink-muted ml-1">
+                      <Text style={{ fontSize: 11, color: colors['ink-muted'], marginLeft: 4 }} className="text-[11px] text-ink-muted ml-1">
                         {cls.locationText}
                       </Text>
                     </View>
@@ -482,8 +546,8 @@ export default function HomeScreen() {
 
         {/* 6. Upcoming tests and new results */}
         {upcomingTests.length > 0 || recentResults.length > 0 ? (
-          <View className="px-4 pt-5">
-            <Text className="text-h3 font-bold text-ink mb-3">
+          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink, marginBottom: 12 }} className="text-h3 font-bold text-ink mb-3">
               Tests & Results
             </Text>
 
@@ -493,18 +557,31 @@ export default function HomeScreen() {
                 key={test.id}
                 activeOpacity={0.8}
                 onPress={() => router.push(test.route as any)}
+                style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: radii.xl,
+                  padding: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  marginBottom: 10,
+                  elevation: 2,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 3,
+                }}
                 className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
               >
-                <View className="flex-row items-center justify-between mb-1.5">
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
                   <Badge label="Upcoming Test" variant="accent" size="sm" />
-                  <Text className="text-caption font-semibold text-primary">
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
                     {test.dateText}
                   </Text>
                 </View>
-                <Text className="text-body font-bold text-ink mb-1">
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
                   {test.title}
                 </Text>
-                <Text className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 13, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                   {test.batchTitle} • {test.subjectName}
                   {test.totalMarks ? ` (${test.totalMarks} Marks)` : ''}
                 </Text>
@@ -517,27 +594,40 @@ export default function HomeScreen() {
                 key={result.id}
                 activeOpacity={0.8}
                 onPress={() => router.push(result.route as any)}
+                style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: radii.xl,
+                  padding: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  marginBottom: 10,
+                  elevation: 2,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 3,
+                }}
                 className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
               >
-                <View className="flex-row items-center justify-between mb-1.5">
-                  <View className="flex-row items-center">
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
                     <Award size={14} color="#15803D" />
-                    <Text className="text-caption font-bold text-green-700 ml-1">
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#15803D', marginLeft: 4 }} className="text-caption font-bold text-green-700 ml-1">
                       Result Declared
                     </Text>
                   </View>
-                  <Text className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {result.dateText}
                   </Text>
                 </View>
-                <Text className="text-body font-bold text-ink mb-1">
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
                   {result.testTitle}
                 </Text>
-                <View className="flex-row items-center justify-between mt-1">
-                  <Text className="text-caption text-ink-muted">
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }} className="flex-row items-center justify-between mt-1">
+                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {result.batchTitle}
                   </Text>
-                  <Text className="text-body font-bold text-green-700">
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#15803D' }} className="text-body font-bold text-green-700">
                     {result.scoreText}
                     {result.percentage !== null && result.percentage !== undefined
                       ? ` (${result.percentage}%)`
@@ -592,31 +682,45 @@ export default function HomeScreen() {
 
         {/* 8. Announcements: latest 3, pinned first, "See all" */}
         {announcements.length > 0 ? (
-          <View className="px-4 pt-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-h3 font-bold text-ink">
+          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }} className="flex-row items-center justify-between mb-3">
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink }} className="text-h3 font-bold text-ink">
                 Announcements
               </Text>
               <TouchableOpacity
                 onPress={() => router.push('/(app)/notifications' as any)}
+                style={{ paddingVertical: 4, paddingHorizontal: 8 }}
                 className="py-1 px-2"
               >
-                <Text className="text-small font-semibold text-primary">
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }} className="text-small font-semibold text-primary">
                   See all
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <View className="space-y-2.5">
+            <View style={{ gap: 10 }} className="space-y-2.5">
               {announcements.map((ann) => (
                 <TouchableOpacity
                   key={ann.id}
                   activeOpacity={0.8}
                   onPress={() => router.push(ann.route as any)}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: radii.xl,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    marginBottom: 10,
+                    elevation: 2,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 3,
+                  }}
                   className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
                 >
-                  <View className="flex-row items-center justify-between mb-1.5">
-                    <Text className="text-caption text-ink-muted">
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
+                    <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                       {ann.dateFormatted}
                     </Text>
                     {ann.isPinned ? (
@@ -624,10 +728,11 @@ export default function HomeScreen() {
                     ) : null}
                   </View>
 
-                  <Text className="text-body font-bold text-ink mb-1">
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
                     {ann.title}
                   </Text>
                   <Text
+                    style={{ fontSize: 13, color: colors['ink-muted'], lineHeight: 18 }}
                     className="text-small text-ink-muted leading-relaxed"
                     numberOfLines={2}
                   >
@@ -752,16 +857,30 @@ export default function HomeScreen() {
         ) : null}
 
         {/* 11. Share the app card (Android share sheet with Play Store link) */}
-        <View className="px-4 pt-5">
-          <View className="bg-primary-soft/60 rounded-2xl p-5 border border-primary/20 shadow-sm">
-            <View className="flex-row items-center mb-2">
-              <Share2 size={20} color="#2563EB" />
-              <Text className="text-h3 font-bold text-primary ml-2">
+        <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
+          <View
+            style={{
+              backgroundColor: colors['primary-soft'],
+              borderRadius: radii.xl,
+              padding: 20,
+              borderWidth: 1,
+              borderColor: 'rgba(37, 99, 235, 0.2)',
+              elevation: 2,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 3,
+            }}
+            className="bg-primary-soft/60 rounded-2xl p-5 border border-primary/20 shadow-sm"
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }} className="flex-row items-center mb-2">
+              <Share2 size={20} color={colors.primary} />
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary, marginLeft: 8 }} className="text-h3 font-bold text-primary ml-2">
                 Share Quick2Learn
               </Text>
             </View>
 
-            <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+            <Text style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 16, lineHeight: 19 }} className="text-body text-ink-muted mb-4 leading-relaxed">
               Help your friends and classmates master CBSE and ICSE Mathematics with Dinesh Sir. Share the app today!
             </Text>
 

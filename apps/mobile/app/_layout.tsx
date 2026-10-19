@@ -1,5 +1,7 @@
 import '../src/global.css';
 import React, { useEffect } from 'react';
+import { Platform, StatusBar as RNStatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Slot } from 'expo-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -53,6 +55,11 @@ function RootLayout() {
     const cleanupNotifications = setupNotificationListeners();
     const cleanupNetworkSync = setupNetworkSyncListener();
 
+    // Ensure status bar text and icons are always dark/black across the app
+    if (Platform.OS === 'android') {
+      RNStatusBar.setBarStyle('dark-content');
+    }
+
     // Fire app_open analytics event
     analytics.track('app_open', {
       coldStart: true,
@@ -79,6 +86,7 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
+        <StatusBar style="dark" />
         <PersistQueryClientProvider
           client={queryClient}
           persistOptions={{
@@ -98,4 +106,6 @@ function RootLayout() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default (__DEV__ || !process.env.EXPO_PUBLIC_SENTRY_DSN)
+  ? RootLayout
+  : (Sentry?.wrap ? Sentry.wrap(RootLayout) : RootLayout);

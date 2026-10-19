@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { colors, radii } from '@quick2learn/shared';
 
 export interface BadgeProps {
   label: string;
@@ -18,60 +19,85 @@ export function Badge({
   dot = false,
   className = '',
 }: BadgeProps) {
-  let bgClass = 'bg-primary-soft';
-  let textClass = 'text-primary';
-  let dotColor = '#3B82F6';
+  let bgColor: string = colors['primary-soft'];
+  let textColor: string = colors.primary;
+  let dotColor: string = colors.primary;
+  let borderColor: string = 'transparent';
 
   switch (variant) {
     case 'primary':
-      bgClass = 'bg-primary-soft';
-      textClass = 'text-primary';
-      dotColor = '#3B82F6';
+      bgColor = colors['primary-soft'];
+      textColor = colors.primary;
+      dotColor = colors.primary;
+      borderColor = 'rgba(37, 99, 235, 0.2)';
       break;
     case 'accent':
-      bgClass = 'bg-accent-soft';
-      textClass = 'text-warning';
-      dotColor = '#F59E0B';
+      bgColor = colors['accent-soft'];
+      textColor = '#B45309';
+      dotColor = colors.accent;
+      borderColor = 'rgba(245, 158, 11, 0.25)';
       break;
     case 'success':
-      bgClass = 'bg-green-50';
-      textClass = 'text-success';
-      dotColor = '#15803D';
+      bgColor = '#DEF7EC';
+      textColor = '#047857';
+      dotColor = colors.success;
+      borderColor = 'rgba(16, 185, 129, 0.25)';
       break;
     case 'warning':
-      bgClass = 'bg-amber-50';
-      textClass = 'text-warning';
+      bgColor = '#FEF3C7';
+      textColor = '#B45309';
       dotColor = '#B45309';
+      borderColor = 'rgba(180, 83, 9, 0.2)';
       break;
     case 'danger':
-      bgClass = 'bg-red-50';
-      textClass = 'text-danger';
-      dotColor = '#B91C1C';
+      bgColor = '#FDE8E8';
+      textColor = colors.danger;
+      dotColor = colors.danger;
+      borderColor = 'rgba(239, 68, 68, 0.2)';
       break;
     case 'neutral':
-      bgClass = 'bg-surface-subtle border border-border';
-      textClass = 'text-ink-muted';
-      dotColor = '#6B7280';
+      bgColor = colors['surface-subtle'];
+      textColor = colors['ink-muted'];
+      dotColor = colors['ink-muted'];
+      borderColor = colors.border;
       break;
   }
 
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5' : 'px-2.5 py-1';
-  const textSizes = size === 'sm' ? 'text-[11px] leading-3' : 'text-caption font-semibold';
+  const isSm = size === 'sm';
+  const padH = isSm ? 8 : 10;
+  const padV = isSm ? 3 : 5;
+  const fontSize = isSm ? 11 : 12;
 
   return (
     <View
-      className={`rounded-full flex-row items-center self-start ${sizeClasses} ${bgClass} ${className}`}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        backgroundColor: bgColor,
+        borderColor: borderColor,
+        borderWidth: 1,
+        borderRadius: radii.full,
+        paddingHorizontal: padH,
+        paddingVertical: padV,
+      }}
+      className={`rounded-full flex-row items-center self-start ${className}`}
     >
       {dot ? (
         <View
+          style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: dotColor, marginRight: 5 }}
           className="w-1.5 h-1.5 rounded-full mr-1.5"
-          style={{ backgroundColor: dotColor }}
         />
       ) : null}
 
-      {icon ? <View className="mr-1">{icon}</View> : null}
+      {icon ? <View style={{ marginRight: 4 }} className="mr-1">{icon}</View> : null}
 
-      <Text className={`${textSizes} font-semibold ${textClass}`}>{label}</Text>
+      <Text
+        style={{ fontSize, fontWeight: '600', color: textColor }}
+        className="font-semibold"
+      >
+        {label}
+      </Text>
     </View>
   );
 }

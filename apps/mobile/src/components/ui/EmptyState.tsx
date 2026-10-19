@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { Button } from './Button';
 import { FolderOpen } from 'lucide-react-native';
+import { colors, radii } from '@quick2learn/shared';
 
 export interface EmptyStateProps {
   illustration?: React.ReactNode;
@@ -25,21 +26,61 @@ export function EmptyState({
   className = '',
 }: EmptyStateProps) {
   return (
-    <View className={`items-center justify-center p-6 my-4 ${className}`}>
-      <View className="w-18 h-18 rounded-2xl bg-surface-subtle border border-border items-center justify-center mb-4">
-        {illustration || <FolderOpen size={36} color="#3B82F6" />}
+    <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+        marginVertical: 16,
+      }}
+      className={`items-center justify-center p-6 my-4 ${className}`}
+    >
+      <View
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: radii.lg,
+          backgroundColor: colors['surface-subtle'],
+          borderWidth: 1,
+          borderColor: colors.border,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 16,
+        }}
+        className="w-18 h-18 rounded-2xl bg-surface-subtle border border-border items-center justify-center mb-4"
+      >
+        {illustration || <FolderOpen size={36} color={colors.primary} />}
       </View>
 
-      <Text className="text-h2 font-semibold text-ink text-center mb-1.5">
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: '700',
+          color: colors.ink,
+          textAlign: 'center',
+          marginBottom: 6,
+        }}
+        className="text-h2 font-semibold text-ink text-center mb-1.5"
+      >
         {title}
       </Text>
 
-      <Text className="text-body text-ink-muted text-center max-w-[280px] mb-6 leading-relaxed">
+      <Text
+        style={{
+          fontSize: 14,
+          color: colors['ink-muted'],
+          textAlign: 'center',
+          maxWidth: 280,
+          marginBottom: 20,
+          lineHeight: 20,
+        }}
+        className="text-body text-ink-muted text-center max-w-[280px] mb-6 leading-relaxed"
+      >
         {description}
       </Text>
 
       {actionLabel && onAction ? (
-        <View className="w-full max-w-[240px]">
+        <View style={{ width: '100%', maxWidth: 240, gap: 8 }} className="w-full max-w-[240px]">
           <Button variant="primary" onPress={onAction}>
             {actionLabel}
           </Button>

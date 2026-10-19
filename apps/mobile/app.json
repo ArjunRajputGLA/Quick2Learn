@@ -8,6 +8,11 @@
     "icon": "./assets/icon.png",
     "scheme": "q2l",
     "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#FFFFFF",
+      "translucent": true
+    },
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {

@@ -23,6 +23,7 @@ import {
   useLearnChapters,
 } from '../../../src/api/hooks';
 import type { LearnChapterItem } from '@quick2learn/shared';
+import { colors, radii } from '@quick2learn/shared';
 
 const CLASS_OPTIONS = ['Class 9', 'Class 10', 'Class 11', 'Class 12'];
 const CLASS_VALUES = [9, 10, 11, 12];
@@ -92,19 +93,35 @@ export default function LearnScreen() {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => router.push('/(app)/search' as any)}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 22,
+                backgroundColor: colors['surface-subtle'],
+              }}
               className="w-12 h-12 -mr-2 items-center justify-center rounded-full active:bg-surface-subtle"
               accessibilityRole="button"
               accessibilityLabel="Search lectures and notes"
             >
-              <Search size={22} color="#1F2937" />
+              <Search size={20} color={colors.ink} />
             </TouchableOpacity>
           }
         />
       }
     >
-      <View className="flex-1 bg-surface-subtle">
+      <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }} className="flex-1 bg-surface-subtle">
         {/* 1. Class Switcher at top (defaults to student's class) */}
-        <View className="p-3 bg-surface border-b border-border">
+        <View
+          style={{
+            padding: 12,
+            backgroundColor: colors.surface,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
+          className="p-3 bg-surface border-b border-border"
+        >
           <SegmentedControl
             options={CLASS_OPTIONS}
             selectedIndex={selectedClassIndex}
@@ -120,7 +137,7 @@ export default function LearnScreen() {
             {subjects.map((sub) => {
               const isSelected = selectedSubjectSlug === sub.slug;
               return (
-                <View key={sub.id} className="mr-2">
+                <View key={sub.id} style={{ marginRight: 8 }} className="mr-2">
                   <Chip
                     label={sub.name}
                     selected={isSelected}
@@ -134,13 +151,24 @@ export default function LearnScreen() {
 
         {/* 3. Chapter List using FlashList (high-performance for 300+ items) */}
         {isChaptersLoading && chapters.length === 0 ? (
-          <View className="p-4 space-y-3">
+          <View style={{ padding: 16 }} className="p-4 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
               <View
                 key={i}
+                style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: radii.xl,
+                  padding: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 12,
+                }}
                 className="bg-surface rounded-2xl p-4 border border-border flex-row items-center justify-between"
               >
-                <View className="flex-1 mr-3">
+                <View style={{ flex: 1, marginRight: 12 }} className="flex-1 mr-3">
                   <Skeleton width={160} height={20} borderRadius={6} className="mb-2" />
                   <Skeleton width={120} height={14} borderRadius={4} />
                 </View>
@@ -149,7 +177,7 @@ export default function LearnScreen() {
             ))}
           </View>
         ) : chapters.length === 0 ? (
-          <View className="flex-1 justify-center p-6">
+          <View style={{ flex: 1, justifyContent: 'center', padding: 24 }} className="flex-1 justify-center p-6">
             <EmptyState
               title="No chapters available"
               description={`No chapters found for Class ${selectedClassLevel} ${chaptersData?.subject.name || 'this subject'}.`}
@@ -158,7 +186,7 @@ export default function LearnScreen() {
             />
           </View>
         ) : (
-          <View className="flex-1">
+          <View style={{ flex: 1 }} className="flex-1">
             <FlashList
               data={chapters}
               contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
@@ -168,8 +196,8 @@ export default function LearnScreen() {
                   onRefresh={() => {
                     void refetch();
                   }}
-                  colors={['#2563EB']}
-                  tintColor="#2563EB"
+                  colors={[colors.primary]}
+                  tintColor={colors.primary}
                 />
               }
               keyExtractor={(item: LearnChapterItem) => item.id}
@@ -177,16 +205,44 @@ export default function LearnScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => handleOpenChapter(item.id)}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: radii.xl,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    marginBottom: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    elevation: 2,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 3,
+                  }}
                   className="bg-surface rounded-2xl p-4 border border-border mb-3 shadow-xs flex-row items-center justify-between active:bg-surface-subtle"
                 >
-                  <View className="flex-1 mr-3 justify-center">
-                    <View className="flex-row items-center mb-1">
-                      <View className="px-2 py-0.5 rounded bg-primary-soft border border-primary/20 mr-2">
-                        <Text className="text-[11px] font-bold text-primary">
+                  <View style={{ flex: 1, marginRight: 12, justifyContent: 'center' }} className="flex-1 mr-3 justify-center">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }} className="flex-row items-center mb-1">
+                      <View
+                        style={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 2,
+                          borderRadius: radii.sm,
+                          backgroundColor: colors['primary-soft'],
+                          borderWidth: 1,
+                          borderColor: 'rgba(37, 99, 235, 0.2)',
+                          marginRight: 8,
+                        }}
+                        className="px-2 py-0.5 rounded bg-primary-soft border border-primary/20 mr-2"
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary }} className="text-[11px] font-bold text-primary">
                           Ch {item.number}
                         </Text>
                       </View>
                       <Text
+                        style={{ fontSize: 15, fontWeight: '700', color: colors.ink, flex: 1 }}
                         className="text-body font-bold text-ink flex-1"
                         numberOfLines={1}
                       >
@@ -195,20 +251,23 @@ export default function LearnScreen() {
                     </View>
 
                     {/* e.g. "4 of 9 lectures · 3 h 20 m" */}
-                    <Text className="text-small text-ink-muted">
+                    <Text
+                      style={{ fontSize: 13, color: colors['ink-muted'] }}
+                      className="text-small text-ink-muted"
+                    >
                       {item.completedLecturesCount} of {item.lectureCount} lectures •{' '}
                       {item.totalDurationFormatted}
                     </Text>
                   </View>
 
                   {/* ProgressRing */}
-                  <View className="items-center justify-center">
+                  <View style={{ alignItems: 'center', justifyContent: 'center' }} className="items-center justify-center">
                     <ProgressRing
                       progress={item.progressPercentage}
                       size={48}
                       strokeWidth={4.5}
-                      color="#2563EB"
-                      trackColor="#E5E7EB"
+                      color={colors.primary}
+                      trackColor={colors.border}
                       showText
                     />
                   </View>

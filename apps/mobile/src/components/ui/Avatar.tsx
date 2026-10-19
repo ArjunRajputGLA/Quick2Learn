@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { User } from 'lucide-react-native';
+import { colors } from '@quick2learn/shared';
 
 export interface AvatarProps {
   source?: string | null;
@@ -25,13 +26,6 @@ export function Avatar({
     xl: 72,
   };
 
-  const textMap = {
-    sm: 'text-caption font-bold',
-    md: 'text-small font-bold',
-    lg: 'text-h3 font-bold',
-    xl: 'text-h2 font-bold',
-  };
-
   const dim = dimensionMap[size];
 
   const getInitials = (str?: string) => {
@@ -48,8 +42,18 @@ export function Avatar({
 
   return (
     <View
+      style={{
+        width: dim,
+        height: dim,
+        borderRadius: dim / 2,
+        backgroundColor: colors['primary-soft'],
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+        overflow: 'hidden',
+      }}
       className={`rounded-full overflow-hidden bg-primary-soft items-center justify-center border border-border/80 ${className}`}
-      style={{ width: dim, height: dim }}
     >
       {!showFallback ? (
         <Image
@@ -60,11 +64,19 @@ export function Avatar({
           onError={() => setImageError(true)}
         />
       ) : initials ? (
-        <Text className={`${textMap[size]} text-primary text-center`}>
+        <Text
+          style={{
+            fontSize: dim * 0.38,
+            fontWeight: '700',
+            color: colors.primary,
+            textAlign: 'center',
+          }}
+          className="text-primary text-center font-bold"
+        >
           {initials}
         </Text>
       ) : (
-        <User size={dim * 0.5} color="#3B82F6" />
+        <User size={dim * 0.5} color={colors.primary} />
       )}
     </View>
   );

@@ -57,7 +57,7 @@ async function transform(config, projectRoot, filename, data, options) {
       }
     }
 
-    const fakeFile = `import { injectData } from "react-native-css-interop/dist/runtime/native/styles";\ninjectData(${JSON.stringify(runtimeData)});`;
+    const fakeFile = `const { injectData } = require("react-native-css-interop/dist/runtime/native/styles");\ninjectData(${JSON.stringify(runtimeData)});\n`;
     return baseTransformer(config, projectRoot, filename, Buffer.from(fakeFile), options);
   }
 

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors } from '@quick2learn/shared';
 
 export interface ScreenProps {
   children: React.ReactNode;
@@ -34,9 +35,11 @@ export function Screen({
   const insets = useSafeAreaInsets();
 
   const bgColor = subtle ? 'bg-surface-subtle' : 'bg-surface';
+  const resolvedBg = subtle ? colors['surface-subtle'] : colors.surface;
 
   const content = scrollable ? (
     <ScrollView
+      style={{ flex: 1 }}
       className="flex-1"
       contentContainerStyle={[
         {
@@ -75,7 +78,7 @@ export function Screen({
   );
 
   return (
-    <View className={`flex-1 ${bgColor} ${className}`}>
+    <View style={{ flex: 1, backgroundColor: resolvedBg }} className={`flex-1 ${bgColor} ${className}`}>
       <StatusBar style="dark" />
       {header ? (
         <View style={{ paddingTop: insets.top }}>
@@ -86,6 +89,7 @@ export function Screen({
       )}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
         className="flex-1"
       >
         {content}
