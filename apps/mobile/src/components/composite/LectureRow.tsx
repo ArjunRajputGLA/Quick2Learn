@@ -11,17 +11,19 @@ export interface LectureRowProps {
   thumbnailUrl?: string;
   watched?: boolean;
   progressPercentage?: number; // 0 to 100
+  isNew?: boolean;
   onPress?: () => void;
   className?: string;
 }
 
-export function LectureRow({
+function LectureRowComponent({
   title,
   chapterOrSubject,
   duration,
   thumbnailUrl,
   watched = false,
   progressPercentage = 0,
+  isNew = false,
   onPress,
   className = '',
 }: LectureRowProps) {
@@ -29,6 +31,8 @@ export function LectureRow({
     <TouchableOpacity
       activeOpacity={0.75}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Lecture: ${title}. ${duration}. ${watched ? 'Completed' : ''}`}
       className={`min-h-[76px] py-3 px-4 flex-row items-center border-b border-border/70 bg-surface active:bg-surface-subtle ${className}`}
     >
       {/* 16:9 Thumbnail container */}
@@ -38,6 +42,7 @@ export function LectureRow({
             source={{ uri: thumbnailUrl }}
             style={{ width: '100%', height: '100%', position: 'absolute' }}
             contentFit="cover"
+            cachePolicy="memory-disk"
             transition={200}
           />
         ) : (
@@ -74,13 +79,22 @@ export function LectureRow({
 
       {/* Details */}
       <View className="flex-1 justify-center">
-        <Text
-          className="text-body font-semibold text-ink leading-snug"
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {title}
-        </Text>
+        <View className="flex-row items-center flex-wrap gap-1.5">
+          <Text
+            className="text-body font-semibold text-ink leading-snug flex-shrink"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {title}
+          </Text>
+          {isNew && (
+            <View className="bg-emerald-600 px-1.5 py-0.2 rounded-md">
+              <Text className="text-[10px] font-black text-white uppercase tracking-wider">
+                NEW
+              </Text>
+            </View>
+          )}
+        </View>
         {chapterOrSubject ? (
           <Text
             className="text-caption text-ink-muted mt-1"
@@ -94,3 +108,5 @@ export function LectureRow({
     </TouchableOpacity>
   );
 }
+
+export const LectureRow = React.memo(LectureRowComponent);

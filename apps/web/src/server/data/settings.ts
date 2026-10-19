@@ -80,6 +80,7 @@ export async function getAppConfig(tx?: DatabaseExecutor) {
       enablePhoneLogin:
         process.env.AUTH_PHONE_ENABLED === "true" ||
         process.env.NODE_ENV !== "production",
+      inAppPayments: false, // Off by default to comply with Google Play consumption-only policy in India
       ...(customConfig?.featureFlags ?? {}),
     },
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Clock, HelpCircle, Award } from 'lucide-react-native';
@@ -14,7 +14,7 @@ export interface TestCardProps {
   className?: string;
 }
 
-export function TestCard({
+function TestCardComponent({
   title,
   questionsCount,
   durationMinutes,
@@ -40,6 +40,7 @@ export function TestCard({
   return (
     <View
       className={`bg-surface border border-border rounded-2xl p-4 shadow-sm ${className}`}
+      accessibilityLabel={`Test: ${title}, ${questionsCount} Questions, ${durationMinutes} minutes, Status: ${badgeLabel}`}
     >
       <View className="flex-row items-center justify-between mb-2">
         <Badge
@@ -74,6 +75,7 @@ export function TestCard({
       <Button
         variant={status === 'completed' ? 'outline' : 'primary'}
         size="md"
+        accessibilityLabel={`${actionLabel} for test ${title}`}
         onPress={onActionPress}
       >
         {actionLabel}
@@ -81,3 +83,5 @@ export function TestCard({
     </View>
   );
 }
+
+export const TestCard = React.memo(TestCardComponent);

@@ -25,6 +25,8 @@ import {
   ShieldAlert,
   Loader2,
   ChevronRight,
+  HelpCircle,
+  Award,
 } from "lucide-react";
 
 interface AdminNavProps {
@@ -48,6 +50,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, adminOnly: true },
   { label: "Students", href: "/admin/students", icon: Users, adminOnly: true },
   { label: "Batches", href: "/admin/batches", icon: GraduationCap },
+  { label: "Question Bank", href: "/admin/questions", icon: HelpCircle },
+  { label: "Tests", href: "/admin/tests", icon: Award },
+  { label: "Doubts Inbox", href: "/admin/doubts", icon: MessageSquare },
   { label: "Lectures", href: "/admin/lectures", icon: PlaySquare },
   { label: "Resources", href: "/admin/resources", icon: FileText },
   { label: "Announcements", href: "/admin/announcements", icon: Bell },

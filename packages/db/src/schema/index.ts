@@ -97,6 +97,30 @@ export type NewParentLink = InferInsertModel<typeof appTables.parentLinks>;
 export type ParentInviteCode = InferSelectModel<typeof appTables.parentInviteCodes>;
 export type NewParentInviteCode = InferInsertModel<typeof appTables.parentInviteCodes>;
 
+export type ContentProgress = InferSelectModel<typeof appTables.contentProgress>;
+export type NewContentProgress = InferInsertModel<typeof appTables.contentProgress>;
+
+export type BatchJoinRequest = InferSelectModel<typeof appTables.batchJoinRequests>;
+export type NewBatchJoinRequest = InferInsertModel<typeof appTables.batchJoinRequests>;
+
+export type BatchTimetableSlot = InferSelectModel<typeof appTables.batchTimetableSlots>;
+export type NewBatchTimetableSlot = InferInsertModel<typeof appTables.batchTimetableSlots>;
+
+export type ContentItem = InferSelectModel<typeof appTables.contentItems>;
+export type NewContentItem = InferInsertModel<typeof appTables.contentItems>;
+
+export type BatchChapterLink = InferSelectModel<typeof appTables.batchChapterLinks>;
+export type NewBatchChapterLink = InferInsertModel<typeof appTables.batchChapterLinks>;
+
+export type Doubt = InferSelectModel<typeof appTables.doubts>;
+export type NewDoubt = InferInsertModel<typeof appTables.doubts>;
+
+export type DoubtMessage = InferSelectModel<typeof appTables.doubtMessages>;
+export type NewDoubtMessage = InferInsertModel<typeof appTables.doubtMessages>;
+
+export type DoubtCannedReply = InferSelectModel<typeof appTables.doubtCannedReplies>;
+export type NewDoubtCannedReply = InferInsertModel<typeof appTables.doubtCannedReplies>;
+
 // Enum Types
 export type UserRole = (typeof enums.userRoleEnum.enumValues)[number];
 export type Board = (typeof enums.boardEnum.enumValues)[number];
@@ -111,3 +135,8 @@ export type Visibility = (typeof enums.visibilityEnum.enumValues)[number];
 export type Audience = (typeof enums.audienceEnum.enumValues)[number];
 export type EnquiryStatus = (typeof enums.enquiryStatusEnum.enumValues)[number];
 export type StorageBucket = (typeof enums.storageBucketEnum.enumValues)[number];
+export type JoinRequestStatus = (typeof enums.joinRequestStatusEnum.enumValues)[number];
+export type ContentItemKind = (typeof enums.contentItemKindEnum.enumValues)[number];
+export type DoubtSourceType = (typeof enums.doubtSourceTypeEnum.enumValues)[number];
+export type DoubtStatus = (typeof enums.doubtStatusEnum.enumValues)[number];
+

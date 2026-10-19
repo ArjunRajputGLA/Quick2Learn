@@ -1,0 +1,27 @@
+appId: in.quick2learn.app
+---
+# Flow 2: Play a Lecture and verify video player
+- launchApp:
+    clearState: false
+
+# 1. Start from Home screen
+- assertVisible: "Quick2Learn"
+
+# 2. Tap on a video lecture card or Free Lecture
+- tapOn:
+    text: ".*Mathematics.*|.*Integration.*|.*Chapter.*"
+    retryTapIfNoResponse: true
+
+# 3. Verify Lecture Player screen opens
+- assertVisible: "Chapter Notes & PDFs"
+- assertVisible: "Ask Doubt on this Lecture"
+
+# 4. Interact with player and share button
+- tapOn:
+    accessibilityLabel: "Share lecture"
+- back
+
+# 5. Return to Home
+- tapOn:
+    accessibilityLabel: "Go back"
+- assertVisible: "Quick2Learn"

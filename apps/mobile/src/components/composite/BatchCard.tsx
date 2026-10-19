@@ -17,7 +17,7 @@ export interface BatchCardProps {
   className?: string;
 }
 
-export function BatchCard({
+function BatchCardComponent({
   classNameBadge,
   boardBadge,
   title,
@@ -33,6 +33,8 @@ export function BatchCard({
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Batch: ${title}. ${classNameBadge}. ${boardBadge}. Faculty: ${teacher}.${nextClassTime ? ` Next class: ${nextClassTime}.` : ''}`}
       className={`bg-surface border border-border rounded-2xl p-4 shadow-sm active:bg-surface-subtle ${className}`}
     >
       {/* Badges row */}
@@ -86,3 +88,5 @@ export function BatchCard({
     </TouchableOpacity>
   );
 }
+
+export const BatchCard = React.memo(BatchCardComponent);

@@ -27,8 +27,12 @@ export const s3 = new S3Client({
 
 export function getBucketForKey(key: string): string {
   // Key layout: covers/, faculty/, testimonials/, results/ and public resources/ in q2l-public
-  // enrolled-only resources/ in q2l-private
-  if (key.startsWith("resources/private/") || key.startsWith("private/")) {
+  // enrolled-only resources/ and doubts/ in q2l-private
+  if (
+    key.startsWith("resources/private/") ||
+    key.startsWith("private/") ||
+    key.startsWith("doubts/")
+  ) {
     return privateBucket;
   }
   return publicBucket;

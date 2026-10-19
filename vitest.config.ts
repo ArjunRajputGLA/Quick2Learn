@@ -19,6 +19,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "apps/web/src"),
       "@quick2learn/db": path.resolve(__dirname, "packages/db/src"),
       "@quick2learn/shared": path.resolve(__dirname, "packages/shared/src"),
+      "react-native": path.resolve(__dirname, "tests/mocks/react-native.ts"),
+      "@sentry/react-native": path.resolve(__dirname, "tests/mocks/sentry-react-native.ts"),
+      "expo-sqlite": path.resolve(__dirname, "tests/mocks/expo-sqlite.ts"),
+      "expo-constants": path.resolve(__dirname, "tests/mocks/expo-constants.ts"),
+      "expo-network": path.resolve(__dirname, "tests/mocks/expo-network.ts"),
     },
   },
 });

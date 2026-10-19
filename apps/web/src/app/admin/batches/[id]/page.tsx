@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/server/auth/session";
 import { getAdminBatchEditorData } from "@/server/data/admin";
-import { BatchEditor, type BatchEditorProps } from "@/components/admin/batch-editor";
+import { getBatchTimetable, getBatchJoinRequests } from "@/server/data/batches";
+import { BatchAdminTabs } from "@/components/admin/batch-admin-tabs";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Edit Batch · Admin · Quick2Learn",
+  title: "Batch Management · Admin · Quick2Learn",
 };
 
 interface EditBatchPageProps {
@@ -24,7 +25,18 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
 
   const { batch, feePlans, subjects, faculty, chapters } = data;
 
-  const formattedInitialBatch: NonNullable<BatchEditorProps["initialBatch"]> = {
+  const timetableData = await getBatchTimetable(batch.id);
+  const joinRequests = await getBatchJoinRequests(
+    {
+      id: current.user.id,
+      email: current.user.email,
+      name: current.user.name,
+      role: current.role,
+    },
+    batch.id
+  );
+
+  const formattedInitialBatch = {
     id: batch.id,
     title: batch.title,
     slug: batch.slug,
@@ -44,6 +56,8 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
     status: batch.status,
     isFeatured: batch.isFeatured,
     whatsappGroupUrl: batch.whatsappGroupUrl,
+    joinCode: batch.joinCode || "Q2L101",
+    academicYear: batch.academicYear,
     outcomes: batch.outcomes || [],
     syllabus: (batch.syllabus as Array<{
       module: string;
@@ -65,29 +79,44 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
     })),
   };
 
+  const timetableSlots = (timetableData.slots || []).map((s) => ({
+    id: s.id,
+    weekday: s.weekday,
+    startTime: s.startTime,
+    endTime: s.endTime,
+    subjectId: s.subjectName ? subjects.find((sub) => sub.name === s.subjectName)?.id : null,
+    teacherId: s.teacherName ? faculty.find((f) => f.name === s.teacherName)?.id : null,
+    mode: s.mode as "offline" | "online" | "hybrid",
+    roomOrLinkNote: s.roomOrLinkNote,
+  }));
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      <div className="flex items-center gap-3 border-b border-border pb-4">
-        <Link
-          href="/admin/batches"
-          className="p-2 rounded-lg border border-border bg-white text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
-          title="Back to batches"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
-        <div>
-          <h1 className="text-display-xs font-bold text-ink">Edit Batch: {batch.title}</h1>
-          <p className="text-body-xs text-ink-muted font-mono">
-            ID: {batch.id} · Slug: /{batch.slug}
-          </p>
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      <div className="flex items-center justify-between border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/batches"
+            className="p-2 rounded-lg border border-border bg-white text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+            title="Back to batches"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <h1 className="text-display-xs font-bold text-ink">{batch.title}</h1>
+            <p className="text-body-xs text-ink-muted font-mono">
+              Join Code: <span className="font-bold text-primary">{batch.joinCode}</span> · Slug: /{batch.slug}
+            </p>
+          </div>
         </div>
       </div>
 
-      <BatchEditor
-        initialBatch={formattedInitialBatch}
+      <BatchAdminTabs
+        batch={formattedInitialBatch}
         subjects={subjects}
         faculty={faculty}
         availableChapters={chapters}
+        timetableSlots={timetableSlots}
+        joinRequests={joinRequests as any}
       />
     </div>
   );

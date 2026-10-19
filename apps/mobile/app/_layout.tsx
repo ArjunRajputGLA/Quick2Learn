@@ -1,9 +1,11 @@
+import '../src/global.css';
 import React, { useEffect } from 'react';
 import { Slot } from 'expo-router';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
+import Constants from 'expo-constants';
 import {
   useFonts,
   Inter_400Regular,
@@ -18,16 +20,23 @@ import {
   NotoSansDevanagari_700Bold,
 } from '@expo-google-fonts/noto-sans-devanagari';
 
-import { queryClient, setupQueryClientAppStateFocus } from '../src/lib/queryClient';
+import { queryClient, sqlitePersister, setupQueryClientAppStateFocus, TWENTY_FOUR_HOURS_MS } from '../src/lib/queryClient';
+import { setupNotificationListeners } from '../src/lib/notifications';
+import { setupNetworkSyncListener } from '../src/lib/network-sync';
+import { initSentry, Sentry } from '../src/lib/sentry';
+import { analytics } from '../src/lib/analytics';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
-import '../src/global.css';
+import { GlobalAppStatusGuard } from '../src/components/composite/GlobalAppStatusGuard';
+
+// Initialize Sentry with strict PII scrubbing early in app lifecycle
+initSentry();
 
 // Keep the splash screen visible while loading resources
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Splash screen might already be hidden or not available in dev client
 });
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -40,8 +49,21 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    const cleanup = setupQueryClientAppStateFocus();
-    return cleanup;
+    const cleanupFocus = setupQueryClientAppStateFocus();
+    const cleanupNotifications = setupNotificationListeners();
+    const cleanupNetworkSync = setupNetworkSyncListener();
+
+    // Fire app_open analytics event
+    analytics.track('app_open', {
+      coldStart: true,
+      appVersion: Constants.expoConfig?.version || '1.0.0',
+    });
+
+    return () => {
+      cleanupFocus();
+      cleanupNotifications();
+      cleanupNetworkSync();
+    };
   }, []);
 
   useEffect(() => {
@@ -57,12 +79,23 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister: sqlitePersister,
+            maxAge: TWENTY_FOUR_HOURS_MS,
+            buster: 'v1.0.0',
+          }}
+        >
           <ErrorBoundary>
-            <Slot />
+            <GlobalAppStatusGuard>
+              <Slot />
+            </GlobalAppStatusGuard>
           </ErrorBoundary>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import { colors, radii } from '@quick2learn/shared';
 
 export interface OtpInputProps {
   length?: number;
@@ -68,8 +69,17 @@ export function OtpInput({
   };
 
   return (
-    <View className={`w-full items-center ${className}`}>
-      <View className="flex-row justify-between w-full max-w-[340px] px-1">
+    <View style={{ width: '100%', alignItems: 'center' }} className={`w-full items-center ${className}`}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
+          maxWidth: 340,
+          paddingHorizontal: 4,
+        }}
+        className="flex-row justify-between w-full max-w-[340px] px-1"
+      >
         {Array.from({ length }).map((_, index) => {
           const isFocused = focusedIndex === index;
           const hasDigit = Boolean(digits[index]);
@@ -89,19 +99,52 @@ export function OtpInput({
             ? 'bg-primary-soft/30'
             : 'bg-surface';
 
+          const activeBorder = hasError
+            ? colors.danger
+            : isFocused
+            ? colors.primary
+            : hasDigit
+            ? colors.ink
+            : colors.border;
+
+          const activeBg = disabled
+            ? colors['surface-subtle']
+            : isFocused
+            ? 'rgba(59, 130, 246, 0.08)'
+            : colors.surface;
+
           return (
             <TouchableOpacity
               key={index}
               activeOpacity={0.9}
               onPress={() => inputsRef.current[index]?.focus()}
+              style={{ padding: 2 }}
               className="p-0.5"
             >
               <View
+                style={{
+                  width: 48,
+                  height: 52,
+                  borderRadius: radii.md,
+                  borderWidth: 2,
+                  borderColor: activeBorder,
+                  backgroundColor: activeBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
                 className={`w-12 h-13 rounded-lg border-2 ${borderColor} ${bgColor} items-center justify-center`}
               >
                 <TextInput
                   ref={(el) => {
                     inputsRef.current[index] = el;
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    textAlign: 'center',
+                    fontSize: 20,
+                    fontWeight: '700',
+                    color: colors.ink,
                   }}
                   className="w-full h-full text-center text-h2 font-bold text-ink"
                   value={digits[index]}
@@ -124,7 +167,10 @@ export function OtpInput({
       </View>
 
       {error ? (
-        <Text className="text-caption text-danger mt-2 font-medium text-center">
+        <Text
+          style={{ fontSize: 12, color: colors.danger, marginTop: 8, fontWeight: '500', textAlign: 'center' }}
+          className="text-caption text-danger mt-2 font-medium text-center"
+        >
           {error}
         </Text>
       ) : null}

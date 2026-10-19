@@ -45,10 +45,10 @@ const teacherId = "22222222-2222-2222-2222-222222222222";
 const student1Id = "33333333-3333-3333-3333-333333333333";
 const student2Id = "44444444-4444-4444-4444-444444444444";
 
-const adminUser: AuthUser = { id: adminId, role: "admin", email: "admin@quick2learn.in" };
-const teacherUser: AuthUser = { id: teacherId, role: "teacher", email: "teacher@quick2learn.in" };
-const student1User: AuthUser = { id: student1Id, role: "student", email: "student1@quick2learn.in" };
-const student2User: AuthUser = { id: student2Id, role: "student", email: "student2@quick2learn.in" };
+const adminUser: AuthUser = { id: adminId, role: "admin", email: "authz-admin@quick2learn.in" };
+const teacherUser: AuthUser = { id: teacherId, role: "teacher", email: "authz-teacher@quick2learn.in" };
+const student1User: AuthUser = { id: student1Id, role: "student", email: "authz-student1@quick2learn.in" };
+const student2User: AuthUser = { id: student2Id, role: "student", email: "authz-student2@quick2learn.in" };
 
 describe("Authorization and Data-Access Layer Parity Test Suite", () => {
   beforeAll(async () => {
@@ -70,10 +70,10 @@ describe("Authorization and Data-Access Layer Parity Test Suite", () => {
     try {
       // Seed the 4 test users and profiles in this transaction
       const usersData = [
-        { id: adminId, name: "Admin", email: "admin@quick2learn.in", role: "admin" },
-        { id: teacherId, name: "Teacher", email: "teacher@quick2learn.in", role: "teacher" },
-        { id: student1Id, name: "Student 1", email: "student1@quick2learn.in", role: "student" },
-        { id: student2Id, name: "Student 2", email: "student2@quick2learn.in", role: "student" },
+        { id: adminId, name: "Admin", email: "authz-admin@quick2learn.in", role: "admin" },
+        { id: teacherId, name: "Teacher", email: "authz-teacher@quick2learn.in", role: "teacher" },
+        { id: student1Id, name: "Student 1", email: "authz-student1@quick2learn.in", role: "student" },
+        { id: student2Id, name: "Student 2", email: "authz-student2@quick2learn.in", role: "student" },
       ];
 
       for (const u of usersData) {

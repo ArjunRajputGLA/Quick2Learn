@@ -57,6 +57,8 @@ export function AnnouncementsClient({
   );
   const [batchId, setBatchId] = useState<string>("");
   const [isPinned, setIsPinned] = useState(false);
+  const [notifyParents, setNotifyParents] = useState(false);
+  const [attachmentKeys] = useState<string[]>([]);
   const [publishedAt, setPublishedAt] = useState<string>(
     new Date().toISOString().slice(0, 16),
   );
@@ -94,6 +96,8 @@ export function AnnouncementsClient({
         batchId: audience === "batch" ? batchId : null,
         isPinned,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : undefined,
+        attachmentKeys,
+        notifyParents,
       });
 
       if (!res.success) {
@@ -250,7 +254,7 @@ export function AnnouncementsClient({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -262,6 +266,20 @@ export function AnnouncementsClient({
                     <Pin className="w-3.5 h-3.5 text-primary" /> Pin to top of feed
                   </span>
                 </label>
+
+                {audience === "batch" && (
+                  <label className="flex items-center gap-2 cursor-pointer bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                    <input
+                      type="checkbox"
+                      checked={notifyParents}
+                      onChange={(e) => setNotifyParents(e.target.checked)}
+                      className="w-4 h-4 rounded text-primary"
+                    />
+                    <span className="text-body-xs font-bold text-amber-900">
+                      Notify Parents via Push Notification
+                    </span>
+                  </label>
+                )}
               </div>
 
               {/* Markdown Body & Preview */}

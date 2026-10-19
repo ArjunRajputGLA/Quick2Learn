@@ -15,3 +15,11 @@ export * from "./devices";
 export * from "./notifications";
 export * from "./rate-limit";
 export * from "./parent";
+export * from "./home";
+export * from "./learn";
+export * from "./batch-content";
+export * from "./questions";
+export * from "./tests";
+export * from "./fees";
+
+

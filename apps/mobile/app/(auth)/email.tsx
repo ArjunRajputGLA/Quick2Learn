@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ import { ArrowLeft, Mail } from 'lucide-react-native';
 import { TextField } from '../../src/components/ui/TextField';
 import { Button } from '../../src/components/ui/Button';
 import { authClient } from '../../src/api/auth-client';
+import { colors } from '@quick2learn/shared';
 
 export default function EmailScreen() {
   const router = useRouter();
@@ -58,42 +60,73 @@ export default function EmailScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} className="flex-1 bg-surface">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
           className="flex-1"
         >
           {/* Header */}
-          <View className="px-4 py-3 flex-row items-center border-b border-border/40">
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(229, 231, 235, 0.6)',
+            }}
+            className="px-4 py-3 flex-row items-center border-b border-border/40"
+          >
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Back"
               onPress={() => router.back()}
+              style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20 }}
               className="w-10 h-10 items-center justify-center rounded-full active:bg-surface-subtle"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <ArrowLeft size={22} color="#1F2937" />
+              <ArrowLeft size={22} color={colors.ink} />
             </TouchableOpacity>
-            <Text className="text-body font-semibold text-ink ml-2">
+            <Text
+              style={{ fontSize: 16, fontWeight: '600', color: colors.ink, marginLeft: 8 }}
+              className="text-body font-semibold text-ink ml-2"
+            >
               Email Sign In
             </Text>
           </View>
 
-          <View className="flex-1 px-6 pt-6 justify-between pb-8">
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: 24,
+              paddingTop: 24,
+              paddingBottom: 32,
+              justifyContent: 'space-between',
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <View>
               {/* Title & Description */}
-              <View className="mb-8">
-                <Text className="text-h2 font-bold text-ink mb-2">
+              <View style={{ marginBottom: 32 }} className="mb-8">
+                <Text
+                  style={{ fontSize: 22, fontWeight: '700', color: colors.ink, marginBottom: 8 }}
+                  className="text-h2 font-bold text-ink mb-2"
+                >
                   Sign in with email
                 </Text>
-                <Text className="text-body text-ink-muted">
+                <Text
+                  style={{ fontSize: 14, color: colors['ink-muted'], lineHeight: 20 }}
+                  className="text-body text-ink-muted"
+                >
                   We will send a 6-digit code to your email address
                 </Text>
               </View>
 
               {/* Email Input */}
-              <View className="space-y-1">
+              <View style={{ gap: 4 }}>
                 <TextField
                   label="Email Address"
                   placeholder="name@example.com"
@@ -116,7 +149,7 @@ export default function EmailScreen() {
             </View>
 
             {/* Submit Button */}
-            <View className="w-full">
+            <View style={{ width: '100%', marginTop: 24 }} className="w-full">
               <Button
                 variant="primary"
                 size="lg"
@@ -128,7 +161,7 @@ export default function EmailScreen() {
                 Send Code
               </Button>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>

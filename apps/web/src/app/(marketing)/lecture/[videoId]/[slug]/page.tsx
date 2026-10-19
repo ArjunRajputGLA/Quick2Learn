@@ -18,6 +18,7 @@ import { ShareButtons } from "@/components/learn/share-buttons";
 import { ChapterResources } from "@/components/learn/chapter-resources";
 import { RelatedBatchCard } from "@/components/learn/related-batch-card";
 import { LectureCard } from "@/components/ui/lecture-card";
+import { db, schema, eq, and } from "@quick2learn/db";
 import { formatClassRoman, classLevelToSlug } from "@quick2learn/shared";
 import {
   Clock,
@@ -121,8 +122,9 @@ export default async function LecturePage({ params }: LecturePageProps) {
 
   const { video, subject, chapter, faculty } = details;
 
-  // Log lecture view if user is logged in
+  // Log lecture view and fetch watch progress if user is logged in
   const currentUser = await getCurrentUser();
+  let initialPositionSeconds = 0;
   if (currentUser?.user?.id) {
     await recordLectureView(
       {
@@ -133,6 +135,24 @@ export default async function LecturePage({ params }: LecturePageProps) {
       },
       video.id,
     ).catch(() => {});
+
+    const [prog] = await db
+      .select({
+        positionSeconds: schema.contentProgress.positionSeconds,
+      })
+      .from(schema.contentProgress)
+      .where(
+        and(
+          eq(schema.contentProgress.userId, currentUser.user.id),
+          eq(schema.contentProgress.itemType, "youtube_video"),
+          eq(schema.contentProgress.itemId, video.id)
+        )
+      )
+      .limit(1);
+
+    if (prog) {
+      initialPositionSeconds = prog.positionSeconds;
+    }
   }
 
   const classRoman = video.classLevel
@@ -243,6 +263,8 @@ export default async function LecturePage({ params }: LecturePageProps) {
               description={video.description || ""}
               subjectName={subject?.name || "Sciences"}
               classRoman={classRoman}
+              initialPositionSeconds={initialPositionSeconds}
+              isLoggedIn={!!currentUser?.user?.id}
             />
 
             {/* 2. Video Header & Metadata */}

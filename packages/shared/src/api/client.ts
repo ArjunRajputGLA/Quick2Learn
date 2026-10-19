@@ -23,7 +23,7 @@ export interface ApiClientConfig {
 }
 
 export interface RequestOptions<T> {
-  schema?: z.ZodType<T>;
+  schema?: z.ZodType<T, any, any>;
   headers?: Record<string, string>;
   params?: Record<string, string | number | boolean | undefined | null>;
 }
@@ -141,6 +141,9 @@ export function createApiClient(config: ApiClientConfig) {
     },
     post<T>(path: string, body?: unknown, options?: RequestOptions<T>): Promise<T> {
       return request<T>(path, "POST", body, options);
+    },
+    put<T>(path: string, body?: unknown, options?: RequestOptions<T>): Promise<T> {
+      return request<T>(path, "PUT", body, options);
     },
     patch<T>(path: string, body?: unknown, options?: RequestOptions<T>): Promise<T> {
       return request<T>(path, "PATCH", body, options);

@@ -16,8 +16,8 @@ interface Segment {
 
 function parseMathSegments(text: string): Segment[] {
   const segments: Segment[] = [];
-  // Matches $$...$$ (display) or $...$ (inline, without newlines)
-  const mathRegex = /\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$/g;
+  // Matches $$...$$ or \[...\] (display) and $...$ or \(...\) (inline)
+  const mathRegex = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\$([^\$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -32,8 +32,14 @@ function parseMathSegments(text: string): Segment[] {
       // Display math ($$...$$)
       segments.push({ type: "display-math", value: match[1].trim() });
     } else if (match[2] !== undefined) {
+      // Display math (\[...\])
+      segments.push({ type: "display-math", value: match[2].trim() });
+    } else if (match[3] !== undefined) {
       // Inline math ($...$)
-      segments.push({ type: "inline-math", value: match[2].trim() });
+      segments.push({ type: "inline-math", value: match[3].trim() });
+    } else if (match[4] !== undefined) {
+      // Inline math (\(...\))
+      segments.push({ type: "inline-math", value: match[4].trim() });
     }
 
     lastIndex = match.index + match[0].length;
@@ -46,6 +52,7 @@ function parseMathSegments(text: string): Segment[] {
 
   return segments;
 }
+
 
 /**
  * MathText renders ordinary strings containing inline $...$ or display $$...$$

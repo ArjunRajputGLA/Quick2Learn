@@ -4,6 +4,7 @@ import { requireRole } from "@/server/auth/session";
 import { getAdminStudentDetails, getAdminAvailableBatchesWithPlans } from "@/server/data/admin";
 import { formatINR } from "@quick2learn/shared";
 import { StudentDetailClient, WaiveDueButton } from "@/components/admin/student-detail-client";
+import { StudentParentsSection } from "@/components/admin/student-parents-section";
 import {
   ArrowLeft,
   GraduationCap,
@@ -34,7 +35,7 @@ export default async function AdminStudentDetailPage({ params }: StudentPageProp
     notFound();
   }
 
-  const { user, profile, enrollments, feeDues, payments, notes } = data;
+  const { user, profile, enrollments, feeDues, payments, notes, linkedParents } = data;
   const availableBatches = await getAdminAvailableBatchesWithPlans(current.user);
 
   const duesListForClient = feeDues.map((d) => ({
@@ -207,6 +208,13 @@ export default async function AdminStudentDetailPage({ params }: StudentPageProp
           </div>
         </div>
       </div>
+
+      {/* Linked Parents Section */}
+      <StudentParentsSection
+        studentId={user.id}
+        studentName={studentName}
+        linkedParents={linkedParents || []}
+      />
 
       {/* Enrolled Batches */}
       <div className="rounded-2xl border border-border bg-white p-5 shadow-xs space-y-4">

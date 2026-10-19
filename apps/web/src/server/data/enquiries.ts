@@ -81,13 +81,11 @@ View in Admin Portal: https://quick2learn.in/admin/enquiries
       </div>
     `;
 
-    sendEmail({
+    await sendEmail({
       to: adminEmail,
       subject: `New Quick2Learn Enquiry: ${studentName} (${phone})`,
       text: textContent,
       html: htmlContent,
-    }).catch((err) => {
-      console.warn("[enquiry] Notice: Could not send email notification to", adminEmail, err?.message || err);
     });
   } catch (err) {
     console.warn("[enquiry] Notice: Error dispatching enquiry email:", err);
@@ -96,15 +94,55 @@ View in Admin Portal: https://quick2learn.in/admin/enquiries
 
 export async function createEnquiry(data: schema.NewEnquiry, tx?: DatabaseExecutor) {
   const d = tx || db;
-  const [created] = await d.insert(schema.enquiries).values(data).returning();
-  if (created) {
-    try {
-      await notifyAdminOfEnquiry(created);
-    } catch (e) {
-      console.warn("[enquiry] Notice: Non-critical notification error:", e);
-    }
+  let created: schema.Enquiry | undefined;
+  let dbError: unknown = null;
+
+  try {
+    const [row] = await d.insert(schema.enquiries).values(data).returning();
+    created = row;
+  } catch (err) {
+    dbError = err;
+    console.warn("[enquiry] Database insert error (will still deliver lead via email notification):", err);
   }
-  return created;
+
+  // Always attempt email notification so prospective student leads are never lost
+  let emailDispatched = false;
+  try {
+    await notifyAdminOfEnquiry(
+      created || ({
+        id: "lead-" + Date.now(),
+        name: data.name,
+        phone: data.phone,
+        classLevel: data.classLevel ?? null,
+        board: data.board ?? null,
+        message: data.message ?? null,
+        notes: data.notes ?? null,
+        sourcePath: data.sourcePath ?? "/",
+        status: data.status || "new",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assignedTo: null,
+        resolvedAt: null,
+      } as schema.Enquiry)
+    );
+    emailDispatched = true;
+  } catch (e) {
+    console.warn("[enquiry] Notice: Non-critical notification error:", e);
+  }
+
+  // Only throw if neither DB insert nor email notification could be processed
+  if (!created && !emailDispatched && dbError) {
+    throw dbError;
+  }
+
+  return (
+    created ||
+    ({
+      id: "lead-" + Date.now(),
+      name: data.name,
+      phone: data.phone,
+    } as schema.Enquiry)
+  );
 }
 
 // Staff can inspect inquiries

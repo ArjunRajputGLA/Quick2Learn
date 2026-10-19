@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import * as Sentry from "@sentry/nextjs";
 import { db, schema, eq } from "@quick2learn/db";
 import { auth } from "@/server/auth/auth";
 import { consumePostgresRateLimit } from "@/server/data/rate-limit";
@@ -106,6 +107,32 @@ export async function requireApiSession(req: Request) {
 }
 
 /**
+ * Requires the user to have one of the staff roles ('admin' | 'teacher').
+ * Returns 404 if unauthorized or role not permitted, matching requireRole security policy.
+ */
+export async function requireStaffApi(req: Request) {
+  const { session, errorResponse } = await requireApiSession(req);
+  if (errorResponse) {
+    return { session: null, role: null, errorResponse };
+  }
+
+  const role = await getEffectiveUserRole(session.user.id);
+  if (role !== "admin" && role !== "teacher") {
+    return {
+      session: null,
+      role: null,
+      errorResponse: apiResponse.notFound("Not Found"),
+    };
+  }
+
+  return {
+    session,
+    role: role as "admin" | "teacher",
+    errorResponse: null,
+  };
+}
+
+/**
  * Checks per-IP and per-user Postgres rate limits.
  */
 export async function checkApiRateLimits(
@@ -134,7 +161,7 @@ export async function checkApiRateLimits(
 /**
  * Unified error handler for API v1 route handlers.
  */
-export function handleApiError(err: unknown): NextResponse {
+export function handleApiError(err: unknown, req?: Request): NextResponse {
   if (err instanceof UnauthorizedError) {
     return apiResponse.unauthorized(err.message);
   }
@@ -147,8 +174,25 @@ export function handleApiError(err: unknown): NextResponse {
   if (err instanceof ZodError) {
     return apiResponse.badRequest("Validation failed", err.errors);
   }
+  if ((err as any)?.status === 400 || (err as any)?.name === "ValidationError") {
+    return apiResponse.badRequest(err instanceof Error ? err.message : "Validation error");
+  }
 
   console.error("[API v1 Error]:", err);
+
+  try {
+    const appVersion = req?.headers.get("x-app-version");
+    Sentry.withScope((scope) => {
+      if (appVersion) {
+        scope.setTag("app_version", appVersion);
+        scope.setTag("client_type", "mobile");
+      }
+      Sentry.captureException(err);
+    });
+  } catch {
+    // Sentry capture failure should not prevent response
+  }
+
   return apiResponse.serverError(
     err instanceof Error ? err.message : "An unexpected error occurred"
   );

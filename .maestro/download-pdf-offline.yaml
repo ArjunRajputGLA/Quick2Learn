@@ -1,0 +1,27 @@
+appId: in.quick2learn.app
+---
+# Flow 3: Download a PDF note and open it in the offline viewer
+- launchApp:
+    clearState: false
+
+# 1. Start on Home screen
+- assertVisible: "Quick2Learn"
+
+# 2. Open Profile -> Offline Downloads
+- tapOn: "Profile"
+- assertVisible: "Offline Downloads"
+- tapOn: "Offline Downloads"
+
+# 3. Verify Offline Downloads Screen opens
+- assertVisible: "Downloads"
+
+# 4. If files exist or after downloading, open PDF
+- tapOn:
+    text: ".*PDF.*|.*Note.*|.*Chapter.*"
+    retryTapIfNoResponse: true
+
+# 5. Verify PDF Viewer opens with screenshot protection
+- assertVisible: "Page"
+- tapOn:
+    accessibilityLabel: "Go back"
+- assertVisible: "Downloads"

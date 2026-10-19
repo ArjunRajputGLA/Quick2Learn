@@ -1,0 +1,38 @@
+appId: in.quick2learn.app
+---
+# Flow 1: Sign-in with Development OTP
+- launchApp:
+    clearState: true
+
+# 1. Welcome screen
+- assertVisible: "Quick2Learn"
+- assertVisible: "Continue with Phone Number"
+
+# 2. Enter Phone Number
+- tapOn: "Continue with Phone Number"
+- assertVisible: "Enter your mobile number"
+- tapOn: "Phone number input"
+- inputText: "9876543210"
+- tapOn: "Continue"
+
+# 3. Enter 6-digit Development OTP
+- assertVisible: "Enter Verification Code"
+- assertVisible: "Enter the 6-digit verification code"
+- tapOn: "Digit 1"
+- inputText: "1"
+- tapOn: "Digit 2"
+- inputText: "2"
+- tapOn: "Digit 3"
+- inputText: "3"
+- tapOn: "Digit 4"
+- inputText: "4"
+- tapOn: "Digit 5"
+- inputText: "5"
+- tapOn: "Digit 6"
+- inputText: "6"
+
+# 4. Verify landing on Home screen
+- assertVisible: "Quick2Learn"
+- assertVisible: "Home"
+- assertVisible: "Batches"
+- assertVisible: "Profile"

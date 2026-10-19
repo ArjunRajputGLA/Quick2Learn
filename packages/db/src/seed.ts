@@ -338,6 +338,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
         { question: "Are revision test papers included?", answer: "Yes, full board-style mock exams are conducted every Sunday." },
       ],
       whatsappGroupUrl: "https://chat.whatsapp.com/Quick2LearnClass12",
+      joinCode: "Q2L012",
+      academicYear: "2026-27",
       isFeatured: true,
     })
     .onConflictDoUpdate({
@@ -403,6 +405,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       seatsTotal: 35,
       status: "open",
       outcomes: ["Strong Foundation for Class XII", "Algebra & Trigonometry Clarity"],
+      joinCode: "Q2L011",
+      academicYear: "2026-27",
       syllabus: [
         { module: "Algebra Essentials", notes: "Sets, Relations, Complex Numbers" },
       ],
@@ -449,6 +453,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       faqs: [
         { question: "Are ICSE biology diagrams practiced in class?", answer: "Yes, step-by-step drawing sessions are held each week." },
       ],
+      joinCode: "Q2L010",
+      academicYear: "2026-27",
       isFeatured: false,
     })
     .onConflictDoUpdate({
@@ -488,6 +494,8 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       faqs: [
         { question: "Are previous year board papers solved?", answer: "Yes, past 15 years CBSE papers are solved in classroom sessions." },
       ],
+      joinCode: "Q2L009",
+      academicYear: "2026-27",
       isFeatured: false,
     })
     .onConflictDoUpdate({
@@ -579,7 +587,71 @@ export async function seed(targetDbUrl?: string, options?: { prodOnly?: boolean 
       },
     });
 
-  console.log("  ✓ Batches seeded (6 rows: open, closed, draft)");
+  // Seed sample timetable slots for Batch 1 and Batch 4
+  await db.insert(schema.batchTimetableSlots).values([
+    {
+      batchId: batch1Id,
+      weekday: 1, // Monday
+      startTime: "16:30",
+      endTime: "18:00",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "offline",
+      roomOrLinkNote: "Room 101, Main Block",
+    },
+    {
+      batchId: batch1Id,
+      weekday: 3, // Wednesday
+      startTime: "16:30",
+      endTime: "18:00",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "offline",
+      roomOrLinkNote: "Room 101, Main Block",
+    },
+    {
+      batchId: batch1Id,
+      weekday: 5, // Friday
+      startTime: "16:30",
+      endTime: "18:00",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "offline",
+      roomOrLinkNote: "Room 101, Main Block",
+    },
+    {
+      batchId: batch4Id,
+      weekday: 2, // Tuesday
+      startTime: "18:00",
+      endTime: "19:30",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "offline",
+      roomOrLinkNote: "Room 102",
+    },
+    {
+      batchId: batch4Id,
+      weekday: 4, // Thursday
+      startTime: "18:00",
+      endTime: "19:30",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "offline",
+      roomOrLinkNote: "Room 102",
+    },
+    {
+      batchId: batch4Id,
+      weekday: 6, // Saturday
+      startTime: "18:00",
+      endTime: "19:30",
+      subjectId: mathSubjectId,
+      teacherId: dineshFacultyId,
+      mode: "hybrid",
+      roomOrLinkNote: "Room 102 & Live Stream",
+    },
+  ]);
+
+  console.log("  ✓ Batches and timetable slots seeded");
 
   // Fee Plans
   await db

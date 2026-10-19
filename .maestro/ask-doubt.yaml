@@ -1,0 +1,30 @@
+appId: in.quick2learn.app
+---
+# Flow 5: Ask a doubt with text and subject selection
+- launchApp:
+    clearState: false
+
+# 1. Open Doubts Tab
+- tapOn: "Doubts"
+- assertVisible: "Doubts & Discussions"
+
+# 2. Tap Ask a Doubt button
+- tapOn: "Ask a Doubt"
+- assertVisible: "Ask Dinesh Sir"
+
+# 3. Fill in title and description
+- tapOn: "Question summary"
+- inputText: "Integration by parts formula doubt"
+
+- tapOn: "Describe your doubt in detail"
+- inputText: "Can sir please explain why we choose logarithmic function as first function in ILATE rule?"
+
+# 4. Tap Submit
+- tapOn: "Send to Dinesh Sir"
+
+# 5. Verify Doubt confirmation alert
+- assertVisible: "Doubt Submitted! 🎓"
+- tapOn: "View Thread"
+
+# 6. Verify conversation thread opens
+- assertVisible: "Integration by parts formula doubt"

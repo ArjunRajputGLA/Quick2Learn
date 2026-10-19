@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import { OtpInput } from '../../src/components/ui/OtpInput';
 import { Button } from '../../src/components/ui/Button';
 import { authClient } from '../../src/api/auth-client';
 import { queryKeys } from '../../src/api/hooks';
+import { colors } from '@quick2learn/shared';
 
 export default function EmailOtpScreen() {
   const router = useRouter();
@@ -128,55 +130,92 @@ export default function EmailOtpScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} className="flex-1 bg-surface">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
           className="flex-1"
         >
           {/* Header */}
-          <View className="px-4 py-3 flex-row items-center border-b border-border/40">
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(229, 231, 235, 0.6)',
+            }}
+            className="px-4 py-3 flex-row items-center border-b border-border/40"
+          >
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Back"
               onPress={() => router.back()}
+              style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20 }}
               className="w-10 h-10 items-center justify-center rounded-full active:bg-surface-subtle"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <ArrowLeft size={22} color="#1F2937" />
+              <ArrowLeft size={22} color={colors.ink} />
             </TouchableOpacity>
-            <Text className="text-body font-semibold text-ink ml-2">
+            <Text
+              style={{ fontSize: 16, fontWeight: '600', color: colors.ink, marginLeft: 8 }}
+              className="text-body font-semibold text-ink ml-2"
+            >
               Email Verification
             </Text>
           </View>
 
-          <View className="flex-1 px-6 pt-6 justify-between pb-8">
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: 24,
+              paddingTop: 24,
+              paddingBottom: 32,
+              justifyContent: 'space-between',
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <View>
               {/* Title & Email Display */}
-              <View className="mb-8">
-                <Text className="text-h2 font-bold text-ink mb-2">
+              <View style={{ marginBottom: 32 }} className="mb-8">
+                <Text
+                  style={{ fontSize: 22, fontWeight: '700', color: colors.ink, marginBottom: 8 }}
+                  className="text-h2 font-bold text-ink mb-2"
+                >
                   Check your email
                 </Text>
-                <Text className="text-body text-ink-muted">
+                <Text
+                  style={{ fontSize: 14, color: colors['ink-muted'], lineHeight: 20 }}
+                  className="text-body text-ink-muted"
+                >
                   Enter the 6-digit code sent to{' '}
-                  <Text className="font-semibold text-ink">{email}</Text>
+                  <Text style={{ fontWeight: '600', color: colors.ink }} className="font-semibold text-ink">
+                    {email}
+                  </Text>
                 </Text>
 
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityLabel="Change email"
                   onPress={() => router.replace('/(auth)/email' as any)}
+                  style={{ marginTop: 8, alignSelf: 'flex-start', paddingVertical: 4 }}
                   className="mt-2 self-start py-1"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text className="text-small font-semibold text-primary">
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}
+                    className="text-small font-semibold text-primary"
+                  >
                     Change email
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {/* 6-box OTP Input */}
-              <View className="py-2">
+              <View style={{ paddingVertical: 8 }} className="py-2">
                 <OtpInput
                   length={6}
                   value={otp}
@@ -190,11 +229,19 @@ export default function EmailOtpScreen() {
               </View>
 
               {/* 30-Second Countdown & Resend Link */}
-              <View className="items-center mt-6">
+              <View style={{ alignItems: 'center', marginTop: 24 }} className="items-center mt-6">
                 {countdown > 0 ? (
-                  <Text className="text-small text-ink-muted">
+                  <Text
+                    style={{ fontSize: 13, color: colors['ink-muted'] }}
+                    className="text-small text-ink-muted"
+                  >
                     Resend code in{' '}
-                    <Text className="font-bold text-ink">{countdown}s</Text>
+                    <Text
+                      style={{ fontWeight: '700', color: colors.ink }}
+                      className="font-bold text-ink"
+                    >
+                      {countdown}s
+                    </Text>
                   </Text>
                 ) : (
                   <TouchableOpacity
@@ -202,11 +249,15 @@ export default function EmailOtpScreen() {
                     accessibilityLabel="Resend code"
                     onPress={handleResend}
                     disabled={isResending}
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, gap: 6 }}
                     className="flex-row items-center space-x-1.5 py-1"
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <RefreshCw size={14} color="#3B82F6" />
-                    <Text className="text-small font-semibold text-primary">
+                    <Text
+                      style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}
+                      className="text-small font-semibold text-primary"
+                    >
                       {isResending ? 'Sending...' : 'Resend code'}
                     </Text>
                   </TouchableOpacity>
@@ -215,7 +266,7 @@ export default function EmailOtpScreen() {
             </View>
 
             {/* Verify Button */}
-            <View className="w-full">
+            <View style={{ width: '100%', marginTop: 24 }} className="w-full">
               <Button
                 variant="primary"
                 size="lg"
@@ -227,7 +278,7 @@ export default function EmailOtpScreen() {
                 Verify & Continue
               </Button>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>

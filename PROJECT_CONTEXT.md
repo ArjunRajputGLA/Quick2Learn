@@ -106,3 +106,33 @@ Quick2Learn is the coaching platform of Mr. Dinesh Singh Rajput (Mathematics, 25
     2. Pull-to-refresh (`RefreshControl` with primary color tint).
     3. Empty state with an illustration, title, one helpful line, and an action (never a dead end).
     4. Offline state with connectivity detection and banner indicator.
+- **Product Analytics (PostHog)**: PostHog selected for mobile product analytics (zero Google Play Services native overhead, clean offline event queue, privacy-friendly single-tenant institute compliance). Tracks 9 core lifecycle milestones:
+  1. `app_open`: Cold or warm launch into Home.
+  2. `lecture_played`: User begins watching a video lecture.
+  3. `lecture_completed`: User completes >=90% of a video lecture.
+  4. `pdf_downloaded`: Batch or chapter study material successfully saved locally.
+  5. `test_started`: Student begins an assessment test.
+  6. `test_submitted`: Student submits completed test answers for grading.
+  7. `doubt_created`: Student posts an academic question with text or attachment.
+  8. `join_requested`: Student requests enrollment into a batch.
+  9. `live_joined`: Student or teacher enters an active live classroom session.
+- **Crash & Error Reporting (Sentry)**:
+  - Sentry for React Native (`@sentry/react-native`) with EAS source map uploading.
+  - Strict PII scrubber in `beforeBreadcrumb` and `beforeSend`: removes phone numbers, email addresses, student names, and auth cookies.
+  - Next.js `/api/v1` server errors forward exception to web Sentry tagged with `app_version` from `X-App-Version` header.
+- **Offline Query & Mutation Architecture**:
+  - TanStack Query cache persisted to SQLite (`quick2learn_query_cache.db`) with 24-hour max age via `@tanstack/react-query-persist-client`. Home, batches, timetable, announcements, and downloads render instantly offline.
+  - Queued mutations for attendance marks, test answers, and lecture watch progress stored in SQLite and automatically retried upon connection restore via `expo-network` listener.
+- **Performance Budget**:
+  - Cold start to Home under 3 s on 2–3 GB RAM budget phone (Android 360 dp width).
+  - Lists scroll at 60 fps; `@shopify/flash-list` with `estimatedItemSize` for lists over 20 rows.
+  - `expo-image` with `cachePolicy="memory-disk"` and responsive downsampled sizes.
+  - Hermes engine enabled (`"jsEngine": "hermes"`); zero unused native modules; Play download size under 30 MB.
+- **Security & Content Protection**:
+  - Zero secrets in client bundle; session tokens stored strictly in `expo-secure-store`.
+  - Screenshots and screen recordings blocked on test attempt screens and batch PDFs via `expo-screen-capture`.
+  - API calls strictly over HTTPS in production; app configuration dynamically fetched from `/api/v1/app/config`.
+- **E2E & Automated Testing**:
+  - Jest + React Native Testing Library for component and hook unit testing.
+  - Maestro E2E test suite in `.maestro/`: `sign-in.yaml`, `play-lecture.yaml`, `download-pdf-offline.yaml`, `take-test.yaml`, `ask-doubt.yaml`, `parent-switch-children.yaml`.
+  - Release branch CI running Maestro on Android emulator.

@@ -10,3 +10,4 @@ allowBuilds:
   protobufjs: true
   unrs-resolver: true
   core-js: true
+  '@sentry/cli': true

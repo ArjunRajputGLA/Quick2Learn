@@ -12,6 +12,7 @@ import { assert, isStaff, type AuthUser } from "../authz";
 import { createRazorpayOrder, verifyWebhookSignature } from "./razorpay";
 import { publicEnv } from "@/lib/env";
 import { consumePostgresRateLimit } from "../data/rate-limit";
+import { notifyFeeDuesToParents } from "../data/parent";
 
 export interface CreateOrderResult {
   success: boolean;
@@ -779,9 +780,13 @@ export async function runPaymentHousekeeping(parentTx?: DatabaseExecutor) {
       RETURNING e.id;
     `);
 
+    // 3. Notify parents about fee dues in 3 days or overdue
+    const feeNotifs = await notifyFeeDuesToParents(tx);
+
     return {
       expiredPaymentsCount: expiredPayments.length,
       cancelledEnrollmentsCount: cancelledEnrollments.rowCount || 0,
+      feeDuesNotifiedCount: feeNotifs.notifiedCount,
     };
   };
 

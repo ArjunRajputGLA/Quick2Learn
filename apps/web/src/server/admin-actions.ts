@@ -20,8 +20,17 @@ import { updateSetting } from "./data/settings";
 import { recordOfflinePayment } from "./payments/service";
 import { syncYouTubeChannel } from "./youtube/sync";
 import { presignedPut } from "./storage";
-import { db, schema, eq, sql, or } from "@quick2learn/db";
+import { db, schema, eq, and, sql, or, desc } from "@quick2learn/db";
 import { revalidateDataTag, safeRevalidatePath as revalidatePath } from "./data/cached-home";
+import {
+  getBatchJoinRequests,
+  approveJoinRequest,
+  rejectJoinRequest,
+  saveBatchTimetable,
+  regenerateBatchJoinCode,
+  getBatchTimetable,
+} from "./data/batches";
+import { notify } from "./notify";
 import type { AuthUser } from "./authz";
 
 function toAuthUser(current: Awaited<ReturnType<typeof requireRole>>): AuthUser {
@@ -158,7 +167,7 @@ const uploadRequestSchema = z.object({
   filename: z.string().min(1),
   contentType: z.string().min(1),
   sizeBytes: z.number().int().positive().max(26214400, "File exceeds maximum size of 25 MB"),
-  folder: z.enum(["resources/public", "resources/private", "covers", "photos", "testimonials", "results"]),
+  folder: z.enum(["resources/public", "resources/private", "covers", "photos", "testimonials", "results", "questions", "doubts"]),
 });
 
 export async function getPresignedUploadUrlAction(
@@ -460,6 +469,8 @@ const createAnnouncementSchema = z.object({
   batchId: z.string().uuid().optional().nullable(),
   isPinned: z.boolean().default(false),
   publishedAt: z.string().optional(),
+  attachmentKeys: z.array(z.string()).default([]),
+  notifyParents: z.boolean().default(false),
 });
 
 export async function createAnnouncementAction(input: z.infer<typeof createAnnouncementSchema>): Promise<ActionResult> {
@@ -477,6 +488,8 @@ export async function createAnnouncementAction(input: z.infer<typeof createAnnou
       batchId: parsed.data.audience === "batch" ? parsed.data.batchId || null : null,
       isPinned: parsed.data.isPinned,
       publishedAt: parsed.data.publishedAt ? new Date(parsed.data.publishedAt) : new Date(),
+      attachmentKeys: parsed.data.attachmentKeys,
+      notifyParents: parsed.data.notifyParents,
       createdBy: current.user.id,
     });
 
@@ -487,6 +500,39 @@ export async function createAnnouncementAction(input: z.infer<typeof createAnnou
       entityId: res.id,
       diff: { title: res.title, audience: res.audience },
     });
+
+    // Send push notifications to enrolled batch students and parents
+    if (parsed.data.audience === "batch" && parsed.data.batchId) {
+      notify(
+        { batchId: parsed.data.batchId },
+        {
+          type: "announcement",
+          title: parsed.data.title,
+          body: parsed.data.body.slice(0, 140),
+          data: { route: `/batch/${parsed.data.batchId}` },
+        }
+      ).catch(() => {});
+
+      if (parsed.data.notifyParents) {
+        notify(
+          { parentsOfBatchId: parsed.data.batchId },
+          {
+            type: "announcement",
+            title: `[Notice] ${parsed.data.title}`,
+            body: parsed.data.body.slice(0, 140),
+          }
+        ).catch(() => {});
+      }
+    } else if (parsed.data.audience === "all_students") {
+      notify(
+        { role: "student" },
+        {
+          type: "announcement",
+          title: parsed.data.title,
+          body: parsed.data.body.slice(0, 140),
+        }
+      ).catch(() => {});
+    }
 
     revalidatePath("/admin/announcements");
     revalidatePath("/dashboard");
@@ -730,3 +776,783 @@ export async function saveSiteSettingAction(key: string, value: unknown): Promis
     return { success: false, error: err instanceof Error ? err.message : "Failed to save setting" };
   }
 }
+
+export async function getBatchJoinRequestsAction(batchId?: string): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const data = await getBatchJoinRequests(toAuthUser(current), batchId);
+    return { success: true, data };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to fetch join requests" };
+  }
+}
+
+export async function approveJoinRequestAction(requestId: string, feePlanId?: string): Promise<ActionResult> {
+  const current = await requireRole(["admin"]);
+  try {
+    const res = await approveJoinRequest(toAuthUser(current), requestId, feePlanId);
+    revalidatePath("/admin/batches");
+    revalidatePath("/admin/batches/requests");
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to approve join request" };
+  }
+}
+
+export async function rejectJoinRequestAction(requestId: string, note?: string): Promise<ActionResult> {
+  const current = await requireRole(["admin"]);
+  try {
+    const res = await rejectJoinRequest(toAuthUser(current), requestId, note);
+    revalidatePath("/admin/batches");
+    revalidatePath("/admin/batches/requests");
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to reject join request" };
+  }
+}
+
+export async function saveBatchTimetableAction(
+  batchId: string,
+  slots: Array<{
+    weekday: number;
+    startTime: string;
+    endTime: string;
+    subjectId?: string | null;
+    teacherId?: string | null;
+    mode?: string;
+    roomOrLinkNote?: string | null;
+  }>
+): Promise<ActionResult> {
+  const current = await requireRole(["admin"]);
+  try {
+    const res = await saveBatchTimetable(toAuthUser(current), batchId, slots);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to save timetable" };
+  }
+}
+
+export async function regenerateBatchJoinCodeAction(batchId: string): Promise<ActionResult<{ joinCode: string }>> {
+  const current = await requireRole(["admin"]);
+  try {
+    const updated = await regenerateBatchJoinCode(toAuthUser(current), batchId);
+    if (!updated) throw new Error("Batch not found");
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: { joinCode: updated.joinCode || "" } };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to regenerate join code" };
+  }
+}
+
+export async function getBatchTimetableAction(batchId: string): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const data = await getBatchTimetable(batchId);
+    return { success: true, data };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to fetch timetable" };
+  }
+}
+
+// -------------------------------------------------------------
+// 12. BATCH CONTENT & STUDY MATERIAL ACTIONS
+// -------------------------------------------------------------
+
+import {
+  linkChapterToBatch,
+  unlinkChapterFromBatch,
+  createBatchContentItem,
+  deleteBatchContentItem,
+  reorderBatchContentItems,
+  bulkUploadBatchPdfs,
+  importBatchMaterialFromZipTree,
+} from "./data/batch-content";
+
+export async function getBatchContentManagerDataAction(batchId: string): Promise<ActionResult<{
+  batch: { id: string; title: string; classLevel: number | null; board: string | null; subjectId: string | null };
+  subjects: Array<{ id: string; name: string }>;
+  chapters: Array<{ id: string; title: string; subjectId: string; classLevel: number; chapterNumber: number | null }>;
+  linkedChapterIds: string[];
+  contentItems: Array<{
+    id: string;
+    subjectId: string;
+    chapterId: string;
+    section: string | null;
+    title: string;
+    kind: string;
+    youtubeVideoId: string | null;
+    storageKey: string | null;
+    url: string | null;
+    sizeBytes: number | null;
+    pageCount: number | null;
+    sortOrder: number;
+    isPublished: boolean;
+    publishedAt: string;
+  }>;
+  availableVideos: Array<{
+    id: string;
+    title: string;
+    chapterId: string | null;
+    durationSeconds: number;
+  }>;
+}>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const [batch] = await db
+      .select({
+        id: schema.batches.id,
+        title: schema.batches.title,
+        classLevel: schema.batches.classLevel,
+        board: schema.batches.board,
+        subjectId: schema.batches.subjectId,
+      })
+      .from(schema.batches)
+      .where(eq(schema.batches.id, batchId))
+      .limit(1);
+
+    if (!batch) throw new Error("Batch not found");
+
+    const subjects = await db.select({ id: schema.subjects.id, name: schema.subjects.name }).from(schema.subjects).orderBy(schema.subjects.name);
+    const chapters = await db
+      .select({
+        id: schema.chapters.id,
+        title: schema.chapters.title,
+        subjectId: schema.chapters.subjectId,
+        classLevel: schema.chapters.classLevel,
+        chapterNumber: schema.chapters.number,
+      })
+      .from(schema.chapters)
+      .orderBy(schema.chapters.number, schema.chapters.title);
+
+    const linkedLinks = await db
+      .select({ chapterId: schema.batchChapterLinks.chapterId })
+      .from(schema.batchChapterLinks)
+      .where(eq(schema.batchChapterLinks.batchId, batchId));
+    const linkedChapterIds = linkedLinks.map((l) => l.chapterId);
+
+    const items = await db
+      .select()
+      .from(schema.contentItems)
+      .where(eq(schema.contentItems.batchId, batchId))
+      .orderBy(schema.contentItems.sortOrder, schema.contentItems.publishedAt);
+
+    const availableVideos = await db
+      .select({
+        id: schema.youtubeVideos.id,
+        title: schema.youtubeVideos.title,
+        chapterId: schema.youtubeVideos.chapterId,
+        durationSeconds: schema.youtubeVideos.durationSeconds,
+      })
+      .from(schema.youtubeVideos)
+      .where(eq(schema.youtubeVideos.isPublished, true))
+      .orderBy(desc(schema.youtubeVideos.publishedAt))
+      .limit(200);
+
+    return {
+      success: true,
+      data: {
+        batch,
+        subjects,
+        chapters,
+        linkedChapterIds,
+        contentItems: items.map((i) => ({
+          ...i,
+          publishedAt: i.publishedAt.toISOString(),
+        })),
+        availableVideos,
+      },
+    };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to load content data" };
+  }
+}
+
+export async function linkBatchChapterAction(batchId: string, chapterId: string): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    await linkChapterToBatch(toAuthUser(current), batchId, chapterId);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to link chapter" };
+  }
+}
+
+export async function unlinkBatchChapterAction(batchId: string, chapterId: string): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    await unlinkChapterFromBatch(toAuthUser(current), batchId, chapterId);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to unlink chapter" };
+  }
+}
+
+export async function saveBatchContentItemAction(data: {
+  id?: string;
+  batchId: string;
+  subjectId: string;
+  chapterId: string;
+  section?: string | null;
+  title: string;
+  kind: "youtube" | "pdf" | "link" | "video_hosted";
+  youtubeVideoId?: string | null;
+  storageKey?: string | null;
+  url?: string | null;
+  sizeBytes?: number | null;
+  pageCount?: number | null;
+  sortOrder?: number;
+  isPublished?: boolean;
+  notifyBatch?: boolean;
+}): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    if (data.id) {
+      // Update
+      const [updated] = await db
+        .update(schema.contentItems)
+        .set({
+          subjectId: data.subjectId,
+          chapterId: data.chapterId,
+          section: data.section || (data.kind === "pdf" ? "Class Notes" : "Lectures"),
+          title: data.title,
+          kind: data.kind,
+          youtubeVideoId: data.youtubeVideoId || null,
+          storageKey: data.storageKey || null,
+          url: data.url || null,
+          sizeBytes: data.sizeBytes || null,
+          pageCount: data.pageCount || null,
+          sortOrder: data.sortOrder || 0,
+          isPublished: data.isPublished ?? true,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.contentItems.id, data.id))
+        .returning();
+
+      revalidatePath(`/admin/batches/${data.batchId}`);
+      return { success: true, data: updated };
+    } else {
+      // Create
+      const created = await createBatchContentItem(toAuthUser(current), data);
+      revalidatePath(`/admin/batches/${data.batchId}`);
+      return { success: true, data: created };
+    }
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to save content item" };
+  }
+}
+
+export async function deleteBatchContentItemAction(contentItemId: string, batchId: string): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const res = await deleteBatchContentItem(toAuthUser(current), contentItemId);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to delete content item" };
+  }
+}
+
+export async function reorderBatchContentItemsAction(batchId: string, itemIds: string[]): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    await reorderBatchContentItems(toAuthUser(current), batchId, itemIds);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to reorder content items" };
+  }
+}
+
+export async function bulkUploadBatchPdfsAction(data: {
+  batchId: string;
+  subjectId: string;
+  chapterId: string;
+  section: string;
+  files: Array<{
+    name: string;
+    storageKey: string;
+    sizeBytes?: number | null;
+    pageCount?: number | null;
+  }>;
+  notifyBatch?: boolean;
+}): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const created = await bulkUploadBatchPdfs(toAuthUser(current), data);
+    revalidatePath(`/admin/batches/${data.batchId}`);
+    return { success: true, data: created };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to bulk upload study material" };
+  }
+}
+
+export async function importBatchZipMaterialAction(data: {
+  batchId: string;
+  entries: Array<{
+    subjectName: string;
+    chapterTitle: string;
+    sectionName: string;
+    fileName: string;
+    storageKey: string;
+    sizeBytes?: number | null;
+    pageCount?: number | null;
+  }>;
+}): Promise<ActionResult<{ importedCount: number }>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const result = await importBatchMaterialFromZipTree(toAuthUser(current), data.batchId, data.entries);
+    revalidatePath(`/admin/batches/${data.batchId}`);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to import materials from ZIP" };
+  }
+}
+
+// ---------------------------------------------------------
+// Live Sessions Admin Actions
+// ---------------------------------------------------------
+
+export async function getBatchLiveSessionsAdminAction(batchId: string): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { getBatchLiveSessions } = await import("./data/live-sessions");
+    const data = await getBatchLiveSessions(current.user.id, batchId);
+    return { success: true, data };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to fetch live sessions" };
+  }
+}
+
+export async function createLiveSessionAction(data: {
+  batchId: string;
+  subjectId?: string | null;
+  teacherId?: string | null;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  provider: "zoom" | "google_meet" | "youtube_live" | "offline";
+  joinUrl?: string | null;
+  passcode?: string | null;
+  recordingYoutubeId?: string | null;
+}): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { createLiveSession } = await import("./data/live-sessions");
+    const created = await createLiveSession({
+      ...data,
+      createdBy: current.user.id,
+    });
+    revalidatePath(`/admin/batches/${data.batchId}`);
+    return { success: true, data: created };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to create live session" };
+  }
+}
+
+export async function updateLiveSessionAction(
+  sessionId: string,
+  batchId: string,
+  data: {
+    title?: string;
+    startsAt?: string;
+    endsAt?: string;
+    provider?: "zoom" | "google_meet" | "youtube_live" | "offline";
+    joinUrl?: string | null;
+    passcode?: string | null;
+    status?: "scheduled" | "live" | "ended" | "cancelled";
+    recordingYoutubeId?: string | null;
+    subjectId?: string | null;
+    teacherId?: string | null;
+  }
+): Promise<ActionResult> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { updateLiveSession } = await import("./data/live-sessions");
+    const updated = await updateLiveSession(sessionId, data);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: updated };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to update live session" };
+  }
+}
+
+export async function startLiveSessionAction(
+  sessionId: string,
+  batchId: string
+): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { startLiveSession } = await import("./data/live-sessions");
+    const updated = await startLiveSession(sessionId, current.user.id);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: updated };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to start live session" };
+  }
+}
+
+export async function endLiveSessionAction(
+  sessionId: string,
+  batchId: string,
+  recordingYoutubeId?: string | null
+): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { endLiveSession } = await import("./data/live-sessions");
+    const updated = await endLiveSession(sessionId, recordingYoutubeId, current.user.id);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: updated };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to end live session" };
+  }
+}
+
+export async function deleteLiveSessionAction(
+  sessionId: string,
+  batchId: string
+): Promise<ActionResult> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { deleteLiveSession } = await import("./data/live-sessions");
+    const deleted = await deleteLiveSession(sessionId);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: deleted };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to delete live session" };
+  }
+}
+
+export async function generateBatchSessionsFromTimetableAction(
+  batchId: string,
+  daysAhead: number = 14
+): Promise<ActionResult> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { generateSessionsFromTimetableCron } = await import("./data/live-sessions");
+    const result = await generateSessionsFromTimetableCron(daysAhead, batchId);
+    revalidatePath(`/admin/batches/${batchId}`);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to generate timetable sessions" };
+  }
+}
+
+// ---------------------------------------------------------
+// Attendance Admin Actions
+// ---------------------------------------------------------
+
+export async function getBatchAttendanceAdminAction(
+  batchId: string,
+  dateStr: string
+): Promise<ActionResult> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const enrolledStudents = await db
+      .select({
+        studentId: schema.enrollments.studentId,
+        studentName: schema.profiles.fullName,
+        studentPhone: schema.profiles.phone,
+        enrolledAt: schema.enrollments.enrolledAt,
+      })
+      .from(schema.enrollments)
+      .leftJoin(schema.profiles, eq(schema.enrollments.studentId, schema.profiles.userId))
+      .where(
+        and(
+          eq(schema.enrollments.batchId, batchId),
+          eq(schema.enrollments.status, "active")
+        )
+      )
+      .orderBy(schema.profiles.fullName);
+
+    const attendanceRecords = await db
+      .select()
+      .from(schema.attendanceRecords)
+      .where(
+        and(
+          eq(schema.attendanceRecords.batchId, batchId),
+          eq(schema.attendanceRecords.date, dateStr)
+        )
+      );
+
+    const recordMap = new Map<string, (typeof attendanceRecords)[0]>();
+    for (const r of attendanceRecords) {
+      recordMap.set(r.studentId, r);
+    }
+
+    const students = enrolledStudents.map((s) => {
+      const record = recordMap.get(s.studentId);
+      return {
+        studentId: s.studentId,
+        studentName: s.studentName || "Student",
+        phone: s.studentPhone || null,
+        status: record ? record.status : null,
+        source: record ? record.source : null,
+        note: record ? record.note : null,
+        isJoinedOnline: record?.source === "joined_online",
+      };
+    });
+
+    return {
+      success: true,
+      data: {
+        batchId,
+        date: dateStr,
+        students,
+      },
+    };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to fetch attendance" };
+  }
+}
+
+export async function saveBatchAttendanceAction(data: {
+  batchId: string;
+  date: string;
+  sessionId?: string | null;
+  entries: Array<{
+    studentId: string;
+    status: "present" | "absent" | "late" | "excused";
+    note?: string;
+  }>;
+}): Promise<ActionResult> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { saveBatchAttendance } = await import("./data/attendance");
+    const result = await saveBatchAttendance(
+      current.user.id,
+      data.batchId,
+      data.date,
+      data.entries,
+      data.sessionId || null
+    );
+    revalidatePath(`/admin/batches/${data.batchId}`);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to save attendance" };
+  }
+}
+
+// -------------------------------------------------------------
+// 12. QUESTION BANK & TESTS ADMIN ACTIONS
+// -------------------------------------------------------------
+
+export async function getQuestionsAdminAction(filters?: any): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { getQuestions } = await import("./data/questions");
+    const questions = await getQuestions(filters);
+    return { success: true, data: questions };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to fetch questions" };
+  }
+}
+
+export async function createQuestionAdminAction(data: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { createQuestion } = await import("./data/questions");
+    const question = await createQuestion(data, current.user.id);
+    revalidatePath("/admin/questions");
+    return { success: true, data: question };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to create question" };
+  }
+}
+
+export async function updateQuestionAdminAction(id: string, data: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { updateQuestion } = await import("./data/questions");
+    const question = await updateQuestion(id, data, current.user.id);
+    revalidatePath("/admin/questions");
+    return { success: true, data: question };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to update question" };
+  }
+}
+
+export async function deleteQuestionAdminAction(id: string): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { deleteQuestion } = await import("./data/questions");
+    const result = await deleteQuestion(id);
+    revalidatePath("/admin/questions");
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to delete question" };
+  }
+}
+
+export async function checkDuplicateQuestionAction(
+  subjectId: string,
+  classLevel: number,
+  stem: string,
+  excludeId?: string
+): Promise<ActionResult<{ isDuplicate: boolean; existingId?: string; existingStem?: string }>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { checkDuplicateQuestion } = await import("./data/questions");
+    const result = await checkDuplicateQuestion(subjectId, classLevel, stem, excludeId);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to check duplicates" };
+  }
+}
+
+export async function validateQuestionImportAction(rows: Array<Record<string, any>>): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { parseAndValidateImportRows } = await import("./data/questions");
+    const result = await parseAndValidateImportRows(rows);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to validate import rows" };
+  }
+}
+
+export async function commitQuestionImportAction(previewRows: any[]): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { commitImportRows } = await import("./data/questions");
+    const result = await commitImportRows(previewRows, current.user.id);
+    revalidatePath("/admin/questions");
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to commit import rows" };
+  }
+}
+
+export async function createTestAdminAction(data: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { createTest } = await import("./data/tests");
+    const test = await createTest(data, current.user.id);
+    revalidatePath("/admin/tests");
+    return { success: true, data: test };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to create test" };
+  }
+}
+
+export async function updateTestAdminAction(id: string, data: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { updateTest } = await import("./data/tests");
+    const test = await updateTest(id, data, current.user.id);
+    revalidatePath("/admin/tests");
+    revalidatePath(`/admin/tests/${id}`);
+    return { success: true, data: test };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to update test" };
+  }
+}
+
+export async function publishTestAdminAction(id: string): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { publishTest } = await import("./data/tests");
+    const test = await publishTest(id);
+    revalidatePath("/admin/tests");
+    revalidatePath(`/admin/tests/${id}`);
+    return { success: true, data: test };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to publish test" };
+  }
+}
+
+export async function autoPickQuestionsAdminAction(params: any): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { autoPickQuestions } = await import("./data/tests");
+    const picked = await autoPickQuestions(params);
+    return { success: true, data: picked };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to auto-pick questions" };
+  }
+}
+
+export async function getTestAdminResultsAction(testId: string): Promise<ActionResult<any>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const { getTestAdminResults } = await import("./data/tests");
+    const results = await getTestAdminResults(testId);
+    return { success: true, data: results };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to get test results" };
+  }
+}
+
+// -------------------------------------------------------------
+// DOUBTS ADMIN ACTIONS (Prompt 11)
+// -------------------------------------------------------------
+
+export async function listAdminDoubtsAction(params: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { listAdminDoubts } = await import("./data/doubts");
+    const result = await listAdminDoubts(toAuthUser(current), params);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to list doubts" };
+  }
+}
+
+export async function getDoubtThreadAction(doubtId: string): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { getDoubtThread } = await import("./data/doubts");
+    const result = await getDoubtThread(toAuthUser(current), doubtId);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to get doubt thread" };
+  }
+}
+
+export async function replyDoubtAction(doubtId: string, input: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { addDoubtMessage } = await import("./data/doubts");
+    const result = await addDoubtMessage(toAuthUser(current), doubtId, input);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to send reply" };
+  }
+}
+
+export async function closeDoubtAction(doubtId: string): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { closeDoubt } = await import("./data/doubts");
+    const result = await closeDoubt(toAuthUser(current), doubtId);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to close doubt" };
+  }
+}
+
+export async function listCannedRepliesAction(): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { listCannedReplies } = await import("./data/doubts");
+    const result = await listCannedReplies(toAuthUser(current));
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to load canned replies" };
+  }
+}
+
+export async function createCannedReplyAction(input: any): Promise<ActionResult<any>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    const { createCannedReply } = await import("./data/doubts");
+    const result = await createCannedReply(toAuthUser(current), input);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to create canned reply" };
+  }
+}
+
+

@@ -64,6 +64,19 @@ async function resolveTargetUserIds(target: NotificationTarget): Promise<string[
     const studentIds = enrollments.map((e) => e.studentId);
     if (studentIds.length === 0) return [];
 
+    const parentUserIds: string[] = [];
+
+    // 1. Primary: schema.parentLinks
+    const links = await db
+      .select({ parentUserId: schema.parentLinks.parentUserId })
+      .from(schema.parentLinks)
+      .where(inArray(schema.parentLinks.studentUserId, studentIds));
+
+    for (const l of links) {
+      parentUserIds.push(l.parentUserId);
+    }
+
+    // 2. Fallback: match by parentPhone
     const studentProfiles = await db
       .select({ parentPhone: schema.profiles.parentPhone })
       .from(schema.profiles)
@@ -73,14 +86,18 @@ async function resolveTargetUserIds(target: NotificationTarget): Promise<string[
       .map((p) => p.parentPhone)
       .filter((phone): phone is string => !!phone && phone.trim().length >= 10);
 
-    if (parentPhones.length === 0) return [];
+    if (parentPhones.length > 0) {
+      const parentProfiles = await db
+        .select({ userId: schema.profiles.userId })
+        .from(schema.profiles)
+        .where(inArray(schema.profiles.phone, parentPhones));
 
-    const parentProfiles = await db
-      .select({ userId: schema.profiles.userId })
-      .from(schema.profiles)
-      .where(inArray(schema.profiles.phone, parentPhones));
+      for (const p of parentProfiles) {
+        parentUserIds.push(p.userId);
+      }
+    }
 
-    return parentProfiles.map((p) => p.userId);
+    return Array.from(new Set(parentUserIds)).filter(Boolean);
   }
 
   if ("role" in target) {

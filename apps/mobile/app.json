@@ -2,12 +2,14 @@
   "expo": {
     "name": "Quick2Learn",
     "slug": "quick2learn",
+    "owner": "arjun2k4",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "q2l",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "jsEngine": "hermes",
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
@@ -23,7 +25,39 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#EFF6FF"
       },
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "quick2learn.in",
+              "pathPrefix": "/lecture"
+            },
+            {
+              "scheme": "https",
+              "host": "quick2learn.in",
+              "pathPrefix": "/batch"
+            },
+            {
+              "scheme": "https",
+              "host": "quick2learn.in",
+              "pathPrefix": "/test"
+            },
+            {
+              "scheme": "https",
+              "host": "quick2learn.in",
+              "pathPrefix": "/doubt"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
@@ -38,10 +72,27 @@
           "resizeMode": "contain",
           "backgroundColor": "#EFF6FF"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "quick2learn",
+          "project": "mobile-app"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "8dce3b27-2fbe-423a-96a0-e0e3a1d2c293"
+      }
     }
   }
 }

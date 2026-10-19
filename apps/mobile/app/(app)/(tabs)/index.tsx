@@ -1,0 +1,831 @@
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  Dimensions,
+  Share,
+  Linking,
+  Modal,
+  Alert,
+} from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { Image } from 'expo-image';
+import {
+  Bell,
+  Sparkles,
+  Calendar,
+  Clock,
+  MapPin,
+  GraduationCap,
+  Play,
+  KeyRound,
+  Share2,
+  ChevronRight,
+  AlertCircle,
+  Award,
+  CreditCard,
+  Layers,
+  FileText,
+  Volume2,
+} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
+import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
+import { useQueryClient } from '@tanstack/react-query';
+import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
+import { Skeleton } from '../../../src/components/ui/Skeleton';
+import { Button } from '../../../src/components/ui/Button';
+import { Badge } from '../../../src/components/ui/Badge';
+import { TextField } from '../../../src/components/ui/TextField';
+import { ProgressBar } from '../../../src/components/ui/ProgressBar';
+import { LiveBanner } from '../../../src/components/composite/LiveBanner';
+import { analytics } from '../../../src/lib/analytics';
+import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
+  const isParent = me?.role === 'parent';
+
+  if (isParent) {
+    return <ParentHomeScreen />;
+  }
+
+  const { data: home, isLoading, isRefetching, refetch } = useHome();
+  const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [showBatchCodeModal, setShowBatchCodeModal] = useState(false);
+  const [batchCodeInput, setBatchCodeInput] = useState('');
+  const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+
+  // Refresh home data on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      refetchTests();
+    }, [refetch, refetchTests])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
+  const handleShareApp = async () => {
+    try {
+      const shareData = home?.shareApp || {
+        title: 'Quick2Learn App',
+        message: 'Master CBSE & ICSE Mathematics with Dinesh Singh Rajput Sir on Quick2Learn.',
+        url: 'https://play.google.com/store/apps/details?id=in.quick2learn.app',
+      };
+      await Share.share({
+        title: shareData.title,
+        message: `${shareData.message}\n${shareData.url}`,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  };
+
+  const handleBannerPress = (banner: AppBannerItem) => {
+    if (banner.targetType === 'url') {
+      Linking.openURL(banner.targetValue).catch((e) =>
+        console.warn('Cannot open banner url:', e)
+      );
+    } else if (banner.targetType === 'batch') {
+      router.push(`/batch/${banner.targetValue}` as any);
+    } else if (banner.targetType === 'lecture') {
+      router.push(`/lecture/${banner.targetValue}` as any);
+    } else if (banner.route) {
+      router.push(banner.route as any);
+    }
+  };
+
+  const handleSubmitBatchCode = async () => {
+    if (!batchCodeInput.trim()) {
+      Alert.alert('Required', 'Please enter a valid batch code.');
+      return;
+    }
+    try {
+      setIsSubmittingCode(true);
+      setShowBatchCodeModal(false);
+      setBatchCodeInput('');
+      Alert.alert(
+        'Request Submitted',
+        'Your batch admission request has been submitted to Dinesh Sir for review.'
+      );
+    } finally {
+      setIsSubmittingCode(false);
+    }
+  };
+
+  // 1. Loading Skeleton State (< 1.5s target)
+  if (isLoading && !home) {
+    return (
+      <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
+        <View className="px-4 py-3 flex-row items-center justify-between border-b border-border/40 bg-surface">
+          <View className="flex-row items-center space-x-2">
+            <Skeleton width={130} height={26} borderRadius={6} />
+            <Skeleton width={80} height={22} borderRadius={12} className="ml-2" />
+          </View>
+          <Skeleton width={40} height={40} borderRadius={20} />
+        </View>
+
+        <ScrollView className="p-4 space-y-4">
+          <Skeleton width="100%" height={90} borderRadius={16} className="mb-4" />
+          <Skeleton width="100%" height={160} borderRadius={16} className="mb-4" />
+          <Skeleton width={180} height={20} borderRadius={4} className="mb-2" />
+          <Skeleton width="100%" height={74} borderRadius={12} className="mb-2" />
+          <Skeleton width="100%" height={74} borderRadius={12} className="mb-4" />
+          <Skeleton width="100%" height={140} borderRadius={16} />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  const header = home?.header;
+  const unreadCount = header?.unreadNotificationsCount ?? 0;
+  const liveClass = home?.liveClass;
+  const continueWatching = home?.continueWatching || [];
+  const todayClasses = home?.todayClasses || [];
+  const upcomingTests = home?.upcomingTests || [];
+  const recentResults = home?.recentResults || [];
+  const feeAlert = home?.feeAlert;
+  const announcements = home?.announcements || [];
+  const banners = home?.banners || [];
+  const freeLectures = home?.freeLectures || [];
+  const enrolledBatchesCount = home?.enrolledBatchesCount ?? 0;
+
+  return (
+    <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
+      {/* Offline banner indicator (shows cached data) */}
+      <OfflineBanner />
+
+      {/* 1. Header: "Hi, [first name]", class/board chip, notification bell */}
+      <View className="px-4 py-3 flex-row items-center justify-between bg-surface border-b border-border/70">
+        <View className="flex-1 pr-2">
+          <View className="flex-row items-center flex-wrap">
+            <Text className="text-h2 font-bold text-ink mr-2">
+              Hi, {header?.firstName || 'Student'}
+            </Text>
+            {header?.chipLabel ? (
+              <View className="bg-primary-soft px-2.5 py-0.5 rounded-full border border-primary/20">
+                <Text className="text-[11px] font-semibold text-primary">
+                  {header.chipLabel}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Text className="text-caption text-ink-muted mt-0.5">
+            Welcome to Quick2Learn
+          </Text>
+        </View>
+
+        {/* Bell Button (touch target >= 48dp) */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push('/(app)/notifications' as any)}
+          accessibilityRole="button"
+          accessibilityLabel={`Notifications, ${unreadCount} unread`}
+          className="w-12 h-12 rounded-full items-center justify-center relative active:bg-surface-subtle"
+        >
+          <Bell size={22} color="#1F2937" />
+          {unreadCount > 0 ? (
+            <View className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-danger items-center justify-center border-2 border-surface">
+              <Text className="text-[10px] font-bold text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Home Scroll Area */}
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || isRefetching}
+            onRefresh={onRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 2. LiveBanner (when class is live now or starting within 15 mins) */}
+        {liveClass ? (
+          <View className="px-4 pt-4">
+            <LiveBanner
+              title={`${liveClass.subjectName} • ${liveClass.batchTitle}`}
+              isLive={liveClass.isLive}
+              timeOrCountdown={liveClass.timeOrCountdown}
+              onJoin={() => {
+                analytics.track('live_joined', {
+                  batchId: (liveClass as any).batchId || 'live_session',
+                  sessionId: (liveClass as any).sessionId,
+                  isTeacher: false,
+                });
+                if (liveClass.joinUrl) {
+                  Linking.openURL(liveClass.joinUrl).catch(() => {});
+                } else if (liveClass.route) {
+                  router.push(liveClass.route as any);
+                }
+              }}
+            />
+          </View>
+        ) : null}
+
+        {/* Live Test Card (When test is Live now or In Progress) */}
+        {(() => {
+          const liveTest = availableTestsData?.tests?.find(
+            (t) => t.status === 'live' || t.latestAttemptStatus === 'in_progress'
+          );
+          if (!liveTest) return null;
+
+          const isInProgress = liveTest.latestAttemptStatus === 'in_progress';
+
+          return (
+            <View className="px-4 pt-4">
+              <View className="bg-primary rounded-2xl p-4 shadow-sm border border-primary/30 flex-row items-center justify-between">
+                <View className="flex-1 mr-3">
+                  <View className="flex-row items-center mb-1">
+                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-400 mr-2" />
+                    <Text className="text-[11px] font-bold uppercase tracking-wider text-white">
+                      {isInProgress ? 'RESUME TEST' : 'TEST LIVE NOW'}
+                    </Text>
+                  </View>
+                  <Text className="text-body font-bold text-white mb-0.5" numberOfLines={1}>
+                    {liveTest.title}
+                  </Text>
+                  <Text className="text-caption text-white/80">
+                    {liveTest.subjectName || 'Maths & Science'} • {liveTest.durationMinutes} mins • {liveTest.totalMarks} marks
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push(`/test/${liveTest.id}` as any)}
+                  className="bg-white px-3.5 py-2.5 rounded-xl shadow-2xs"
+                >
+                  <Text className="text-small font-bold text-primary">
+                    {isInProgress ? 'Resume' : 'Start'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })()}
+
+        {/* 3. Fee alert (when due within 7 days or overdue) */}
+        {feeAlert ? (
+          <View className="px-4 pt-4">
+            <View
+              className={`rounded-2xl p-4 border shadow-sm ${
+                feeAlert.isOverdue
+                  ? 'bg-red-50/80 border-red-200'
+                  : 'bg-amber-50/80 border-amber-200'
+              }`}
+            >
+              <View className="flex-row items-center justify-between mb-1.5">
+                <View className="flex-row items-center">
+                  <AlertCircle
+                    size={16}
+                    color={feeAlert.isOverdue ? '#DC2626' : '#D97706'}
+                  />
+                  <Text
+                    className={`text-caption font-bold uppercase tracking-wider ml-1.5 ${
+                      feeAlert.isOverdue ? 'text-danger' : 'text-amber-700'
+                    }`}
+                  >
+                    {feeAlert.label}
+                  </Text>
+                </View>
+                <Text
+                  className={`text-caption font-bold ${
+                    feeAlert.isOverdue ? 'text-danger' : 'text-amber-800'
+                  }`}
+                >
+                  {feeAlert.isOverdue
+                    ? `Overdue by ${Math.abs(feeAlert.daysRemaining)}d`
+                    : `Due in ${feeAlert.daysRemaining}d`}
+                </Text>
+              </View>
+
+              <View className="flex-row items-center justify-between mt-1">
+                <View>
+                  <Text className="text-h3 font-bold text-ink">
+                    {feeAlert.formattedAmount}
+                  </Text>
+                  <Text className="text-caption text-ink-muted">
+                    {feeAlert.batchTitle} • Due {feeAlert.dueDate}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push(feeAlert.route as any)}
+                  className={`py-2 px-3.5 rounded-xl min-h-[40px] justify-center ${
+                    feeAlert.isOverdue ? 'bg-danger' : 'bg-primary'
+                  }`}
+                >
+                  <Text className="text-small font-bold text-white">
+                    Pay Now
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        {/* 4. Continue watching (the last 5 partly watched lectures with progress bars) */}
+        {continueWatching.length > 0 ? (
+          <View className="pt-5">
+            <View className="px-4 flex-row items-center justify-between mb-2.5">
+              <Text className="text-h3 font-bold text-ink">
+                Continue Watching
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+            >
+              {continueWatching.map((item: ContinueWatchingItem) => (
+                <TouchableOpacity
+                  key={item.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push(item.route as any)}
+                  className="w-[220px] mr-3 bg-surface rounded-2xl border border-border overflow-hidden shadow-sm"
+                >
+                  {/* Thumbnail with progress */}
+                  <View className="w-full h-[120px] bg-ink/10 relative justify-end">
+                    {item.thumbnailUrl ? (
+                      <Image
+                        source={{ uri: item.thumbnailUrl }}
+                        style={{ width: '100%', height: '100%', position: 'absolute' }}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    ) : (
+                      <View className="absolute inset-0 bg-primary-soft items-center justify-center">
+                        <Play size={28} color="#2563EB" />
+                      </View>
+                    )}
+
+                    {/* Duration badge */}
+                    <View className="absolute bottom-2 right-2 bg-black/75 px-1.5 py-0.5 rounded">
+                      <Text className="text-[10px] font-bold text-white">
+                        {item.durationFormatted}
+                      </Text>
+                    </View>
+
+                    {/* Progress bar */}
+                    <View className="w-full">
+                      <ProgressBar
+                        progress={item.progressPercent}
+                        height={4}
+                        color="#2563EB"
+                        trackColor="rgba(0,0,0,0.4)"
+                      />
+                    </View>
+                  </View>
+
+                  <View className="p-3">
+                    <Text
+                      className="text-body font-semibold text-ink leading-snug"
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </Text>
+                    {item.subjectName || item.chapterTitle ? (
+                      <Text
+                        className="text-caption text-ink-muted mt-1"
+                        numberOfLines={1}
+                      >
+                        {item.subjectName}
+                        {item.chapterTitle ? ` • ${item.chapterTitle}` : ''}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        {/* 5. Today's Classes (from batch timetables) */}
+        {todayClasses.length > 0 ? (
+          <View className="px-4 pt-5">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <Calendar size={18} color="#2563EB" />
+                <Text className="text-h3 font-bold text-ink ml-2">
+                  Classes Today
+                </Text>
+              </View>
+              <Badge label="Today" variant="primary" size="sm" />
+            </View>
+
+            <View className="space-y-2.5">
+              {todayClasses.map((cls) => (
+                <TouchableOpacity
+                  key={cls.batchId}
+                  activeOpacity={0.8}
+                  onPress={() => router.push(cls.route as any)}
+                  className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
+                >
+                  <View className="flex-row items-center justify-between mb-1.5">
+                    <Badge
+                      label={cls.mode.toUpperCase()}
+                      variant={cls.mode === 'offline' ? 'neutral' : 'primary'}
+                      size="sm"
+                    />
+                    <View className="flex-row items-center">
+                      <Clock size={13} color="#2563EB" />
+                      <Text className="text-small font-bold text-primary ml-1">
+                        {cls.timeText}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text className="text-body font-bold text-ink mb-1">
+                    {cls.batchTitle}
+                  </Text>
+                  <Text className="text-caption text-ink-muted">
+                    {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
+                  </Text>
+                  {cls.locationText ? (
+                    <View className="flex-row items-center mt-2">
+                      <MapPin size={12} color="#6B7280" />
+                      <Text className="text-[11px] text-ink-muted ml-1">
+                        {cls.locationText}
+                      </Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {/* 6. Upcoming tests and new results */}
+        {upcomingTests.length > 0 || recentResults.length > 0 ? (
+          <View className="px-4 pt-5">
+            <Text className="text-h3 font-bold text-ink mb-3">
+              Tests & Results
+            </Text>
+
+            {/* Upcoming tests */}
+            {upcomingTests.map((test) => (
+              <TouchableOpacity
+                key={test.id}
+                activeOpacity={0.8}
+                onPress={() => router.push(test.route as any)}
+                className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
+              >
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <Badge label="Upcoming Test" variant="accent" size="sm" />
+                  <Text className="text-caption font-semibold text-primary">
+                    {test.dateText}
+                  </Text>
+                </View>
+                <Text className="text-body font-bold text-ink mb-1">
+                  {test.title}
+                </Text>
+                <Text className="text-caption text-ink-muted">
+                  {test.batchTitle} • {test.subjectName}
+                  {test.totalMarks ? ` (${test.totalMarks} Marks)` : ''}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            {/* Recent results */}
+            {recentResults.map((result) => (
+              <TouchableOpacity
+                key={result.id}
+                activeOpacity={0.8}
+                onPress={() => router.push(result.route as any)}
+                className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
+              >
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className="flex-row items-center">
+                    <Award size={14} color="#15803D" />
+                    <Text className="text-caption font-bold text-green-700 ml-1">
+                      Result Declared
+                    </Text>
+                  </View>
+                  <Text className="text-caption text-ink-muted">
+                    {result.dateText}
+                  </Text>
+                </View>
+                <Text className="text-body font-bold text-ink mb-1">
+                  {result.testTitle}
+                </Text>
+                <View className="flex-row items-center justify-between mt-1">
+                  <Text className="text-caption text-ink-muted">
+                    {result.batchTitle}
+                  </Text>
+                  <Text className="text-body font-bold text-green-700">
+                    {result.scoreText}
+                    {result.percentage !== null && result.percentage !== undefined
+                      ? ` (${result.percentage}%)`
+                      : ''}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
+
+        {/* 7. With no batches: Friendly "Join your batch" card */}
+        {enrolledBatchesCount === 0 ? (
+          <View className="px-4 pt-5">
+            <View className="bg-surface rounded-2xl p-5 border border-primary/20 shadow-sm">
+              <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
+                <GraduationCap size={26} color="#2563EB" />
+              </View>
+
+              <Text className="text-h3 font-bold text-ink mb-1.5">
+                Join your batch
+              </Text>
+
+              <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+                Connect with Dinesh Sir's classroom to receive daily timetables, test alerts, and syllabus announcements.
+              </Text>
+
+              <View className="flex-row space-x-3">
+                <View className="flex-1 mr-2">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onPress={() => setShowBatchCodeModal(true)}
+                    icon={<KeyRound size={16} color="#FFFFFF" />}
+                  >
+                    Enter Code
+                  </Button>
+                </View>
+                <View className="flex-1 ml-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    onPress={() => router.push('/(app)/(tabs)/batches' as any)}
+                  >
+                    Explore
+                  </Button>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        {/* 8. Announcements: latest 3, pinned first, "See all" */}
+        {announcements.length > 0 ? (
+          <View className="px-4 pt-5">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-h3 font-bold text-ink">
+                Announcements
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/notifications' as any)}
+                className="py-1 px-2"
+              >
+                <Text className="text-small font-semibold text-primary">
+                  See all
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="space-y-2.5">
+              {announcements.map((ann) => (
+                <TouchableOpacity
+                  key={ann.id}
+                  activeOpacity={0.8}
+                  onPress={() => router.push(ann.route as any)}
+                  className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
+                >
+                  <View className="flex-row items-center justify-between mb-1.5">
+                    <Text className="text-caption text-ink-muted">
+                      {ann.dateFormatted}
+                    </Text>
+                    {ann.isPinned ? (
+                      <Badge label="Pinned" variant="accent" size="sm" />
+                    ) : null}
+                  </View>
+
+                  <Text className="text-body font-bold text-ink mb-1">
+                    {ann.title}
+                  </Text>
+                  <Text
+                    className="text-small text-ink-muted leading-relaxed"
+                    numberOfLines={2}
+                  >
+                    {ann.body}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {/* 9. Banner carousel from site_settings.app_banners (results, admissions) */}
+        {banners.length > 0 ? (
+          <View className="pt-5">
+            <View className="px-4 mb-2.5">
+              <Text className="text-h3 font-bold text-ink">
+                Highlights & Admissions
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              pagingEnabled
+              snapToInterval={SCREEN_WIDTH - 32}
+              decelerationRate="fast"
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+            >
+              {banners.map((banner) => (
+                <TouchableOpacity
+                  key={banner.id}
+                  activeOpacity={0.9}
+                  onPress={() => handleBannerPress(banner)}
+                  style={{ width: SCREEN_WIDTH - 32 }}
+                  className="mr-4 rounded-2xl overflow-hidden border border-border shadow-sm bg-surface"
+                >
+                  <Image
+                    source={{ uri: banner.imageUrl }}
+                    style={{ width: '100%', height: 160 }}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                  <View className="p-3 bg-surface flex-row items-center justify-between">
+                    <Text
+                      className="text-body font-bold text-ink flex-1 mr-2"
+                      numberOfLines={1}
+                    >
+                      {banner.title}
+                    </Text>
+                    <ChevronRight size={18} color="#2563EB" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        {/* 10. Free lectures for my class (latest 10), "See all" -> Learn tab */}
+        {freeLectures.length > 0 ? (
+          <View className="pt-5">
+            <View className="px-4 flex-row items-center justify-between mb-2.5">
+              <Text className="text-h3 font-bold text-ink">
+                Free Lectures
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/(tabs)/learn' as any)}
+                className="py-1 px-2"
+              >
+                <Text className="text-small font-semibold text-primary">
+                  See all
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+            >
+              {freeLectures.map((lec: HomeFreeLecture) => (
+                <TouchableOpacity
+                  key={lec.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push(lec.route as any)}
+                  className="w-[200px] mr-3 bg-surface rounded-2xl border border-border overflow-hidden shadow-sm"
+                >
+                  <View className="w-full h-[110px] bg-ink/10 relative justify-end">
+                    {lec.thumbnailUrl ? (
+                      <Image
+                        source={{ uri: lec.thumbnailUrl }}
+                        style={{ width: '100%', height: '100%', position: 'absolute' }}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    ) : (
+                      <View className="absolute inset-0 bg-primary-soft items-center justify-center">
+                        <Play size={24} color="#2563EB" />
+                      </View>
+                    )}
+                    <View className="absolute bottom-2 right-2 bg-black/75 px-1.5 py-0.5 rounded">
+                      <Text className="text-[10px] font-bold text-white">
+                        {lec.durationFormatted}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="p-3">
+                    <Text
+                      className="text-body font-semibold text-ink leading-snug"
+                      numberOfLines={2}
+                    >
+                      {lec.title}
+                    </Text>
+                    <Text className="text-caption text-ink-muted mt-1">
+                      {lec.subjectName || `Class ${lec.classLevel ?? ''}`}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        {/* 11. Share the app card (Android share sheet with Play Store link) */}
+        <View className="px-4 pt-5">
+          <View className="bg-primary-soft/60 rounded-2xl p-5 border border-primary/20 shadow-sm">
+            <View className="flex-row items-center mb-2">
+              <Share2 size={20} color="#2563EB" />
+              <Text className="text-h3 font-bold text-primary ml-2">
+                Share Quick2Learn
+              </Text>
+            </View>
+
+            <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+              Help your friends and classmates master CBSE and ICSE Mathematics with Dinesh Sir. Share the app today!
+            </Text>
+
+            <Button
+              variant="primary"
+              size="md"
+              onPress={handleShareApp}
+              icon={<Share2 size={16} color="#FFFFFF" />}
+            >
+              Share App
+            </Button>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Enter Batch Code Modal */}
+      <Modal
+        visible={showBatchCodeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBatchCodeModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-center p-6">
+          <View className="bg-surface rounded-3xl p-6 shadow-xl border border-border">
+            <Text className="text-h2 font-bold text-ink mb-2">
+              Enter Batch Code
+            </Text>
+            <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+              Enter the batch code provided by Dinesh Sir or the Quick2Learn administration.
+            </Text>
+
+            <TextField
+              label="Batch Code"
+              placeholder="e.g. M10CBSE"
+              value={batchCodeInput}
+              onChangeText={setBatchCodeInput}
+              autoCapitalize="characters"
+              maxLength={12}
+            />
+
+            <View className="flex-row space-x-3 mt-4">
+              <View className="flex-1 mr-2">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onPress={() => setShowBatchCodeModal(false)}
+                >
+                  Cancel
+                </Button>
+              </View>
+              <View className="flex-1 ml-2">
+                <Button
+                  variant="primary"
+                  size="md"
+                  loading={isSubmittingCode}
+                  onPress={handleSubmitBatchCode}
+                >
+                  Join
+                </Button>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}

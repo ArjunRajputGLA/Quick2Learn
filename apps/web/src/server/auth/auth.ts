@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP, phoneNumber } from "better-auth/plugins";
+import { emailOTP, phoneNumber, oneTimeToken } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { expo } from "@better-auth/expo";
 import { after } from "next/server";
@@ -151,6 +151,7 @@ const plugins = [
     : []),
   expo(),
   nextCookies(),
+  oneTimeToken(),
 ];
 
 export const auth = betterAuth({

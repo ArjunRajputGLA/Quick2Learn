@@ -13,6 +13,8 @@ interface LectureViewClientProps {
   description: string;
   subjectName?: string;
   classRoman?: string;
+  initialPositionSeconds?: number;
+  isLoggedIn?: boolean;
 }
 
 export function LectureViewClient({
@@ -23,6 +25,8 @@ export function LectureViewClient({
   description,
   subjectName = "Sciences",
   classRoman = "X",
+  initialPositionSeconds = 0,
+  isLoggedIn = false,
 }: LectureViewClientProps) {
   const [seekTime, setSeekTime] = useState<number | null>(null);
 
@@ -69,6 +73,8 @@ export function LectureViewClient({
         durationSeconds={durationSeconds}
         thumbnailUrl={thumbnailUrl}
         seekTime={seekTime}
+        initialPositionSeconds={initialPositionSeconds}
+        isLoggedIn={isLoggedIn}
       />
 
       {/* 2. Interactive Lecture Chapters Strip */}

@@ -95,6 +95,40 @@ export type NewParentLink = InferInsertModel<typeof schema.parentLinks>;
 
 export type ParentInviteCode = InferSelectModel<typeof schema.parentInviteCodes>;
 export type NewParentInviteCode = InferInsertModel<typeof schema.parentInviteCodes>;
+
+export type ContentItem = InferSelectModel<typeof schema.contentItems>;
+export type NewContentItem = InferInsertModel<typeof schema.contentItems>;
+
+export type BatchChapterLink = InferSelectModel<typeof schema.batchChapterLinks>;
+export type NewBatchChapterLink = InferInsertModel<typeof schema.batchChapterLinks>;
+
+export type LiveSession = InferSelectModel<typeof schema.liveSessions>;
+export type NewLiveSession = InferInsertModel<typeof schema.liveSessions>;
+
+export type LiveJoinEvent = InferSelectModel<typeof schema.liveJoinEvents>;
+export type NewLiveJoinEvent = InferInsertModel<typeof schema.liveJoinEvents>;
+
+export type AttendanceRecord = InferSelectModel<typeof schema.attendanceRecords>;
+export type NewAttendanceRecord = InferInsertModel<typeof schema.attendanceRecords>;
+
+export type CaseGroup = InferSelectModel<typeof schema.caseGroups>;
+export type NewCaseGroup = InferInsertModel<typeof schema.caseGroups>;
+
+export type Question = InferSelectModel<typeof schema.questions>;
+export type NewQuestion = InferInsertModel<typeof schema.questions>;
+
+export type Test = InferSelectModel<typeof schema.tests>;
+export type NewTest = InferInsertModel<typeof schema.tests>;
+
+export type TestQuestion = InferSelectModel<typeof schema.testQuestions>;
+export type NewTestQuestion = InferInsertModel<typeof schema.testQuestions>;
+
+export type TestAttempt = InferSelectModel<typeof schema.testAttempts>;
+export type NewTestAttempt = InferInsertModel<typeof schema.testAttempts>;
+
+export type AttemptAnswer = InferSelectModel<typeof schema.attemptAnswers>;
+export type NewAttemptAnswer = InferInsertModel<typeof schema.attemptAnswers>;
+
 // Enum Types
 export type UserRole = (typeof schema.userRoleEnum.enumValues)[number];
 export type Board = (typeof schema.boardEnum.enumValues)[number];
@@ -109,3 +143,15 @@ export type Visibility = (typeof schema.visibilityEnum.enumValues)[number];
 export type Audience = (typeof schema.audienceEnum.enumValues)[number];
 export type EnquiryStatus = (typeof schema.enquiryStatusEnum.enumValues)[number];
 export type StorageBucket = (typeof schema.storageBucketEnum.enumValues)[number];
+export type ContentItemKind = (typeof schema.contentItemKindEnum.enumValues)[number];
+export type LiveSessionProvider = (typeof schema.liveSessionProviderEnum.enumValues)[number];
+export type LiveSessionStatus = (typeof schema.liveSessionStatusEnum.enumValues)[number];
+export type AttendanceStatus = (typeof schema.attendanceStatusEnum.enumValues)[number];
+export type AttendanceSource = (typeof schema.attendanceSourceEnum.enumValues)[number];
+export type QuestionType = (typeof schema.questionTypeEnum.enumValues)[number];
+export type QuestionDifficulty = (typeof schema.questionDifficultyEnum.enumValues)[number];
+export type TestKind = (typeof schema.testKindEnum.enumValues)[number];
+export type TestShowSolutions = (typeof schema.testShowSolutionsEnum.enumValues)[number];
+export type TestStatus = (typeof schema.testStatusEnum.enumValues)[number];
+export type AttemptStatus = (typeof schema.attemptStatusEnum.enumValues)[number];
+

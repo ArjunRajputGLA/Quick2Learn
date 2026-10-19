@@ -5,8 +5,12 @@ import {
   ActivityIndicator,
   View,
   TouchableOpacityProps,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { colors, radii } from '@quick2learn/shared';
 
 export interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -18,6 +22,7 @@ export interface ButtonProps extends TouchableOpacityProps {
   iconPosition?: 'left' | 'right';
   children: React.ReactNode;
   className?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function Button({
@@ -30,6 +35,7 @@ export function Button({
   iconPosition = 'left',
   children,
   className = '',
+  style,
   onPress,
   ...rest
 }: ButtonProps) {
@@ -50,15 +56,29 @@ export function Button({
     lg: 'min-h-[52px] px-6 py-3.5',
   }[size];
 
+  const sizeStyles: Record<'sm' | 'md' | 'lg', ViewStyle> = {
+    sm: { minHeight: 44, paddingHorizontal: 12, paddingVertical: 8 },
+    md: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12 },
+    lg: { minHeight: 52, paddingHorizontal: 24, paddingVertical: 14 },
+  };
+
   const textSizes = {
     sm: 'text-small font-medium',
     md: 'text-body font-semibold',
     lg: 'text-h3 font-semibold',
   }[size];
 
+  const textStyles: Record<'sm' | 'md' | 'lg', TextStyle> = {
+    sm: { fontSize: 13, fontWeight: '500' },
+    md: { fontSize: 15, fontWeight: '600' },
+    lg: { fontSize: 16, fontWeight: '600' },
+  };
+
   let variantContainer = '';
   let variantText = '';
   let spinnerColor = '#FFFFFF';
+  let variantStyle: ViewStyle = {};
+  let variantTextStyle: TextStyle = {};
 
   switch (variant) {
     case 'primary':
@@ -67,27 +87,45 @@ export function Button({
         : 'bg-primary active:bg-primary-hover';
       variantText = 'text-white';
       spinnerColor = '#FFFFFF';
+      variantStyle = {
+        backgroundColor: disabled ? 'rgba(59, 130, 246, 0.5)' : colors.primary,
+      };
+      variantTextStyle = { color: '#FFFFFF' };
       break;
     case 'secondary':
       variantContainer = disabled
         ? 'bg-surface-subtle/50 border border-border/50'
         : 'bg-surface-subtle border border-border active:bg-border/60';
       variantText = disabled ? 'text-ink-muted' : 'text-ink';
-      spinnerColor = '#1F2937';
+      spinnerColor = colors.ink;
+      variantStyle = {
+        backgroundColor: disabled ? 'rgba(245, 247, 251, 0.5)' : colors['surface-subtle'],
+        borderWidth: 1,
+        borderColor: colors.border,
+      };
+      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.ink };
       break;
     case 'outline':
       variantContainer = disabled
         ? 'border border-border bg-transparent'
         : 'border border-primary bg-transparent active:bg-primary-soft';
       variantText = disabled ? 'text-ink-muted' : 'text-primary';
-      spinnerColor = '#3B82F6';
+      spinnerColor = colors.primary;
+      variantStyle = {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: disabled ? colors.border : colors.primary,
+      };
+      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.primary };
       break;
     case 'ghost':
       variantContainer = disabled
         ? 'bg-transparent'
         : 'bg-transparent active:bg-surface-subtle';
       variantText = disabled ? 'text-ink-muted' : 'text-primary';
-      spinnerColor = '#3B82F6';
+      spinnerColor = colors.primary;
+      variantStyle = { backgroundColor: 'transparent' };
+      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.primary };
       break;
     case 'danger':
       variantContainer = disabled
@@ -95,6 +133,10 @@ export function Button({
         : 'bg-danger active:opacity-90';
       variantText = 'text-white';
       spinnerColor = '#FFFFFF';
+      variantStyle = {
+        backgroundColor: disabled ? 'rgba(185, 28, 28, 0.5)' : colors.danger,
+      };
+      variantTextStyle = { color: '#FFFFFF' };
       break;
   }
 
@@ -108,23 +150,38 @@ export function Button({
       disabled={disabled || loading}
       onPress={handlePress}
       className={`rounded-lg flex-row items-center justify-center ${sizeClasses} ${variantContainer} ${widthClass} ${className}`}
+      style={[
+        {
+          borderRadius: radii.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: fullWidth ? '100%' : undefined,
+        },
+        sizeStyles[size],
+        variantStyle,
+        style,
+      ]}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={spinnerColor} className="mr-2" />
+        <ActivityIndicator size="small" color={spinnerColor} style={{ marginRight: 8 }} />
       ) : null}
 
       {!loading && icon && iconPosition === 'left' ? (
-        <View className="mr-2">{icon}</View>
+        <View style={{ marginRight: 8 }}>{icon}</View>
       ) : null}
 
-      <Text className={`${textSizes} ${variantText} text-center`}>
+      <Text
+        className={`${textSizes} ${variantText} text-center`}
+        style={[{ textAlign: 'center' }, textStyles[size], variantTextStyle]}
+      >
         {children}
       </Text>
 
       {!loading && icon && iconPosition === 'right' ? (
-        <View className="ml-2">{icon}</View>
+        <View style={{ marginLeft: 8 }}>{icon}</View>
       ) : null}
     </TouchableOpacity>
   );

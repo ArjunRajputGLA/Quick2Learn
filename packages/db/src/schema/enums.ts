@@ -33,3 +33,94 @@ export const enquiryStatusEnum = pgEnum("enquiry_status", [
   "closed",
 ]);
 export const storageBucketEnum = pgEnum("storage_bucket", ["public", "private"]);
+export const joinRequestStatusEnum = pgEnum("join_request_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+export const contentItemKindEnum = pgEnum("content_item_kind", [
+  "youtube",
+  "pdf",
+  "link",
+  "video_hosted",
+]);
+
+export const liveSessionProviderEnum = pgEnum("live_session_provider", [
+  "zoom",
+  "google_meet",
+  "youtube_live",
+  "offline",
+]);
+
+export const liveSessionStatusEnum = pgEnum("live_session_status", [
+  "scheduled",
+  "live",
+  "ended",
+  "cancelled",
+]);
+
+export const attendanceStatusEnum = pgEnum("attendance_status", [
+  "present",
+  "absent",
+  "late",
+  "excused",
+]);
+
+export const attendanceSourceEnum = pgEnum("attendance_source", [
+  "joined_online",
+  "marked",
+]);
+
+export const questionTypeEnum = pgEnum("question_type", [
+  "mcq_single",
+  "mcq_multi",
+  "assertion_reason",
+  "case_study",
+  "numeric",
+  "true_false",
+]);
+
+export const questionDifficultyEnum = pgEnum("question_difficulty", [
+  "easy",
+  "medium",
+  "hard",
+]);
+
+export const testKindEnum = pgEnum("test_kind", [
+  "chapter_test",
+  "unit_test",
+  "mock",
+  "practice",
+]);
+
+export const testShowSolutionsEnum = pgEnum("test_show_solutions", [
+  "after_submit",
+  "after_end",
+  "never",
+]);
+
+export const testStatusEnum = pgEnum("test_status", [
+  "draft",
+  "scheduled",
+  "live",
+  "closed",
+]);
+
+export const attemptStatusEnum = pgEnum("attempt_status", [
+  "in_progress",
+  "submitted",
+  "auto_submitted",
+]);
+
+export const doubtSourceTypeEnum = pgEnum("doubt_source_type", [
+  "lecture",
+  "test_question",
+  "general",
+]);
+
+export const doubtStatusEnum = pgEnum("doubt_status", [
+  "open",
+  "answered",
+  "closed",
+]);
+

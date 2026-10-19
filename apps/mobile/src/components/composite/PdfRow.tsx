@@ -8,15 +8,17 @@ export interface PdfRowProps {
   title: string;
   size: string; // e.g. "2.4 MB"
   downloadState?: PdfDownloadState;
+  isNew?: boolean;
   onPress?: () => void;
   onDownloadPress?: () => void;
   className?: string;
 }
 
-export function PdfRow({
+function PdfRowComponent({
   title,
   size,
   downloadState = 'idle',
+  isNew = false,
   onPress,
   onDownloadPress,
   className = '',
@@ -25,6 +27,8 @@ export function PdfRow({
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`PDF document: ${title}, ${size}`}
       className={`min-h-[56px] py-3 px-4 flex-row items-center justify-between border-b border-border/70 bg-surface active:bg-surface-subtle ${className}`}
     >
       <View className="flex-row items-center flex-1 mr-3">
@@ -33,13 +37,22 @@ export function PdfRow({
         </View>
 
         <View className="flex-1 justify-center">
-          <Text
-            className="text-body font-medium text-ink leading-snug"
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
-            {title}
-          </Text>
+          <View className="flex-row items-center flex-wrap gap-1.5">
+            <Text
+              className="text-body font-medium text-ink leading-snug flex-shrink"
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+            {isNew && (
+              <View className="bg-emerald-600 px-1.5 py-0.2 rounded-md">
+                <Text className="text-[10px] font-black text-white uppercase tracking-wider">
+                  NEW
+                </Text>
+              </View>
+            )}
+          </View>
           <Text className="text-caption text-ink-muted mt-0.5">{size}</Text>
         </View>
       </View>
@@ -48,7 +61,7 @@ export function PdfRow({
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={
-          downloadState === 'downloaded' ? 'Open PDF' : 'Download PDF'
+          downloadState === 'downloaded' ? 'Open PDF document' : 'Download PDF for offline study'
         }
         onPress={onDownloadPress || onPress}
         className="w-11 h-11 items-center justify-center rounded-full bg-surface-subtle active:bg-primary-soft/50"
@@ -65,3 +78,5 @@ export function PdfRow({
     </TouchableOpacity>
   );
 }
+
+export const PdfRow = React.memo(PdfRowComponent);

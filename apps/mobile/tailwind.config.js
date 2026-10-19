@@ -39,8 +39,12 @@ const { colors, radii, spacing, mobileTypeScale } = tokens;
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    path.resolve(__dirname, './src/**/*.{js,jsx,ts,tsx}').replace(/\\/g, '/'),
+    path.resolve(__dirname, './app/**/*.{js,jsx,ts,tsx}').replace(/\\/g, '/'),
     './src/**/*.{js,jsx,ts,tsx}',
     './app/**/*.{js,jsx,ts,tsx}',
+    './apps/mobile/src/**/*.{js,jsx,ts,tsx}',
+    './apps/mobile/app/**/*.{js,jsx,ts,tsx}',
   ],
   presets: [require('nativewind/preset')],
   theme: {

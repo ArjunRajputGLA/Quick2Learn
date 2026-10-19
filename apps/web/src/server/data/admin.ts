@@ -436,6 +436,24 @@ export async function getAdminStudentDetails(
     )
     .orderBy(desc(schema.auditLog.createdAt));
 
+  // Linked parents
+  const linkedParents = await d
+    .select({
+      id: schema.parentLinks.id,
+      parentUserId: schema.parentLinks.parentUserId,
+      relation: schema.parentLinks.relation,
+      verifiedAt: schema.parentLinks.verifiedAt,
+      createdAt: schema.parentLinks.createdAt,
+      name: schema.user.name,
+      email: schema.user.email,
+      phone: schema.profiles.phone,
+    })
+    .from(schema.parentLinks)
+    .innerJoin(schema.user, eq(schema.parentLinks.parentUserId, schema.user.id))
+    .leftJoin(schema.profiles, eq(schema.parentLinks.parentUserId, schema.profiles.userId))
+    .where(eq(schema.parentLinks.studentUserId, studentId))
+    .orderBy(desc(schema.parentLinks.createdAt));
+
   return {
     user: studentUser,
     profile: studentProfile || null,
@@ -443,6 +461,7 @@ export async function getAdminStudentDetails(
     feeDues,
     payments,
     notes: auditLogs,
+    linkedParents,
   };
 }
 

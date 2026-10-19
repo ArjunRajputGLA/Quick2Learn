@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Bell, Calendar } from 'lucide-react-native';
+import { Calendar } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
 
 export interface AnnouncementCardProps {
@@ -12,7 +12,7 @@ export interface AnnouncementCardProps {
   className?: string;
 }
 
-export function AnnouncementCard({
+function AnnouncementCardComponent({
   title,
   message,
   date,
@@ -23,6 +23,7 @@ export function AnnouncementCard({
   const content = (
     <View
       className={`bg-surface border border-border rounded-2xl p-4 shadow-sm ${className}`}
+      accessibilityLabel={`Announcement: ${title}. ${date}. ${category || ''}. ${message}`}
     >
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center">
@@ -52,7 +53,12 @@ export function AnnouncementCard({
 
   if (onPress) {
     return (
-      <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`View announcement: ${title}`}
+      >
         {content}
       </TouchableOpacity>
     );
@@ -60,3 +66,5 @@ export function AnnouncementCard({
 
   return content;
 }
+
+export const AnnouncementCard = React.memo(AnnouncementCardComponent);

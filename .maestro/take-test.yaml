@@ -1,0 +1,42 @@
+appId: in.quick2learn.app
+---
+# Flow 4: Take a Test Assessment and submit answers
+- launchApp:
+    clearState: false
+
+# 1. Start from Batches or Tests
+- tapOn: "Batches"
+- assertVisible: "My Enrolled Batches"
+
+# 2. Select a batch
+- tapOn:
+    text: ".*Mathematics.*|.*Class.*"
+    retryTapIfNoResponse: true
+
+# 3. Open Tests tab
+- tapOn: "Tests"
+- tapOn:
+    text: "Start Test|Resume"
+    retryTapIfNoResponse: true
+
+# 4. In Test Attempt Screen
+- assertVisible: "Question"
+- assertVisible: "Next"
+
+# 5. Answer Question
+- tapOn:
+    text: "Option A|Option B|Option C|Option D"
+    retryTapIfNoResponse: true
+
+# 6. Open Palette and Submit
+- tapOn:
+    accessibilityLabel: "Open question palette"
+- tapOn: "Submit Test"
+
+# 7. Confirm Submission
+- assertVisible: "Ready to Submit?"
+- tapOn: "Submit Assessment"
+
+# 8. Verify Result screen
+- assertVisible: "Test Result"
+- assertVisible: "Score"

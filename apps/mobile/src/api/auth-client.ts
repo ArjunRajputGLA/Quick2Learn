@@ -1,9 +1,25 @@
 import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
-import { phoneNumberClient, emailOTPClient } from "better-auth/client/plugins";
+import { phoneNumberClient, emailOTPClient, oneTimeTokenClient } from "better-auth/client/plugins";
 import * as SecureStore from "expo-secure-store";
 
-export const baseURL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:3000";
+function resolveBaseUrl(): string {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (__DEV__) {
+    return envUrl || "http://10.0.2.2:3000";
+  }
+  // Production releases MUST strictly use HTTPS
+  if (envUrl) {
+    if (!envUrl.startsWith("https://")) {
+      console.warn("[Security] Enforcing HTTPS on production API URL:", envUrl);
+      return envUrl.replace(/^http:\/\//, "https://");
+    }
+    return envUrl;
+  }
+  return "https://quick2learn.in";
+}
+
+export const baseURL = resolveBaseUrl();
 
 export const authClient = createAuthClient({
   baseURL,
@@ -15,5 +31,6 @@ export const authClient = createAuthClient({
     }),
     phoneNumberClient(),
     emailOTPClient(),
+    oneTimeTokenClient(),
   ],
 });

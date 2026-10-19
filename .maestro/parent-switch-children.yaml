@@ -1,0 +1,26 @@
+appId: in.quick2learn.app
+---
+# Flow 6: Parent switching between multiple enrolled children
+- launchApp:
+    clearState: false
+
+# 1. Open Parent Dashboard
+- assertVisible: "Home"
+- assertVisible: "Linked Children"
+
+# 2. Verify Child card is displayed
+- assertVisible: "Overall Attendance"
+
+# 3. Switch child
+- tapOn:
+    text: "Switch Student|Change Student"
+    retryTapIfNoResponse: true
+
+# 4. Select sibling
+- tapOn:
+    text: ".*Rajput.*|.*Student.*"
+    retryTapIfNoResponse: true
+
+# 5. Verify Child dashboard updates
+- assertVisible: "Overall Attendance"
+- assertVisible: "Fee Dues"

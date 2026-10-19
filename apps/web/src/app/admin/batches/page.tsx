@@ -37,14 +37,21 @@ export default async function AdminBatchesPage() {
           </p>
         </div>
 
-        {current.role === "admin" && (
-          <Link href="/admin/batches/new">
-            <Button size="sm" className="gap-1.5 font-bold shadow-xs">
-              <Plus className="w-4 h-4" />
-              <span>Create Batch</span>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/batches/requests">
+            <Button variant="outline" size="sm" className="gap-1.5 font-bold">
+              <span>Join Requests Inbox</span>
             </Button>
           </Link>
-        )}
+          {current.role === "admin" && (
+            <Link href="/admin/batches/new">
+              <Button size="sm" className="gap-1.5 font-bold shadow-xs">
+                <Plus className="w-4 h-4" />
+                <span>Create Batch</span>
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Batches Table */}
@@ -71,6 +78,7 @@ export default async function AdminBatchesPage() {
                 <tr>
                   <th className="py-3 px-4">Batch Title</th>
                   <th className="py-3 px-4">Class & Board</th>
+                  <th className="py-3 px-4">Join Code</th>
                   <th className="py-3 px-4">Mode</th>
                   <th className="py-3 px-4">Faculty</th>
                   <th className="py-3 px-4">Seats</th>
@@ -106,6 +114,12 @@ export default async function AdminBatchesPage() {
                       </span>
                       <span className="text-body-xs text-ink-muted ml-1.5 uppercase font-medium">
                         ({batch.board})
+                      </span>
+                    </td>
+
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="font-mono text-xs font-black tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
+                        {batch.joinCode || "—"}
                       </span>
                     </td>
 
