@@ -45,6 +45,7 @@ import {
   checkDeviceRoleMutualExclusion,
   verifyChildCodeDeviceClaim,
   claimChildCodeOnDevice,
+  claimAccountOnDevice,
   setDeviceActiveRole,
 } from '../../src/lib/deviceSession';
 import { colors, radii } from '@quick2learn/shared';
@@ -176,6 +177,42 @@ export default function RegisterScreen() {
         } catch {}
       }
 
+      // STRICT CHECK: Reject registration if phone number already exists
+      const existingByPhone = accountsList.find(
+        (a) => a.phone?.replace(/\D/g, '').slice(-10) === cleanPhone.slice(-10)
+      );
+      const isDemoPhone =
+        cleanPhone.slice(-10) === '9876543210' ||
+        cleanPhone.slice(-10) === '9800000003';
+
+      if (existingByPhone || isDemoPhone) {
+        setError('An account with this mobile number already exists. Please sign in instead.');
+        setIsLoading(false);
+        return;
+      }
+
+      // STRICT CHECK: Reject registration if email already exists
+      if (cleanEmail) {
+        const existingByEmail = accountsList.find(
+          (a) =>
+            a.email?.toLowerCase() === cleanEmail ||
+            a.displayEmail?.toLowerCase() === cleanEmail
+        );
+        const isDemoEmail =
+          cleanEmail === 'admin@quick2learn.in' ||
+          cleanEmail === 'teacher@quick2learn.in' ||
+          cleanEmail === 'student@quick2learn.in' ||
+          cleanEmail === 'student.demo@quick2learn.in' ||
+          cleanEmail === 'parent@quick2learn.in' ||
+          cleanEmail === 'parent.demo@quick2learn.in';
+
+        if (existingByEmail || isDemoEmail) {
+          setError('An account with this email address already exists. Please sign in instead.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       let generatedStudentInviteCode = '';
       let parentLinkedStudents: any[] = [];
 
@@ -252,17 +289,8 @@ export default function RegisterScreen() {
         createdAt: new Date().toISOString(),
       };
 
-      // Check if account already exists
-      const existingIndex = accountsList.findIndex(
-        (a) =>
-          (cleanEmail && a.email?.toLowerCase() === cleanEmail) ||
-          a.phone?.replace(/\D/g, '') === cleanPhone.replace(/\D/g, '')
-      );
-      if (existingIndex >= 0) {
-        accountsList[existingIndex] = newAccountRecord;
-      } else {
-        accountsList.push(newAccountRecord);
-      }
+      // Append verified new account to registered accounts list
+      accountsList.push(newAccountRecord);
 
       await SecureStore.setItemAsync(
         'q2l_registered_accounts',
@@ -311,6 +339,10 @@ export default function RegisterScreen() {
       );
       await SecureStore.setItemAsync(DEMO_MODE_STORAGE_KEY, 'true').catch(() => {});
       queryClient.setQueryData(queryKeys.me, userProfile);
+      await claimAccountOnDevice(cleanPhone, newAccountId, role);
+      if (cleanEmail) {
+        await claimAccountOnDevice(cleanEmail, newAccountId, role);
+      }
 
       if (role === 'student') {
         await setDeviceActiveRole('student');
@@ -331,6 +363,7 @@ export default function RegisterScreen() {
         // Parent: bind the child code to this device
         await claimChildCodeOnDevice(cleanInviteCode, newAccountId, cleanName);
         await setDeviceActiveRole('parent');
+        queryClient.setQueryData(queryKeys.parentStudents, { students: parentLinkedStudents });
         // Parent navigates directly into app
         router.replace('/(app)' as any);
       }

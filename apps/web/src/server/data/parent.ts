@@ -304,6 +304,7 @@ export async function getParentHomeData(
       fullName: schema.profiles.fullName,
       classLevel: schema.profiles.classLevel,
       board: schema.profiles.board,
+      school: schema.profiles.school,
       avatarUrl: schema.profiles.avatarUrl,
     })
     .from(schema.profiles)
@@ -320,6 +321,7 @@ export async function getParentHomeData(
     fullName: studentProfile.fullName || "Student",
     classLevel: studentProfile.classLevel ?? null,
     board: studentProfile.board as "cbse" | "icse" | "isc" | null,
+    school: studentProfile.school ?? null,
     avatarUrl: studentProfile.avatarUrl ?? null,
   };
 

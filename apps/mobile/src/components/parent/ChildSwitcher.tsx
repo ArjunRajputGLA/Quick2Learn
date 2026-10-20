@@ -42,7 +42,7 @@ export function ChildSwitcher() {
             <Text className="text-body-sm font-bold text-ink">
               {child.fullName}{" "}
               <Text className="text-body-xs font-normal text-ink-muted">
-                ({child.classLevel ? `Class ${child.classLevel}` : ""} {child.board?.toUpperCase() || ""})
+                ({child.classLevel ? `Class ${child.classLevel}` : ""}{child.board ? ` • ${child.board.toUpperCase()}` : ""}{child.school ? ` • ${child.school}` : ""})
               </Text>
             </Text>
           </View>

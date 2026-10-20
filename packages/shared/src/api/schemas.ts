@@ -269,6 +269,7 @@ export const parentHomeResponseSchema = z.object({
     fullName: z.string(),
     classLevel: z.number().int().nullable().optional(),
     board: z.enum(["cbse", "icse", "isc"]).nullable().optional(),
+    school: z.string().nullable().optional(),
     avatarUrl: z.string().nullable().optional(),
   }),
   attendanceThisWeek: parentHomeAttendanceSchema,

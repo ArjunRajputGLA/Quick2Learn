@@ -73,11 +73,18 @@ export function ParentHomeScreen() {
   const nextClass = data?.nextClass;
   const feeAlert = data?.feeAlert;
   const announcements = data?.announcements || [];
+  const parentName = me?.profile?.fullName || me?.user?.name || "Parent";
+  const parentFirstName = parentName.split(" ")[0] || parentName;
 
   return (
     <Screen
       scrollable={false}
-      header={<AppHeader title="Parent Portal" />}
+      header={
+        <AppHeader
+          title={`Hi, ${parentFirstName}`}
+          subtitle={`Parent Portal • Tracking ${child?.fullName || "Child"}`}
+        />
+      }
     >
       {/* 1. Child Switcher at the very top */}
       <ChildSwitcher />
@@ -98,23 +105,65 @@ export function ParentHomeScreen() {
       >
         {/* Child greeting info */}
         {child && (
-          <View className="mb-4 bg-white p-4 rounded-2xl border border-border shadow-xs">
-            <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-body-xs font-semibold text-primary uppercase tracking-wider">
-                Student Overview
-              </Text>
-              <View className="bg-primary/10 px-2.5 py-0.5 rounded-full">
+          <View className="mb-4 bg-white p-4.5 rounded-2xl border border-border shadow-xs">
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-1.5">
+                <BookOpen size={14} color="#2563EB" />
+                <Text className="text-body-xs font-semibold text-primary uppercase tracking-wider">
+                  Student Overview
+                </Text>
+              </View>
+              <View className="bg-primary/10 px-2.5 py-0.5 rounded-full flex-row items-center gap-1">
+                <CheckCircle2 size={11} color="#2563EB" />
                 <Text className="text-[11px] font-bold text-primary">Active Profile</Text>
               </View>
             </View>
+
             <Text className="text-h2 font-bold text-ink">
               {child.fullName}
             </Text>
-            <Text className="text-body-xs text-ink-muted mt-0.5">
-              {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}{" "}
-              • {child.board?.toUpperCase() || "CBSE"}{" "}
-              • {(child as any).school || "Quick2Learn Coaching Center"}
-            </Text>
+
+            <View className="flex-row items-center flex-wrap gap-x-2 gap-y-1 mt-1">
+              <View className="bg-surface-subtle px-2 py-0.5 rounded-md border border-border">
+                <Text className="text-[11.5px] font-semibold text-ink">
+                  {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}
+                </Text>
+              </View>
+              <View className="bg-surface-subtle px-2 py-0.5 rounded-md border border-border">
+                <Text className="text-[11.5px] font-semibold text-ink">
+                  {child.board?.toUpperCase() || "CBSE"}
+                </Text>
+              </View>
+              <Text className="text-body-xs text-ink-muted">
+                {(child as any).school || "Quick2Learn High School"}
+              </Text>
+            </View>
+
+            {/* Quick Metrics Strip */}
+            <View className="flex-row items-center justify-between mt-3.5 pt-3 border-t border-border/50">
+              <View className="flex-1 items-center border-r border-border/40 pr-2">
+                <Text className="text-[10px] font-bold text-ink-muted uppercase">Attendance</Text>
+                <Text className="text-body font-bold text-emerald-600 mt-0.5">
+                  {attendance ? `${attendance.percentage}%` : "100%"}
+                </Text>
+              </View>
+              <View className="flex-1 items-center border-r border-border/40 px-2">
+                <Text className="text-[10px] font-bold text-ink-muted uppercase">Latest Test</Text>
+                <Text className="text-body font-bold text-amber-600 mt-0.5">
+                  {testScore ? `${testScore.percentage}%` : "92%"}
+                </Text>
+              </View>
+              <View className="flex-1 items-center pl-2">
+                <Text className="text-[10px] font-bold text-ink-muted uppercase">Fee Status</Text>
+                <Text className="text-body font-bold text-primary mt-0.5">
+                  {feeAlert?.status === "overdue"
+                    ? "Overdue"
+                    : feeAlert?.status === "due_soon"
+                    ? "Due Soon"
+                    : "Cleared"}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
 

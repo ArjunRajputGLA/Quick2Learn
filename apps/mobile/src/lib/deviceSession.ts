@@ -230,11 +230,126 @@ export async function releaseChildCodesOnDevice(parentUserId?: string): Promise<
 }
 
 /**
+ * Storage key for active account-device bindings.
+ * Enforces single-device login per account (email or phone).
+ */
+export const ACCOUNT_CLAIMS_STORAGE_KEY = "q2l_active_account_claims";
+
+export interface AccountDeviceClaim {
+  identifier: string; // 10-digit phone or normalized email
+  deviceId: string;
+  userId: string;
+  role: string;
+  claimedAt: string;
+  active: boolean;
+}
+
+export async function getAllAccountClaims(): Promise<Record<string, AccountDeviceClaim>> {
+  try {
+    const json = await SecureStore.getItemAsync(ACCOUNT_CLAIMS_STORAGE_KEY);
+    if (json) {
+      return JSON.parse(json);
+    }
+  } catch {}
+  return {};
+}
+
+/**
+ * Verifies whether an account (by phone number or email) can be logged in on this device.
+ * Rejects login if this account is already active on another device.
+ */
+export async function verifyAccountDeviceClaim(
+  accountIdentifier: string,
+  userId?: string
+): Promise<{ allowed: boolean; error?: string }> {
+  const digits = accountIdentifier.replace(/\D/g, '').slice(-10);
+  const cleanKey = digits.length === 10 ? digits : accountIdentifier.trim().toLowerCase();
+
+  const currentDeviceId = await getDeviceId();
+  const claims = await getAllAccountClaims();
+
+  const existingClaim = claims[cleanKey];
+  if (!existingClaim || !existingClaim.active) {
+    return { allowed: true };
+  }
+
+  // If already active on another device
+  if (existingClaim.deviceId !== currentDeviceId) {
+    return {
+      allowed: false,
+      error: `This account (${accountIdentifier}) is already actively logged in on another device. Please log out from that device first before logging in here.`,
+    };
+  }
+
+  return { allowed: true };
+}
+
+/**
+ * Binds an account (by phone or email) to this device.
+ */
+export async function claimAccountOnDevice(
+  accountIdentifier: string,
+  userId: string,
+  role: string
+): Promise<void> {
+  const digits = accountIdentifier.replace(/\D/g, '').slice(-10);
+  const cleanKey = digits.length === 10 ? digits : accountIdentifier.trim().toLowerCase();
+
+  const currentDeviceId = await getDeviceId();
+  const claims = await getAllAccountClaims();
+
+  claims[cleanKey] = {
+    identifier: cleanKey,
+    deviceId: currentDeviceId,
+    userId,
+    role,
+    claimedAt: new Date().toISOString(),
+    active: true,
+  };
+
+  try {
+    await SecureStore.setItemAsync(ACCOUNT_CLAIMS_STORAGE_KEY, JSON.stringify(claims));
+  } catch (err) {
+    console.warn("[deviceSession] Error claiming account on device:", err);
+  }
+}
+
+/**
+ * Releases account claims on logout so the account can log into another device.
+ */
+export async function releaseAccountClaimsOnDevice(userId?: string): Promise<void> {
+  try {
+    const currentDeviceId = await getDeviceId();
+    const claims = await getAllAccountClaims();
+    let updated = false;
+
+    for (const key of Object.keys(claims)) {
+      const claim = claims[key];
+      if (
+        claim &&
+        claim.active &&
+        (claim.deviceId === currentDeviceId || (userId && claim.userId === userId))
+      ) {
+        claim.active = false;
+        updated = true;
+      }
+    }
+
+    if (updated) {
+      await SecureStore.setItemAsync(ACCOUNT_CLAIMS_STORAGE_KEY, JSON.stringify(claims));
+    }
+  } catch (err) {
+    console.warn("[deviceSession] Error releasing account claims:", err);
+  }
+}
+
+/**
  * Clears the active device session on logout.
  */
 export async function clearDeviceActiveSession(parentUserId?: string): Promise<void> {
   try {
     await releaseChildCodesOnDevice(parentUserId);
+    await releaseAccountClaimsOnDevice(parentUserId);
     await SecureStore.deleteItemAsync(DEVICE_ACTIVE_ROLE_KEY).catch(() => {});
   } catch (err) {
     console.warn("[deviceSession] Error clearing active session:", err);

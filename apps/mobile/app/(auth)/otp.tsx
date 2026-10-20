@@ -21,6 +21,8 @@ import { authClient } from '../../src/api/auth-client';
 import { queryKeys } from '../../src/api/hooks';
 import {
   checkDeviceRoleMutualExclusion,
+  verifyAccountDeviceClaim,
+  claimAccountOnDevice,
   setDeviceActiveRole,
 } from '../../src/lib/deviceSession';
 import { colors, radii } from '@quick2learn/shared';
@@ -103,12 +105,20 @@ export default function OtpScreen() {
       }).catch(() => null);
 
       if (meData?.role) {
+        const accountClaimCheck = await verifyAccountDeviceClaim(phone, meData?.user?.id);
+        if (!accountClaimCheck.allowed) {
+          setError(accountClaimCheck.error || 'This account is already active on another device.');
+          setIsVerifying(false);
+          return;
+        }
+
         const roleCheck = await checkDeviceRoleMutualExclusion(meData.role);
         if (!roleCheck.allowed) {
           setError(roleCheck.message || 'Portal role conflict on this device.');
           setIsVerifying(false);
           return;
         }
+        await claimAccountOnDevice(phone, meData?.user?.id || 'user', meData.role);
         await setDeviceActiveRole(meData.role);
       }
 

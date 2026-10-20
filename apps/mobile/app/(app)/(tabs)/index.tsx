@@ -51,9 +51,6 @@ import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quic
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const { data: me } = useMe();
   const isParent = me?.role === 'parent';
 
@@ -61,6 +58,14 @@ export default function HomeScreen() {
     return <ParentHomeScreen />;
   }
 
+  return <StudentHomeScreen />;
+}
+
+function StudentHomeScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
   const { data: home, isLoading, isRefetching, refetch } = useHome();
   const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
 
