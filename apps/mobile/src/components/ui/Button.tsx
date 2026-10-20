@@ -49,29 +49,28 @@ export function Button({
     onPress?.(e);
   };
 
-  // Min-height is strictly 48dp for touch target accessibility
   const sizeClasses = {
-    sm: 'min-h-[44px] px-3 py-2',
-    md: 'min-h-[48px] px-4 py-3',
-    lg: 'min-h-[52px] px-6 py-3.5',
+    sm: 'min-h-[38px] px-3 py-1.5',
+    md: 'min-h-[42px] px-4 py-2.5',
+    lg: 'min-h-[46px] px-5 py-3',
   }[size];
 
   const sizeStyles: Record<'sm' | 'md' | 'lg', ViewStyle> = {
-    sm: { minHeight: 44, paddingHorizontal: 12, paddingVertical: 8 },
-    md: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12 },
-    lg: { minHeight: 52, paddingHorizontal: 24, paddingVertical: 14 },
+    sm: { minHeight: 38, paddingHorizontal: 12, paddingVertical: 6 },
+    md: { minHeight: 42, paddingHorizontal: 16, paddingVertical: 9 },
+    lg: { minHeight: 46, paddingHorizontal: 20, paddingVertical: 11 },
   };
 
   const textSizes = {
-    sm: 'text-small font-medium',
-    md: 'text-body font-semibold',
-    lg: 'text-h3 font-semibold',
+    sm: 'text-[12px] font-semibold',
+    md: 'text-[13.5px] font-semibold',
+    lg: 'text-[15px] font-semibold',
   }[size];
 
   const textStyles: Record<'sm' | 'md' | 'lg', TextStyle> = {
-    sm: { fontSize: 13, fontWeight: '500' },
-    md: { fontSize: 15, fontWeight: '600' },
-    lg: { fontSize: 16, fontWeight: '600' },
+    sm: { fontSize: 12, fontWeight: '600' },
+    md: { fontSize: 13.5, fontWeight: '600' },
+    lg: { fontSize: 15, fontWeight: '600' },
   };
 
   let variantContainer = '';

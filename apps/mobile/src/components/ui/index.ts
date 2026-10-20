@@ -18,3 +18,4 @@ export * from './EmptyState';
 export * from './ErrorState';
 export * from './OfflineBanner';
 export * from './SectionHeader';
+export * from './NotificationBell';

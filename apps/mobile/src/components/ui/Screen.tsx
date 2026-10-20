@@ -20,6 +20,7 @@ export interface ScreenProps {
   className?: string;
   contentContainerStyle?: ViewStyle;
   subtle?: boolean;
+  safeAreaBottom?: boolean;
 }
 
 export function Screen({
@@ -30,12 +31,18 @@ export function Screen({
   onRefresh,
   className = '',
   contentContainerStyle,
-  subtle = false,
+  subtle = true,
+  safeAreaBottom,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
   const bgColor = subtle ? 'bg-surface-subtle' : 'bg-surface';
   const resolvedBg = subtle ? colors['surface-subtle'] : colors.surface;
+
+  // When scrollable is false (e.g. within Tab screens or screens hosting FlashList/custom ScrollView),
+  // default safeAreaBottom to false so the container isn't artificially clipped short above the tab bar.
+  // When scrollable is true, default to true so ScrollView content bottom has breathing room.
+  const shouldApplySafeAreaBottom = safeAreaBottom ?? (scrollable ? true : false);
 
   const content = scrollable ? (
     <ScrollView
@@ -43,7 +50,7 @@ export function Screen({
       className="flex-1"
       contentContainerStyle={[
         {
-          paddingBottom: Math.max(insets.bottom, 16) + 16,
+          paddingBottom: (shouldApplySafeAreaBottom ? Math.max(insets.bottom, 16) : 16) + 16,
           flexGrow: 1,
         },
         contentContainerStyle,
@@ -68,7 +75,7 @@ export function Screen({
       className="flex-1"
       style={[
         {
-          paddingBottom: Math.max(insets.bottom, 16),
+          paddingBottom: shouldApplySafeAreaBottom ? Math.max(insets.bottom, 16) : 0,
         },
         contentContainerStyle,
       ]}

@@ -33,9 +33,9 @@ export function Chip({
   };
 
   const containerStyle: ViewStyle = {
-    minHeight: 36,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    minHeight: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: radii.full,
     borderWidth: 1,
     flexDirection: 'row',
@@ -46,7 +46,7 @@ export function Chip({
   };
 
   const textStyle: TextStyle = {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: selected ? '600' : '500',
     color: selected ? '#FFFFFF' : colors.ink,
   };
@@ -64,7 +64,7 @@ export function Chip({
       disabled={disabled}
       onPress={handlePress}
       style={[containerStyle, style]}
-      className={`min-h-[40px] px-3.5 py-1.5 rounded-full border flex-row items-center justify-center ${containerClasses} ${className}`}
+      className={`min-h-[28px] px-2.5 py-1 rounded-full border flex-row items-center justify-center ${containerClasses} ${className}`}
       hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
     >
       {icon ? <View style={{ marginRight: 6 }} className="mr-1.5">{icon}</View> : null}

@@ -85,18 +85,18 @@ export default function DoubtsTabScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 backgroundColor: '#ECFDF5',
-                paddingHorizontal: 10,
-                paddingVertical: 6,
+                paddingHorizontal: 8,
+                paddingVertical: 4,
                 borderRadius: radii.full,
                 borderWidth: 1,
                 borderColor: '#A7F3D0',
               }}
-              className="flex-row items-center bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-200"
+              className="flex-row items-center bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200"
               accessibilityRole="button"
               accessibilityLabel="Open batch WhatsApp group"
             >
-              <MessageCircle size={14} color="#059669" />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#065F46', marginLeft: 4 }} className="text-[11px] font-bold text-emerald-800 ml-1">
+              <MessageCircle size={13} color="#059669" />
+              <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#065F46', marginLeft: 3 }} className="text-[10.5px] font-bold text-emerald-800 ml-1">
                 WhatsApp Group
               </Text>
             </TouchableOpacity>
@@ -105,7 +105,9 @@ export default function DoubtsTabScreen() {
       }
     >
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+        style={{ flex: 1 }}
+        className="flex-1"
+        contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -122,43 +124,43 @@ export default function DoubtsTabScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: radii.xl,
-            padding: 16,
+            borderRadius: radii.md,
+            padding: 12,
             borderWidth: 1,
             borderColor: colors.border,
-            marginBottom: 16,
-            elevation: 2,
+            marginBottom: 10,
+            elevation: 1,
             shadowColor: '#000000',
             shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 3,
+            shadowOpacity: 0.04,
+            shadowRadius: 2,
           }}
-          className="bg-surface rounded-2xl p-4 border border-border shadow-xs mb-4"
+          className="bg-surface rounded-xl p-3 border border-border shadow-2xs mb-2.5"
         >
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }} className="flex-row items-start justify-between">
-            <View style={{ flex: 1, marginRight: 12 }} className="flex-1 mr-3">
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-h3 font-bold text-ink mb-1">
+            <View style={{ flex: 1, marginRight: 10 }} className="flex-1 mr-2.5">
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                 Have a Doubt?
               </Text>
-              <Text style={{ fontSize: 13, color: colors['ink-muted'], lineHeight: 18 }} className="text-caption text-ink-muted leading-relaxed">
+              <Text style={{ fontSize: 12, color: colors['ink-muted'], lineHeight: 16 }} className="text-caption text-ink-muted leading-relaxed">
                 Snap a photo of your textbook problem or rough work for step-by-step guidance from Dinesh Sir.
               </Text>
             </View>
 
             <View
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: radii.md,
+                width: 32,
+                height: 32,
+                borderRadius: radii.sm,
                 backgroundColor: colors['primary-soft'],
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 1,
                 borderColor: 'rgba(37, 99, 235, 0.2)',
               }}
-              className="w-10 h-10 rounded-xl bg-primary-soft items-center justify-center border border-primary/20"
+              className="w-8 h-8 rounded-lg bg-primary-soft items-center justify-center border border-primary/20"
             >
-              <HelpCircle size={22} color={colors.primary} />
+              <HelpCircle size={18} color={colors.primary} />
             </View>
           </View>
 
@@ -166,43 +168,43 @@ export default function DoubtsTabScreen() {
           {openCount >= 5 ? (
             <View
               style={{
-                marginTop: 14,
+                marginTop: 10,
                 backgroundColor: '#FFFBEB',
-                padding: 12,
-                borderRadius: radii.md,
+                padding: 8,
+                borderRadius: radii.sm,
                 borderWidth: 1,
                 borderColor: '#FDE68A',
                 flexDirection: 'row',
                 alignItems: 'center',
               }}
-              className="mt-3.5 bg-amber-50 p-3 rounded-xl border border-amber-200 flex-row items-center"
+              className="mt-2.5 bg-amber-50 p-2 rounded-lg border border-amber-200 flex-row items-center"
             >
-              <AlertCircle size={16} color="#D97706" />
-              <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500', marginLeft: 8, flex: 1 }} className="text-caption text-amber-900 font-medium ml-2 flex-1">
+              <AlertCircle size={14} color="#D97706" />
+              <Text style={{ fontSize: 11, color: '#92400E', fontWeight: '500', marginLeft: 6, flex: 1 }} className="text-[11px] text-amber-900 font-medium ml-1.5 flex-1">
                 You have 5 open doubts (limit reached). A teacher will respond shortly, or you can close resolved doubts.
               </Text>
             </View>
           ) : (
             <View
               style={{
-                marginTop: 14,
-                paddingTop: 12,
+                marginTop: 10,
+                paddingTop: 8,
                 borderTopWidth: 1,
                 borderTopColor: colors.border,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
-              className="mt-3.5 pt-3 border-t border-border/70 flex-row items-center justify-between"
+              className="mt-2.5 pt-2 border-t border-border/70 flex-row items-center justify-between"
             >
-              <Text style={{ fontSize: 13, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+              <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-[11.5px] text-ink-muted">
                 {openCount}/5 open doubts
               </Text>
               <Button
                 variant="primary"
                 size="sm"
                 onPress={handleAskDoubt}
-                icon={<Plus size={16} color="#FFFFFF" />}
+                icon={<Plus size={14} color="#FFFFFF" />}
               >
                 Ask a Doubt
               </Button>
@@ -211,7 +213,7 @@ export default function DoubtsTabScreen() {
         </View>
 
         {/* Filter Chips: All, Open, Answered, Closed */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }} className="flex-row items-center space-x-2 mb-3.5">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }} className="flex-row items-center space-x-1.5 mb-2.5">
           {(
             [
               { id: 'all', label: 'All' },
@@ -227,14 +229,14 @@ export default function DoubtsTabScreen() {
                 activeOpacity={0.7}
                 onPress={() => setStatusFilter(chip.id)}
                 style={{
-                  paddingVertical: 6,
-                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  paddingHorizontal: 10,
                   borderRadius: radii.full,
                   borderWidth: 1,
                   backgroundColor: isSelected ? colors.primary : colors.surface,
                   borderColor: isSelected ? colors.primary : colors.border,
                 }}
-                className={`py-1.5 px-3 rounded-full border ${
+                className={`py-1 px-2.5 rounded-full border ${
                   isSelected
                     ? 'bg-primary border-primary'
                     : 'bg-surface border-border'
@@ -242,11 +244,11 @@ export default function DoubtsTabScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: '600',
                     color: isSelected ? '#FFFFFF' : colors['ink-muted'],
                   }}
-                  className={`text-small font-semibold ${
+                  className={`text-[12px] font-semibold ${
                     isSelected ? 'text-white' : 'text-ink-muted'
                   }`}
                 >
@@ -316,21 +318,21 @@ export default function DoubtsTabScreen() {
                   onPress={() => handleOpenThread(doubt.id)}
                   style={{
                     backgroundColor: colors.surface,
-                    borderRadius: radii.xl,
-                    padding: 16,
+                    borderRadius: radii.md,
+                    padding: 12,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    marginBottom: 12,
-                    elevation: 2,
+                    marginBottom: 8,
+                    elevation: 1,
                     shadowColor: '#000000',
                     shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 3,
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
                   }}
-                  className="bg-surface rounded-2xl p-4 border border-border shadow-xs"
+                  className="bg-surface rounded-xl p-3 border border-border shadow-2xs mb-2"
                 >
                   {/* Card Header: Status & Time */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-2">
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-1.5">
                       <Badge
                         label={statusText}
@@ -341,31 +343,31 @@ export default function DoubtsTabScreen() {
                         <View
                           style={{
                             backgroundColor: '#ECFDF5',
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
+                            paddingHorizontal: 6,
+                            paddingVertical: 1.5,
                             borderRadius: radii.full,
                             borderWidth: 1,
                             borderColor: '#A7F3D0',
                             flexDirection: 'row',
                             alignItems: 'center',
                           }}
-                          className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex-row items-center"
+                          className="bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200 flex-row items-center"
                         >
                           <Sparkles size={10} color="#059669" />
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#065F46', marginLeft: 4 }} className="text-[10px] font-bold text-emerald-800 ml-1">
+                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#065F46', marginLeft: 3 }} className="text-[9.5px] font-bold text-emerald-800 ml-1">
                             Solved
                           </Text>
                         </View>
                       )}
                     </View>
 
-                    <Text style={{ fontSize: 11, color: colors['ink-muted'] }} className="text-[11px] text-ink-muted">
+                    <Text style={{ fontSize: 10.5, color: colors['ink-muted'] }} className="text-[10.5px] text-ink-muted">
                       {formatActivityTime(doubt.lastActivityAt)}
                     </Text>
                   </View>
 
                   {/* Doubt Title */}
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1 leading-snug">
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5 leading-snug">
                     {doubt.title}
                   </Text>
 
@@ -373,8 +375,8 @@ export default function DoubtsTabScreen() {
                   {doubt.firstMessageSnippet ? (
                     <Text
                       numberOfLines={2}
-                      style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 10, lineHeight: 18 }}
-                      className="text-small text-ink-muted mb-2.5 leading-relaxed"
+                      style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 6, lineHeight: 16 }}
+                      className="text-caption text-ink-muted mb-1.5 leading-relaxed"
                     >
                       {doubt.firstMessageSnippet}
                     </Text>
@@ -386,22 +388,22 @@ export default function DoubtsTabScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      paddingTop: 8,
+                      paddingTop: 6,
                       borderTopWidth: 1,
                       borderTopColor: colors.border,
                     }}
-                    className="flex-row items-center justify-between pt-2 border-t border-border/60"
+                    className="flex-row items-center justify-between pt-1.5 border-t border-border/60"
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-2">
                       {doubt.subjectName ? (
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
+                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
                           {doubt.subjectName}
                         </Text>
                       ) : null}
                       {doubt.chapterTitle ? (
                         <Text
                           numberOfLines={1}
-                          style={{ fontSize: 12, color: colors['ink-muted'], maxWidth: 140 }}
+                          style={{ fontSize: 11.5, color: colors['ink-muted'], maxWidth: 140 }}
                           className="text-caption text-ink-muted max-w-[140px]"
                         >
                           • {doubt.chapterTitle}
@@ -409,11 +411,11 @@ export default function DoubtsTabScreen() {
                       ) : null}
                     </View>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} className="flex-row items-center space-x-2.5">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-2">
                       {doubt.hasAttachments && (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                          <Paperclip size={12} color="#6B7280" />
-                          <Text style={{ fontSize: 11, color: colors['ink-muted'], marginLeft: 2 }} className="text-[11px] text-ink-muted ml-0.5">
+                          <Paperclip size={11} color="#6B7280" />
+                          <Text style={{ fontSize: 10.5, color: colors['ink-muted'], marginLeft: 2 }} className="text-[10.5px] text-ink-muted ml-0.5">
                             Photo
                           </Text>
                         </View>
@@ -421,14 +423,14 @@ export default function DoubtsTabScreen() {
 
                       {doubt.sourceType === 'lecture' && (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                          <Video size={12} color="#4F46E5" />
-                          <Text style={{ fontSize: 11, color: '#4338CA', marginLeft: 2, fontWeight: '500' }} className="text-[11px] text-indigo-700 ml-0.5 font-medium">
+                          <Video size={11} color="#4F46E5" />
+                          <Text style={{ fontSize: 10.5, color: '#4338CA', marginLeft: 2, fontWeight: '500' }} className="text-[10.5px] text-indigo-700 ml-0.5 font-medium">
                             Lecture
                           </Text>
                         </View>
                       )}
 
-                      <ChevronRight size={16} color="#9CA3AF" />
+                      <ChevronRight size={14} color="#9CA3AF" />
                     </View>
                   </View>
                 </TouchableOpacity>

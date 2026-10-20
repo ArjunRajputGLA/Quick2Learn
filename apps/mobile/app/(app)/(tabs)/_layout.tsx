@@ -36,23 +36,23 @@ export default function TabsLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: 60 + (Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 6)),
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 6),
-          paddingTop: 6,
-          elevation: 8,
+          height: 52 + (Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 4)),
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 4),
+          paddingTop: 4,
+          elevation: 6,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 4,
+          shadowOpacity: 0.04,
+          shadowRadius: 3,
         },
         tabBarItemStyle: {
-          minHeight: 48,
-          paddingVertical: 2,
+          minHeight: 44,
+          paddingVertical: 1,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
-          marginTop: 2,
+          marginTop: 1,
         },
       }}
     >
@@ -62,7 +62,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size || 22} color={color} />,
+          tabBarIcon: ({ color }) => <Home size={20} color={color} />,
         }}
       />
 
@@ -73,7 +73,7 @@ export default function TabsLayout() {
           href: isParent ? '/attendance' : null,
           title: 'Attendance',
           tabBarLabel: 'Attendance',
-          tabBarIcon: ({ color, size }) => <Calendar size={size || 22} color={color} />,
+          tabBarIcon: ({ color }) => <Calendar size={20} color={color} />,
         }}
       />
 
@@ -84,7 +84,7 @@ export default function TabsLayout() {
           href: isParent ? '/tests' : null,
           title: 'Tests',
           tabBarLabel: 'Tests',
-          tabBarIcon: ({ color, size }) => <Award size={size || 22} color={color} />,
+          tabBarIcon: ({ color }) => <Award size={20} color={color} />,
         }}
       />
 
@@ -95,7 +95,7 @@ export default function TabsLayout() {
           href: isParent ? '/fees' : null,
           title: 'Fees',
           tabBarLabel: 'Fees',
-          tabBarIcon: ({ color, size }) => <CreditCard size={size || 22} color={color} />,
+          tabBarIcon: ({ color }) => <CreditCard size={20} color={color} />,
         }}
       />
 
@@ -106,8 +106,8 @@ export default function TabsLayout() {
           href: !isParent ? '/learn' : null,
           title: 'Learn',
           tabBarLabel: 'Learn',
-          tabBarIcon: ({ color, size }) => (
-            <BookOpen size={size || 22} color={color} />
+          tabBarIcon: ({ color }) => (
+            <BookOpen size={20} color={color} />
           ),
         }}
       />
@@ -119,8 +119,8 @@ export default function TabsLayout() {
           href: !isParent ? '/batches' : null,
           title: 'Batches',
           tabBarLabel: 'Batches',
-          tabBarIcon: ({ color, size }) => (
-            <GraduationCap size={size || 22} color={color} />
+          tabBarIcon: ({ color }) => (
+            <GraduationCap size={20} color={color} />
           ),
         }}
       />
@@ -132,8 +132,8 @@ export default function TabsLayout() {
           href: !isParent && !isTeacherOrStaff ? '/doubts' : null,
           title: 'Doubts',
           tabBarLabel: 'Doubts',
-          tabBarIcon: ({ color, size }) => (
-            <HelpCircle size={size || 22} color={color} />
+          tabBarIcon: ({ color }) => (
+            <HelpCircle size={20} color={color} />
           ),
         }}
       />
@@ -145,8 +145,8 @@ export default function TabsLayout() {
           href: isTeacherOrStaff ? '/teach' : null,
           title: 'Teach',
           tabBarLabel: 'Teach',
-          tabBarIcon: ({ color, size }) => (
-            <Briefcase size={size || 22} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Briefcase size={20} color={color} />
           ),
         }}
       />
@@ -157,7 +157,7 @@ export default function TabsLayout() {
         options={{
           title: 'Profile',
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => <User size={size || 22} color={color} />,
+          tabBarIcon: ({ color }) => <User size={20} color={color} />,
         }}
       />
     </Tabs>

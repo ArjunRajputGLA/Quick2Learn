@@ -15,14 +15,14 @@ export function Card({
   style,
   ...rest
 }: CardProps) {
-  const baseClasses = `bg-surface border border-border rounded-xl p-4 shadow-sm ${className}`;
+  const baseClasses = `bg-surface border border-border rounded-lg p-3 shadow-xs ${className}`;
   const baseStyle: ViewStyle = {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radii.lg,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: radii.md,
+    padding: 12,
+    marginBottom: 10,
     elevation: 2,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 1 },

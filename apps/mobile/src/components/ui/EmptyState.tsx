@@ -30,66 +30,67 @@ export function EmptyState({
       style={{
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
-        marginVertical: 16,
+        padding: 16,
+        marginVertical: 8,
       }}
-      className={`items-center justify-center p-6 my-4 ${className}`}
+      className={`items-center justify-center p-4 my-2 ${className}`}
     >
       <View
         style={{
-          width: 72,
-          height: 72,
-          borderRadius: radii.lg,
+          width: 52,
+          height: 52,
+          borderRadius: radii.md,
           backgroundColor: colors['surface-subtle'],
           borderWidth: 1,
           borderColor: colors.border,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 16,
+          marginBottom: 12,
         }}
-        className="w-18 h-18 rounded-2xl bg-surface-subtle border border-border items-center justify-center mb-4"
+        className="w-13 h-13 rounded-xl bg-surface-subtle border border-border items-center justify-center mb-3"
       >
-        {illustration || <FolderOpen size={36} color={colors.primary} />}
+        {illustration || <FolderOpen size={24} color={colors.primary} />}
       </View>
 
       <Text
         style={{
-          fontSize: 18,
+          fontSize: 15,
           fontWeight: '700',
           color: colors.ink,
           textAlign: 'center',
-          marginBottom: 6,
+          marginBottom: 4,
         }}
-        className="text-h2 font-semibold text-ink text-center mb-1.5"
+        className="text-h3 font-semibold text-ink text-center mb-1"
       >
         {title}
       </Text>
 
       <Text
         style={{
-          fontSize: 14,
+          fontSize: 12.5,
           color: colors['ink-muted'],
           textAlign: 'center',
-          maxWidth: 280,
-          marginBottom: 20,
-          lineHeight: 20,
+          maxWidth: 260,
+          marginBottom: 14,
+          lineHeight: 18,
         }}
-        className="text-body text-ink-muted text-center max-w-[280px] mb-6 leading-relaxed"
+        className="text-caption text-ink-muted text-center max-w-[260px] mb-3.5 leading-relaxed"
       >
         {description}
       </Text>
 
       {actionLabel && onAction ? (
-        <View style={{ width: '100%', maxWidth: 240, gap: 8 }} className="w-full max-w-[240px]">
-          <Button variant="primary" onPress={onAction}>
+        <View style={{ width: '100%', maxWidth: 180, gap: 6 }} className="w-full max-w-[180px]">
+          <Button variant="primary" size="sm" onPress={onAction}>
             {actionLabel}
           </Button>
 
           {secondaryActionLabel && onSecondaryAction ? (
             <Button
               variant="ghost"
+              size="sm"
               onPress={onSecondaryAction}
-              className="mt-2"
+              className="mt-1"
             >
               {secondaryActionLabel}
             </Button>

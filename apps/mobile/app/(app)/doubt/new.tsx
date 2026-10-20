@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
   ActionSheetIOS,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -25,6 +27,12 @@ import {
   AlertCircle,
   FileQuestion,
   ChevronDown,
+  Sparkles,
+  Calculator,
+  Atom,
+  BookOpen,
+  Send,
+  Info,
 } from 'lucide-react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
@@ -37,6 +45,7 @@ import {
   usePresignedDoubtUploads,
 } from '../../../src/api/hooks';
 import { analytics } from '../../../src/lib/analytics';
+import { colors, radii } from '@quick2learn/shared';
 
 interface SelectedPhoto {
   uri: string;
@@ -47,6 +56,7 @@ interface SelectedPhoto {
 
 export default function AskDoubtScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     sourceType?: 'lecture' | 'test_question' | 'general';
     sourceId?: string;
@@ -72,12 +82,16 @@ export default function AskDoubtScreen() {
   // Subjects & Chapters query
   const { data: classesData, isLoading: isLoadingClasses } = useLearnClasses();
 
-  const subjects = React.useMemo(() => {
+  // Deduplicate subjects across multiple classes by slug/name
+  const subjects = useMemo(() => {
     if (!classesData?.classes) return [];
     const map = new Map<string, { id: string; name: string; slug: string }>();
     for (const c of classesData.classes) {
       for (const s of c.subjects) {
-        if (!map.has(s.id)) map.set(s.id, s);
+        const key = (s.slug || s.name).toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, s);
+        }
       }
     }
     return Array.from(map.values());
@@ -120,6 +134,8 @@ export default function AskDoubtScreen() {
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [isBodyFocused, setIsBodyFocused] = useState(false);
 
   const createDoubtMutation = useCreateDoubt();
   const presignedUploadsMutation = usePresignedDoubtUploads();
@@ -340,238 +356,557 @@ export default function AskDoubtScreen() {
     }
   };
 
+  const getSubjectIcon = (slugOrName: string, isSelected: boolean) => {
+    const s = slugOrName.toLowerCase();
+    const color = isSelected ? '#FFFFFF' : colors.primary;
+    if (s.includes('math')) return <Calculator size={15} color={color} />;
+    if (s.includes('scien') || s.includes('physic') || s.includes('chem')) return <Atom size={15} color={color} />;
+    return <BookOpen size={15} color={color} />;
+  };
+
+  const isFormValid = title.trim().length > 0 && body.trim().length > 0;
+
   return (
     <Screen
       scrollable={false}
       header={<AppHeader title="Ask a Doubt" showBack />}
     >
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
-        {/* Context Pill Banner if asked from lecture or test */}
-        {initialSourceType === 'lecture' && params.lectureTitle ? (
-          <View className="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-200 mb-4 flex-row items-center">
-            <Video size={18} color="#4F46E5" />
-            <View className="ml-2.5 flex-1">
-              <Text className="text-caption font-bold text-indigo-900">
-                Context: Lecture Clip
-              </Text>
-              <Text className="text-small text-indigo-800" numberOfLines={1}>
-                {params.lectureTitle}
-                {initialTimestampSeconds !== undefined
-                  ? ` @ ${Math.floor(initialTimestampSeconds / 60)}:${(
-                      initialTimestampSeconds % 60
-                    )
-                      .toString()
-                      .padStart(2, '0')}`
-                  : ''}
-              </Text>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 110 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Context Pill Banner if asked from lecture or test */}
+          {initialSourceType === 'lecture' && params.lectureTitle ? (
+            <View
+              style={{
+                backgroundColor: '#EEF2FF',
+                borderColor: '#C7D2FE',
+                borderWidth: 1,
+                borderRadius: 16,
+                padding: 12,
+                marginBottom: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#E0E7FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 10,
+                }}
+              >
+                <Video size={16} color="#4F46E5" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#3730A3' }}>
+                  Linked Lecture Clip
+                </Text>
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#1E1B4B' }} numberOfLines={1}>
+                  {params.lectureTitle}
+                  {initialTimestampSeconds !== undefined
+                    ? ` @ ${Math.floor(initialTimestampSeconds / 60)}:${(
+                        initialTimestampSeconds % 60
+                      )
+                        .toString()
+                        .padStart(2, '0')}`
+                    : ''}
+                </Text>
+              </View>
             </View>
-          </View>
-        ) : initialSourceType === 'test_question' ? (
-          <View className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 mb-4 flex-row items-center">
-            <FileQuestion size={18} color="#059669" />
-            <View className="ml-2.5 flex-1">
-              <Text className="text-caption font-bold text-emerald-900">
-                Context: Test Solution
-              </Text>
-              <Text className="text-small text-emerald-800" numberOfLines={1}>
-                {params.testTitle
-                  ? `${params.testTitle} — Question ${params.questionPosition || ''}`
-                  : `Question ${params.questionPosition || ''}`}
-              </Text>
+          ) : initialSourceType === 'test_question' ? (
+            <View
+              style={{
+                backgroundColor: '#ECFDF5',
+                borderColor: '#A7F3D0',
+                borderWidth: 1,
+                borderRadius: 16,
+                padding: 12,
+                marginBottom: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#D1FAE5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 10,
+                }}
+              >
+                <FileQuestion size={16} color="#059669" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#065F46' }}>
+                  Linked Assessment Question
+                </Text>
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#064E3B' }} numberOfLines={1}>
+                  {params.testTitle
+                    ? `${params.testTitle} — Question ${params.questionPosition || ''}`
+                    : `Question ${params.questionPosition || ''}`}
+                </Text>
+              </View>
             </View>
-          </View>
-        ) : null}
+          ) : null}
 
-        {/* 1. Subject Selector */}
-        <View className="mb-4">
-          <Text className="text-caption font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-            Subject *
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-row space-x-2"
+          {/* Teacher Reassurance Card */}
+          <View
+            style={{
+              backgroundColor: '#EFF6FF',
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: '#BFDBFE',
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              marginBottom: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
           >
-            {subjects.map((sub) => {
-              const isSelected = sub.id === selectedSubjectId;
-              return (
-                <TouchableOpacity
-                  key={sub.id}
-                  activeOpacity={0.7}
-                  onPress={() => setSelectedSubjectId(sub.id)}
-                  className={`py-2 px-3.5 rounded-xl border ${
-                    isSelected
-                      ? 'bg-primary border-primary'
-                      : 'bg-surface border-border'
-                  }`}
-                >
-                  <Text
-                    className={`text-small font-semibold ${
-                      isSelected ? 'text-white' : 'text-ink'
-                    }`}
-                  >
-                    {sub.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors['primary-soft'],
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 10,
+              }}
+            >
+              <Sparkles size={16} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E3A8A' }}>
+                Direct Faculty Guidance
+              </Text>
+              <Text style={{ fontSize: 11, color: '#2563EB', lineHeight: 15 }}>
+                Dinesh Sir reviews each doubt and explains steps in detail.
+              </Text>
+            </View>
+          </View>
 
-        {/* 2. Chapter Selector (if chapters available) */}
-        {chapters.length > 0 && (
-          <View className="mb-4">
-            <Text className="text-caption font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-              Chapter (Optional)
-            </Text>
+          {/* 1. Subject Selector */}
+          <View style={{ marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: colors['ink-muted'],
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.8,
+                }}
+              >
+                Subject *
+              </Text>
+              <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
+                Choose course
+              </Text>
+            </View>
+
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              className="flex-row space-x-2"
+              contentContainerStyle={{ gap: 8 }}
             >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setSelectedChapterId('')}
-                className={`py-1.5 px-3 rounded-lg border ${
-                  !selectedChapterId
-                    ? 'bg-primary border-primary'
-                    : 'bg-surface border-border'
-                }`}
-              >
-                <Text
-                  className={`text-caption font-semibold ${
-                    !selectedChapterId ? 'text-white' : 'text-ink-muted'
-                  }`}
-                >
-                  General
-                </Text>
-              </TouchableOpacity>
-
-              {chapters.map((ch) => {
-                const isSelected = ch.id === selectedChapterId;
+              {subjects.map((sub) => {
+                const isSelected = sub.id === selectedSubjectId;
                 return (
                   <TouchableOpacity
-                    key={ch.id}
-                    activeOpacity={0.7}
-                    onPress={() => setSelectedChapterId(ch.id)}
-                    className={`py-1.5 px-3 rounded-lg border ${
-                      isSelected
-                        ? 'bg-primary border-primary'
-                        : 'bg-surface border-border'
-                    }`}
+                    key={sub.id}
+                    activeOpacity={0.75}
+                    onPress={() => setSelectedSubjectId(sub.id)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      paddingVertical: 8,
+                      paddingHorizontal: 14,
+                      borderRadius: 14,
+                      backgroundColor: isSelected ? colors.primary : colors.surface,
+                      borderWidth: 1.5,
+                      borderColor: isSelected ? colors.primary : colors.border,
+                      shadowColor: isSelected ? colors.primary : '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: isSelected ? 0.2 : 0.03,
+                      shadowRadius: 3,
+                      elevation: isSelected ? 2 : 1,
+                    }}
                   >
+                    {getSubjectIcon(sub.name, isSelected)}
                     <Text
-                      numberOfLines={1}
-                      className={`text-caption font-semibold max-w-[160px] ${
-                        isSelected ? 'text-white' : 'text-ink-muted'
-                      }`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: isSelected ? '700' : '600',
+                        color: isSelected ? '#FFFFFF' : colors.ink,
+                      }}
                     >
-                      {ch.title}
+                      {sub.name}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
           </View>
-        )}
 
-        {/* 3. Doubt Title */}
-        <View className="mb-4">
-          <Text className="text-caption font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-            Doubt Title *
-          </Text>
-          <TextInput
-            placeholder="e.g. Step 3 in quadratic formula proof"
-            placeholderTextColor="#9CA3AF"
-            value={title}
-            onChangeText={setTitle}
-            maxLength={150}
-            className="bg-surface border border-border rounded-xl px-3.5 py-3 text-body text-ink"
-          />
-        </View>
+          {/* 2. Chapter Selector (if chapters available) */}
+          {chapters.length > 0 && (
+            <View style={{ marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: colors['ink-muted'],
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Chapter (Optional)
+                </Text>
+                <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
+                  Filters by topic
+                </Text>
+              </View>
 
-        {/* 4. Question Description */}
-        <View className="mb-4">
-          <Text className="text-caption font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-            Describe Your Doubt *
-          </Text>
-          <TextInput
-            placeholder="Explain where you got stuck or what step isn't clear..."
-            placeholderTextColor="#9CA3AF"
-            value={body}
-            onChangeText={setBody}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            className="bg-surface border border-border rounded-xl p-3.5 text-body text-ink min-h-[110px]"
-          />
-        </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 6 }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={() => setSelectedChapterId('')}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 10,
+                    backgroundColor: !selectedChapterId ? '#EFF6FF' : colors.surface,
+                    borderWidth: 1,
+                    borderColor: !selectedChapterId ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: !selectedChapterId ? '700' : '500',
+                      color: !selectedChapterId ? colors.primary : colors['ink-muted'],
+                    }}
+                  >
+                    All Chapters
+                  </Text>
+                </TouchableOpacity>
 
-        {/* 5. Photos Section (Camera or Gallery, cropped & compressed <= 1600 px) */}
-        <View className="mb-6">
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-caption font-bold uppercase tracking-wider text-ink-muted">
-              Attach Photos ({photos.length}/3)
-            </Text>
-            <Text className="text-[11px] text-ink-muted">
-              Compressed to ≤ 1600 px
-            </Text>
+                {chapters.map((ch) => {
+                  const isSelected = ch.id === selectedChapterId;
+                  return (
+                    <TouchableOpacity
+                      key={ch.id}
+                      activeOpacity={0.75}
+                      onPress={() => setSelectedChapterId(ch.id)}
+                      style={{
+                        paddingVertical: 6,
+                        paddingHorizontal: 12,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#EFF6FF' : colors.surface,
+                        borderWidth: 1,
+                        borderColor: isSelected ? colors.primary : colors.border,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 12,
+                          fontWeight: isSelected ? '700' : '500',
+                          color: isSelected ? colors.primary : colors['ink-muted'],
+                          maxWidth: 160,
+                        }}
+                      >
+                        {ch.title}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* 3. Doubt Title Input Card */}
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: 14,
+              marginBottom: 14,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: colors['ink-muted'],
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.8,
+                }}
+              >
+                Doubt Title *
+              </Text>
+              <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
+                {title.length}/150
+              </Text>
+            </View>
+
+            <TextInput
+              placeholder="e.g. Step 3 in quadratic formula proof"
+              placeholderTextColor="#94A3B8"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={150}
+              onFocus={() => setIsTitleFocused(true)}
+              onBlur={() => setIsTitleFocused(false)}
+              style={{
+                backgroundColor: colors['surface-subtle'],
+                borderWidth: 1.5,
+                borderColor: isTitleFocused ? colors.primary : colors.border,
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                fontSize: 14.5,
+                fontWeight: '600',
+                color: colors.ink,
+              }}
+            />
           </View>
 
-          {/* Photo thumbnails */}
-          <View className="flex-row items-center flex-wrap gap-3">
-            {photos.map((p, idx) => (
-              <View
-                key={idx}
-                className="relative w-24 h-24 rounded-2xl overflow-hidden border border-border bg-surface-subtle"
+          {/* 4. Question Description Input Card */}
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: 14,
+              marginBottom: 14,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: colors['ink-muted'],
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.8,
+                }}
               >
-                <Image
-                  source={{ uri: p.uri }}
-                  contentFit="cover"
-                  className="w-full h-full"
-                />
+                Describe Your Doubt *
+              </Text>
+              <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
+                Detailed explanation
+              </Text>
+            </View>
+
+            <TextInput
+              placeholder="Explain where you got stuck or what step isn't clear..."
+              placeholderTextColor="#94A3B8"
+              value={body}
+              onChangeText={setBody}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              onFocus={() => setIsBodyFocused(true)}
+              onBlur={() => setIsBodyFocused(false)}
+              style={{
+                backgroundColor: colors['surface-subtle'],
+                borderWidth: 1.5,
+                borderColor: isBodyFocused ? colors.primary : colors.border,
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                fontSize: 14,
+                color: colors.ink,
+                minHeight: 110,
+                lineHeight: 20,
+              }}
+            />
+          </View>
+
+          {/* 5. Photos Section */}
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: 14,
+              marginBottom: 14,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: colors['ink-muted'],
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Attach Photos ({photos.length}/3)
+                </Text>
+              </View>
+              <Text style={{ fontSize: 10.5, color: colors['ink-muted'] }}>
+                Auto-compressed ≤ 1600 px
+              </Text>
+            </View>
+
+            {/* Photo thumbnails grid */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+              {photos.map((p, idx) => (
+                <View
+                  key={idx}
+                  style={{
+                    position: 'relative',
+                    width: 88,
+                    height: 88,
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    backgroundColor: colors['surface-subtle'],
+                  }}
+                >
+                  <Image
+                    source={{ uri: p.uri }}
+                    contentFit="cover"
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handleRemovePhoto(idx)}
+                    style={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      width: 22,
+                      height: 22,
+                      borderRadius: 11,
+                      backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    accessibilityLabel="Remove photo"
+                  >
+                    <X size={13} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              {photos.length < 3 && (
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() => handleRemovePhoto(idx)}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 items-center justify-center"
-                  accessibilityLabel="Remove photo"
+                  onPress={showPhotoPickerOptions}
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: 14,
+                    borderWidth: 1.5,
+                    borderStyle: 'dashed',
+                    borderColor: colors.primary,
+                    backgroundColor: colors['primary-soft'],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 8,
+                  }}
+                  accessibilityLabel="Add doubt photo"
                 >
-                  <X size={14} color="#FFFFFF" />
+                  <Camera size={24} color={colors.primary} />
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: colors.primary,
+                      marginTop: 4,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Add Photo
+                  </Text>
                 </TouchableOpacity>
-              </View>
-            ))}
-
-            {photos.length < 3 && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={showPhotoPickerOptions}
-                className="w-24 h-24 rounded-2xl border-2 border-dashed border-primary/40 bg-primary-soft/30 items-center justify-center p-2"
-                accessibilityLabel="Add doubt photo"
-              >
-                <Camera size={22} color="#2563EB" />
-                <Text className="text-[11px] font-bold text-primary mt-1 text-center">
-                  Add Photo
-                </Text>
-              </TouchableOpacity>
-            )}
+              )}
+            </View>
           </View>
-        </View>
+        </ScrollView>
 
-        {/* Submit Button */}
-        <Button
-          variant="primary"
-          size="lg"
-          onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          icon={<Upload size={18} color="#FFFFFF" />}
+        {/* Floating/Anchored Bottom Bar with Safe Area */}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: colors.surface,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 12) + 4,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
         >
-          {uploadStatus || 'Send Doubt to Dinesh Sir'}
-        </Button>
-      </ScrollView>
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={handleSubmit}
+            loading={isSubmitting}
+            disabled={!isFormValid || isSubmitting}
+            icon={
+              !isSubmitting && (
+                <Send size={16} color="#FFFFFF" />
+              )
+            }
+          >
+            {uploadStatus || 'Send Doubt to Dinesh Sir'}
+          </Button>
+        </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

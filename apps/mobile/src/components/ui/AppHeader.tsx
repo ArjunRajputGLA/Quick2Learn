@@ -3,12 +3,15 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
+import { NotificationBell } from './NotificationBell';
 
 export interface AppHeaderProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
+  showNotificationBell?: boolean;
+  unreadCount?: number;
   rightActions?: React.ReactNode;
   className?: string;
 }
@@ -18,6 +21,8 @@ export function AppHeader({
   subtitle,
   showBack = false,
   onBack,
+  showNotificationBell = true,
+  unreadCount,
   rightActions,
   className = '',
 }: AppHeaderProps) {
@@ -40,16 +45,26 @@ export function AppHeader({
   return (
     <View
       style={{
-        minHeight: 56,
-        paddingHorizontal: 16,
+        marginHorizontal: 12,
+        marginTop: 4,
+        marginBottom: 6,
+        minHeight: 46,
+        paddingHorizontal: showBack ? 8 : 14,
+        paddingVertical: 6,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderRadius: 24,
         backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderColor: 'rgba(226, 232, 240, 0.9)',
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+        elevation: 3,
       }}
-      className={`min-h-[56px] px-4 flex-row items-center justify-between border-b border-border bg-surface ${className}`}
+      className={`mx-3 mt-1 mb-1.5 min-h-[46px] flex-row items-center justify-between rounded-full bg-surface border border-border shadow-xs ${className}`}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center flex-1 mr-2">
         {showBack && (
@@ -58,24 +73,26 @@ export function AppHeader({
             accessibilityLabel="Go back"
             onPress={handleBack}
             style={{
-              width: 44,
-              height: 44,
-              marginLeft: -8,
-              marginRight: 6,
+              width: 32,
+              height: 32,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 22,
+              borderRadius: 16,
+              backgroundColor: colors['surface-subtle'],
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginRight: 8,
             }}
-            className="w-12 h-12 -ml-2 items-center justify-center rounded-full active:bg-surface-subtle"
+            className="w-8 h-8 items-center justify-center rounded-full bg-surface-subtle border border-border active:bg-border/40 mr-2"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <ArrowLeft size={22} color={colors.ink} />
+            <ArrowLeft size={16} color={colors.ink} />
           </TouchableOpacity>
         )}
-        <View style={{ flex: 1, justifyContent: 'center', paddingVertical: 8 }} className="flex-1 justify-center py-2">
+        <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
           <Text
-            style={{ fontSize: 18, fontWeight: '700', color: colors.ink }}
-            className="text-h3 font-semibold text-ink"
+            style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}
+            className="text-body font-bold text-ink"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -83,8 +100,8 @@ export function AppHeader({
           </Text>
           {subtitle ? (
             <Text
-              style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }}
-              className="text-caption text-ink-muted mt-0.5"
+              style={{ fontSize: 10.5, color: colors['ink-muted'], marginTop: 0.5 }}
+              className="text-[10.5px] text-ink-muted"
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -94,8 +111,11 @@ export function AppHeader({
         </View>
       </View>
 
-      {rightActions ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-1">{rightActions}</View>
+      {rightActions || showNotificationBell ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-1.5">
+          {rightActions}
+          {showNotificationBell ? <NotificationBell count={unreadCount} /> : null}
+        </View>
       ) : null}
     </View>
   );

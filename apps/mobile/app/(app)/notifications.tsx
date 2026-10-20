@@ -109,6 +109,7 @@ export default function NotificationsScreen() {
         <AppHeader
           title="Notifications"
           showBack
+          showNotificationBell={false}
           rightActions={
             hasUnread ? (
               <TouchableOpacity

@@ -38,6 +38,7 @@ import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScree
 import { useQueryClient } from '@tanstack/react-query';
 import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
+import { NotificationBell } from '../../../src/components/ui/NotificationBell';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { TextField } from '../../../src/components/ui/TextField';
@@ -134,12 +135,28 @@ export default function HomeScreen() {
   if (isLoading && !home) {
     return (
       <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
-        <View className="px-4 py-3 flex-row items-center justify-between border-b border-border/40 bg-surface">
+        <View
+          style={{
+            marginHorizontal: 12,
+            marginTop: 4,
+            marginBottom: 6,
+            paddingHorizontal: 14,
+            paddingVertical: 7,
+            borderRadius: 24,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: 'rgba(226, 232, 240, 0.9)',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+          className="mx-3 mt-1 mb-1.5 px-3.5 py-1.5 flex-row items-center justify-between rounded-full bg-surface border border-border shadow-xs"
+        >
           <View className="flex-row items-center space-x-2">
-            <Skeleton width={130} height={26} borderRadius={6} />
-            <Skeleton width={80} height={22} borderRadius={12} className="ml-2" />
+            <Skeleton width={110} height={20} borderRadius={6} />
+            <Skeleton width={70} height={18} borderRadius={10} className="ml-2" />
           </View>
-          <Skeleton width={40} height={40} borderRadius={20} />
+          <Skeleton width={34} height={34} borderRadius={17} />
         </View>
 
         <ScrollView className="p-4 space-y-4">
@@ -172,25 +189,35 @@ export default function HomeScreen() {
       {/* Offline banner indicator (shows cached data) */}
       <OfflineBanner />
 
-      {/* 1. Header: "Hi, [first name]", class/board chip, notification bell */}
+      {/* 1. Header Island: "Hi, [first name]", class/board chip, notification bell */}
       <View
         style={{
-          paddingHorizontal: 16,
-          paddingVertical: 12,
+          marginHorizontal: 12,
+          marginTop: 4,
+          marginBottom: 6,
+          paddingHorizontal: 14,
+          paddingVertical: 7,
+          minHeight: 48,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
+          borderRadius: 24,
           backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
+          borderWidth: 1,
+          borderColor: 'rgba(226, 232, 240, 0.9)',
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          elevation: 3,
         }}
-        className="px-4 py-3 flex-row items-center justify-between bg-surface border-b border-border/70"
+        className="mx-3 mt-1 mb-1.5 px-3.5 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
         <View style={{ flex: 1, paddingRight: 8 }} className="flex-1 pr-2">
           <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }} className="flex-row items-center flex-wrap">
             <Text
-              style={{ fontSize: 20, fontWeight: '700', color: colors.ink }}
-              className="text-h2 font-bold text-ink mr-2"
+              style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}
+              className="text-body font-bold text-ink mr-1.5"
             >
               Hi, {header?.firstName || 'Student'}
             </Text>
@@ -198,67 +225,27 @@ export default function HomeScreen() {
               <View
                 style={{
                   backgroundColor: colors['primary-soft'],
-                  paddingHorizontal: 10,
-                  paddingVertical: 2,
+                  paddingHorizontal: 7,
+                  paddingVertical: 1,
                   borderRadius: radii.full,
                   borderWidth: 1,
                   borderColor: 'rgba(37, 99, 235, 0.2)',
                 }}
-                className="bg-primary-soft px-2.5 py-0.5 rounded-full border border-primary/20"
+                className="bg-primary-soft px-1.5 py-0.5 rounded-full border border-primary/20"
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primary }} className="text-[11px] font-semibold text-primary">
+                <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }} className="text-[10px] font-semibold text-primary">
                   {header.chipLabel}
                 </Text>
               </View>
             ) : null}
           </View>
-          <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted mt-0.5">
+          <Text style={{ fontSize: 10.5, color: colors['ink-muted'], marginTop: 0.5 }} className="text-[10.5px] text-ink-muted">
             Welcome to Quick2Learn
           </Text>
         </View>
 
-        {/* Bell Button (touch target >= 48dp) */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => router.push('/(app)/notifications' as any)}
-          accessibilityRole="button"
-          accessibilityLabel={`Notifications, ${unreadCount} unread`}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            backgroundColor: colors['surface-subtle'],
-          }}
-          className="w-12 h-12 rounded-full items-center justify-center relative active:bg-surface-subtle"
-        >
-          <Bell size={20} color={colors.ink} />
-          {unreadCount > 0 ? (
-            <View
-              style={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                minWidth: 18,
-                height: 18,
-                paddingHorizontal: 4,
-                borderRadius: 9,
-                backgroundColor: colors.danger,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 2,
-                borderColor: colors.surface,
-              }}
-              className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-danger items-center justify-center border-2 border-surface"
-            >
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFFFFF' }} className="text-[10px] font-bold text-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Text>
-            </View>
-          ) : null}
-        </TouchableOpacity>
+        {/* Bell Button */}
+        <NotificationBell count={unreadCount} />
       </View>
 
       {/* Main Home Scroll Area */}
@@ -478,18 +465,18 @@ export default function HomeScreen() {
 
         {/* 5. Today's Classes (from batch timetables) */}
         {todayClasses.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }} className="flex-row items-center justify-between mb-3">
+          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-2">
               <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                <Calendar size={18} color={colors.primary} />
-                <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink, marginLeft: 8 }} className="text-h3 font-bold text-ink ml-2">
+                <Calendar size={16} color={colors.primary} />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginLeft: 6 }} className="text-body font-bold text-ink ml-1.5">
                   Classes Today
                 </Text>
               </View>
               <Badge label="Today" variant="primary" size="sm" />
             </View>
 
-            <View style={{ gap: 10 }} className="space-y-2.5">
+            <View style={{ gap: 8 }} className="space-y-2">
               {todayClasses.map((cls) => (
                 <TouchableOpacity
                   key={cls.batchId}
@@ -497,43 +484,43 @@ export default function HomeScreen() {
                   onPress={() => router.push(cls.route as any)}
                   style={{
                     backgroundColor: colors.surface,
-                    borderRadius: radii.xl,
-                    padding: 16,
+                    borderRadius: radii.md,
+                    padding: 12,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    marginBottom: 10,
-                    elevation: 2,
+                    marginBottom: 8,
+                    elevation: 1,
                     shadowColor: '#000000',
                     shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 3,
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
                   }}
-                  className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
+                  className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
                     <Badge
                       label={cls.mode.toUpperCase()}
                       variant={cls.mode === 'offline' ? 'neutral' : 'primary'}
                       size="sm"
                     />
                     <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                      <Clock size={13} color={colors.primary} />
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary, marginLeft: 4 }} className="text-small font-bold text-primary ml-1">
+                      <Clock size={12} color={colors.primary} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 4 }} className="text-caption font-bold text-primary ml-1">
                         {cls.timeText}
                       </Text>
                     </View>
                   </View>
 
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                     {cls.batchTitle}
                   </Text>
-                  <Text style={{ fontSize: 13, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
                   </Text>
                   {cls.locationText ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} className="flex-row items-center mt-2">
-                      <MapPin size={12} color="#6B7280" />
-                      <Text style={{ fontSize: 11, color: colors['ink-muted'], marginLeft: 4 }} className="text-[11px] text-ink-muted ml-1">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} className="flex-row items-center mt-1.5">
+                      <MapPin size={11} color="#6B7280" />
+                      <Text style={{ fontSize: 10.5, color: colors['ink-muted'], marginLeft: 4 }} className="text-[10.5px] text-ink-muted ml-1">
                         {cls.locationText}
                       </Text>
                     </View>
@@ -546,8 +533,8 @@ export default function HomeScreen() {
 
         {/* 6. Upcoming tests and new results */}
         {upcomingTests.length > 0 || recentResults.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink, marginBottom: 12 }} className="text-h3 font-bold text-ink mb-3">
+          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
+            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 8 }} className="text-body font-bold text-ink mb-2">
               Tests & Results
             </Text>
 
@@ -559,29 +546,29 @@ export default function HomeScreen() {
                 onPress={() => router.push(test.route as any)}
                 style={{
                   backgroundColor: colors.surface,
-                  borderRadius: radii.xl,
-                  padding: 16,
+                  borderRadius: radii.md,
+                  padding: 12,
                   borderWidth: 1,
                   borderColor: colors.border,
-                  marginBottom: 10,
-                  elevation: 2,
+                  marginBottom: 8,
+                  elevation: 1,
                   shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 3,
+                  shadowOpacity: 0.04,
+                  shadowRadius: 2,
                 }}
-                className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
+                className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
                   <Badge label="Upcoming Test" variant="accent" size="sm" />
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
+                  <Text style={{ fontSize: 11.5, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
                     {test.dateText}
                   </Text>
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
+                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                   {test.title}
                 </Text>
-                <Text style={{ fontSize: 13, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                   {test.batchTitle} • {test.subjectName}
                   {test.totalMarks ? ` (${test.totalMarks} Marks)` : ''}
                 </Text>
@@ -596,38 +583,38 @@ export default function HomeScreen() {
                 onPress={() => router.push(result.route as any)}
                 style={{
                   backgroundColor: colors.surface,
-                  borderRadius: radii.xl,
-                  padding: 16,
+                  borderRadius: radii.md,
+                  padding: 12,
                   borderWidth: 1,
                   borderColor: colors.border,
-                  marginBottom: 10,
-                  elevation: 2,
+                  marginBottom: 8,
+                  elevation: 1,
                   shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 3,
+                  shadowOpacity: 0.04,
+                  shadowRadius: 2,
                 }}
-                className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2.5"
+                className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-1.5">
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
                   <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                    <Award size={14} color="#15803D" />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#15803D', marginLeft: 4 }} className="text-caption font-bold text-green-700 ml-1">
+                    <Award size={13} color="#15803D" />
+                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#15803D', marginLeft: 4 }} className="text-caption font-bold text-green-700 ml-1">
                       Result Declared
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {result.dateText}
                   </Text>
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
+                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                   {result.testTitle}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }} className="flex-row items-center justify-between mt-1">
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                     {result.batchTitle}
                   </Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#15803D' }} className="text-body font-bold text-green-700">
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#15803D' }} className="text-small font-bold text-green-700">
                     {result.scoreText}
                     {result.percentage !== null && result.percentage !== undefined
                       ? ` (${result.percentage}%)`
@@ -682,23 +669,23 @@ export default function HomeScreen() {
 
         {/* 8. Announcements: latest 3, pinned first, "See all" */}
         {announcements.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }} className="flex-row items-center justify-between mb-3">
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.ink }} className="text-h3 font-bold text-ink">
+          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-2">
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
                 Announcements
               </Text>
               <TouchableOpacity
                 onPress={() => router.push('/(app)/notifications' as any)}
-                style={{ paddingVertical: 4, paddingHorizontal: 8 }}
-                className="py-1 px-2"
+                style={{ paddingVertical: 2, paddingHorizontal: 6 }}
+                className="py-0.5 px-1.5"
               >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }} className="text-small font-semibold text-primary">
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
                   See all
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <View style={{ gap: 10 }} className="space-y-2.5">
+            <View style={{ gap: 8 }} className="space-y-2">
               {announcements.map((ann) => (
                 <TouchableOpacity
                   key={ann.id}
@@ -706,21 +693,21 @@ export default function HomeScreen() {
                   onPress={() => router.push(ann.route as any)}
                   style={{
                     backgroundColor: colors.surface,
-                    borderRadius: radii.xl,
-                    padding: 16,
+                    borderRadius: radii.md,
+                    padding: 12,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    marginBottom: 10,
-                    elevation: 2,
+                    marginBottom: 8,
+                    elevation: 1,
                     shadowColor: '#000000',
                     shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 3,
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
                   }}
-                  className="bg-surface rounded-2xl p-4 border border-border shadow-sm mb-2"
+                  className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
-                    <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }} className="flex-row items-center justify-between mb-1">
+                    <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
                       {ann.dateFormatted}
                     </Text>
                     {ann.isPinned ? (
@@ -728,12 +715,12 @@ export default function HomeScreen() {
                     ) : null}
                   </View>
 
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }} className="text-body font-bold text-ink mb-1">
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                     {ann.title}
                   </Text>
                   <Text
-                    style={{ fontSize: 13, color: colors['ink-muted'], lineHeight: 18 }}
-                    className="text-small text-ink-muted leading-relaxed"
+                    style={{ fontSize: 12, color: colors['ink-muted'], lineHeight: 16 }}
+                    className="text-caption text-ink-muted leading-relaxed"
                     numberOfLines={2}
                   >
                     {ann.body}

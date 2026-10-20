@@ -181,85 +181,160 @@ export default function ProfileScreen() {
   return (
     <Screen scrollable={false} header={<AppHeader title={t("profileTitle")} />}>
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+        style={{ flex: 1 }}
+        className="flex-1"
+        contentContainerStyle={{ padding: 12, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 1. USER PROFILE CARD */}
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: radii.xl,
-            padding: 20,
+            borderRadius: 22,
+            paddingVertical: 18,
+            paddingHorizontal: 16,
             borderWidth: 1,
             borderColor: colors.border,
-            marginBottom: 16,
+            marginBottom: 12,
             alignItems: 'center',
-            elevation: 2,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 1 },
+            shadowColor: '#0F172A',
+            shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.05,
-            shadowRadius: 3,
+            shadowRadius: 6,
+            elevation: 2,
           }}
-          className="bg-surface rounded-2xl p-5 border border-border mb-4 items-center shadow-sm"
+          className="bg-surface rounded-2xl p-4 border border-border mb-3 items-center shadow-xs"
         >
-          <View style={{ marginBottom: 12 }}>
+          {/* Avatar with accent ring */}
+          <View
+            style={{
+              padding: 4,
+              borderRadius: 36,
+              backgroundColor: '#EFF6FF',
+              borderWidth: 1.5,
+              borderColor: '#BFDBFE',
+              marginBottom: 10,
+            }}
+          >
             <Avatar name={fullName} size="xl" />
           </View>
+
           <Text
-            style={{ fontSize: 20, fontWeight: '700', color: colors.ink, textAlign: 'center', marginBottom: 6 }}
-            className="text-h2 font-bold text-ink text-center mb-1"
+            style={{
+              fontSize: 18,
+              fontWeight: '800',
+              color: colors.ink,
+              textAlign: 'center',
+              marginBottom: 6,
+            }}
+            className="text-h3 font-bold text-ink text-center mb-1.5"
           >
             {fullName}
           </Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }} className="flex-row items-center space-x-2 mb-3">
-            <Badge label={role.toUpperCase()} variant="primary" size="sm" />
+          {/* Badges */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 6,
+              marginBottom: profile?.school ? 8 : 12,
+            }}
+            className="flex-row items-center flex-wrap justify-center space-x-1.5 mb-2"
+          >
+            <View
+              style={{
+                backgroundColor: colors.primary,
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: 12,
+              }}
+            >
+              <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
+                {role.toUpperCase()}
+              </Text>
+            </View>
+
             {role === "student" && profile?.classLevel ? (
-              <Badge
-                label={`Class ${profile.classLevel}${
-                  profile.board ? ` • ${profile.board.toUpperCase()}` : ""
-                }`}
-                variant="neutral"
-                size="sm"
-              />
+              <View
+                style={{
+                  backgroundColor: '#F1F5F9',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  borderRadius: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <GraduationCap size={12} color="#475569" />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                  Class {profile.classLevel}{profile.board ? ` • ${profile.board.toUpperCase()}` : ''}
+                </Text>
+              </View>
             ) : null}
+
             {role === "parent" ? (
-              <Badge
-                label={`${linkedStudents.length} ${linkedStudents.length === 1 ? "Child" : "Children"}`}
-                variant="neutral"
-                size="sm"
-              />
+              <View
+                style={{
+                  backgroundColor: '#F1F5F9',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  borderRadius: 12,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                  {linkedStudents.length} {linkedStudents.length === 1 ? "Child" : "Children"}
+                </Text>
+              </View>
             ) : null}
           </View>
 
           {profile?.school ? (
             <Text
-              style={{ fontSize: 13, color: colors['ink-muted'], textAlign: 'center', marginBottom: 12 }}
+              style={{
+                fontSize: 12,
+                color: colors['ink-muted'],
+                textAlign: 'center',
+                marginBottom: 12,
+                fontWeight: '500',
+              }}
               className="text-caption text-ink-muted text-center mb-3"
             >
               {profile.school}
             </Text>
           ) : null}
 
-          {/* Edit Profile Action Pill */}
+          {/* Edit Profile Action Button */}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/profile/edit" as any)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: colors['primary-soft'],
+              gap: 6,
+              backgroundColor: '#EFF6FF',
               paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: radii.full,
+              paddingHorizontal: 16,
+              borderRadius: 20,
               borderWidth: 1,
-              borderColor: 'rgba(37, 99, 235, 0.2)',
+              borderColor: '#BFDBFE',
             }}
-            className="flex-row items-center bg-primary-soft/80 py-1.5 px-3 rounded-full border border-primary/20"
+            className="flex-row items-center bg-blue-50 py-1.5 px-4 rounded-full border border-blue-200"
           >
             <Edit3 size={13} color={colors.primary} />
             <Text
-              style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 6 }}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: colors.primary,
+              }}
               className="text-caption font-bold text-primary ml-1.5"
             >
               {t("editProfileRow")}
@@ -349,36 +424,62 @@ export default function ProfileScreen() {
 
         {/* 2. QUICK STATS ROW */}
         {role === "student" && (
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }} className="flex-row space-x-2.5 mb-4">
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
             {/* Stat 1: Attendance % */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => router.push("/(app)/attendance" as any)}
               style={{
                 flex: 1,
-                backgroundColor: colors.surface,
-                borderRadius: radii.xl,
-                padding: 14,
+                backgroundColor: '#F0FDF4',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: '#BBF7D0',
                 alignItems: 'center',
                 justifyContent: 'center',
-                elevation: 1,
-                shadowColor: '#000000',
+                shadowColor: '#059669',
                 shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 2,
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
               }}
-              className="flex-1 bg-surface rounded-2xl p-3.5 border border-border items-center justify-center shadow-xs"
             >
-              <Calendar size={18} color="#059669" />
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 4 }}>
+              <View
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: '#DCFCE7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <Calendar size={16} color="#059669" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: '800',
+                  color: '#14532D',
+                  marginBottom: 2,
+                }}
+              >
                 {quickStats?.attendancePercentage !== null &&
                 quickStats?.attendancePercentage !== undefined
                   ? `${quickStats.attendancePercentage}%`
                   : "--"}
               </Text>
-              <Text style={{ fontSize: 11, color: colors['ink-muted'], textAlign: 'center', marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#16A34A',
+                  textAlign: 'center',
+                }}
+              >
                 {t("attendanceStat")}
               </Text>
             </TouchableOpacity>
@@ -389,26 +490,52 @@ export default function ProfileScreen() {
               onPress={() => router.push("/(app)/performance" as any)}
               style={{
                 flex: 1,
-                backgroundColor: colors.surface,
-                borderRadius: radii.xl,
-                padding: 14,
+                backgroundColor: '#EFF6FF',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: '#BFDBFE',
                 alignItems: 'center',
                 justifyContent: 'center',
-                elevation: 1,
-                shadowColor: '#000000',
+                shadowColor: '#2563EB',
                 shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 2,
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
               }}
-              className="flex-1 bg-surface rounded-2xl p-3.5 border border-border items-center justify-center shadow-xs ml-2"
             >
-              <Award size={18} color={colors.primary} />
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 4 }}>
+              <View
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: '#DBEAFE',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <Award size={16} color="#2563EB" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: '800',
+                  color: '#1E3A8A',
+                  marginBottom: 2,
+                }}
+              >
                 {quickStats?.testsTaken ?? 0}
               </Text>
-              <Text style={{ fontSize: 11, color: colors['ink-muted'], textAlign: 'center', marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#2563EB',
+                  textAlign: 'center',
+                }}
+              >
                 {t("testsTakenStat")}
               </Text>
             </TouchableOpacity>
@@ -417,26 +544,52 @@ export default function ProfileScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: colors.surface,
-                borderRadius: radii.xl,
-                padding: 14,
+                backgroundColor: '#FAF5FF',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: '#E9D5FF',
                 alignItems: 'center',
                 justifyContent: 'center',
-                elevation: 1,
-                shadowColor: '#000000',
+                shadowColor: '#7C3AED',
                 shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 2,
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
               }}
-              className="flex-1 bg-surface rounded-2xl p-3.5 border border-border items-center justify-center shadow-xs ml-2"
             >
-              <Video size={18} color="#8B5CF6" />
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 4 }}>
+              <View
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: '#F3E8FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <Video size={16} color="#7C3AED" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: '800',
+                  color: '#4C1D95',
+                  marginBottom: 2,
+                }}
+              >
                 {quickStats?.lecturesCompleted ?? 0}
               </Text>
-              <Text style={{ fontSize: 11, color: colors['ink-muted'], textAlign: 'center', marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#7C3AED',
+                  textAlign: 'center',
+                }}
+              >
                 {t("lecturesCompletedStat")}
               </Text>
             </View>
@@ -447,57 +600,55 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: radii.xl,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: colors.border,
-            marginBottom: 16,
+            marginBottom: 12,
+            shadowColor: '#0F172A',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 6,
             elevation: 2,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 3,
             overflow: 'hidden',
           }}
-          className="bg-surface rounded-2xl border border-border mb-4 shadow-sm divide-y divide-border/60"
         >
           {role === "student" && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => router.push("/(app)/performance" as any)}
               style={{
-                padding: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottomWidth: 1,
-                borderBottomColor: colors.border,
+                borderBottomColor: 'rgba(226, 232, 240, 0.7)',
               }}
-              className="p-3.5 flex-row items-center justify-between"
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.md,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
                     backgroundColor: '#EFF6FF',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  className="w-9 h-9 rounded-xl bg-blue-50 items-center justify-center"
                 >
-                  <TrendingUp size={18} color={colors.primary} />
+                  <TrendingUp size={18} color="#2563EB" />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     {t("performanceRow")}
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                     {t("performanceDesc")}
                   </Text>
                 </View>
               </View>
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -506,39 +657,38 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/attendance" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#ECFDF5',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-emerald-50 items-center justify-center"
               >
                 <Calendar size={18} color="#059669" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("attendanceRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {role === "parent" ? "View daily attendance record" : t("attendanceDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Tests & Scores (for parent) */}
@@ -547,39 +697,38 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/(app)/tests" as any)}
               style={{
-                padding: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottomWidth: 1,
-                borderBottomColor: colors.border,
+                borderBottomColor: 'rgba(226, 232, 240, 0.7)',
               }}
-              className="p-3.5 flex-row items-center justify-between"
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.md,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
                     backgroundColor: '#EFF6FF',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  className="w-9 h-9 rounded-xl bg-blue-50 items-center justify-center"
                 >
-                  <Award size={18} color={colors.primary} />
+                  <Award size={18} color="#2563EB" />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     Tests & Performance
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                     Evaluated test marks & performance
                   </Text>
                 </View>
               </View>
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -588,39 +737,38 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/fees" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#EEF2FF',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-indigo-50 items-center justify-center"
               >
                 <CreditCard size={18} color="#4F46E5" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("feesRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("feesDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Downloads (student only) */}
@@ -629,39 +777,38 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/(app)/downloads" as any)}
               style={{
-                padding: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottomWidth: 1,
-                borderBottomColor: colors.border,
+                borderBottomColor: 'rgba(226, 232, 240, 0.7)',
               }}
-              className="p-3.5 flex-row items-center justify-between"
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.md,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
                     backgroundColor: '#FFFBEB',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  className="w-9 h-9 rounded-xl bg-amber-50 items-center justify-center"
                 >
                   <Download size={18} color="#D97706" />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     {t("downloadsRow")}
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                     {t("downloadsDesc")}
                   </Text>
                 </View>
               </View>
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -670,37 +817,36 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/notifications" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#FFF1F2',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-rose-50 items-center justify-center"
               >
                 <Bell size={18} color="#E11D48" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("notificationsRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("notificationsDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
@@ -708,18 +854,17 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: radii.xl,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: colors.border,
-            marginBottom: 16,
+            marginBottom: 12,
+            shadowColor: '#0F172A',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 6,
             elevation: 2,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 3,
             overflow: 'hidden',
           }}
-          className="bg-surface rounded-2xl border border-border mb-4 shadow-sm divide-y divide-border/60"
         >
           {/* Parent Access (Invite Code) for Student */}
           {role === "student" && (
@@ -727,39 +872,38 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
               onPress={() => setParentModalVisible(true)}
               style={{
-                padding: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottomWidth: 1,
-                borderBottomColor: colors.border,
+                borderBottomColor: 'rgba(226, 232, 240, 0.7)',
               }}
-              className="p-3.5 flex-row items-center justify-between"
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.md,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
                     backgroundColor: '#ECFEFF',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  className="w-9 h-9 rounded-xl bg-cyan-50 items-center justify-center"
                 >
                   <KeyRound size={18} color="#0891B2" />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     {t("parentAccessRow")}
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                     {t("parentAccessDesc")}
                   </Text>
                 </View>
               </View>
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -769,39 +913,38 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
               onPress={() => setLinkChildModalVisible(true)}
               style={{
-                padding: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottomWidth: 1,
-                borderBottomColor: colors.border,
+                borderBottomColor: 'rgba(226, 232, 240, 0.7)',
               }}
-              className="p-3.5 flex-row items-center justify-between"
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.md,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
                     backgroundColor: '#ECFEFF',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  className="w-9 h-9 rounded-xl bg-cyan-50 items-center justify-center"
                 >
                   <KeyRound size={18} color="#0891B2" />
                 </View>
-                <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     Link Student Account
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                     Enter student invite code to link child
                   </Text>
                 </View>
               </View>
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -810,39 +953,38 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/settings" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#F1F5F9',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-slate-100 items-center justify-center"
               >
                 <Settings size={18} color="#475569" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("settingsRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("settingsDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Help & Walkthrough */}
@@ -850,39 +992,38 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/help" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#FAF5FF',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-purple-50 items-center justify-center"
               >
                 <HelpCircle size={18} color="#9333EA" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("helpRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("helpDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Results & Testimonials */}
@@ -890,39 +1031,38 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/(app)/results" as any)}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#FFFBEB',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-amber-50 items-center justify-center"
               >
                 <Trophy size={18} color="#D97706" />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("resultsRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("resultsDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Share App */}
@@ -930,37 +1070,36 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={handleShareApp}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center space-x-3 flex-1 mr-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.md,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   backgroundColor: '#EFF6FF',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="w-9 h-9 rounded-xl bg-blue-50 items-center justify-center"
               >
                 <Share2 size={18} color={colors.primary} />
               </View>
-              <View style={{ flex: 1, marginLeft: 10 }} className="flex-1 ml-2.5">
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                   {t("shareAppRow")}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'], marginTop: 2 }} className="text-caption text-ink-muted">
+                <Text style={{ fontSize: 11.5, color: colors['ink-muted'], marginTop: 1 }}>
                   {t("shareAppDesc")}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={17} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
@@ -968,40 +1107,39 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: radii.xl,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: colors.border,
-            marginBottom: 16,
+            marginBottom: 12,
+            shadowColor: '#0F172A',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 6,
             elevation: 2,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 3,
             overflow: 'hidden',
           }}
-          className="bg-surface rounded-2xl border border-border mb-4 shadow-sm divide-y divide-border/60"
         >
           {/* Privacy Policy */}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={handleOpenPrivacyPolicy}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              borderBottomColor: 'rgba(226, 232, 240, 0.7)',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center space-x-2">
-              <Shield size={16} color="#6B7280" />
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.ink, marginLeft: 8 }} className="text-body font-medium text-ink ml-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Shield size={16} color="#64748B" />
+              <Text style={{ fontSize: 13.5, fontWeight: '600', color: colors.ink, marginLeft: 10 }}>
                 {t("privacyPolicyRow")}
               </Text>
             </View>
-            <ExternalLink size={16} color="#9CA3AF" />
+            <ExternalLink size={15} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Terms & Conditions */}
@@ -1009,34 +1147,34 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={handleOpenTerms}
             style={{
-              padding: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
-            className="p-3.5 flex-row items-center justify-between"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center space-x-2">
-              <FileText size={16} color="#6B7280" />
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.ink, marginLeft: 8 }} className="text-body font-medium text-ink ml-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <FileText size={16} color="#64748B" />
+              <Text style={{ fontSize: 13.5, fontWeight: '600', color: colors.ink, marginLeft: 10 }}>
                 {t("termsRow")}
               </Text>
             </View>
-            <ExternalLink size={16} color="#9CA3AF" />
+            <ExternalLink size={15} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-2">
+        <View className="mt-1">
           <Button
             variant="outline"
-            size="lg"
+            size="md"
             onPress={handleSignOut}
             loading={isSigningOut}
             className="border-danger/40 active:bg-danger/5"
-            icon={<LogOut size={18} color="#DC2626" />}
+            icon={<LogOut size={16} color="#DC2626" />}
           >
-            <Text className="text-body font-semibold text-danger ml-2">
+            <Text className="text-caption font-semibold text-danger ml-2">
               {t("logOut")}
             </Text>
           </Button>

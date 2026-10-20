@@ -20,10 +20,10 @@ export function Avatar({
   const [imageError, setImageError] = useState(false);
 
   const dimensionMap = {
-    sm: 32,
-    md: 40,
-    lg: 56,
-    xl: 72,
+    sm: 26,
+    md: 34,
+    lg: 44,
+    xl: 56,
   };
 
   const dim = dimensionMap[size];

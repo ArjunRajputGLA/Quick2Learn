@@ -312,6 +312,7 @@ export default function DoubtThreadScreen() {
   return (
     <Screen
       scrollable={false}
+      safeAreaBottom
       header={
         <AppHeader
           title={doubt.title}

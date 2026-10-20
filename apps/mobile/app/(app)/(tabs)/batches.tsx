@@ -61,14 +61,14 @@ export default function BatchesScreen() {
                 borderWidth: 1,
                 borderColor: 'rgba(37, 99, 235, 0.2)',
                 borderRadius: radii.full,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                minHeight: 38,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                minHeight: 32,
               }}
               accessibilityLabel="Join a Batch"
             >
-              <Plus size={16} color={colors.primary} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary, marginLeft: 4 }}>
+              <Plus size={14} color={colors.primary} />
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 4 }}>
                 Join Batch
               </Text>
             </TouchableOpacity>
@@ -77,7 +77,9 @@ export default function BatchesScreen() {
       }
     >
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
+        style={{ flex: 1 }}
+        className="flex-1"
+        contentContainerStyle={{ padding: 12, paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -155,9 +157,9 @@ export default function BatchesScreen() {
 
         {/* Enrolled Batches Section */}
         {!isLoading && batches.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.8 }}>
+          <View style={{ marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.6 }}>
                 My Enrolled Batches ({batches.length})
               </Text>
             </View>
@@ -174,32 +176,32 @@ export default function BatchesScreen() {
 
         {/* Empty State when no enrolled batches & no pending requests */}
         {!isLoading && batches.length === 0 && pendingRequests.length === 0 && (
-          <View className="bg-surface rounded-3xl p-6 border border-border items-center shadow-xs mt-4">
-            <View className="w-16 h-16 rounded-2xl bg-primary-soft items-center justify-center mb-4 border border-primary/20">
-              <GraduationCap size={32} color="#2563EB" />
+          <View className="bg-surface rounded-2xl p-4 border border-border items-center shadow-2xs mt-2">
+            <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
+              <GraduationCap size={24} color="#2563EB" />
             </View>
-            <Text className="text-h2 font-bold text-ink text-center mb-1">
+            <Text className="text-body font-bold text-ink text-center mb-1">
               Join Your First Batch
             </Text>
-            <Text className="text-body text-ink-muted text-center mb-6 leading-relaxed max-w-xs">
+            <Text className="text-caption text-ink-muted text-center mb-4 leading-relaxed max-w-xs">
               Access your timetable, live lectures, notes, test series, and teacher announcements.
             </Text>
 
-            <View className="w-full space-y-3">
+            <View className="w-full space-y-2">
               <Button
                 variant="primary"
-                size="lg"
+                size="md"
                 onPress={() => setShowJoinModal(true)}
-                icon={<KeyRound size={18} color="#FFFFFF" />}
+                icon={<KeyRound size={16} color="#FFFFFF" />}
               >
                 Enter Batch Join Code
               </Button>
 
               <Button
                 variant="outline"
-                size="lg"
+                size="md"
                 onPress={() => setShowJoinModal(true)}
-                icon={<QrCode size={18} color="#2563EB" />}
+                icon={<QrCode size={16} color="#2563EB" />}
               >
                 Scan Classroom QR Code
               </Button>

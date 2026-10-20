@@ -64,9 +64,9 @@ export function Badge({
   }
 
   const isSm = size === 'sm';
-  const padH = isSm ? 8 : 10;
-  const padV = isSm ? 3 : 5;
-  const fontSize = isSm ? 11 : 12;
+  const padH = isSm ? 6 : 8;
+  const padV = isSm ? 2 : 3;
+  const fontSize = isSm ? 10.5 : 11.5;
 
   return (
     <View

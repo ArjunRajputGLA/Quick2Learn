@@ -9,7 +9,10 @@ import {
   Alert,
   Linking,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import {
   X,
@@ -19,10 +22,14 @@ import {
   AlertCircle,
   ExternalLink,
   Camera,
+  Info,
+  ArrowRight,
+  GraduationCap,
 } from 'lucide-react-native';
 import { Button } from '../ui/Button';
 import { useJoinBatch } from '../../api/hooks';
 import { analytics } from '../../lib/analytics';
+import { colors, radii } from '@quick2learn/shared';
 import type { BatchJoinResponse } from '@quick2learn/shared';
 
 interface JoinBatchModalProps {
@@ -32,10 +39,12 @@ interface JoinBatchModalProps {
 }
 
 export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalProps) {
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<'code' | 'scanner'>('code');
   const [code, setCode] = useState('');
   const [result, setResult] = useState<BatchJoinResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const [permission, requestPermission] = useCameraPermissions();
   const joinBatchMutation = useJoinBatch();
@@ -86,7 +95,6 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
       const dataStr = scan.data;
       let extractedCode = dataStr;
 
-      // Check if QR encodes JSON { code: "..." }
       if (dataStr.startsWith('{')) {
         const parsed = JSON.parse(dataStr);
         if (parsed.code) {
@@ -101,12 +109,14 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
         handleSubmitCode(clean);
       }
     } catch {
-      // Fallback: use raw data
-      setCode(scan.data.toUpperCase());
+      const raw = scan.data.toUpperCase();
+      setCode(raw);
       setTab('code');
-      handleSubmitCode(scan.data.toUpperCase());
+      handleSubmitCode(raw);
     }
   };
+
+  const isCodeValid = code.trim().length >= 4;
 
   return (
     <Modal
@@ -115,43 +125,134 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
       transparent
       onRequestClose={handleClose}
     >
-      <View className="flex-1 bg-black/60 justify-end">
-        <View className="bg-surface rounded-t-3xl border-t border-border p-6 max-h-[90%] space-y-4">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
+      >
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 16) + 8,
+            maxHeight: '92%',
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Top Drag Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 14,
+            }}
+          />
+
           {/* Header */}
-          <View className="flex-row items-center justify-between pb-3 border-b border-border">
-            <View>
-              <Text className="text-h2 font-bold text-ink">Join a Batch</Text>
-              <Text className="text-small text-ink-muted">
-                Quick2Learn Classroom & Online Batches
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingBottom: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+            }}
+          >
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.ink }}>
+                  Join a Batch
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: colors['primary-soft'],
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 12,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary }}>
+                    Quick2Learn
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 12.5, color: colors['ink-muted'] }}>
+                Classroom, Online & Hybrid Batches
               </Text>
             </View>
+
             <TouchableOpacity
               onPress={handleClose}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              className="w-10 h-10 rounded-full bg-surface-subtle items-center justify-center"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: colors['surface-subtle'],
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
               accessibilityLabel="Close"
             >
-              <X size={20} color="#6B7280" />
+              <X size={18} color={colors['ink-muted']} />
             </TouchableOpacity>
           </View>
 
           {/* Mode Switcher Tabs */}
           {!result && (
-            <View className="flex-row p-1 bg-surface-subtle rounded-xl border border-border">
+            <View
+              style={{
+                flexDirection: 'row',
+                backgroundColor: '#F1F5F9',
+                borderRadius: 14,
+                padding: 4,
+                marginTop: 14,
+                marginBottom: 14,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setTab('code')}
-                className={`flex-1 py-2.5 rounded-lg flex-row items-center justify-center space-x-2 ${
-                  tab === 'code' ? 'bg-surface shadow-sm' : ''
-                }`}
+                activeOpacity={0.8}
+                style={{
+                  flex: 1,
+                  paddingVertical: 9,
+                  borderRadius: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: tab === 'code' ? '#FFFFFF' : 'transparent',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: tab === 'code' ? 0.08 : 0,
+                  shadowRadius: 3,
+                  elevation: tab === 'code' ? 2 : 0,
+                }}
               >
                 <KeyRound
-                  size={16}
-                  color={tab === 'code' ? '#2563EB' : '#6B7280'}
+                  size={15}
+                  color={tab === 'code' ? colors.primary : colors['ink-muted']}
                 />
                 <Text
-                  className={`text-small font-semibold ml-1.5 ${
-                    tab === 'code' ? 'text-primary' : 'text-ink-muted'
-                  }`}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: tab === 'code' ? colors.primary : colors['ink-muted'],
+                    marginLeft: 6,
+                  }}
                 >
                   Enter Code
                 </Text>
@@ -171,18 +272,33 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
                   }
                   setTab('scanner');
                 }}
-                className={`flex-1 py-2.5 rounded-lg flex-row items-center justify-center space-x-2 ${
-                  tab === 'scanner' ? 'bg-surface shadow-sm' : ''
-                }`}
+                activeOpacity={0.8}
+                style={{
+                  flex: 1,
+                  paddingVertical: 9,
+                  borderRadius: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: tab === 'scanner' ? '#FFFFFF' : 'transparent',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: tab === 'scanner' ? 0.08 : 0,
+                  shadowRadius: 3,
+                  elevation: tab === 'scanner' ? 2 : 0,
+                }}
               >
                 <QrCode
-                  size={16}
-                  color={tab === 'scanner' ? '#2563EB' : '#6B7280'}
+                  size={15}
+                  color={tab === 'scanner' ? colors.primary : colors['ink-muted']}
                 />
                 <Text
-                  className={`text-small font-semibold ml-1.5 ${
-                    tab === 'scanner' ? 'text-primary' : 'text-ink-muted'
-                  }`}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: tab === 'scanner' ? colors.primary : colors['ink-muted'],
+                    marginLeft: 6,
+                  }}
                 >
                   Scan QR
                 </Text>
@@ -192,13 +308,18 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
 
           {/* Success or Redirection State */}
           {result ? (
-            <View className="py-6 items-center text-center space-y-4">
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
               <View
-                className={`w-16 h-16 rounded-full items-center justify-center ${
-                  result.status === 'enrol_online'
-                    ? 'bg-amber-100'
-                    : 'bg-emerald-100'
-                }`}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor:
+                    result.status === 'enrol_online' ? '#FEF3C7' : '#D1FAE5',
+                  marginBottom: 16,
+                }}
               >
                 {result.status === 'enrol_online' ? (
                   <ExternalLink size={32} color="#D97706" />
@@ -207,20 +328,35 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
                 )}
               </View>
 
-              <View className="items-center">
-                <Text className="text-h2 font-bold text-ink text-center mb-1">
-                  {result.batchTitle || 'Batch'}
-                </Text>
-                <Text className="text-body text-ink-muted text-center max-w-xs leading-relaxed">
-                  {result.message}
-                </Text>
-              </View>
+              <Text
+                style={{
+                  fontSize: 19,
+                  fontWeight: '800',
+                  color: colors.ink,
+                  textAlign: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                {result.batchTitle || 'Batch Request'}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  color: colors['ink-muted'],
+                  textAlign: 'center',
+                  maxWidth: 300,
+                  lineHeight: 20,
+                  marginBottom: 20,
+                }}
+              >
+                {result.message}
+              </Text>
 
               {result.status === 'enrol_online' && result.checkoutUrl && (
                 <Button
                   variant="primary"
                   size="lg"
-                  className="w-full mt-2"
+                  style={{ width: '100%', marginBottom: 10 }}
                   onPress={() => {
                     if (result.checkoutUrl) {
                       Linking.openURL(result.checkoutUrl).catch(() => {});
@@ -235,7 +371,7 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
               <Button
                 variant={result.status === 'enrol_online' ? 'outline' : 'primary'}
                 size="lg"
-                className="w-full mt-2"
+                style={{ width: '100%' }}
                 onPress={handleClose}
               >
                 Done
@@ -246,55 +382,183 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingVertical: 8 }}
+              contentContainerStyle={{ paddingVertical: 4 }}
             >
-              <Text className="text-caption font-semibold uppercase tracking-wider text-ink-muted mb-2">
-                6-Character Join Code
-              </Text>
-
-              <TextInput
-                value={code}
-                onChangeText={(val) => {
-                  setCode(val.toUpperCase());
-                  setErrorMessage(null);
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
                 }}
-                maxLength={6}
-                placeholder="e.g. MTH101"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="characters"
-                autoCorrect={false}
-                className="w-full bg-surface-subtle border-2 border-border focus:border-primary rounded-2xl px-4 py-3.5 text-center font-mono text-2xl font-black tracking-widest text-ink mb-3"
-              />
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: colors['ink-muted'],
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  6-Character Join Code
+                </Text>
+                <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
+                  {code.length}/6 characters
+                </Text>
+              </View>
+
+              {/* Code Input Box */}
+              <View
+                style={{
+                  backgroundColor: colors.surface,
+                  borderWidth: 2,
+                  borderColor: isFocused
+                    ? colors.primary
+                    : colors.border,
+                  borderRadius: 16,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: isFocused ? colors.primary : '#000000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isFocused ? 0.12 : 0.03,
+                  shadowRadius: 6,
+                  elevation: isFocused ? 3 : 1,
+                  marginBottom: 12,
+                }}
+              >
+                <TextInput
+                  value={code}
+                  onChangeText={(val) => {
+                    setCode(val.toUpperCase());
+                    setErrorMessage(null);
+                  }}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  maxLength={6}
+                  placeholder="e.g. MTH101"
+                  placeholderTextColor="#94A3B8"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  style={{
+                    flex: 1,
+                    textAlign: 'center',
+                    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+                    fontSize: 24,
+                    fontWeight: '800',
+                    letterSpacing: 8,
+                    color: colors.ink,
+                    paddingVertical: 2,
+                  }}
+                />
+                {code.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setCode('')}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: '#E2E8F0',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <X size={14} color="#64748B" />
+                  </TouchableOpacity>
+                )}
+              </View>
 
               {errorMessage && (
-                <View className="flex-row items-center p-3 rounded-xl bg-critical/10 border border-critical/30 mb-3">
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 10,
+                    borderRadius: 12,
+                    backgroundColor: '#FEF2F2',
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    marginBottom: 12,
+                  }}
+                >
                   <AlertCircle size={16} color="#DC2626" />
-                  <Text className="text-caption text-critical font-medium ml-2 flex-1">
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: '#DC2626',
+                      fontWeight: '600',
+                      marginLeft: 8,
+                      flex: 1,
+                    }}
+                  >
                     {errorMessage}
                   </Text>
                 </View>
               )}
 
-              <Text className="text-caption text-ink-muted text-center mb-6 leading-relaxed">
-                You can find the join code on your Quick2Learn admission slip,
-                classroom notice board, or WhatsApp group.
-              </Text>
+              {/* Informative Help Card */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  backgroundColor: '#EFF6FF',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 18,
+                }}
+              >
+                <Info size={16} color={colors.primary} style={{ marginTop: 1, marginRight: 8 }} />
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    color: '#1E40AF',
+                    lineHeight: 17,
+                    flex: 1,
+                  }}
+                >
+                  You can find your batch join code on your <Text style={{ fontWeight: '700' }}>admission receipt</Text>, <Text style={{ fontWeight: '700' }}>classroom notice board</Text>, or directly from Dinesh Sir in your <Text style={{ fontWeight: '700' }}>WhatsApp group</Text>.
+                </Text>
+              </View>
 
               <Button
                 variant="primary"
                 size="lg"
                 onPress={() => handleSubmitCode()}
                 loading={joinBatchMutation.isPending}
-                disabled={code.trim().length < 4 || joinBatchMutation.isPending}
+                disabled={!isCodeValid || joinBatchMutation.isPending}
+                icon={
+                  !joinBatchMutation.isPending && (
+                    <ArrowRight size={18} color="#FFFFFF" />
+                  )
+                }
               >
                 Send Join Request
               </Button>
             </ScrollView>
           ) : (
             /* Scanner Tab */
-            <View className="py-2 items-center">
+            <View style={{ paddingVertical: 6, alignItems: 'center' }}>
               {permission?.granted ? (
-                <View className="w-full h-72 rounded-2xl overflow-hidden border border-border bg-black relative items-center justify-center">
+                <View
+                  style={{
+                    width: '100%',
+                    height: 260,
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    backgroundColor: '#0F172A',
+                    position: 'relative',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   <CameraView
                     style={{ width: '100%', height: '100%' }}
                     barcodeScannerSettings={{
@@ -303,39 +567,97 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
                     onBarcodeScanned={handleBarcodeScanned}
                   />
                   {/* Framing Overlay */}
-                  <View className="absolute w-48 h-48 border-2 border-primary rounded-2xl bg-primary/10" />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      width: 180,
+                      height: 180,
+                      borderWidth: 2,
+                      borderColor: '#3B82F6',
+                      borderRadius: 18,
+                      backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    }}
+                  />
                   {joinBatchMutation.isPending && (
-                    <View className="absolute inset-0 bg-black/60 items-center justify-center">
-                      <ActivityIndicator size="large" color="#2563EB" />
-                      <Text className="text-caption text-white font-semibold mt-2">
+                    <View
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <ActivityIndicator size="large" color="#3B82F6" />
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: '#FFFFFF',
+                          fontWeight: '700',
+                          marginTop: 8,
+                        }}
+                      >
                         Submitting request...
                       </Text>
                     </View>
                   )}
                 </View>
               ) : (
-                <View className="py-12 items-center text-center space-y-3">
-                  <Camera size={36} color="#6B7280" />
-                  <Text className="text-body text-ink font-semibold">
+                <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+                  <View
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      backgroundColor: '#F1F5F9',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Camera size={26} color="#64748B" />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: colors.ink,
+                      fontWeight: '700',
+                      marginBottom: 6,
+                    }}
+                  >
                     Camera Access Required
                   </Text>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onPress={requestPermission}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors['ink-muted'],
+                      textAlign: 'center',
+                      marginBottom: 14,
+                      maxWidth: 240,
+                    }}
                   >
+                    Grant camera permission to scan classroom QR codes instantly.
+                  </Text>
+                  <Button variant="primary" size="sm" onPress={requestPermission}>
                     Grant Permission
                   </Button>
                 </View>
               )}
 
-              <Text className="text-caption text-ink-muted text-center mt-3">
-                Point your camera at the QR code poster in the Quick2Learn classroom.
+              <Text
+                style={{
+                  fontSize: 11.5,
+                  color: colors['ink-muted'],
+                  textAlign: 'center',
+                  marginTop: 10,
+                }}
+              >
+                Point camera directly at the QR code poster in the classroom
               </Text>
             </View>
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
