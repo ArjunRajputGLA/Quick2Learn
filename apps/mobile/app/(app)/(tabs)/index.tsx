@@ -184,12 +184,33 @@ export default function HomeScreen() {
   const freeLectures = home?.freeLectures || [];
   const enrolledBatchesCount = home?.enrolledBatchesCount ?? 0;
 
+  // Resolve the logged-in person's name accurately
+  const rawName =
+    me?.profile?.fullName ||
+    me?.user?.name ||
+    header?.fullName ||
+    header?.firstName ||
+    'Student';
+  // Strip parenthetical role notes if any (e.g., "Dinesh Sir (Administrator)" -> "Dinesh Sir")
+  const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || 'Student';
+  const displayName = cleanName;
+
+  // Resolve chip label dynamically based on profile or header
+  const chipLabel =
+    me?.role === 'teacher'
+      ? 'Faculty'
+      : me?.role === 'admin'
+      ? 'Administrator'
+      : me?.profile?.classLevel
+      ? `Class ${me.profile.classLevel} • ${(me.profile.board || 'CBSE').toUpperCase()}`
+      : header?.chipLabel || null;
+
   return (
     <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
       {/* Offline banner indicator (shows cached data) */}
       <OfflineBanner />
 
-      {/* 1. Header Island: "Hi, [first name]", class/board chip, notification bell */}
+      {/* 1. Header Island: "Hi, [Name]", class/board chip, notification bell */}
       <View
         style={{
           marginHorizontal: 12,
@@ -213,35 +234,35 @@ export default function HomeScreen() {
         }}
         className="mx-3 mt-1 mb-1.5 px-3.5 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
-        <View style={{ flex: 1, paddingRight: 8 }} className="flex-1 pr-2">
-          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }} className="flex-row items-center flex-wrap">
+        <View style={{ flex: 1, paddingRight: 8, justifyContent: 'center' }} className="flex-1 pr-2 justify-center">
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 6 }} className="flex-row items-center">
             <Text
-              style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}
+              style={{ fontSize: 15, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
               className="text-body font-bold text-ink mr-1.5"
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              Hi, {header?.firstName || 'Student'}
+              Hi, {displayName}
             </Text>
-            {header?.chipLabel ? (
+            {chipLabel ? (
               <View
                 style={{
                   backgroundColor: colors['primary-soft'],
                   paddingHorizontal: 7,
-                  paddingVertical: 1,
+                  paddingVertical: 1.5,
                   borderRadius: radii.full,
                   borderWidth: 1,
                   borderColor: 'rgba(37, 99, 235, 0.2)',
+                  flexShrink: 0,
                 }}
                 className="bg-primary-soft px-1.5 py-0.5 rounded-full border border-primary/20"
               >
                 <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }} className="text-[10px] font-semibold text-primary">
-                  {header.chipLabel}
+                  {chipLabel}
                 </Text>
               </View>
             ) : null}
           </View>
-          <Text style={{ fontSize: 10.5, color: colors['ink-muted'], marginTop: 0.5 }} className="text-[10.5px] text-ink-muted">
-            Welcome to Quick2Learn
-          </Text>
         </View>
 
         {/* Bell Button */}

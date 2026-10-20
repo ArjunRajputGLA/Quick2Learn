@@ -37,6 +37,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { ImageViewerModal } from '../../../src/components/tests/ImageViewerModal';
+import { KeyboardAwareView } from '../../../src/components/ui/KeyboardAwareView';
 import {
   useDoubtThread,
   useReplyDoubt,
@@ -333,10 +334,7 @@ export default function DoubtThreadScreen() {
         />
       }
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
+      <KeyboardAwareView style={{ flex: 1 }} className="flex-1">
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
@@ -593,7 +591,7 @@ export default function DoubtThreadScreen() {
             </Text>
           </View>
         )}
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
 
       {/* Full Screen Zoomable Image Modal */}
       <ImageViewerModal

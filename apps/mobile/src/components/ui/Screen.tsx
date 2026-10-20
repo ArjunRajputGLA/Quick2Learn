@@ -1,15 +1,14 @@
 import React from 'react';
 import {
   View,
-  ScrollView,
   RefreshControl,
-  KeyboardAvoidingView,
-  Platform,
   ViewStyle,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@quick2learn/shared';
+import { KeyboardAwareScrollView } from './KeyboardAwareScrollView';
+import { KeyboardAwareView } from './KeyboardAwareView';
 
 export interface ScreenProps {
   children: React.ReactNode;
@@ -45,7 +44,7 @@ export function Screen({
   const shouldApplySafeAreaBottom = safeAreaBottom ?? (scrollable ? true : false);
 
   const content = scrollable ? (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={{ flex: 1 }}
       className="flex-1"
       contentContainerStyle={[
@@ -69,19 +68,20 @@ export function Screen({
       }
     >
       {children}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   ) : (
-    <View
+    <KeyboardAwareView
       className="flex-1"
       style={[
         {
+          flex: 1,
           paddingBottom: shouldApplySafeAreaBottom ? Math.max(insets.bottom, 16) : 0,
         },
         contentContainerStyle,
       ]}
     >
       {children}
-    </View>
+    </KeyboardAwareView>
   );
 
   return (
@@ -94,13 +94,9 @@ export function Screen({
       ) : (
         <View style={{ height: insets.top }} />
       )}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-        className="flex-1"
-      >
+      <View style={{ flex: 1 }} className="flex-1">
         {content}
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }

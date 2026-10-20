@@ -27,6 +27,7 @@ import {
   GraduationCap,
 } from 'lucide-react-native';
 import { Button } from '../ui/Button';
+import { KeyboardAwareView } from '../ui/KeyboardAwareView';
 import { useJoinBatch } from '../../api/hooks';
 import { analytics } from '../../lib/analytics';
 import { colors, radii } from '@quick2learn/shared';
@@ -125,8 +126,7 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
       transparent
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareView
         style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
         <View
@@ -657,7 +657,7 @@ export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalPr
             </View>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

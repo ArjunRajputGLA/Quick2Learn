@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { colors, radii } from '@quick2learn/shared';
+import { useKeyboardAware } from './KeyboardAwareContext';
 
 export interface OtpInputProps {
   length?: number;
@@ -25,6 +26,8 @@ export function OtpInput({
   className = '',
 }: OtpInputProps) {
   const inputsRef = useRef<(any | null)[]>([]);
+  const containerRef = useRef<any>(null);
+  const keyboardAware = useKeyboardAware();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   // Split value into array of length
@@ -69,7 +72,7 @@ export function OtpInput({
   };
 
   return (
-    <View style={{ width: '100%', alignItems: 'center' }} className={`w-full items-center ${className}`}>
+    <View ref={containerRef} style={{ width: '100%', alignItems: 'center' }} className={`w-full items-center ${className}`}>
       <View
         style={{
           flexDirection: 'row',
@@ -150,8 +153,14 @@ export function OtpInput({
                   value={digits[index]}
                   onChangeText={(text) => handleChangeText(text, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
-                  onFocus={() => setFocusedIndex(index)}
-                  onBlur={() => setFocusedIndex(null)}
+                  onFocus={() => {
+                    setFocusedIndex(index);
+                    keyboardAware.onInputFocus(containerRef, 24);
+                  }}
+                  onBlur={() => {
+                    setFocusedIndex(null);
+                    keyboardAware.onInputBlur(containerRef);
+                  }}
                   keyboardType="number-pad"
                   maxLength={length} // Allow paste of full code
                   selectTextOnFocus

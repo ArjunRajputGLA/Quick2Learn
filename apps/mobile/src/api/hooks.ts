@@ -470,15 +470,52 @@ export function useHome() {
   return useQuery<HomeResponse>({
     queryKey: queryKeys.home,
     queryFn: async () => {
+      const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      let activeUser: MeResponse | null = null;
+      if (activeUserJson) {
+        try {
+          activeUser = JSON.parse(activeUserJson);
+        } catch {}
+      }
+
+      const getDemoHome = (): HomeResponse => {
+        if (!activeUser) return DEMO_HOME_DATA;
+        const profile = activeUser.profile;
+        const user = activeUser.user;
+        const rawName = profile?.fullName || user?.name || "Student";
+        const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || "Student";
+        const firstName = cleanName.split(' ')[0] || cleanName;
+        const chipLabel =
+          activeUser.role === 'teacher'
+            ? 'Faculty'
+            : activeUser.role === 'admin'
+            ? 'Administrator'
+            : profile?.classLevel
+            ? `Class ${profile.classLevel} • ${(profile.board || 'CBSE').toUpperCase()}`
+            : DEMO_HOME_DATA.header.chipLabel;
+
+        return {
+          ...DEMO_HOME_DATA,
+          header: {
+            ...DEMO_HOME_DATA.header,
+            firstName,
+            fullName: cleanName,
+            classLevel: (profile?.classLevel as 9 | 10 | 11 | 12 | null) ?? DEMO_HOME_DATA.header.classLevel,
+            board: (profile?.board as 'cbse' | 'icse' | 'isc' | null) ?? DEMO_HOME_DATA.header.board,
+            chipLabel,
+          },
+        };
+      };
+
       const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
       if (isDemo === "true") {
-        return DEMO_HOME_DATA;
+        return getDemoHome();
       }
       try {
         return await apiClient.get("/home", { schema: homeResponseSchema });
       } catch (err) {
         if (isDemo === "true") {
-          return DEMO_HOME_DATA;
+          return getDemoHome();
         }
         throw err;
       }
@@ -536,11 +573,51 @@ export function useUpdateMe() {
   const queryClient = useQueryClient();
 
   return useMutation<MeResponse, Error, UpdateMeInput>({
-    mutationFn: (input: UpdateMeInput) =>
-      apiClient.patch("/me", input, { schema: meResponseSchema }),
+    mutationFn: async (input: UpdateMeInput) => {
+      const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
+      if (isDemo === "true") {
+        const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+        let currentMe: MeResponse = DEMO_USER_ME;
+        if (activeUserJson) {
+          try {
+            currentMe = JSON.parse(activeUserJson);
+          } catch {}
+        }
+        const baseProfile = currentMe.profile || DEMO_USER_ME.profile!;
+        const updated: MeResponse = {
+          ...currentMe,
+          user: {
+            ...currentMe.user,
+            name: input.fullName || currentMe.user.name,
+          },
+          profile: {
+            ...baseProfile,
+            fullName: input.fullName || baseProfile.fullName,
+            classLevel: input.classLevel !== undefined ? input.classLevel : baseProfile.classLevel,
+            board: input.board || baseProfile.board,
+            school: input.school !== undefined ? input.school : baseProfile.school,
+            city: input.city !== undefined ? input.city : baseProfile.city,
+            parentName: input.parentName !== undefined ? input.parentName : baseProfile.parentName,
+            parentPhone: input.parentPhone !== undefined ? input.parentPhone : baseProfile.parentPhone,
+            avatarUrl: input.avatarUrl !== undefined ? input.avatarUrl : baseProfile.avatarUrl,
+          },
+        };
+        await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(updated)).catch(() => {});
+        return updated;
+      }
+      try {
+        return await apiClient.patch("/me", input, { schema: meResponseSchema });
+      } catch (err) {
+        if (isDemo === "true") {
+          return DEMO_USER_ME;
+        }
+        throw err;
+      }
+    },
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.me, updated);
       queryClient.invalidateQueries({ queryKey: queryKeys.me });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
   });
 }

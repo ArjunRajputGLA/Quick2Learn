@@ -30,6 +30,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useQueryClient } from '@tanstack/react-query';
 import { TextField } from '../../src/components/ui/TextField';
 import { Button } from '../../src/components/ui/Button';
+import { KeyboardAwareScrollView } from '../../src/components/ui/KeyboardAwareScrollView';
 import {
   ACTIVE_USER_STORAGE_KEY,
   DEMO_MODE_STORAGE_KEY,
@@ -212,59 +213,55 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
       <StatusBar style="dark" />
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
+      <View style={{ flex: 1 }}>
+        {/* Header */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(229, 231, 235, 0.6)',
+          }}
         >
-          {/* Header */}
-          <View
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={() => router.back()}
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              flexDirection: 'row',
+              width: 40,
+              height: 40,
               alignItems: 'center',
-              borderBottomWidth: 1,
-              borderBottomColor: 'rgba(229, 231, 235, 0.6)',
+              justifyContent: 'center',
+              borderRadius: 20,
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <ArrowLeft size={22} color={colors.ink} />
+          </TouchableOpacity>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: colors.ink,
+              marginLeft: 8,
             }}
           >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              onPress={() => router.back()}
-              style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 20,
-              }}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <ArrowLeft size={22} color={colors.ink} />
-            </TouchableOpacity>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: colors.ink,
-                marginLeft: 8,
-              }}
-            >
-              Create Account
-            </Text>
-          </View>
+            Create Account
+          </Text>
+        </View>
 
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingHorizontal: 24,
-              paddingTop: 20,
-              paddingBottom: 40,
-            }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 20,
+            paddingBottom: 40,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
             {/* Header Titles */}
             <View style={{ marginBottom: 20 }}>
               <Text
@@ -686,9 +683,8 @@ export default function RegisterScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
-  );
-}
+          </KeyboardAwareScrollView>
+        </View>
+      </SafeAreaView>
+    );
+  }

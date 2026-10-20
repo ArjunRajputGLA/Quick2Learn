@@ -25,6 +25,7 @@ import {
 import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
 import { Button } from "../../../src/components/ui/Button";
+import { KeyboardAwareView } from "../../../src/components/ui/KeyboardAwareView";
 import { Card } from "../../../src/components/ui/Card";
 import { Badge } from "../../../src/components/ui/Badge";
 import {
@@ -137,14 +138,11 @@ export default function EditProfileScreen() {
 
   return (
     <Screen
-      scrollable={false}
+      scrollable={true}
       header={<AppHeader title={t("editProfileTitle")} showBack />}
+      contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
     >
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Basic Information */}
+      {/* Basic Information */}
         <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-4">
           <Text className="text-h3 font-semibold text-ink">Personal Information</Text>
 
@@ -355,7 +353,6 @@ export default function EditProfileScreen() {
         >
           {t("saveChanges")}
         </Button>
-      </ScrollView>
 
       {/* Change Phone Modal */}
       <Modal
@@ -365,83 +362,85 @@ export default function EditProfileScreen() {
         onRequestClose={() => setPhoneModalOpen(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-h2 font-bold text-ink">Change Mobile Number</Text>
-              <TouchableOpacity onPress={() => setPhoneModalOpen(false)}>
-                <Text className="text-body font-semibold text-primary">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-
-            {phoneStep === "phone" ? (
-              <View className="space-y-4">
-                <Text className="text-caption text-ink-muted leading-relaxed">
-                  Enter your new 10-digit mobile number. We will send an SMS with a 6-digit verification code.
-                </Text>
-
-                <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-3">
-                  <Text className="text-body font-bold text-ink mr-2">+91</Text>
-                  <TextInput
-                    value={newPhone}
-                    onChangeText={setNewPhone}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    placeholder="9876543210"
-                    className="flex-1 text-body text-ink font-semibold"
-                    autoFocus
-                  />
-                </View>
-
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onPress={handleSendPhoneOtp}
-                  loading={sendPhoneOtpMutation.isPending}
-                >
-                  Send OTP Code
-                </Button>
+          <KeyboardAwareView style={{ width: '100%' }}>
+            <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-h2 font-bold text-ink">Change Mobile Number</Text>
+                <TouchableOpacity onPress={() => setPhoneModalOpen(false)}>
+                  <Text className="text-body font-semibold text-primary">Cancel</Text>
+                </TouchableOpacity>
               </View>
-            ) : (
-              <View className="space-y-4">
-                <Text className="text-caption text-ink-muted leading-relaxed">
-                  Enter the 6-digit verification code sent to +91 {newPhone}.
-                </Text>
 
-                <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-3">
-                  <KeyRound size={18} color="#6B7280" />
-                  <TextInput
-                    value={phoneOtp}
-                    onChangeText={setPhoneOtp}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    placeholder="123456"
-                    className="flex-1 text-h3 text-ink font-mono font-bold tracking-widest text-center"
-                    autoFocus
-                  />
-                </View>
+              {phoneStep === "phone" ? (
+                <View className="space-y-4">
+                  <Text className="text-caption text-ink-muted leading-relaxed">
+                    Enter your new 10-digit mobile number. We will send an SMS with a 6-digit verification code.
+                  </Text>
 
-                <View className="flex-row space-x-2">
-                  <Button
-                    variant="outline"
-                    size="md"
-                    className="flex-1"
-                    onPress={() => setPhoneStep("phone")}
-                  >
-                    Back
-                  </Button>
+                  <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-3">
+                    <Text className="text-body font-bold text-ink mr-2">+91</Text>
+                    <TextInput
+                      value={newPhone}
+                      onChangeText={setNewPhone}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      placeholder="9876543210"
+                      className="flex-1 text-body text-ink font-semibold"
+                      autoFocus
+                    />
+                  </View>
+
                   <Button
                     variant="primary"
-                    size="md"
-                    className="flex-2"
-                    onPress={handleVerifyPhoneOtp}
-                    loading={verifyPhoneOtpMutation.isPending}
+                    size="lg"
+                    onPress={handleSendPhoneOtp}
+                    loading={sendPhoneOtpMutation.isPending}
                   >
-                    Verify &amp; Update
+                    Send OTP Code
                   </Button>
                 </View>
-              </View>
-            )}
-          </View>
+              ) : (
+                <View className="space-y-4">
+                  <Text className="text-caption text-ink-muted leading-relaxed">
+                    Enter the 6-digit verification code sent to +91 {newPhone}.
+                  </Text>
+
+                  <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-3">
+                    <KeyRound size={18} color="#6B7280" />
+                    <TextInput
+                      value={phoneOtp}
+                      onChangeText={setPhoneOtp}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      placeholder="123456"
+                      className="flex-1 text-h3 text-ink font-mono font-bold tracking-widest text-center"
+                      autoFocus
+                    />
+                  </View>
+
+                  <View className="flex-row space-x-2">
+                    <Button
+                      variant="outline"
+                      size="md"
+                      className="flex-1"
+                      onPress={() => setPhoneStep("phone")}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="flex-2"
+                      onPress={handleVerifyPhoneOtp}
+                      loading={verifyPhoneOtpMutation.isPending}
+                    >
+                      Verify &amp; Update
+                    </Button>
+                  </View>
+                </View>
+              )}
+            </View>
+          </KeyboardAwareView>
         </View>
       </Modal>
     </Screen>

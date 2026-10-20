@@ -41,6 +41,7 @@ import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { Card } from '../../../src/components/ui/Card';
+import { KeyboardAwareScrollView } from '../../../src/components/ui/KeyboardAwareScrollView';
 import { Toast } from '../../../src/components/ui/Toast';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
@@ -911,7 +912,7 @@ function PostAnnouncementSection({
   };
 
   return (
-    <ScrollView className="flex-1 px-4 py-3 bg-surface-subtle">
+    <KeyboardAwareScrollView className="flex-1 px-4 py-3 bg-surface-subtle">
       <Card className="p-4 bg-surface border border-border mb-4">
         <Text className="text-h3 font-bold text-ink mb-3">
           Post Batch Announcement
@@ -1052,7 +1053,7 @@ function PostAnnouncementSection({
           Post Announcement
         </Button>
       </Card>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -1296,7 +1297,7 @@ function DoubtsInboxSection({
               </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1">
+            <KeyboardAwareScrollView className="flex-1">
               {/* Question summary */}
               <View className="p-3 bg-surface-subtle rounded-xl border border-border mb-3">
                 <Text className="text-caption font-semibold text-ink-muted uppercase mb-1">
@@ -1383,7 +1384,7 @@ function DoubtsInboxSection({
               >
                 Send Solution to Student
               </Button>
-            </ScrollView>
+            </KeyboardAwareScrollView>
           </View>
         </Modal>
       ) : null}
@@ -1605,7 +1606,7 @@ function QuickNotesUploadSection({
   };
 
   return (
-    <ScrollView className="flex-1 px-4 py-3 bg-surface-subtle">
+    <KeyboardAwareScrollView className="flex-1 px-4 py-3 bg-surface-subtle">
       <Card className="p-4 bg-surface border border-border mb-4">
         <Text className="text-h3 font-bold text-ink mb-1">
           Quick Upload: Handwritten Notes to PDF
@@ -1803,6 +1804,6 @@ function QuickNotesUploadSection({
           Compile into PDF & Upload Notes
         </Button>
       </Card>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 } 

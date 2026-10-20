@@ -26,6 +26,7 @@
     },
     "android": {
       "package": "in.quick2learn.app",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#EFF6FF"

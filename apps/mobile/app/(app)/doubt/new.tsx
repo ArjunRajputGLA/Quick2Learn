@@ -38,6 +38,7 @@ import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
+import { KeyboardAwareView } from '../../../src/components/ui/KeyboardAwareView';
 import {
   useLearnClasses,
   useLearnChapters,
@@ -371,10 +372,7 @@ export default function AskDoubtScreen() {
       scrollable={false}
       header={<AppHeader title="Ask a Doubt" showBack />}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+      <KeyboardAwareView style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 110 }}
           showsVerticalScrollIndicator={false}
@@ -906,7 +904,7 @@ export default function AskDoubtScreen() {
             {uploadStatus || 'Send Doubt to Dinesh Sir'}
           </Button>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </Screen>
   );
 }

@@ -80,14 +80,11 @@ export default function DeleteAccountScreen() {
 
   return (
     <Screen
-      scrollable={false}
+      scrollable={true}
       header={<AppHeader title={t("deleteAccountTitle")} showBack />}
+      contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
     >
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Banner Alert */}
+      {/* Banner Alert */}
         <View className="bg-danger/10 border border-danger/30 rounded-2xl p-4 mb-4 flex-row items-start space-x-3">
           <AlertTriangle size={24} color="#DC2626" className="mt-0.5" />
           <View className="flex-1 ml-2">
@@ -175,7 +172,6 @@ export default function DeleteAccountScreen() {
             </Button>
           </View>
         )}
-      </ScrollView>
     </Screen>
   );
 }

@@ -47,6 +47,7 @@ import { Card } from "../../../src/components/ui/Card";
 import { Avatar } from "../../../src/components/ui/Avatar";
 import { Badge } from "../../../src/components/ui/Badge";
 import { useConfirmDialog } from "../../../src/components/ui/ConfirmModal";
+import { KeyboardAwareView } from "../../../src/components/ui/KeyboardAwareView";
 import { colors, radii } from "@quick2learn/shared";
 import {
   useMe,
@@ -1211,16 +1212,7 @@ export default function ProfileScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               paddingVertical: 6,
-              paddingHorizontal: 14,
-              borderRadius: 20,
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: colors.border,
-              shadowColor: '#0F172A',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.04,
-              shadowRadius: 3,
-              elevation: 1,
+              paddingHorizontal: 8,
             }}
           >
             <Text
@@ -1318,53 +1310,55 @@ export default function ProfileScreen() {
         onRequestClose={() => setLinkChildModalVisible(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
-            <View className="flex-row justify-between items-center mb-1">
-              <View className="flex-row items-center">
-                <UserPlus size={20} color="#2563EB" />
-                <Text className="text-h2 font-bold text-ink ml-2">
-                  Link Student Account
-                </Text>
+          <KeyboardAwareView style={{ width: '100%' }}>
+            <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
+              <View className="flex-row justify-between items-center mb-1">
+                <View className="flex-row items-center">
+                  <UserPlus size={20} color="#2563EB" />
+                  <Text className="text-h2 font-bold text-ink ml-2">
+                    Link Student Account
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setLinkChildModalVisible(false)}>
+                  <Text className="text-body font-semibold text-ink-muted">Cancel</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => setLinkChildModalVisible(false)}>
-                <Text className="text-body font-semibold text-ink-muted">Cancel</Text>
-              </TouchableOpacity>
-            </View>
 
-            <Text className="text-caption text-ink-muted leading-relaxed">
-              Enter the 6-character invite code from your child's Quick2Learn app (found under Profile → Parent Access).
-            </Text>
-
-            <View className="bg-surface-elevated rounded-xl p-3 border border-border">
-              <TextInput
-                value={claimCodeInput}
-                onChangeText={(text) => {
-                  setClaimCodeInput(text.toUpperCase());
-                  setClaimError("");
-                }}
-                placeholder="e.g. A1B2C3"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="characters"
-                maxLength={8}
-                className="text-h2 font-mono font-bold text-ink text-center tracking-widest py-2"
-              />
-            </View>
-
-            {claimError ? (
-              <Text className="text-caption text-danger text-center">
-                {claimError}
+              <Text className="text-caption text-ink-muted leading-relaxed">
+                Enter the 6-character invite code from your child's Quick2Learn app (found under Profile → Parent Access).
               </Text>
-            ) : null}
 
-            <Button
-              variant="primary"
-              size="lg"
-              onPress={handleClaimCode}
-              loading={claimCodeMutation.isPending}
-            >
-              Link Account
-            </Button>
-          </View>
+              <View className="bg-surface-elevated rounded-xl p-3 border border-border">
+                <TextInput
+                  value={claimCodeInput}
+                  onChangeText={(text) => {
+                    setClaimCodeInput(text.toUpperCase());
+                    setClaimError("");
+                  }}
+                  placeholder="e.g. A1B2C3"
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="characters"
+                  maxLength={8}
+                  className="text-h2 font-mono font-bold text-ink text-center tracking-widest py-2"
+                />
+              </View>
+
+              {claimError ? (
+                <Text className="text-caption text-danger text-center">
+                  {claimError}
+                </Text>
+              ) : null}
+
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={handleClaimCode}
+                loading={claimCodeMutation.isPending}
+              >
+                Link Account
+              </Button>
+            </View>
+          </KeyboardAwareView>
         </View>
       </Modal>
     </Screen>

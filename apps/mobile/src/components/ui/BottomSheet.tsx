@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
+import { KeyboardAwareView } from './KeyboardAwareView';
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -38,9 +39,7 @@ export function BottomSheet({
       <TouchableWithoutFeedback onPress={onClose}>
         <View className="flex-1 bg-black/40 justify-end">
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
+            <KeyboardAwareView style={{ width: '100%' }}>
               <View
                 className={`bg-surface rounded-t-3xl pt-3 px-5 border-t border-border shadow-lg ${className}`}
                 style={{ paddingBottom: Math.max(insets.bottom, 20) }}
@@ -69,7 +68,7 @@ export function BottomSheet({
 
                 {children}
               </View>
-            </KeyboardAvoidingView>
+            </KeyboardAwareView>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>

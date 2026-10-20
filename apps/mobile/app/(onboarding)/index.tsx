@@ -29,6 +29,7 @@ import { TextField } from '../../src/components/ui/TextField';
 import { Chip } from '../../src/components/ui/Chip';
 import { Button } from '../../src/components/ui/Button';
 import { Card } from '../../src/components/ui/Card';
+import { KeyboardAwareView } from '../../src/components/ui/KeyboardAwareView';
 import {
   useOnboarding,
   useRegisterDevice,
@@ -494,10 +495,7 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
+      <KeyboardAwareView className="flex-1" style={{ flex: 1 }}>
         {/* Top Header with Progress Bar */}
         {step !== 3 && (
           <View className="px-6 pt-4 pb-2">
@@ -535,7 +533,7 @@ export default function OnboardingScreen() {
           {step === 2 && role === 'parent' && renderParentStep2()}
           {step === 3 && renderStep3()}
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 }

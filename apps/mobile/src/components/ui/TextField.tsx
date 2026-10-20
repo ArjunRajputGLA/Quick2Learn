@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 import { Eye, EyeOff, XCircle } from 'lucide-react-native';
 
 import { colors, radii } from '@quick2learn/shared';
+import { useKeyboardAware } from './KeyboardAwareContext';
 
 export interface TextFieldProps extends TextInputProps {
   label?: string;
@@ -40,6 +41,8 @@ export function TextField({
 }: TextFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const containerRef = useRef<any>(null);
+  const keyboardAware = useKeyboardAware();
 
   const hasError = Boolean(error);
 
@@ -55,7 +58,7 @@ export function TextField({
   const activeBgColor = rest.editable === false ? colors['surface-subtle'] : colors.surface;
 
   return (
-    <View style={{ width: '100%' }} className={`w-full ${className}`}>
+    <View ref={containerRef} style={{ width: '100%' }} className={`w-full ${className}`}>
       {label ? (
         <Text
           style={{ fontSize: 13, fontWeight: '500', color: colors.ink, marginBottom: 6 }}
@@ -97,10 +100,12 @@ export function TextField({
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}
           onFocus={(e) => {
             setIsFocused(true);
+            keyboardAware.onInputFocus(containerRef, 24);
             onFocus?.(e);
           }}
           onBlur={(e) => {
             setIsFocused(false);
+            keyboardAware.onInputBlur(containerRef);
             onBlur?.(e);
           }}
           accessibilityLabel={label}
