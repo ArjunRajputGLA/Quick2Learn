@@ -33,14 +33,23 @@ import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { ChildSwitcher } from "./ChildSwitcher";
-import { useParentHome } from "../../api/hooks";
+import { useParentHome, useMe, useParentStudents } from "../../api/hooks";
 import { useParentStore } from "../../lib/parentStore";
 import { formatINR } from "@quick2learn/shared";
 
 export function ParentHomeScreen() {
   const router = useRouter();
   const { selectedChildId } = useParentStore();
+  const { data: me } = useMe();
+  const { data: parentStudentsData } = useParentStudents();
   const { data, isLoading, isRefetching, refetch, error } = useParentHome(selectedChildId);
+
+  const linkedStudents = parentStudentsData?.students || me?.linkedStudents || [];
+  const matchedLinked =
+    (selectedChildId && linkedStudents.find((s) => s.id === selectedChildId || s.userId === selectedChildId)) ||
+    linkedStudents[0];
+
+  const child = data?.child || matchedLinked;
 
   const handleOpenWhatsApp = () => {
     if (data?.instituteWhatsApp?.url) {
@@ -48,7 +57,7 @@ export function ParentHomeScreen() {
     }
   };
 
-  if (isLoading && !data) {
+  if (isLoading && !data && !child) {
     return (
       <Screen header={<AppHeader title="Parent Portal" />}>
         <View className="flex-1 items-center justify-center p-8">
@@ -59,7 +68,6 @@ export function ParentHomeScreen() {
     );
   }
 
-  const child = data?.child;
   const attendance = data?.attendanceThisWeek;
   const testScore = data?.latestTestScore;
   const nextClass = data?.nextClass;
@@ -90,15 +98,22 @@ export function ParentHomeScreen() {
       >
         {/* Child greeting info */}
         {child && (
-          <View className="mb-4">
-            <Text className="text-body-xs font-semibold text-primary uppercase tracking-wider">
-              Student Overview
-            </Text>
+          <View className="mb-4 bg-white p-4 rounded-2xl border border-border shadow-xs">
+            <View className="flex-row items-center justify-between mb-1">
+              <Text className="text-body-xs font-semibold text-primary uppercase tracking-wider">
+                Student Overview
+              </Text>
+              <View className="bg-primary/10 px-2.5 py-0.5 rounded-full">
+                <Text className="text-[11px] font-bold text-primary">Active Profile</Text>
+              </View>
+            </View>
             <Text className="text-h2 font-bold text-ink">
               {child.fullName}
             </Text>
             <Text className="text-body-xs text-ink-muted mt-0.5">
-              Class {child.classLevel || 10} • {child.board?.toUpperCase() || "CBSE"} • Mathura Center
+              {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}{" "}
+              • {child.board?.toUpperCase() || "CBSE"}{" "}
+              • {(child as any).school || "Quick2Learn Coaching Center"}
             </Text>
           </View>
         )}
@@ -339,9 +354,9 @@ export function ParentHomeScreen() {
                       {a.title}
                     </Text>
                     {a.batchTitle && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-surface-subtle text-ink-muted">
+                      <Text className="text-[10px] font-semibold px-2 py-0.5 rounded bg-surface-subtle text-ink-muted">
                         {a.batchTitle}
-                      </span>
+                      </Text>
                     )}
                   </View>
                   <Text className="text-body-xs text-ink-muted mt-1" numberOfLines={2}>

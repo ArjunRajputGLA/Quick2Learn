@@ -8,6 +8,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Share,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +27,9 @@ import {
   Check,
   Building,
   KeyRound,
+  Sparkles,
+  Share2,
+  Copy,
 } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useQueryClient } from '@tanstack/react-query';
@@ -36,6 +41,12 @@ import {
   DEMO_MODE_STORAGE_KEY,
   queryKeys,
 } from '../../src/api/hooks';
+import {
+  checkDeviceRoleMutualExclusion,
+  verifyChildCodeDeviceClaim,
+  claimChildCodeOnDevice,
+  setDeviceActiveRole,
+} from '../../src/lib/deviceSession';
 import { colors, radii } from '@quick2learn/shared';
 
 type RegisterRole = 'student' | 'parent';
@@ -62,6 +73,13 @@ export default function RegisterScreen() {
   // Parent specific
   const [childInviteCode, setChildInviteCode] = useState('');
 
+  // Flash modal state for student's one-time invite code reveal
+  const [flashInviteModal, setFlashInviteModal] = useState<{
+    visible: boolean;
+    code: string;
+    studentName: string;
+  } | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,23 +91,60 @@ export default function RegisterScreen() {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone.trim().replace(/\D/g, '');
     const cleanPassword = password.trim();
+    const cleanInviteCode = childInviteCode.trim().toUpperCase();
 
+    // 0. Mutual Exclusivity Check on Device
+    const roleCheck = await checkDeviceRoleMutualExclusion(role);
+    if (!roleCheck.allowed) {
+      setError(roleCheck.message || 'Portal role conflict on this device.');
+      return;
+    }
+
+    // 1. Name is mandatory (at least 2 characters)
     if (cleanName.length < 2) {
       setError('Please enter your full name (at least 2 characters)');
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
+    // 2. Phone is mandatory (10 digits)
     if (cleanPhone.length < 10) {
       setError('Please enter a valid 10-digit mobile number');
       return;
     }
 
+    // 3. Email validation: Mandatory for student, OPTIONAL for parents
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (role === 'student') {
+      if (!emailRegex.test(cleanEmail)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+    } else {
+      // Parent: email is optional
+      if (cleanEmail && !emailRegex.test(cleanEmail)) {
+        setError('Please enter a valid email address, or leave it blank.');
+        return;
+      }
+
+      // Child invite code is MANDATORY for parents!
+      if (!cleanInviteCode) {
+        setError("Please enter your child's 6-character invite code.");
+        return;
+      }
+      if (cleanInviteCode.length !== 6) {
+        setError("Child's invite code must be exactly 6 characters.");
+        return;
+      }
+
+      // Single-Parent Device Binding Check
+      const claimCheck = await verifyChildCodeDeviceClaim(cleanInviteCode);
+      if (!claimCheck.allowed) {
+        setError(claimCheck.error || 'This child invite code is already active on another parent device.');
+        return;
+      }
+    }
+
+    // 4. Password validation
     if (cleanPassword.length < 6) {
       setError('Password must be at least 6 characters long');
       return;
@@ -105,20 +160,10 @@ export default function RegisterScreen() {
     try {
       const newAccountId = `user-${Date.now()}`;
       const newProfileId = `profile-${Date.now()}`;
-
-      const newAccountRecord = {
-        id: newAccountId,
-        fullName: cleanName,
-        email: cleanEmail,
-        phone: cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone.slice(-10)}`,
-        password: cleanPassword,
-        role,
-        classLevel: role === 'student' ? classLevel : null,
-        board: role === 'student' ? board : null,
-        school: role === 'student' ? school.trim() || 'Quick2Learn High' : null,
-        childInviteCode: role === 'parent' ? childInviteCode.trim() : null,
-        createdAt: new Date().toISOString(),
-      };
+      const formattedPhone = cleanPhone.startsWith('+91')
+        ? cleanPhone
+        : `+91${cleanPhone.slice(-10)}`;
+      const effectiveEmail = cleanEmail || `${cleanPhone.slice(-10)}@parent.quick2learn.in`;
 
       // Persist in list of registered accounts
       const existingAccountsJson = await SecureStore.getItemAsync(
@@ -131,9 +176,87 @@ export default function RegisterScreen() {
         } catch {}
       }
 
-      // Check if email already registered
+      let generatedStudentInviteCode = '';
+      let parentLinkedStudents: any[] = [];
+
+      if (role === 'parent') {
+        // Search registered student accounts for matching invite code
+        let matchedStudent = accountsList.find(
+          (acc) =>
+            acc.role === 'student' &&
+            (acc.inviteCode?.toUpperCase() === cleanInviteCode ||
+              acc.studentInviteCode?.toUpperCase() === cleanInviteCode)
+        );
+
+        // Check active student or demo student fallbacks
+        const activeStudentCode = await SecureStore.getItemAsync('q2l_active_student_invite_code').catch(() => null);
+        if (
+          !matchedStudent &&
+          (cleanInviteCode === 'DEMO10' ||
+            cleanInviteCode === 'Q2L100' ||
+            cleanInviteCode === 'STUDNT' ||
+            (activeStudentCode && activeStudentCode.toUpperCase() === cleanInviteCode))
+        ) {
+          matchedStudent = {
+            id: 'demo-student-profile-id',
+            fullName: 'Student Demo',
+            classLevel: 10,
+            board: 'cbse',
+            school: 'Quick2Learn High',
+          };
+        }
+
+        if (!matchedStudent) {
+          setError(
+            `No student found with invite code "${cleanInviteCode}". Please check your child's Quick2Learn profile for their 6-character code.`
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        parentLinkedStudents = [
+          {
+            id: matchedStudent.id || `profile-${matchedStudent.id}`,
+            userId: matchedStudent.id || `user-${Date.now()}`,
+            fullName: matchedStudent.fullName,
+            classLevel: matchedStudent.classLevel || 10,
+            board: (matchedStudent.board || 'cbse') as 'cbse' | 'icse',
+            school: matchedStudent.school || 'Quick2Learn High',
+            avatarUrl: null,
+          },
+        ];
+      } else {
+        // Generate unique 6-character student invite code (e.g. Q2L948)
+        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        generatedStudentInviteCode = '';
+        for (let i = 0; i < 6; i++) {
+          generatedStudentInviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+      }
+
+      const newAccountRecord = {
+        id: newAccountId,
+        fullName: cleanName,
+        email: effectiveEmail,
+        displayEmail: cleanEmail || null,
+        phone: formattedPhone,
+        password: cleanPassword,
+        role,
+        classLevel: role === 'student' ? classLevel : null,
+        board: role === 'student' ? board : null,
+        school: role === 'student' ? school.trim() || 'Quick2Learn High' : null,
+        childInviteCode: role === 'parent' ? cleanInviteCode : null,
+        inviteCode: role === 'student' ? generatedStudentInviteCode : null,
+        studentInviteCode: role === 'student' ? generatedStudentInviteCode : null,
+        linkedStudents: role === 'parent' ? parentLinkedStudents : [],
+        createdAt: new Date().toISOString(),
+      };
+
+      // Check if account already exists
       const existingIndex = accountsList.findIndex(
-        (a) => a.email?.toLowerCase() === cleanEmail
+        (a) =>
+          (cleanEmail && a.email?.toLowerCase() === cleanEmail) ||
+          a.phone?.replace(/\D/g, '') === cleanPhone.replace(/\D/g, '')
       );
       if (existingIndex >= 0) {
         accountsList[existingIndex] = newAccountRecord;
@@ -150,12 +273,12 @@ export default function RegisterScreen() {
       const userProfile = {
         user: {
           id: newAccountId,
-          email: cleanEmail,
+          email: effectiveEmail,
           name: cleanName,
           image: null,
-          phoneNumber: newAccountRecord.phone,
+          phoneNumber: formattedPhone,
           phoneNumberVerified: true,
-          emailVerified: true,
+          emailVerified: Boolean(cleanEmail),
           createdAt: newAccountRecord.createdAt,
           updatedAt: newAccountRecord.createdAt,
         },
@@ -163,7 +286,7 @@ export default function RegisterScreen() {
           id: newProfileId,
           userId: newAccountId,
           fullName: cleanName,
-          phone: newAccountRecord.phone,
+          phone: formattedPhone,
           role,
           classLevel: role === 'student' ? classLevel : null,
           board: role === 'student' ? board : null,
@@ -172,25 +295,13 @@ export default function RegisterScreen() {
           parentPhone: null,
           city: 'Bhopal',
           avatarUrl: null,
+          inviteCode: role === 'student' ? generatedStudentInviteCode : null,
           onboardedAt: newAccountRecord.createdAt,
           createdAt: newAccountRecord.createdAt,
           updatedAt: newAccountRecord.createdAt,
         },
         role,
-        linkedStudents:
-          role === 'parent'
-            ? [
-                {
-                  id: 'linked-student-demo',
-                  userId: 'user-linked-student-demo',
-                  fullName: 'Student Demo',
-                  classLevel: 10,
-                  board: 'cbse' as const,
-                  school: 'Quick2Learn High',
-                  avatarUrl: null,
-                },
-              ]
-            : [],
+        linkedStudents: parentLinkedStudents,
       };
 
       // Set active user session
@@ -201,13 +312,50 @@ export default function RegisterScreen() {
       await SecureStore.setItemAsync(DEMO_MODE_STORAGE_KEY, 'true').catch(() => {});
       queryClient.setQueryData(queryKeys.me, userProfile);
 
-      // Route into app
-      router.replace('/(app)' as any);
+      if (role === 'student') {
+        await setDeviceActiveRole('student');
+        // Save student invite code to SecureStore & queryCache
+        await SecureStore.setItemAsync('q2l_active_student_invite_code', generatedStudentInviteCode).catch(() => {});
+        queryClient.setQueryData(queryKeys.studentInviteCode, {
+          code: generatedStudentInviteCode,
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        // Flash invite code modal for student!
+        setFlashInviteModal({
+          visible: true,
+          code: generatedStudentInviteCode,
+          studentName: cleanName,
+        });
+      } else {
+        // Parent: bind the child code to this device
+        await claimChildCodeOnDevice(cleanInviteCode, newAccountId, cleanName);
+        await setDeviceActiveRole('parent');
+        // Parent navigates directly into app
+        router.replace('/(app)' as any);
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleShareFlashCode = async () => {
+    if (!flashInviteModal?.code) return;
+    try {
+      await Share.share({
+        title: 'Quick2Learn Parent Link Code',
+        message: `Hi Mummy / Papa! I have registered on Quick2Learn. Please use my Invite Code [${flashInviteModal.code}] when creating your Parent Account to link with my profile: https://play.google.com/store/apps/details?id=in.quick2learn.app`,
+      });
+    } catch (e) {
+      console.warn('Share error:', e);
+    }
+  };
+
+  const handleDismissFlashModal = () => {
+    setFlashInviteModal(null);
+    router.replace('/(app)' as any);
   };
 
   return (
@@ -417,8 +565,8 @@ export default function RegisterScreen() {
             {/* Form Fields */}
             <View style={{ gap: 14 }}>
               <TextField
-                label="Full Name"
-                placeholder={role === 'student' ? 'e.g. Rahul Sharma' : 'e.g. Anil Sharma'}
+                label="Full Name *"
+                placeholder={role === 'student' ? 'e.g. Rahul Sharma' : 'e.g. Anil Sharma (Parent)'}
                 value={fullName}
                 onChangeText={(text) => {
                   setFullName(text);
@@ -428,23 +576,25 @@ export default function RegisterScreen() {
                 clearable
               />
 
-              <TextField
-                label="Email Address"
-                placeholder="name@example.com"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (error) setError(null);
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                leftIcon={<Mail size={18} color="#9CA3AF" />}
-                clearable
-              />
+              {role === 'student' && (
+                <TextField
+                  label="Email Address *"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (error) setError(null);
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  leftIcon={<Mail size={18} color="#9CA3AF" />}
+                  clearable
+                />
+              )}
 
               <TextField
-                label="Mobile Number"
+                label="Mobile Number *"
                 placeholder="10-digit phone number"
                 value={phone}
                 onChangeText={(text) => {
@@ -457,8 +607,75 @@ export default function RegisterScreen() {
                 clearable
               />
 
+              {/* For Parents: Child's Invite Code is MANDATORY */}
+              {role === 'parent' && (
+                <View
+                  style={{
+                    backgroundColor: '#FAF5FF',
+                    padding: 14,
+                    borderRadius: 16,
+                    borderWidth: 1.5,
+                    borderColor: '#DDD6FE',
+                    gap: 8,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: '800',
+                        color: '#4C1D95',
+                      }}
+                    >
+                      Child's Invite Code * (Mandatory)
+                    </Text>
+                    <View style={{ backgroundColor: '#EDE9FE', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#7C3AED' }}>Required</Text>
+                    </View>
+                  </View>
+                  <TextField
+                    placeholder="6-character code (e.g. Q2L894)"
+                    value={childInviteCode}
+                    onChangeText={(text) => {
+                      setChildInviteCode(text.toUpperCase());
+                      if (error) setError(null);
+                    }}
+                    autoCapitalize="characters"
+                    maxLength={6}
+                    leftIcon={<KeyRound size={16} color="#7C3AED" />}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: '#6B7280',
+                      lineHeight: 15,
+                    }}
+                  >
+                    Found on your child's Quick2Learn profile screen. Required to link your accounts.
+                  </Text>
+                </View>
+              )}
+
+              {/* For Parents: Email is OPTIONAL */}
+              {role === 'parent' && (
+                <TextField
+                  label="Email Address (Optional)"
+                  placeholder="name@example.com (optional)"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (error) setError(null);
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  leftIcon={<Mail size={18} color="#9CA3AF" />}
+                  clearable
+                />
+              )}
+
               <TextField
-                label="Password"
+                label="Password *"
                 placeholder="At least 6 characters"
                 value={password}
                 onChangeText={(text) => {
@@ -483,7 +700,7 @@ export default function RegisterScreen() {
               />
 
               <TextField
-                label="Confirm Password"
+                label="Confirm Password *"
                 placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChangeText={(text) => {
@@ -605,49 +822,6 @@ export default function RegisterScreen() {
                   />
                 </View>
               )}
-
-              {/* Parent Specific Fields */}
-              {role === 'parent' && (
-                <View
-                  style={{
-                    backgroundColor: '#FAF5FF',
-                    padding: 14,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: '#E9D5FF',
-                    gap: 8,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '700',
-                      color: '#4C1D95',
-                    }}
-                  >
-                    Child's Invite Code (Optional)
-                  </Text>
-                  <TextField
-                    placeholder="e.g. A1B2C3"
-                    value={childInviteCode}
-                    onChangeText={(text) =>
-                      setChildInviteCode(text.toUpperCase())
-                    }
-                    autoCapitalize="characters"
-                    maxLength={8}
-                    leftIcon={<KeyRound size={16} color="#7C3AED" />}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: '#6B7280',
-                      lineHeight: 15,
-                    }}
-                  >
-                    Found on your child's Quick2Learn app (under Profile → Parent Access). You can also link this anytime later.
-                  </Text>
-                </View>
-              )}
             </View>
 
             {/* Submit Button Section */}
@@ -685,6 +859,153 @@ export default function RegisterScreen() {
             </View>
           </KeyboardAwareScrollView>
         </View>
+
+        {/* Student One-Time Registration Invite Code Flash Modal */}
+        <Modal
+          visible={Boolean(flashInviteModal?.visible)}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={handleDismissFlashModal}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(15, 23, 42, 0.72)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 20,
+            }}
+          >
+            <View
+              style={{
+                width: '100%',
+                maxWidth: 360,
+                backgroundColor: '#FFFFFF',
+                borderRadius: 28,
+                paddingVertical: 26,
+                paddingHorizontal: 22,
+                alignItems: 'center',
+                shadowColor: '#0F172A',
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.2,
+                shadowRadius: 24,
+                elevation: 12,
+              }}
+            >
+              {/* Sparkle Badge */}
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: '#EDE9FE',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 14,
+                  borderWidth: 2,
+                  borderColor: '#DDD6FE',
+                }}
+              >
+                <KeyRound size={28} color="#7C3AED" />
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '800',
+                  color: colors.ink,
+                  textAlign: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                Account Created! 🎉
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: colors['ink-muted'],
+                  textAlign: 'center',
+                  marginBottom: 18,
+                }}
+              >
+                Welcome, {flashInviteModal?.studentName}! Here is your Parent Link Code:
+              </Text>
+
+              {/* Code Box */}
+              <View
+                style={{
+                  width: '100%',
+                  backgroundColor: '#FAF5FF',
+                  borderRadius: 18,
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  alignItems: 'center',
+                  borderWidth: 1.5,
+                  borderColor: '#D8B4FE',
+                  marginBottom: 16,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: '#7C3AED',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    marginBottom: 6,
+                  }}
+                >
+                  Your Parent Invite Code
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 30,
+                    fontWeight: '900',
+                    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+                    color: '#581C87',
+                    letterSpacing: 6,
+                  }}
+                >
+                  {flashInviteModal?.code}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: '#6B7280',
+                  textAlign: 'center',
+                  lineHeight: 18,
+                  marginBottom: 20,
+                }}
+              >
+                Share this 6-character code with your parents so they can register and link their account to view your attendance and performance.
+              </Text>
+
+              <View style={{ width: '100%', gap: 10 }}>
+                <Button
+                  variant="primary"
+                  size="md"
+                  fullWidth
+                  onPress={handleShareFlashCode}
+                  icon={<Share2 size={16} color="#FFFFFF" />}
+                >
+                  Share Code with Parents
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="md"
+                  fullWidth
+                  onPress={handleDismissFlashModal}
+                >
+                  Continue to App
+                </Button>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     );
   }

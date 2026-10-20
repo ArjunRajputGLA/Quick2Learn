@@ -25,7 +25,11 @@ import { useConfirmDialog } from "../../src/components/ui/ConfirmModal";
 import {
   useRequestDeleteAccountOtp,
   useConfirmDeleteAccount,
+  DEMO_MODE_STORAGE_KEY,
+  ACTIVE_USER_STORAGE_KEY,
+  queryKeys,
 } from "../../src/api/hooks";
+import * as SecureStore from "expo-secure-store";
 import { authClient } from "../../src/api/auth-client";
 import { useI18n } from "../../src/lib/i18n";
 
@@ -68,7 +72,17 @@ export default function DeleteAccountScreen() {
       onConfirm: async () => {
         try {
           await confirmDeleteMutation.mutateAsync({ code: code.trim() });
-          await authClient.signOut().catch(() => {});
+          authClient.signOut().catch(() => {});
+          await Promise.allSettled([
+            SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY),
+            SecureStore.deleteItemAsync(ACTIVE_USER_STORAGE_KEY),
+            SecureStore.deleteItemAsync("q2l_active_user"),
+            SecureStore.deleteItemAsync("q2l_session_token"),
+            SecureStore.deleteItemAsync("q2l_session_data"),
+            SecureStore.deleteItemAsync("q2l_token"),
+            SecureStore.deleteItemAsync("q2l_cookie"),
+          ]);
+          queryClient.setQueryData(queryKeys.me, null);
           queryClient.clear();
           router.replace("/(auth)/welcome" as any);
         } catch (err: any) {

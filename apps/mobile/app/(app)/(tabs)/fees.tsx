@@ -35,9 +35,9 @@ export default function ParentFeesTab() {
   const { data: me } = useMe();
   const { data: parentStudentsData } = useParentStudents();
   const linkedStudents = parentStudentsData?.students || me?.linkedStudents || [];
-  const currentChild = linkedStudents.find(
-    (c: any) => c.id === (selectedChildId || linkedStudents[0]?.id)
-  );
+  const currentChild =
+    (selectedChildId && linkedStudents.find((c: any) => c.userId === selectedChildId || c.id === selectedChildId)) ||
+    linkedStudents[0];
   const childName = currentChild?.fullName || "Child";
 
   const { data: feesData, isLoading, isRefetching, refetch } = useFees(

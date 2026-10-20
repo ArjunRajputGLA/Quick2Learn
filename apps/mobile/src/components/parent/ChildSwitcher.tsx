@@ -15,9 +15,11 @@ export function ChildSwitcher() {
   // Automatically default to the first child if not selected or invalid
   useEffect(() => {
     if (linkedStudents.length > 0) {
-      const exists = linkedStudents.some((s) => s.userId === selectedChildId);
+      const exists = linkedStudents.some(
+        (s) => s.userId === selectedChildId || s.id === selectedChildId
+      );
       if (!selectedChildId || !exists) {
-        setSelectedChildId(linkedStudents[0]!.userId);
+        setSelectedChildId(linkedStudents[0]!.userId || linkedStudents[0]!.id);
       }
     }
   }, [linkedStudents, selectedChildId, setSelectedChildId]);
@@ -72,7 +74,8 @@ export function ChildSwitcher() {
         contentContainerStyle={{ paddingHorizontal: 2, gap: 8 }}
       >
         {linkedStudents.map((child) => {
-          const isSelected = child.userId === selectedChildId;
+          const childKey = child.userId || child.id;
+          const isSelected = selectedChildId === child.userId || selectedChildId === child.id;
           const initials = child.fullName
             ? child.fullName
                 .split(" ")
@@ -84,8 +87,8 @@ export function ChildSwitcher() {
 
           return (
             <TouchableOpacity
-              key={child.userId}
-              onPress={() => setSelectedChildId(child.userId)}
+              key={childKey}
+              onPress={() => setSelectedChildId(childKey)}
               activeOpacity={0.7}
               className={`flex-row items-center gap-2 px-3.5 py-2 rounded-xl border min-h-[48px] ${
                 isSelected

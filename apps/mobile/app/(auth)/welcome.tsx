@@ -24,6 +24,10 @@ import {
   DEMO_LEARN_CLASSES,
   queryKeys,
 } from '../../src/api/hooks';
+import {
+  checkDeviceRoleMutualExclusion,
+  setDeviceActiveRole,
+} from '../../src/lib/deviceSession';
 import { authClient } from '../../src/api/auth-client';
 
 import { colors, radii } from '@quick2learn/shared';
@@ -44,6 +48,14 @@ export default function WelcomeScreen() {
     try {
       setIsDirectLoading(true);
       setAuthError(null);
+
+      const roleCheck = await checkDeviceRoleMutualExclusion('student');
+      if (!roleCheck.allowed) {
+        setAuthError(roleCheck.message || 'Parent Portal is currently logged in on this device.');
+        return;
+      }
+      await setDeviceActiveRole('student');
+
       // Store demo mode flag so session persists
       await SecureStore.setItemAsync(DEMO_MODE_STORAGE_KEY, 'true').catch(() => {});
       // Prime React Query caches immediately with rich mock student session

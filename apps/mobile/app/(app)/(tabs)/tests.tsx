@@ -24,13 +24,20 @@ import {
 import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
 import { ChildSwitcher } from "../../../src/components/parent/ChildSwitcher";
-import { useStudentPerformance, useChildTests } from "../../../src/api/hooks";
+import { useStudentPerformance, useChildTests, useMe, useParentStudents } from "../../../src/api/hooks";
 import { useParentStore } from "../../../src/lib/parentStore";
 import type { TestListItem } from "@quick2learn/shared";
 
 export default function ParentTestsTab() {
   const router = useRouter();
   const { selectedChildId } = useParentStore();
+  const { data: me } = useMe();
+  const { data: parentStudentsData } = useParentStudents();
+
+  const linkedStudents = parentStudentsData?.students || me?.linkedStudents || [];
+  const currentChild =
+    (selectedChildId && linkedStudents.find((c: any) => c.userId === selectedChildId || c.id === selectedChildId)) ||
+    linkedStudents[0];
 
   const {
     data: perf,
@@ -53,7 +60,7 @@ export default function ParentTestsTab() {
   };
 
   const isRefreshing = perfRefetching || testsRefetching;
-  const childName = perf?.studentName || "Child";
+  const childName = currentChild?.fullName || perf?.studentName || "Child";
   const tests = testsData?.tests || [];
 
   const completedTests = tests.filter(

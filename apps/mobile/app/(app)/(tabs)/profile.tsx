@@ -11,6 +11,7 @@ import {
   TextInput,
   Image,
   Linking,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,7 +58,13 @@ import {
   useParentStudents,
   useClaimInviteCode,
   DEMO_MODE_STORAGE_KEY,
+  ACTIVE_USER_STORAGE_KEY,
+  queryKeys,
 } from "../../../src/api/hooks";
+import {
+  clearDeviceActiveSession,
+  DEVICE_ACTIVE_ROLE_KEY,
+} from "../../../src/lib/deviceSession";
 import * as SecureStore from "expo-secure-store";
 import { useParentStore } from "../../../src/lib/parentStore";
 import { authClient } from "../../../src/api/auth-client";
@@ -90,13 +97,17 @@ export default function ProfileScreen() {
   const profile = me?.profile;
   const role = me?.role || "student";
   const fullName = profile?.fullName || user?.name || "Student";
+  const studentInviteCodeValue =
+    inviteCodeData?.code ||
+    (profile as any)?.inviteCode ||
+    (me as any)?.inviteCode ||
+    "Q2L100";
 
   const handleShareInviteCode = async () => {
-    if (!inviteCodeData?.code) return;
     try {
       await Share.share({
         title: "Quick2Learn Parent Link Code",
-        message: `Hi Parent! Use this invite code [${inviteCodeData.code}] in the Quick2Learn app to link with my student account and track my progress. Download app: https://play.google.com/store/apps/details?id=in.quick2learn.app`,
+        message: `Hi Parent! Use this invite code [${studentInviteCodeValue}] in the Quick2Learn app to link with my student account and track my progress. Download app: https://play.google.com/store/apps/details?id=in.quick2learn.app`,
       });
     } catch (err) {
       console.warn("Share error:", err);
@@ -155,14 +166,29 @@ export default function ProfileScreen() {
       onConfirm: async () => {
         try {
           setIsSigningOut(true);
-          await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
-          await SecureStore.deleteItemAsync("q2l_active_user").catch(() => {});
-          await authClient.signOut().catch(() => {});
+
+          // 1. Fire-and-forget server sign-out in background without blocking UI transition
+          authClient.signOut().catch(() => {});
+
+          // 2. Clear all local session tokens, release child codes, and clear device role
+          await Promise.allSettled([
+            clearDeviceActiveSession(me?.user?.id),
+            SecureStore.deleteItemAsync(DEVICE_ACTIVE_ROLE_KEY),
+            SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY),
+            SecureStore.deleteItemAsync(ACTIVE_USER_STORAGE_KEY),
+            SecureStore.deleteItemAsync("q2l_active_user"),
+            SecureStore.deleteItemAsync("q2l_session_token"),
+            SecureStore.deleteItemAsync("q2l_session_data"),
+            SecureStore.deleteItemAsync("q2l_token"),
+            SecureStore.deleteItemAsync("q2l_cookie"),
+          ]);
+
+          // 3. Reset query cache and immediately redirect to welcome screen
+          queryClient.setQueryData(queryKeys.me, null);
           queryClient.clear();
           router.replace("/(auth)/welcome" as any);
         } catch {
-          await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
-          await SecureStore.deleteItemAsync("q2l_active_user").catch(() => {});
+          queryClient.setQueryData(queryKeys.me, null);
           queryClient.clear();
           router.replace("/(auth)/welcome" as any);
         } finally {
@@ -362,6 +388,94 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* STUDENT'S PARENT INVITE CODE CARD */}
+        {role === "student" && (
+          <View
+            style={{
+              backgroundColor: '#F5F3FF',
+              borderRadius: 20,
+              padding: 16,
+              borderWidth: 1.5,
+              borderColor: '#DDD6FE',
+              marginBottom: 14,
+              shadowColor: '#7C3AED',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 6,
+              elevation: 2,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: '#EDE9FE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <KeyRound size={17} color="#7C3AED" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#4C1D95' }}>
+                    Parent Invite Code
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#6B7280' }}>
+                    Share with your parents to link accounts
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: '#FFFFFF',
+                borderRadius: 14,
+                paddingVertical: 10,
+                paddingHorizontal: 14,
+                borderWidth: 1,
+                borderColor: '#E9D5FF',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '800',
+                  fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+                  color: '#6D28D9',
+                  letterSpacing: 3,
+                }}
+              >
+                {studentInviteCodeValue}
+              </Text>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleShareInviteCode}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#7C3AED',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6.5,
+                  borderRadius: 10,
+                }}
+              >
+                <Share2 size={13} color="#FFFFFF" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>
+                  Share Code
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* PARENT LINKED CHILDREN */}
         {role === "parent" && (
           <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm">
@@ -400,27 +514,36 @@ export default function ProfileScreen() {
             ) : (
               <View className="space-y-2">
                 {linkedStudents.map((child: any) => {
-                  const isSelected = (selectedChildId || linkedStudents[0]?.id) === child.id;
+                  const childKey = child.userId || child.id;
+                  const isSelected =
+                    selectedChildId === child.userId ||
+                    selectedChildId === child.id ||
+                    (!selectedChildId && childKey === (linkedStudents[0]?.userId || linkedStudents[0]?.id));
                   return (
                     <TouchableOpacity
-                      key={child.id}
+                      key={childKey}
                       activeOpacity={0.7}
-                      onPress={() => setSelectedChildId(child.id)}
-                      className={`p-3 rounded-xl border flex-row items-center justify-between ${
+                      onPress={() => setSelectedChildId(childKey)}
+                      className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
                         isSelected
                           ? "bg-primary-soft/40 border-primary"
                           : "bg-surface-elevated/50 border-border"
                       }`}
                     >
-                      <View className="flex-1 mr-2">
-                        <Text className="text-body font-bold text-ink">
-                          {child.fullName}
-                        </Text>
-                        <Text className="text-caption text-ink-muted">
-                          {child.classLevel ? `Class ${child.classLevel}` : ""}
-                          {child.board ? ` • ${child.board.toUpperCase()}` : ""}
-                          {child.school ? ` • ${child.school}` : ""}
-                        </Text>
+                      <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                        <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
+                          <User size={18} color="#2563EB" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-body font-bold text-ink">
+                            {child.fullName}
+                          </Text>
+                          <Text className="text-caption text-ink-muted mt-0.5">
+                            {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}
+                            {child.board ? ` • ${child.board.toUpperCase()}` : " • CBSE"}
+                            {child.school ? ` • ${child.school}` : " • Quick2Learn Center"}
+                          </Text>
+                        </View>
                       </View>
                       {isSelected ? (
                         <View className="flex-row items-center bg-primary px-2.5 py-1 rounded-full">

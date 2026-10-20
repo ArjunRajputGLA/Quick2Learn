@@ -37,6 +37,12 @@ import {
   DEMO_MODE_STORAGE_KEY,
   queryKeys,
 } from '../../src/api/hooks';
+import {
+  checkDeviceRoleMutualExclusion,
+  verifyChildCodeDeviceClaim,
+  claimChildCodeOnDevice,
+  setDeviceActiveRole,
+} from '../../src/lib/deviceSession';
 import { colors, radii } from '@quick2learn/shared';
 
 export default function LoginScreen() {
@@ -87,6 +93,7 @@ export default function LoginScreen() {
           cleanPassword === 'Admin@123');
 
       if (isAdminMatch) {
+        await setDeviceActiveRole('admin');
         await SecureStore.setItemAsync(
           ACTIVE_USER_STORAGE_KEY,
           JSON.stringify(DEMO_ADMIN_ME)
@@ -105,6 +112,7 @@ export default function LoginScreen() {
           cleanPassword === 'Teacher@123');
 
       if (isTeacherMatch) {
+        await setDeviceActiveRole('teacher');
         await SecureStore.setItemAsync(
           ACTIVE_USER_STORAGE_KEY,
           JSON.stringify(DEMO_TEACHER_ME)
@@ -135,6 +143,32 @@ export default function LoginScreen() {
               return;
             }
 
+            const targetRole = matched.role || 'student';
+            // Device Role Mutual Exclusivity Check
+            const roleCheck = await checkDeviceRoleMutualExclusion(targetRole);
+            if (!roleCheck.allowed) {
+              setError(roleCheck.message || 'Portal role conflict on this device.');
+              setIsLoading(false);
+              return;
+            }
+
+            // Single Parent Device Binding Check for Child Invite Code
+            if (targetRole === 'parent') {
+              const code =
+                matched.childInviteCode ||
+                matched.linkedStudents?.[0]?.inviteCode ||
+                'DEMO10';
+              const claimCheck = await verifyChildCodeDeviceClaim(code, matched.id);
+              if (!claimCheck.allowed) {
+                setError(claimCheck.error || 'This child invite code is already active on another parent device.');
+                setIsLoading(false);
+                return;
+              }
+              await claimChildCodeOnDevice(code, matched.id, matched.fullName);
+            }
+
+            await setDeviceActiveRole(targetRole);
+
             // Create active profile from registered account
             const userProfile = {
               user: {
@@ -162,11 +196,12 @@ export default function LoginScreen() {
                 city: 'Bhopal',
                 avatarUrl: null,
                 onboardedAt: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
+                inviteCode: matched.inviteCode || matched.studentInviteCode || null,
+                createdAt: matched.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               },
               role: matched.role || 'student',
-              linkedStudents: matched.role === 'parent' ? DEMO_PARENT_ME.linkedStudents : [],
+              linkedStudents: matched.role === 'parent' ? (matched.linkedStudents || DEMO_PARENT_ME.linkedStudents) : [],
             };
 
             await SecureStore.setItemAsync(
@@ -188,6 +223,13 @@ export default function LoginScreen() {
         cleanId === 'student@quick2learn.in' ||
         cleanId === 'student.demo@quick2learn.in'
       ) {
+        const roleCheck = await checkDeviceRoleMutualExclusion('student');
+        if (!roleCheck.allowed) {
+          setError(roleCheck.message || 'Portal role conflict on this device.');
+          setIsLoading(false);
+          return;
+        }
+        await setDeviceActiveRole('student');
         await SecureStore.setItemAsync(
           ACTIVE_USER_STORAGE_KEY,
           JSON.stringify(DEMO_USER_ME)
@@ -202,6 +244,20 @@ export default function LoginScreen() {
         cleanId === 'parent@quick2learn.in' ||
         cleanId === 'parent.demo@quick2learn.in'
       ) {
+        const roleCheck = await checkDeviceRoleMutualExclusion('parent');
+        if (!roleCheck.allowed) {
+          setError(roleCheck.message || 'Portal role conflict on this device.');
+          setIsLoading(false);
+          return;
+        }
+        const claimCheck = await verifyChildCodeDeviceClaim('DEMO10', DEMO_PARENT_ME.user.id);
+        if (!claimCheck.allowed) {
+          setError(claimCheck.error || 'Child invite code is already active on another parent device.');
+          setIsLoading(false);
+          return;
+        }
+        await claimChildCodeOnDevice('DEMO10', DEMO_PARENT_ME.user.id, DEMO_PARENT_ME.user.name);
+        await setDeviceActiveRole('parent');
         await SecureStore.setItemAsync(
           ACTIVE_USER_STORAGE_KEY,
           JSON.stringify(DEMO_PARENT_ME)

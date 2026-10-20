@@ -19,6 +19,10 @@ import { Button } from '../../src/components/ui/Button';
 import { KeyboardAwareScrollView } from '../../src/components/ui/KeyboardAwareScrollView';
 import { authClient } from '../../src/api/auth-client';
 import { queryKeys } from '../../src/api/hooks';
+import {
+  checkDeviceRoleMutualExclusion,
+  setDeviceActiveRole,
+} from '../../src/lib/deviceSession';
 import { colors } from '@quick2learn/shared';
 
 export default function EmailOtpScreen() {
@@ -94,6 +98,16 @@ export default function EmailOtpScreen() {
       const meData: any = await queryClient.fetchQuery({
         queryKey: queryKeys.me,
       }).catch(() => null);
+
+      if (meData?.role) {
+        const roleCheck = await checkDeviceRoleMutualExclusion(meData.role);
+        if (!roleCheck.allowed) {
+          setError(roleCheck.message || 'Portal role conflict on this device.');
+          setIsVerifying(false);
+          return;
+        }
+        await setDeviceActiveRole(meData.role);
+      }
 
       if (!meData?.profile?.onboardedAt) {
         router.replace('/(onboarding)' as any);
