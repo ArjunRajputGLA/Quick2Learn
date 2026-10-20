@@ -19,3 +19,5 @@ export * from './ErrorState';
 export * from './OfflineBanner';
 export * from './SectionHeader';
 export * from './NotificationBell';
+export * from './ConfirmModal';
+export * from './GoogleIcon';

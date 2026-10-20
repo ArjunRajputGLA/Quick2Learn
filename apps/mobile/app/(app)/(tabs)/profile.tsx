@@ -9,6 +9,8 @@ import {
   Alert,
   Modal,
   TextInput,
+  Image,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -44,6 +46,7 @@ import { Button } from "../../../src/components/ui/Button";
 import { Card } from "../../../src/components/ui/Card";
 import { Avatar } from "../../../src/components/ui/Avatar";
 import { Badge } from "../../../src/components/ui/Badge";
+import { useConfirmDialog } from "../../../src/components/ui/ConfirmModal";
 import { colors, radii } from "@quick2learn/shared";
 import {
   useMe,
@@ -127,29 +130,45 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleOpenGladStudio = async () => {
+    try {
+      await WebBrowser.openBrowserAsync("https://gladstudio.net");
+    } catch {
+      try {
+        await Linking.openURL("https://gladstudio.net");
+      } catch {
+        Alert.alert("Notice", "Visit https://gladstudio.net to learn more about GLAD Studio.");
+      }
+    }
+  };
+
+  const { confirm } = useConfirmDialog();
+
   const handleSignOut = () => {
-    Alert.alert(t("logOut"), t("logOutConfirm"), [
-      { text: t("cancel"), style: "cancel" },
-      {
-        text: t("logOut"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setIsSigningOut(true);
-            await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
-            await authClient.signOut().catch(() => {});
-            queryClient.clear();
-            router.replace("/(auth)/welcome" as any);
-          } catch {
-            await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
-            queryClient.clear();
-            router.replace("/(auth)/welcome" as any);
-          } finally {
-            setIsSigningOut(false);
-          }
-        },
+    confirm({
+      title: t("logOut"),
+      message: t("logOutConfirm"),
+      confirmText: t("logOut"),
+      cancelText: t("cancel"),
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          setIsSigningOut(true);
+          await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
+          await SecureStore.deleteItemAsync("q2l_active_user").catch(() => {});
+          await authClient.signOut().catch(() => {});
+          queryClient.clear();
+          router.replace("/(auth)/welcome" as any);
+        } catch {
+          await SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => {});
+          await SecureStore.deleteItemAsync("q2l_active_user").catch(() => {});
+          queryClient.clear();
+          router.replace("/(auth)/welcome" as any);
+        } finally {
+          setIsSigningOut(false);
+        }
       },
-    ]);
+    });
   };
 
   const handleClaimCode = () => {
@@ -1178,6 +1197,49 @@ export default function ProfileScreen() {
               {t("logOut")}
             </Text>
           </Button>
+        </View>
+
+        {/* Developed by GLAD Studio Tag */}
+        <View style={{ alignItems: 'center', marginTop: 18, marginBottom: 6 }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleOpenGladStudio}
+            accessibilityRole="link"
+            accessibilityLabel="Developed by GLAD Studio. Opens gladstudio.net"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 6,
+              paddingHorizontal: 14,
+              borderRadius: 20,
+              backgroundColor: colors.surface,
+              borderWidth: 1,
+              borderColor: colors.border,
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 11.5,
+                fontWeight: '600',
+                color: colors['ink-muted'],
+                marginRight: 7,
+                letterSpacing: 0.2,
+              }}
+            >
+              Developed by
+            </Text>
+            <Image
+              source={require('../../../assets/website logo(white background compatible).png')}
+              style={{ width: 78, height: 21.6 }}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 

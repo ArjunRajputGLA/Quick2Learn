@@ -157,6 +157,9 @@ const plugins = [
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "quick2learn_dev_secret_key_at_least_32_characters_long",
   baseURL,
+  emailAndPassword: {
+    enabled: true,
+  },
   trustedOrigins: [
     siteUrl,
     baseURL,

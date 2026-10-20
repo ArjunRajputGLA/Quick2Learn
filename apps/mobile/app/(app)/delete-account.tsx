@@ -21,6 +21,7 @@ import { Screen } from "../../src/components/ui/Screen";
 import { AppHeader } from "../../src/components/ui/AppHeader";
 import { Button } from "../../src/components/ui/Button";
 import { Card } from "../../src/components/ui/Card";
+import { useConfirmDialog } from "../../src/components/ui/ConfirmModal";
 import {
   useRequestDeleteAccountOtp,
   useConfirmDeleteAccount,
@@ -50,42 +51,31 @@ export default function DeleteAccountScreen() {
     }
   };
 
+  const { confirm } = useConfirmDialog();
+
   const handleConfirmDelete = async () => {
     if (code.trim().length !== 6) {
       Alert.alert("Invalid Code", "Please enter the 6-digit verification code.");
       return;
     }
 
-    Alert.alert(
-      "Final Confirmation",
-      "Are you absolutely certain? This will permanently delete your account and revoke all access immediately.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete Forever",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await confirmDeleteMutation.mutateAsync({ code: code.trim() });
-              await authClient.signOut().catch(() => {});
-              queryClient.clear();
-              Alert.alert(
-                "Account Deleted",
-                "Your account has been deleted and your personal data anonymized.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => router.replace("/(auth)/welcome" as any),
-                  },
-                ]
-              );
-            } catch (err: any) {
-              Alert.alert("Error", err.message || "Deletion failed. Please check the code.");
-            }
-          },
-        },
-      ]
-    );
+    confirm({
+      title: "Delete Account Permanently",
+      message: "Are you absolutely certain? This will permanently delete your account, batch enrollments, and revoke all access immediately.",
+      confirmText: "Delete Forever",
+      cancelText: "Cancel",
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          await confirmDeleteMutation.mutateAsync({ code: code.trim() });
+          await authClient.signOut().catch(() => {});
+          queryClient.clear();
+          router.replace("/(auth)/welcome" as any);
+        } catch (err: any) {
+          Alert.alert("Error", err.message || "Deletion failed. Please check the code.");
+        }
+      },
+    });
   };
 
   return (

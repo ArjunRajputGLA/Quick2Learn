@@ -137,6 +137,7 @@ import * as SecureStore from "expo-secure-store";
 import { apiClient } from "./client";
 
 export const DEMO_MODE_STORAGE_KEY = "q2l_demo_mode";
+export const ACTIVE_USER_STORAGE_KEY = "q2l_active_user";
 
 export const DEMO_USER_ME: MeResponse = {
   user: {
@@ -169,6 +170,115 @@ export const DEMO_USER_ME: MeResponse = {
   },
   role: "student",
   linkedStudents: [],
+};
+
+export const DEMO_ADMIN_ME: MeResponse = {
+  user: {
+    id: "demo-admin-user-id",
+    email: "admin@quick2learn.in",
+    name: "Admin Quick2Learn",
+    image: null,
+    phoneNumber: "+919800000001",
+    phoneNumberVerified: true,
+    emailVerified: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  profile: {
+    id: "demo-admin-profile-id",
+    userId: "demo-admin-user-id",
+    fullName: "Dinesh Sir (Administrator)",
+    phone: "+919800000001",
+    role: "admin",
+    classLevel: null,
+    board: null,
+    school: "Quick2Learn Institute",
+    parentName: null,
+    parentPhone: null,
+    city: "Bhopal",
+    avatarUrl: null,
+    onboardedAt: "2026-01-01T00:00:00.000Z",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  role: "admin",
+  linkedStudents: [],
+};
+
+export const DEMO_TEACHER_ME: MeResponse = {
+  user: {
+    id: "demo-teacher-user-id",
+    email: "teacher@quick2learn.in",
+    name: "Dinesh Sir",
+    image: null,
+    phoneNumber: "+919800000002",
+    phoneNumberVerified: true,
+    emailVerified: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  profile: {
+    id: "demo-teacher-profile-id",
+    userId: "demo-teacher-user-id",
+    fullName: "Dinesh Sir (Senior Faculty)",
+    phone: "+919800000002",
+    role: "teacher",
+    classLevel: null,
+    board: null,
+    school: "Quick2Learn Coaching",
+    parentName: null,
+    parentPhone: null,
+    city: "Bhopal",
+    avatarUrl: null,
+    onboardedAt: "2026-01-01T00:00:00.000Z",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  role: "teacher",
+  linkedStudents: [],
+};
+
+export const DEMO_PARENT_ME: MeResponse = {
+  user: {
+    id: "demo-parent-user-id",
+    email: "parent.demo@quick2learn.in",
+    name: "Parent Demo",
+    image: null,
+    phoneNumber: "+919800000003",
+    phoneNumberVerified: true,
+    emailVerified: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  profile: {
+    id: "demo-parent-profile-id",
+    userId: "demo-parent-user-id",
+    fullName: "Mr. Demo Parent",
+    phone: "+919800000003",
+    role: "parent",
+    classLevel: null,
+    board: null,
+    school: null,
+    parentName: null,
+    parentPhone: null,
+    city: "Bhopal",
+    avatarUrl: null,
+    onboardedAt: "2026-01-01T00:00:00.000Z",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  role: "parent",
+  linkedStudents: [
+    {
+      id: "demo-student-profile-id",
+      userId: "demo-student-user-id",
+      fullName: "Student Demo",
+      classLevel: 10,
+      board: "cbse",
+      school: "Quick2Learn High",
+      avatarUrl: null,
+    },
+  ],
 };
 
 export const DEMO_HOME_DATA: HomeResponse = {
@@ -395,6 +505,12 @@ export function useMe() {
   return useQuery<MeResponse>({
     queryKey: queryKeys.me,
     queryFn: async () => {
+      const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      if (activeUserJson) {
+        try {
+          return JSON.parse(activeUserJson);
+        } catch {}
+      }
       const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
       if (isDemo === "true") {
         return DEMO_USER_ME;

@@ -38,6 +38,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {
   // Splash screen might already be hidden or not available in dev client
 });
 
+import { ConfirmDialogProvider } from '../src/components/ui/ConfirmModal';
+
 function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -97,7 +99,9 @@ function RootLayout() {
         >
           <ErrorBoundary>
             <GlobalAppStatusGuard>
-              <Slot />
+              <ConfirmDialogProvider>
+                <Slot />
+              </ConfirmDialogProvider>
             </GlobalAppStatusGuard>
           </ErrorBoundary>
         </PersistQueryClientProvider>

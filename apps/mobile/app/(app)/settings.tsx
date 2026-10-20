@@ -25,6 +25,7 @@ import { Screen } from "../../src/components/ui/Screen";
 import { AppHeader } from "../../src/components/ui/AppHeader";
 import { Button } from "../../src/components/ui/Button";
 import { Card } from "../../src/components/ui/Card";
+import { useConfirmDialog } from "../../src/components/ui/ConfirmModal";
 import { useI18n } from "../../src/lib/i18n";
 import { useSettingsStore } from "../../src/lib/settingsStore";
 import { triggerTestCrash } from "../../src/lib/sentry";
@@ -51,22 +52,19 @@ export default function SettingsScreen() {
     toggleNoAutoplay,
   } = useSettingsStore();
 
+  const { confirm } = useConfirmDialog();
+
   const handleClearCache = () => {
-    Alert.alert(
-      "Clear Cache",
-      "Are you sure you want to clear the local temporary data and media cache?",
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: () => {
-            queryClient.clear();
-            Alert.alert("Success", t("cacheClearedSuccess"));
-          },
-        },
-      ]
-    );
+    confirm({
+      title: "Clear Cache",
+      message: "Are you sure you want to clear the local temporary data and media cache?",
+      confirmText: "Clear Cache",
+      cancelText: t("cancel"),
+      type: "danger",
+      onConfirm: () => {
+        queryClient.clear();
+      },
+    });
   };
 
   const appVersion =
@@ -298,18 +296,14 @@ export default function SettingsScreen() {
             className="border-amber-500/40"
             accessibilityLabel="Trigger Sentry test crash button"
             onPress={() => {
-              Alert.alert(
-                "Trigger Test Crash",
-                "This will trigger a test exception reported to Sentry to confirm readable stack traces.",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Trigger Crash",
-                    style: "destructive",
-                    onPress: () => triggerTestCrash(),
-                  },
-                ]
-              );
+              confirm({
+                title: "Trigger Test Crash",
+                message: "This will trigger a test exception reported to Sentry to confirm readable stack traces.",
+                confirmText: "Trigger Crash",
+                cancelText: "Cancel",
+                type: "warning",
+                onConfirm: () => triggerTestCrash(),
+              });
             }}
           >
             <Text className="text-body font-semibold text-amber-700">
