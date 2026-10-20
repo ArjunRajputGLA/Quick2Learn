@@ -403,14 +403,14 @@ export default function AttendanceScreen() {
             <View className="divide-y divide-slate-100 dark:divide-slate-800">
               {data.absences.map((absence) => (
                 <View key={absence.id} className="py-3 flex-row items-center justify-between">
-                  <div>
+                  <View>
                     <Text className="text-slate-900 dark:text-white font-bold text-sm">
                       {absence.batchTitle || "Batch Class"}
                     </Text>
                     <Text className="text-slate-400 text-xs mt-0.5">
                       {absence.date} • {absence.note || "No note recorded"}
                     </Text>
-                  </div>
+                  </View>
                   <View className="bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded-md">
                     <Text className="text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase">
                       Absent

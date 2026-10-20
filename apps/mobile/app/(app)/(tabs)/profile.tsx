@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -68,6 +68,10 @@ import {
 import * as SecureStore from "expo-secure-store";
 import { useParentStore } from "../../../src/lib/parentStore";
 import { authClient } from "../../../src/api/auth-client";
+import {
+  saveLastKnownStudentProfile,
+  registerStudentInviteCode,
+} from "../../../src/lib/studentInviteDirectory";
 import { useI18n } from "../../../src/lib/i18n";
 
 export default function ProfileScreen() {
@@ -102,6 +106,31 @@ export default function ProfileScreen() {
     (profile as any)?.inviteCode ||
     (me as any)?.inviteCode ||
     "Q2L100";
+
+  // Automatically register and persist actual student details for parent syncing
+  useEffect(() => {
+    if (role === "student" && fullName) {
+      saveLastKnownStudentProfile({
+        id: profile?.id || user?.id || "student-1",
+        userId: user?.id || profile?.userId || "student-1",
+        fullName,
+        classLevel: profile?.classLevel || 10,
+        board: (profile?.board || "cbse") as "cbse" | "icse",
+        school: profile?.school || "Quick2Learn High School",
+        inviteCode: studentInviteCodeValue,
+      });
+      if (studentInviteCodeValue) {
+        registerStudentInviteCode(studentInviteCodeValue, {
+          id: profile?.id || user?.id || "student-1",
+          userId: user?.id || profile?.userId || "student-1",
+          fullName,
+          classLevel: profile?.classLevel || 10,
+          board: (profile?.board || "cbse") as "cbse" | "icse",
+          school: profile?.school || "Quick2Learn High School",
+        });
+      }
+    }
+  }, [role, fullName, studentInviteCodeValue, profile, user]);
 
   const handleShareInviteCode = async () => {
     try {
@@ -211,10 +240,12 @@ export default function ProfileScreen() {
           Alert.alert("Success", "Student account linked successfully!");
           setClaimCodeInput("");
           setLinkChildModalVisible(false);
-          queryClient.invalidateQueries({ queryKey: ["me"] });
-          queryClient.invalidateQueries({ queryKey: ["parent-students"] });
-          if (data?.student?.id) {
-            setSelectedChildId(data.student.id);
+          queryClient.invalidateQueries({ queryKey: queryKeys.me });
+          queryClient.invalidateQueries({ queryKey: queryKeys.parentStudents });
+          queryClient.invalidateQueries({ queryKey: ["tests"] });
+          queryClient.invalidateQueries({ queryKey: ["attendance"] });
+          if (data?.student?.userId || data?.student?.id) {
+            setSelectedChildId(data.student.userId || data.student.id);
           }
         },
         onError: (err: any) => {

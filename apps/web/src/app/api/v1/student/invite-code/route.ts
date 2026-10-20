@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       throw new ForbiddenError("Only students can generate a parent invite code.");
     }
 
-    const codeData = await generateStudentParentInviteCode(session.user.id);
+    const codeData = await generateStudentParentInviteCode(session.user.id, true);
     const validated = parentInviteCodeResponseSchema.parse(codeData);
 
     return apiResponse.success(validated);

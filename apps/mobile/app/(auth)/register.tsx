@@ -48,6 +48,12 @@ import {
   claimAccountOnDevice,
   setDeviceActiveRole,
 } from '../../src/lib/deviceSession';
+import {
+  generateUniqueInviteCode,
+  registerStudentInviteCode,
+  lookupStudentByInviteCode,
+  saveLastKnownStudentProfile,
+} from '../../src/lib/studentInviteDirectory';
 import { colors, radii } from '@quick2learn/shared';
 
 type RegisterRole = 'student' | 'parent';
@@ -217,31 +223,8 @@ export default function RegisterScreen() {
       let parentLinkedStudents: any[] = [];
 
       if (role === 'parent') {
-        // Search registered student accounts for matching invite code
-        let matchedStudent = accountsList.find(
-          (acc) =>
-            acc.role === 'student' &&
-            (acc.inviteCode?.toUpperCase() === cleanInviteCode ||
-              acc.studentInviteCode?.toUpperCase() === cleanInviteCode)
-        );
-
-        // Check active student or demo student fallbacks
-        const activeStudentCode = await SecureStore.getItemAsync('q2l_active_student_invite_code').catch(() => null);
-        if (
-          !matchedStudent &&
-          (cleanInviteCode === 'DEMO10' ||
-            cleanInviteCode === 'Q2L100' ||
-            cleanInviteCode === 'STUDNT' ||
-            (activeStudentCode && activeStudentCode.toUpperCase() === cleanInviteCode))
-        ) {
-          matchedStudent = {
-            id: 'demo-student-profile-id',
-            fullName: 'Student Demo',
-            classLevel: 10,
-            board: 'cbse',
-            school: 'Quick2Learn High',
-          };
-        }
+        // Look up student from unique invite code directory or registered accounts
+        const matchedStudent = await lookupStudentByInviteCode(cleanInviteCode);
 
         if (!matchedStudent) {
           setError(
@@ -253,22 +236,18 @@ export default function RegisterScreen() {
 
         parentLinkedStudents = [
           {
-            id: matchedStudent.id || `profile-${matchedStudent.id}`,
-            userId: matchedStudent.id || `user-${Date.now()}`,
+            id: matchedStudent.id || `profile-${matchedStudent.userId}`,
+            userId: matchedStudent.userId || matchedStudent.id,
             fullName: matchedStudent.fullName,
             classLevel: matchedStudent.classLevel || 10,
             board: (matchedStudent.board || 'cbse') as 'cbse' | 'icse',
-            school: matchedStudent.school || 'Quick2Learn High',
+            school: matchedStudent.school || 'Quick2Learn High School',
             avatarUrl: null,
           },
         ];
       } else {
-        // Generate unique 6-character student invite code (e.g. Q2L948)
-        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-        generatedStudentInviteCode = '';
-        for (let i = 0; i < 6; i++) {
-          generatedStudentInviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
+        // Generate guaranteed unique 6-character student invite code
+        generatedStudentInviteCode = await generateUniqueInviteCode();
       }
 
       const newAccountRecord = {
@@ -281,7 +260,7 @@ export default function RegisterScreen() {
         role,
         classLevel: role === 'student' ? classLevel : null,
         board: role === 'student' ? board : null,
-        school: role === 'student' ? school.trim() || 'Quick2Learn High' : null,
+        school: role === 'student' ? school.trim() || 'Quick2Learn High School' : null,
         childInviteCode: role === 'parent' ? cleanInviteCode : null,
         inviteCode: role === 'student' ? generatedStudentInviteCode : null,
         studentInviteCode: role === 'student' ? generatedStudentInviteCode : null,
@@ -296,6 +275,23 @@ export default function RegisterScreen() {
         'q2l_registered_accounts',
         JSON.stringify(accountsList)
       );
+
+      // If student, register profile details to this unique invite code and record as last known student
+      if (role === 'student') {
+        const studentRecord = {
+          id: newAccountId,
+          userId: newAccountId,
+          fullName: cleanName,
+          classLevel,
+          board,
+          school: school.trim() || 'Quick2Learn High School',
+          phone: formattedPhone,
+          email: effectiveEmail,
+          inviteCode: generatedStudentInviteCode,
+        };
+        await registerStudentInviteCode(generatedStudentInviteCode, studentRecord);
+        await saveLastKnownStudentProfile(studentRecord);
+      }
 
       // Create MeResponse object
       const userProfile = {

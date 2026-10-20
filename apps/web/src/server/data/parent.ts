@@ -139,39 +139,77 @@ export async function isParentLinkedToStudent(
 /**
  * Generates an ambiguous-character-free 6-character alphanumeric invite code valid for 24 hours.
  */
-export async function generateStudentParentInviteCode(studentUserId: string) {
-  // Check for an existing valid code first
-  const existing = await getActiveStudentInviteCode(studentUserId);
-  if (existing) {
-    return existing;
+export async function generateStudentParentInviteCode(
+  studentUserId: string,
+  forceNew = false
+) {
+  // If not explicitly requesting a new code, return active existing code if available
+  if (!forceNew) {
+    const existing = await getActiveStudentInviteCode(studentUserId);
+    if (existing) {
+      return existing;
+    }
+  } else {
+    // Invalidate existing unused codes for this student so a fresh unique code is created
+    await db
+      .update(schema.parentInviteCodes)
+      .set({
+        expiresAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.parentInviteCodes.studentUserId, studentUserId),
+          isNull(schema.parentInviteCodes.usedAt)
+        )
+      );
   }
 
   // 6-character code avoiding 0/O, 1/I, L, etc.
   const chars = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-  const [inserted] = await db
-    .insert(schema.parentInviteCodes)
-    .values({
-      studentUserId,
-      code,
-      expiresAt,
-    })
-    .returning();
+  // Try generating a unique code not currently in use
+  for (let attempt = 0; attempt < 50; attempt++) {
+    let code = "";
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
 
-  if (!inserted) {
-    throw new Error("Failed to generate parent invite code");
+    // Verify code uniqueness among active codes
+    const [existingWithCode] = await db
+      .select({ id: schema.parentInviteCodes.id })
+      .from(schema.parentInviteCodes)
+      .where(
+        and(
+          eq(schema.parentInviteCodes.code, code),
+          isNull(schema.parentInviteCodes.usedAt),
+          gt(schema.parentInviteCodes.expiresAt, new Date())
+        )
+      )
+      .limit(1);
+
+    if (existingWithCode) {
+      continue;
+    }
+
+    const [inserted] = await db
+      .insert(schema.parentInviteCodes)
+      .values({
+        studentUserId,
+        code,
+        expiresAt,
+      })
+      .returning();
+
+    if (inserted) {
+      return {
+        code: inserted.code,
+        expiresAt: inserted.expiresAt,
+      };
+    }
   }
 
-  return {
-    code: inserted.code,
-    expiresAt: inserted.expiresAt,
-  };
+  throw new Error("Failed to generate unique parent invite code");
 }
 
 /**

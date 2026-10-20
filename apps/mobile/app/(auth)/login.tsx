@@ -47,6 +47,10 @@ import {
   claimAccountOnDevice,
   setDeviceActiveRole,
 } from '../../src/lib/deviceSession';
+import {
+  lookupStudentByInviteCode,
+  getLastKnownStudentProfile,
+} from '../../src/lib/studentInviteDirectory';
 import { colors, radii } from '@quick2learn/shared';
 
 export default function LoginScreen() {
@@ -93,6 +97,81 @@ export default function LoginScreen() {
     setError(null);
 
     try {
+      // 0. Check if input is a 5-8 character Child Invite Code directly
+      const cleanUpperId = identifier.trim().toUpperCase();
+      const isPossibleCode =
+        cleanUpperId.length >= 5 &&
+        cleanUpperId.length <= 8 &&
+        /^[A-Z0-9]+$/.test(cleanUpperId) &&
+        !cleanId.includes('@');
+
+      if (isPossibleCode) {
+        const studentMatch = await lookupStudentByInviteCode(cleanUpperId);
+        if (studentMatch) {
+          const parentKey = `parent-${cleanUpperId}`;
+          const claimCheck = await verifyChildCodeDeviceClaim(cleanUpperId, parentKey);
+          if (!claimCheck.allowed) {
+            setError(claimCheck.error || 'This child invite code is already active on another parent device.');
+            setIsLoading(false);
+            return;
+          }
+
+          const roleCheck = await checkDeviceRoleMutualExclusion('parent');
+          if (!roleCheck.allowed) {
+            setError(roleCheck.message || 'Portal role conflict on this device.');
+            setIsLoading(false);
+            return;
+          }
+
+          await claimChildCodeOnDevice(cleanUpperId, parentKey, studentMatch.fullName);
+          await claimAccountOnDevice(parentKey, parentKey, 'parent');
+          await setDeviceActiveRole('parent');
+
+          const parentMe = {
+            user: {
+              id: parentKey,
+              email: `${cleanUpperId.toLowerCase()}@parent.quick2learn.in`,
+              name: `Parent of ${studentMatch.fullName}`,
+              image: null,
+              phoneNumber: null,
+              phoneNumberVerified: false,
+              emailVerified: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            profile: {
+              id: `profile-${parentKey}`,
+              userId: parentKey,
+              fullName: `Parent of ${studentMatch.fullName}`,
+              phone: null,
+              role: 'parent',
+              classLevel: null,
+              board: null,
+              school: studentMatch.school,
+              parentName: null,
+              parentPhone: null,
+              city: 'Bhopal',
+              avatarUrl: null,
+              onboardedAt: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            role: 'parent',
+            linkedStudents: [studentMatch],
+          };
+
+          await SecureStore.setItemAsync(
+            ACTIVE_USER_STORAGE_KEY,
+            JSON.stringify(parentMe)
+          );
+          await SecureStore.setItemAsync(DEMO_MODE_STORAGE_KEY, 'true').catch(() => {});
+          queryClient.setQueryData(queryKeys.me, parentMe);
+          queryClient.setQueryData(queryKeys.parentStudents, { students: [studentMatch] });
+          router.replace('/(app)' as any);
+          return;
+        }
+      }
+
       // 1. Check Fixed Admin Credentials
       const isAdminMatch =
         (cleanId === 'admin@quick2learn.in' || cleanId === 'admin') &&
@@ -196,29 +275,34 @@ export default function LoginScreen() {
                 resolvedLinkedStudents = matched.linkedStudents;
               } else if (matched.childInviteCode) {
                 const code = matched.childInviteCode.trim().toUpperCase();
-                const studentMatch = accounts.find(
-                  (acc) =>
-                    acc.role === 'student' &&
-                    (acc.inviteCode?.toUpperCase() === code ||
-                      acc.studentInviteCode?.toUpperCase() === code)
-                );
+                const studentMatch = await lookupStudentByInviteCode(code);
                 if (studentMatch) {
-                  resolvedLinkedStudents = [
-                    {
-                      id: studentMatch.id || `profile-${studentMatch.id}`,
-                      userId: studentMatch.id || `user-${Date.now()}`,
-                      fullName: studentMatch.fullName,
-                      classLevel: studentMatch.classLevel || 10,
-                      board: (studentMatch.board || 'cbse') as 'cbse' | 'icse',
-                      school: studentMatch.school || 'Quick2Learn High School',
-                      avatarUrl: null,
-                    },
-                  ];
+                  resolvedLinkedStudents = [studentMatch];
                 }
               }
 
-              if (resolvedLinkedStudents.length === 0) {
-                resolvedLinkedStudents = DEMO_PARENT_ME.linkedStudents;
+              // If linked student has "Student Demo" or "Student", resolve real student from device
+              if (
+                resolvedLinkedStudents.length === 0 ||
+                resolvedLinkedStudents[0]?.fullName === 'Student Demo' ||
+                resolvedLinkedStudents[0]?.fullName === 'Student'
+              ) {
+                const realStudent = await getLastKnownStudentProfile();
+                if (realStudent?.fullName) {
+                  resolvedLinkedStudents = [
+                    {
+                      id: realStudent.id || `profile-${realStudent.userId}`,
+                      userId: realStudent.userId || realStudent.id,
+                      fullName: realStudent.fullName,
+                      classLevel: realStudent.classLevel || 10,
+                      board: (realStudent.board || 'cbse') as 'cbse' | 'icse',
+                      school: realStudent.school || 'Quick2Learn High School',
+                      avatarUrl: null,
+                    },
+                  ];
+                } else if (resolvedLinkedStudents.length === 0) {
+                  resolvedLinkedStudents = DEMO_PARENT_ME.linkedStudents;
+                }
               }
             }
 
@@ -334,12 +418,34 @@ export default function LoginScreen() {
         await claimChildCodeOnDevice('DEMO10', DEMO_PARENT_ME.user.id, DEMO_PARENT_ME.user.name);
         await claimAccountOnDevice(parentKey, DEMO_PARENT_ME.user.id, 'parent');
         await setDeviceActiveRole('parent');
+
+        const realStudent = await getLastKnownStudentProfile();
+        const effectiveLinked = realStudent?.fullName
+          ? [
+              {
+                id: realStudent.id || `profile-${realStudent.userId}`,
+                userId: realStudent.userId || realStudent.id,
+                fullName: realStudent.fullName,
+                classLevel: realStudent.classLevel || 10,
+                board: (realStudent.board || 'cbse') as 'cbse' | 'icse',
+                school: realStudent.school || 'Quick2Learn High School',
+                avatarUrl: null,
+              },
+            ]
+          : DEMO_PARENT_ME.linkedStudents;
+
+        const parentMe = {
+          ...DEMO_PARENT_ME,
+          linkedStudents: effectiveLinked,
+        };
+
         await SecureStore.setItemAsync(
           ACTIVE_USER_STORAGE_KEY,
-          JSON.stringify(DEMO_PARENT_ME)
+          JSON.stringify(parentMe)
         );
         await SecureStore.setItemAsync(DEMO_MODE_STORAGE_KEY, 'true').catch(() => {});
-        queryClient.setQueryData(queryKeys.me, DEMO_PARENT_ME);
+        queryClient.setQueryData(queryKeys.me, parentMe);
+        queryClient.setQueryData(queryKeys.parentStudents, { students: effectiveLinked });
         router.replace('/(app)' as any);
         return;
       }

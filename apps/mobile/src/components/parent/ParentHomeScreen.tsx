@@ -12,44 +12,44 @@ import { useRouter } from "expo-router";
 import {
   Calendar,
   CheckCircle2,
-  XCircle,
   Clock,
   Award,
   TrendingUp,
   TrendingDown,
   Minus,
-  AlertCircle,
   CreditCard,
   Bell,
   MessageCircle,
   ChevronRight,
-  Sparkles,
-  Radio,
   BookOpen,
+  ArrowRight,
 } from "lucide-react-native";
 import { Screen } from "../ui/Screen";
 import { AppHeader } from "../ui/AppHeader";
-import { Card } from "../ui/Card";
-import { Badge } from "../ui/Badge";
-import { Button } from "../ui/Button";
-import { ChildSwitcher } from "./ChildSwitcher";
 import { useParentHome, useMe, useParentStudents } from "../../api/hooks";
 import { useParentStore } from "../../lib/parentStore";
-import { formatINR } from "@quick2learn/shared";
 
 export function ParentHomeScreen() {
   const router = useRouter();
   const { selectedChildId } = useParentStore();
   const { data: me } = useMe();
   const { data: parentStudentsData } = useParentStudents();
-  const { data, isLoading, isRefetching, refetch, error } = useParentHome(selectedChildId);
+  const { data, isLoading, isRefetching, refetch } = useParentHome(selectedChildId);
 
   const linkedStudents = parentStudentsData?.students || me?.linkedStudents || [];
   const matchedLinked =
     (selectedChildId && linkedStudents.find((s) => s.id === selectedChildId || s.userId === selectedChildId)) ||
     linkedStudents[0];
 
-  const child = data?.child || matchedLinked;
+  const rawChild = data?.child || matchedLinked;
+  const realNameCandidate =
+    (matchedLinked?.fullName && matchedLinked.fullName !== "Student Demo" && matchedLinked.fullName !== "Student")
+      ? matchedLinked
+      : linkedStudents.find((s) => s.fullName && s.fullName !== "Student Demo" && s.fullName !== "Student");
+
+  const child = (rawChild?.fullName === "Student Demo" || rawChild?.fullName === "Student") && realNameCandidate
+    ? { ...rawChild, ...realNameCandidate, fullName: realNameCandidate.fullName }
+    : rawChild || matchedLinked;
 
   const handleOpenWhatsApp = () => {
     if (data?.instituteWhatsApp?.url) {
@@ -60,9 +60,11 @@ export function ParentHomeScreen() {
   if (isLoading && !data && !child) {
     return (
       <Screen header={<AppHeader title="Parent Portal" />}>
-        <View className="flex-1 items-center justify-center p-8">
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
           <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-body text-ink-muted mt-3">Loading child records...</Text>
+          <Text style={{ fontSize: 14, color: "#64748B", marginTop: 12 }}>
+            Loading child records...
+          </Text>
         </View>
       </Screen>
     );
@@ -86,9 +88,6 @@ export function ParentHomeScreen() {
         />
       }
     >
-      {/* 1. Child Switcher at the very top */}
-      <ChildSwitcher />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -103,59 +102,146 @@ export function ParentHomeScreen() {
         }
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
       >
-        {/* Child greeting info */}
+        {/* Child greeting info / Student Overview Card */}
         {child && (
-          <View className="mb-4 bg-white p-4.5 rounded-2xl border border-border shadow-xs">
-            <View className="flex-row items-center justify-between mb-2">
-              <View className="flex-row items-center gap-1.5">
-                <BookOpen size={14} color="#2563EB" />
-                <Text className="text-body-xs font-semibold text-primary uppercase tracking-wider">
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 20,
+              padding: 18,
+              marginBottom: 14,
+              borderWidth: 1,
+              borderColor: "#E2E8F0",
+              shadowColor: "#0F172A",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <BookOpen size={15} color="#2563EB" />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: "800",
+                    color: "#2563EB",
+                    textTransform: "uppercase",
+                    letterSpacing: 0.6,
+                  }}
+                >
                   Student Overview
                 </Text>
               </View>
-              <View className="bg-primary/10 px-2.5 py-0.5 rounded-full flex-row items-center gap-1">
-                <CheckCircle2 size={11} color="#2563EB" />
-                <Text className="text-[11px] font-bold text-primary">Active Profile</Text>
+
+              <View
+                style={{
+                  backgroundColor: "#ECFDF5",
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "#A7F3D0",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <CheckCircle2 size={11} color="#059669" />
+                <Text style={{ fontSize: 10.5, fontWeight: "800", color: "#047857" }}>
+                  Active Profile
+                </Text>
               </View>
             </View>
 
-            <Text className="text-h2 font-bold text-ink">
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "#0F172A" }}>
               {child.fullName}
             </Text>
 
-            <View className="flex-row items-center flex-wrap gap-x-2 gap-y-1 mt-1">
-              <View className="bg-surface-subtle px-2 py-0.5 rounded-md border border-border">
-                <Text className="text-[11.5px] font-semibold text-ink">
-                  {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}
+            <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+              <View
+                style={{
+                  backgroundColor: "#F1F5F9",
+                  paddingHorizontal: 8,
+                  paddingVertical: 2.5,
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: "#CBD5E1",
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: "700", color: "#1E293B" }}>
+                  {child.classLevel ? `Class ${child.classLevel}` : "Class 10"}
                 </Text>
               </View>
-              <View className="bg-surface-subtle px-2 py-0.5 rounded-md border border-border">
-                <Text className="text-[11.5px] font-semibold text-ink">
+
+              <View
+                style={{
+                  backgroundColor: "#F1F5F9",
+                  paddingHorizontal: 8,
+                  paddingVertical: 2.5,
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: "#CBD5E1",
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: "700", color: "#1E293B" }}>
                   {child.board?.toUpperCase() || "CBSE"}
                 </Text>
               </View>
-              <Text className="text-body-xs text-ink-muted">
+
+              <Text style={{ fontSize: 12, color: "#64748B", fontWeight: "500", maxWidth: 190 }} numberOfLines={1}>
                 {(child as any).school || "Quick2Learn High School"}
               </Text>
             </View>
 
-            {/* Quick Metrics Strip */}
-            <View className="flex-row items-center justify-between mt-3.5 pt-3 border-t border-border/50">
-              <View className="flex-1 items-center border-r border-border/40 pr-2">
-                <Text className="text-[10px] font-bold text-ink-muted uppercase">Attendance</Text>
-                <Text className="text-body font-bold text-emerald-600 mt-0.5">
+            {/* Quick Metrics Strip (3 horizontal columns) */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 14,
+                paddingTop: 12,
+                borderTopWidth: 1,
+                borderTopColor: "#F1F5F9",
+              }}
+            >
+              <View style={{ flex: 1, alignItems: "center", borderRightWidth: 1, borderRightColor: "#E2E8F0", paddingRight: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
+                  Attendance
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: "800", color: "#059669", marginTop: 2 }}>
                   {attendance ? `${attendance.percentage}%` : "100%"}
                 </Text>
               </View>
-              <View className="flex-1 items-center border-r border-border/40 px-2">
-                <Text className="text-[10px] font-bold text-ink-muted uppercase">Latest Test</Text>
-                <Text className="text-body font-bold text-amber-600 mt-0.5">
+
+              <View style={{ flex: 1, alignItems: "center", borderRightWidth: 1, borderRightColor: "#E2E8F0", paddingHorizontal: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
+                  Latest Test
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: "800", color: "#D97706", marginTop: 2 }}>
                   {testScore ? `${testScore.percentage}%` : "92%"}
                 </Text>
               </View>
-              <View className="flex-1 items-center pl-2">
-                <Text className="text-[10px] font-bold text-ink-muted uppercase">Fee Status</Text>
-                <Text className="text-body font-bold text-primary mt-0.5">
+
+              <View style={{ flex: 1, alignItems: "center", paddingLeft: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
+                  Fee Status
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "800",
+                    marginTop: 2,
+                    color:
+                      feeAlert?.status === "overdue"
+                        ? "#DC2626"
+                        : feeAlert?.status === "due_soon"
+                        ? "#D97706"
+                        : "#2563EB",
+                  }}
+                >
                   {feeAlert?.status === "overdue"
                     ? "Overdue"
                     : feeAlert?.status === "due_soon"
@@ -172,23 +258,43 @@ export function ParentHomeScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push("/(app)/(tabs)/fees" as any)}
-            className={`p-4 rounded-2xl mb-4 border flex-row items-center justify-between ${
-              feeAlert.status === "overdue"
-                ? "bg-red-50/70 border-red-200"
-                : feeAlert.status === "due_soon"
-                ? "bg-amber-50/70 border-amber-200"
-                : "bg-emerald-50/60 border-emerald-200"
-            }`}
+            style={{
+              padding: 14,
+              borderRadius: 16,
+              marginBottom: 14,
+              borderWidth: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor:
+                feeAlert.status === "overdue"
+                  ? "#FEF2F2"
+                  : feeAlert.status === "due_soon"
+                  ? "#FFFBEB"
+                  : "#F0FDF4",
+              borderColor:
+                feeAlert.status === "overdue"
+                  ? "#FECACA"
+                  : feeAlert.status === "due_soon"
+                  ? "#FDE68A"
+                  : "#BBF7D0",
+            }}
           >
-            <View className="flex-row items-center gap-3 flex-1 pr-2">
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, paddingRight: 8 }}>
               <View
-                className={`w-9 h-9 rounded-xl items-center justify-center ${
-                  feeAlert.status === "overdue"
-                    ? "bg-red-100"
-                    : feeAlert.status === "due_soon"
-                    ? "bg-amber-100"
-                    : "bg-emerald-100"
-                }`}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor:
+                    feeAlert.status === "overdue"
+                      ? "#FEE2E2"
+                      : feeAlert.status === "due_soon"
+                      ? "#FEF3C7"
+                      : "#DCFCE7",
+                }}
               >
                 <CreditCard
                   size={18}
@@ -201,15 +307,18 @@ export function ParentHomeScreen() {
                   }
                 />
               </View>
-              <View className="flex-1">
+              <View style={{ flex: 1 }}>
                 <Text
-                  className={`text-body-sm font-bold ${
-                    feeAlert.status === "overdue"
-                      ? "text-red-900"
-                      : feeAlert.status === "due_soon"
-                      ? "text-amber-900"
-                      : "text-emerald-900"
-                  }`}
+                  style={{
+                    fontSize: 13.5,
+                    fontWeight: "800",
+                    color:
+                      feeAlert.status === "overdue"
+                        ? "#991B1B"
+                        : feeAlert.status === "due_soon"
+                        ? "#92400E"
+                        : "#065F46",
+                  }}
                 >
                   {feeAlert.status === "overdue"
                     ? "Fee Overdue Alert"
@@ -218,20 +327,24 @@ export function ParentHomeScreen() {
                     : "Fee Dues Cleared"}
                 </Text>
                 <Text
-                  className={`text-body-xs mt-0.5 ${
-                    feeAlert.status === "overdue"
-                      ? "text-red-700"
-                      : feeAlert.status === "due_soon"
-                      ? "text-amber-700"
-                      : "text-emerald-700"
-                  }`}
+                  style={{
+                    fontSize: 11.5,
+                    color:
+                      feeAlert.status === "overdue"
+                        ? "#B91C1C"
+                        : feeAlert.status === "due_soon"
+                        ? "#B45309"
+                        : "#047857",
+                    marginTop: 2,
+                    lineHeight: 16,
+                  }}
                   numberOfLines={2}
                 >
                   {feeAlert.message}
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#9CA3AF" />
+            <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
         )}
 
@@ -239,93 +352,186 @@ export function ParentHomeScreen() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.push("/(app)/(tabs)/attendance" as any)}
-          className="bg-white rounded-2xl p-4.5 mb-4 border border-border shadow-xs"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 14,
+            borderWidth: 1,
+            borderColor: "#E2E8F0",
+            shadowColor: "#0F172A",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
         >
-          <View className="flex-row items-center justify-between pb-3 border-b border-border/60">
-            <View className="flex-row items-center gap-2">
-              <Calendar size={18} color="#2563EB" />
-              <Text className="text-body-sm font-bold text-ink">This Week's Attendance</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: "#F1F5F9",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Calendar size={16} color="#2563EB" />
+              <Text style={{ fontSize: 13.5, fontWeight: "800", color: "#0F172A" }}>
+                This Week's Attendance
+              </Text>
             </View>
-            <View className="flex-row items-center gap-1">
-              <Text className="text-body-xs text-primary font-semibold">View Monthly</Text>
-              <ChevronRight size={14} color="#2563EB" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#2563EB" }}>View Monthly</Text>
+              <ChevronRight size={13} color="#2563EB" />
             </View>
           </View>
 
-          <View className="flex-row items-center justify-between mt-3.5">
-            <View>
-              <Text className="text-display-xs font-bold text-ink">
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={{ fontSize: 22, fontWeight: "800", color: "#0F172A" }}>
                 {attendance ? `${attendance.percentage}%` : "100%"}
               </Text>
-              <Text className="text-body-xs text-ink-muted mt-0.5">
-                {attendance?.summaryText || "All conducted classes attended"}
+              <Text style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
+                {attendance?.summaryText || "All conducted classes attended this week"}
               </Text>
             </View>
 
-            <View className="flex-row items-center gap-3">
-              <View className="items-center px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                <Text className="text-body-sm font-bold text-emerald-700">
-                  {attendance?.presentDays ?? 0}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  backgroundColor: "#ECFDF5",
+                  borderWidth: 1,
+                  borderColor: "#A7F3D0",
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: "800", color: "#047857" }}>
+                  {attendance?.presentDays ?? 5}
                 </Text>
-                <Text className="text-[10px] font-medium text-emerald-600">Present</Text>
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "#059669" }}>Present</Text>
               </View>
-              <View className="items-center px-3 py-1.5 rounded-xl bg-red-50 border border-red-100">
-                <Text className="text-body-sm font-bold text-red-700">
+
+              <View
+                style={{
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  backgroundColor: "#FEF2F2",
+                  borderWidth: 1,
+                  borderColor: "#FECACA",
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: "800", color: "#B91C1C" }}>
                   {attendance?.absentDays ?? 0}
                 </Text>
-                <Text className="text-[10px] font-medium text-red-600">Absent</Text>
+                <Text style={{ fontSize: 10, fontWeight: "700", color: "#DC2626" }}>Absent</Text>
               </View>
             </View>
           </View>
         </TouchableOpacity>
 
-        {/* 4. Latest Test Score Card */}
+        {/* 4. Latest Test Performance Card */}
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.push("/(app)/(tabs)/tests" as any)}
-          className="bg-white rounded-2xl p-4.5 mb-4 border border-border shadow-xs"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 14,
+            borderWidth: 1,
+            borderColor: "#E2E8F0",
+            shadowColor: "#0F172A",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
         >
-          <View className="flex-row items-center justify-between pb-3 border-b border-border/60">
-            <View className="flex-row items-center gap-2">
-              <Award size={18} color="#D97706" />
-              <Text className="text-body-sm font-bold text-ink">Latest Test Performance</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: "#F1F5F9",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Award size={16} color="#D97706" />
+              <Text style={{ fontSize: 13.5, fontWeight: "800", color: "#0F172A" }}>
+                Latest Test Performance
+              </Text>
             </View>
-            <View className="flex-row items-center gap-1">
-              <Text className="text-body-xs text-primary font-semibold">All Tests</Text>
-              <ChevronRight size={14} color="#2563EB" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#2563EB" }}>All Tests</Text>
+              <ChevronRight size={13} color="#2563EB" />
             </View>
           </View>
 
           {testScore ? (
-            <View className="mt-3.5">
-              <View className="flex-row items-start justify-between gap-3">
-                <View className="flex-1">
-                  <Text className="text-body font-bold text-ink" numberOfLines={1}>
+            <View style={{ marginTop: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: "800", color: "#0F172A" }} numberOfLines={1}>
                     {testScore.testTitle}
                   </Text>
-                  <Text className="text-body-xs text-ink-muted mt-0.5">
+                  <Text style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
                     Score: {testScore.score} / {testScore.totalMarks} marks
                   </Text>
                 </View>
 
-                <View className="items-end">
-                  <Text className="text-display-xs font-bold text-ink">
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={{ fontSize: 20, fontWeight: "800", color: "#0F172A" }}>
                     {testScore.percentage}%
                   </Text>
                 </View>
               </View>
 
               {/* Trend / Change from previous test */}
-              <View className="mt-3 pt-3 border-t border-border/40 flex-row items-center justify-between">
-                <Text className="text-body-xs text-ink-muted">Comparison to previous test:</Text>
+              <View
+                style={{
+                  marginTop: 10,
+                  paddingTop: 10,
+                  borderTopWidth: 1,
+                  borderTopColor: "#F1F5F9",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ fontSize: 11.5, color: "#64748B" }}>
+                  Comparison to previous test:
+                </Text>
                 <View
-                  className={`flex-row items-center gap-1 px-2.5 py-1 rounded-full ${
-                    testScore.changePercentage && testScore.changePercentage > 0
-                      ? "bg-emerald-50 text-emerald-700"
-                      : testScore.changePercentage && testScore.changePercentage < 0
-                      ? "bg-red-50 text-red-700"
-                      : "bg-surface-subtle text-ink-muted"
-                  }`}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 12,
+                    backgroundColor:
+                      testScore.changePercentage && testScore.changePercentage > 0
+                        ? "#ECFDF5"
+                        : testScore.changePercentage && testScore.changePercentage < 0
+                        ? "#FEF2F2"
+                        : "#F8FAFC",
+                    borderWidth: 1,
+                    borderColor:
+                      testScore.changePercentage && testScore.changePercentage > 0
+                        ? "#A7F3D0"
+                        : testScore.changePercentage && testScore.changePercentage < 0
+                        ? "#FECACA"
+                        : "#E2E8F0",
+                  }}
                 >
                   {testScore.changePercentage && testScore.changePercentage > 0 ? (
                     <TrendingUp size={12} color="#059669" />
@@ -335,13 +541,16 @@ export function ParentHomeScreen() {
                     <Minus size={12} color="#6B7280" />
                   )}
                   <Text
-                    className={`text-[11px] font-bold ${
-                      testScore.changePercentage && testScore.changePercentage > 0
-                        ? "text-emerald-700"
-                        : testScore.changePercentage && testScore.changePercentage < 0
-                        ? "text-red-700"
-                        : "text-ink-muted"
-                    }`}
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: "800",
+                      color:
+                        testScore.changePercentage && testScore.changePercentage > 0
+                          ? "#047857"
+                          : testScore.changePercentage && testScore.changePercentage < 0
+                          ? "#B91C1C"
+                          : "#64748B",
+                    }}
                   >
                     {testScore.changeLabel}
                   </Text>
@@ -349,8 +558,8 @@ export function ParentHomeScreen() {
               </View>
             </View>
           ) : (
-            <View className="py-4 items-center justify-center">
-              <Text className="text-body-sm text-ink-muted text-center">
+            <View style={{ paddingVertical: 16, alignItems: "center" }}>
+              <Text style={{ fontSize: 12, color: "#64748B" }}>
                 No evaluated test assessments yet for this student.
               </Text>
             </View>
@@ -359,28 +568,65 @@ export function ParentHomeScreen() {
 
         {/* 5. Next Class Schedule */}
         {nextClass && (
-          <View className="bg-white rounded-2xl p-4.5 mb-4 border border-border shadow-xs">
-            <View className="flex-row items-center justify-between pb-3 border-b border-border/60">
-              <View className="flex-row items-center gap-2">
-                <Clock size={18} color="#2563EB" />
-                <Text className="text-body-sm font-bold text-ink">Next Class</Text>
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 18,
+              padding: 16,
+              marginBottom: 14,
+              borderWidth: 1,
+              borderColor: "#E2E8F0",
+              shadowColor: "#0F172A",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingBottom: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: "#F1F5F9",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Clock size={16} color="#2563EB" />
+                <Text style={{ fontSize: 13.5, fontWeight: "800", color: "#0F172A" }}>
+                  Next Class
+                </Text>
               </View>
               {nextClass.isLive && (
-                <View className="flex-row items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-100">
-                  <View className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                  <Text className="text-[11px] font-bold text-red-700">LIVE NOW</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2.5,
+                    borderRadius: 12,
+                    backgroundColor: "#FEE2E2",
+                  }}
+                >
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#DC2626" }} />
+                  <Text style={{ fontSize: 10.5, fontWeight: "800", color: "#B91C1C" }}>
+                    LIVE NOW
+                  </Text>
                 </View>
               )}
             </View>
 
-            <View className="mt-3.5 space-y-1">
-              <Text className="text-body-md font-bold text-ink">
+            <View style={{ marginTop: 10, gap: 2 }}>
+              <Text style={{ fontSize: 14.5, fontWeight: "800", color: "#0F172A" }}>
                 {nextClass.batchTitle}
               </Text>
-              <Text className="text-body-sm text-ink-muted">
+              <Text style={{ fontSize: 12, color: "#64748B" }}>
                 {nextClass.subjectName} • {nextClass.timeOrCountdown}
               </Text>
-              <Text className="text-[11px] text-ink-muted mt-1 italic">
+              <Text style={{ fontSize: 11, color: "#94A3B8", marginTop: 4, fontStyle: "italic" }}>
                 (Classes are monitored live by faculty Dinesh Singh Rajput)
               </Text>
             </View>
@@ -389,29 +635,63 @@ export function ParentHomeScreen() {
 
         {/* 6. Batch Announcements */}
         {announcements.length > 0 && (
-          <View className="bg-white rounded-2xl p-4.5 mb-5 border border-border shadow-xs">
-            <View className="flex-row items-center gap-2 pb-3 border-b border-border/60">
-              <Bell size={18} color="#2563EB" />
-              <Text className="text-body-sm font-bold text-ink">Recent Notices & Announcements</Text>
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 18,
+              padding: 16,
+              marginBottom: 16,
+              borderWidth: 1,
+              borderColor: "#E2E8F0",
+              shadowColor: "#0F172A",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingBottom: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: "#F1F5F9",
+              }}
+            >
+              <Bell size={16} color="#2563EB" />
+              <Text style={{ fontSize: 13.5, fontWeight: "800", color: "#0F172A" }}>
+                Recent Notices & Announcements
+              </Text>
             </View>
 
-            <View className="divide-y divide-border/60">
-              {announcements.map((a) => (
-                <View key={a.id} className="py-3">
-                  <View className="flex-row items-center justify-between gap-2">
-                    <Text className="text-body-sm font-bold text-ink flex-1" numberOfLines={1}>
+            <View style={{ marginTop: 4 }}>
+              {announcements.map((a, idx) => (
+                <View
+                  key={a.id}
+                  style={{
+                    paddingVertical: 10,
+                    borderBottomWidth: idx === announcements.length - 1 ? 0 : 1,
+                    borderBottomColor: "#F8FAFC",
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: "700", color: "#0F172A", flex: 1 }} numberOfLines={1}>
                       {a.title}
                     </Text>
                     {a.batchTitle && (
-                      <Text className="text-[10px] font-semibold px-2 py-0.5 rounded bg-surface-subtle text-ink-muted">
-                        {a.batchTitle}
-                      </Text>
+                      <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: "#F1F5F9" }}>
+                        <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B" }}>
+                          {a.batchTitle}
+                        </Text>
+                      </View>
                     )}
                   </View>
-                  <Text className="text-body-xs text-ink-muted mt-1" numberOfLines={2}>
+                  <Text style={{ fontSize: 12, color: "#64748B", marginTop: 3, lineHeight: 17 }} numberOfLines={2}>
                     {a.body}
                   </Text>
-                  <Text className="text-[10px] text-ink-muted/80 mt-1">
+                  <Text style={{ fontSize: 10.5, color: "#94A3B8", marginTop: 4 }}>
                     {new Date(a.createdAt).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
@@ -427,17 +707,39 @@ export function ParentHomeScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleOpenWhatsApp}
-          className="bg-emerald-600 active:bg-emerald-700 p-4 rounded-2xl flex-row items-center justify-between shadow-md mb-2"
+          style={{
+            backgroundColor: "#059669",
+            padding: 16,
+            borderRadius: 18,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            shadowColor: "#059669",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 6,
+            elevation: 3,
+            marginBottom: 8,
+          }}
         >
-          <View className="flex-row items-center gap-3.5 flex-1 pr-2">
-            <View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center">
-              <MessageCircle size={24} color="#FFFFFF" />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, paddingRight: 8 }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MessageCircle size={22} color="#FFFFFF" />
             </View>
-            <View className="flex-1">
-              <Text className="text-body font-bold text-white">
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14.5, fontWeight: "800", color: "#FFFFFF" }}>
                 Message the Institute
               </Text>
-              <Text className="text-body-xs text-emerald-100 mt-0.5" numberOfLines={1}>
+              <Text style={{ fontSize: 11.5, color: "#D1FAE5", marginTop: 1 }} numberOfLines={1}>
                 WhatsApp Dinesh Sir regarding {child?.fullName || "your child"}
               </Text>
             </View>
