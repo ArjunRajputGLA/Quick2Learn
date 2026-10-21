@@ -5,7 +5,7 @@ import { getAllChaptersWithSubject, getVideos } from "@/server/data/videos";
 import { classLevelToSlug, slugify } from "@quick2learn/shared";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://quick2learn.in";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://quick2learn.vercel.app";
   const now = new Date();
 
   // 1. Static and top-level index routes
