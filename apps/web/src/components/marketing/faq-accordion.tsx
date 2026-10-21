@@ -21,8 +21,26 @@ export function FaqAccordion({ faqs }: FaqAccordionProps) {
     return null;
   }
 
+  // FAQPage structured data for Google rich results
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question?.replace(/\s*\[PLACEHOLDER\]/gi, ""),
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer?.replace(/\s*\[PLACEHOLDER\]/gi, ""),
+      },
+    })),
+  };
+
   return (
     <section id="faqs" className="bg-surface py-14 md:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+      />
       <div className="container mx-auto px-4 max-w-[800px] space-y-8">
         <SectionHeader
           align="center"

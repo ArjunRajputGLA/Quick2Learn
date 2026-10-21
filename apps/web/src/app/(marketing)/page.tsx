@@ -26,9 +26,9 @@ import { FaqAccordion, type FaqItem } from "@/components/marketing/faq-accordion
 import { ClosingBand } from "@/components/marketing/closing-band";
 
 export const metadata: Metadata = {
-  title: "Quick2Learn — Mathematics & Science Coaching in Mathura | Classes IX–XII CBSE & ICSE",
+  title: "Maths & Science Coaching in Mathura | Classes IX–XII CBSE & ICSE",
   description:
-    "Mathura's premier coaching institute for CBSE & ICSE/ISC Classes 9 to 12. Founded by Dinesh Singh Rajput (25+ years teaching Mathematics). Proven 100/100 board results, dedicated doubt clearing, and offline & online batches.",
+    "Top-rated Maths & Science coaching in Mathura for CBSE & ICSE Classes 9–12. Founded by Dinesh Singh Rajput (25+ yrs). Proven 100/100 board results.",
   keywords: [
     "maths coaching Mathura",
     "Quick2Learn",
@@ -46,6 +46,14 @@ export const metadata: Metadata = {
     description:
       "Mathura's premier coaching institute for CBSE & ICSE/ISC Classes 9 to 12. Founded by Dinesh Singh Rajput (25+ years teaching Mathematics).",
     url: "https://quick2learn.in",
+    images: [
+      {
+        url: "/images/og/quick2learn-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Quick2Learn — Mathematics & Science Coaching in Mathura",
+      },
+    ],
   },
 };
 

@@ -53,6 +53,14 @@ export const metadata: Metadata = {
     siteName: "Quick2Learn",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/images/og/quick2learn-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Quick2Learn — Mathematics & Science Coaching in Mathura",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -60,6 +68,7 @@ export const metadata: Metadata = {
     description:
       "Premier coaching for Classes IX–XII (CBSE & ICSE/ISC) in Mathura by veteran educators Dinesh Singh Rajput and Namita Singh Rajput.",
     site: "@Quick2Learn",
+    images: ["/images/og/quick2learn-og.jpg"],
   },
   verification: {
     google:

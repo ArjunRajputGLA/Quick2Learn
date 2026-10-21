@@ -123,9 +123,15 @@ export function HeroBannerCarousel({
 
                   {/* Text content overlaid on the banner */}
                   <div className="absolute inset-0 flex flex-col justify-center p-6 sm:p-10 max-w-lg pb-14 sm:pb-8">
-                    <h2 className="text-h2 sm:text-h1 font-extrabold text-surface leading-tight tracking-tight drop-shadow-sm">
-                      {slide.headline}
-                    </h2>
+                    {idx === 0 ? (
+                      <h1 className="text-h2 sm:text-h1 font-extrabold text-surface leading-tight tracking-tight drop-shadow-sm">
+                        {slide.headline}
+                      </h1>
+                    ) : (
+                      <h2 className="text-h2 sm:text-h1 font-extrabold text-surface leading-tight tracking-tight drop-shadow-sm">
+                        {slide.headline}
+                      </h2>
+                    )}
                     <p className="mt-3 text-small sm:text-body text-surface/90 leading-relaxed line-clamp-3 drop-shadow-sm">
                       {slide.description}
                     </p>
