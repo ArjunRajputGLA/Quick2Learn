@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,11 @@ import {
   Image,
   Linking,
   Platform,
+  Keyboard,
+  KeyboardAvoidingView,
+  Animated,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
@@ -40,6 +44,10 @@ import {
   Users,
   UserPlus,
   Check,
+  X,
+  AlertCircle,
+  School,
+  ShieldCheck,
 } from "lucide-react-native";
 import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
@@ -71,6 +79,7 @@ import { authClient } from "../../../src/api/auth-client";
 import {
   saveLastKnownStudentProfile,
   registerStudentInviteCode,
+  sanitizeLinkedStudents,
 } from "../../../src/lib/studentInviteDirectory";
 import { useI18n } from "../../../src/lib/i18n";
 
@@ -86,16 +95,72 @@ export default function ProfileScreen() {
   const generateCodeMutation = useGenerateStudentInviteCode();
 
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [parentModalVisible, setParentModalVisible] = useState(false);
   const [linkChildModalVisible, setLinkChildModalVisible] = useState(false);
   const [claimCodeInput, setClaimCodeInput] = useState("");
   const [claimError, setClaimError] = useState("");
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeightAnim = useRef(new Animated.Value(0)).current;
+
+  // Edit Child Details state
+  const [editingChild, setEditingChild] = useState<any | null>(null);
+  const [editChildName, setEditChildName] = useState("");
+  const [editChildClass, setEditChildClass] = useState<number>(10);
+  const [editChildBoard, setEditChildBoard] = useState<string>("cbse");
+  const [editChildSchool, setEditChildSchool] = useState("");
+  const [editChildError, setEditChildError] = useState("");
+  const [isSavingChild, setIsSavingChild] = useState(false);
+
+  const insets = useSafeAreaInsets();
+  const claimInputRef = useRef<any>(null);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const height = e?.endCoordinates?.height || 0;
+      setIsKeyboardOpen(true);
+      setKeyboardHeight(height);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: height,
+        duration: Platform.OS === "ios" ? (e.duration || 250) : 160,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      setIsKeyboardOpen(false);
+      setKeyboardHeight(0);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: 0,
+        duration: Platform.OS === "ios" ? (e.duration || 200) : 140,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardHeightAnim]);
+
+  useEffect(() => {
+    if (linkChildModalVisible) {
+      const timer = setTimeout(() => {
+        claimInputRef.current?.focus();
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [linkChildModalVisible]);
 
   const { selectedChildId, setSelectedChildId } = useParentStore();
   const claimCodeMutation = useClaimInviteCode();
 
-  const linkedStudents =
-    parentStudentsData?.students || me?.linkedStudents || [];
+  const rawLinked = parentStudentsData?.students || me?.linkedStudents || [];
+  const linkedStudents = sanitizeLinkedStudents(rawLinked);
 
   const user = me?.user;
   const profile = me?.profile;
@@ -183,48 +248,54 @@ export default function ProfileScreen() {
     }
   };
 
-  const { confirm } = useConfirmDialog();
-
   const handleSignOut = () => {
-    confirm({
-      title: t("logOut"),
-      message: t("logOutConfirm"),
-      confirmText: t("logOut"),
-      cancelText: t("cancel"),
-      type: "danger",
-      onConfirm: async () => {
-        try {
-          setIsSigningOut(true);
+    setLogoutModalVisible(true);
+  };
 
-          // 1. Fire-and-forget server sign-out in background without blocking UI transition
-          authClient.signOut().catch(() => {});
+  const handleConfirmSignOut = async () => {
+    try {
+      setIsSigningOut(true);
 
-          // 2. Clear all local session tokens, release child codes, and clear device role
-          await Promise.allSettled([
-            clearDeviceActiveSession(me?.user?.id),
-            SecureStore.deleteItemAsync(DEVICE_ACTIVE_ROLE_KEY),
-            SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY),
-            SecureStore.deleteItemAsync(ACTIVE_USER_STORAGE_KEY),
-            SecureStore.deleteItemAsync("q2l_active_user"),
-            SecureStore.deleteItemAsync("q2l_session_token"),
-            SecureStore.deleteItemAsync("q2l_session_data"),
-            SecureStore.deleteItemAsync("q2l_token"),
-            SecureStore.deleteItemAsync("q2l_cookie"),
-          ]);
+      // 1. Fire-and-forget server sign-out in background without blocking UI transition
+      authClient.signOut().catch(() => {});
 
-          // 3. Reset query cache and immediately redirect to welcome screen
-          queryClient.setQueryData(queryKeys.me, null);
-          queryClient.clear();
-          router.replace("/(auth)/welcome" as any);
-        } catch {
-          queryClient.setQueryData(queryKeys.me, null);
-          queryClient.clear();
-          router.replace("/(auth)/welcome" as any);
-        } finally {
-          setIsSigningOut(false);
-        }
-      },
-    });
+      // 2. Clear all local session tokens, release child codes, and clear device role
+      await Promise.allSettled([
+        clearDeviceActiveSession(me?.user?.id),
+        SecureStore.deleteItemAsync(DEVICE_ACTIVE_ROLE_KEY),
+        SecureStore.deleteItemAsync(DEMO_MODE_STORAGE_KEY),
+        SecureStore.deleteItemAsync(ACTIVE_USER_STORAGE_KEY),
+        SecureStore.deleteItemAsync("q2l_active_user"),
+        SecureStore.deleteItemAsync("q2l_session_token"),
+        SecureStore.deleteItemAsync("q2l_session_data"),
+        SecureStore.deleteItemAsync("q2l_token"),
+        SecureStore.deleteItemAsync("q2l_cookie"),
+      ]);
+
+      setLogoutModalVisible(false);
+
+      // 3. Reset query cache and immediately redirect to welcome screen
+      queryClient.setQueryData(queryKeys.me, null);
+      queryClient.clear();
+      router.replace("/(auth)/welcome" as any);
+    } catch {
+      setLogoutModalVisible(false);
+      queryClient.setQueryData(queryKeys.me, null);
+      queryClient.clear();
+      router.replace("/(auth)/welcome" as any);
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  const closeLinkChildModal = () => {
+    Keyboard.dismiss();
+    setClaimCodeInput("");
+    setClaimError("");
+    setIsKeyboardOpen(false);
+    setKeyboardHeight(0);
+    keyboardHeightAnim.setValue(0);
+    setLinkChildModalVisible(false);
   };
 
   const handleClaimCode = () => {
@@ -237,9 +308,7 @@ export default function ProfileScreen() {
       { code: claimCodeInput.trim().toUpperCase() },
       {
         onSuccess: (data) => {
-          Alert.alert("Success", "Student account linked successfully!");
-          setClaimCodeInput("");
-          setLinkChildModalVisible(false);
+          closeLinkChildModal();
           queryClient.invalidateQueries({ queryKey: queryKeys.me });
           queryClient.invalidateQueries({ queryKey: queryKeys.parentStudents });
           queryClient.invalidateQueries({ queryKey: ["tests"] });
@@ -247,12 +316,97 @@ export default function ProfileScreen() {
           if (data?.student?.userId || data?.student?.id) {
             setSelectedChildId(data.student.userId || data.student.id);
           }
+          setTimeout(() => {
+            Alert.alert("Success", "Student account linked successfully!");
+          }, 150);
         },
         onError: (err: any) => {
           setClaimError(err?.message || "Invalid or expired invite code");
         },
       }
     );
+  };
+
+  const openEditChildModal = (child: any) => {
+    setEditingChild(child);
+    setEditChildName(child.fullName || "");
+    setEditChildClass(child.classLevel || 10);
+    setEditChildBoard(child.board || "icse");
+    setEditChildSchool(child.school || "Sacred Heart School, Mathura");
+    setEditChildError("");
+  };
+
+  const closeEditChildModal = () => {
+    Keyboard.dismiss();
+    setEditingChild(null);
+    setEditChildName("");
+    setEditChildError("");
+  };
+
+  const handleSaveChildDetails = async () => {
+    if (!editChildName.trim() || editChildName.trim().length < 2) {
+      setEditChildError("Student name must be at least 2 characters.");
+      return;
+    }
+    setIsSavingChild(true);
+    setEditChildError("");
+    try {
+      const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      if (activeUserJson) {
+        const parsed = JSON.parse(activeUserJson);
+        if (Array.isArray(parsed.linkedStudents)) {
+          const targetKey = editingChild.userId || editingChild.id;
+          parsed.linkedStudents = parsed.linkedStudents.map((c: any) => {
+            const cKey = c.userId || c.id;
+            if (cKey === targetKey) {
+              return {
+                ...c,
+                fullName: editChildName.trim(),
+                classLevel: editChildClass,
+                board: editChildBoard,
+                school: editChildSchool.trim() || "Sacred Heart School, Mathura",
+              };
+            }
+            return c;
+          });
+          await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsed));
+          queryClient.setQueryData(queryKeys.me, parsed);
+          queryClient.setQueryData(queryKeys.parentStudents, { students: parsed.linkedStudents });
+        }
+      }
+
+      // Also persist to registered accounts directory if available
+      try {
+        const rawAccounts = await SecureStore.getItemAsync("q2l_registered_accounts");
+        if (rawAccounts) {
+          const accounts = JSON.parse(rawAccounts);
+          for (const acc of accounts) {
+            if (acc.role === "parent" && Array.isArray(acc.linkedStudents)) {
+              for (const s of acc.linkedStudents) {
+                if (s.userId === (editingChild.userId || editingChild.id)) {
+                  s.fullName = editChildName.trim();
+                  s.classLevel = editChildClass;
+                  s.board = editChildBoard;
+                  s.school = editChildSchool.trim() || "Sacred Heart School, Mathura";
+                }
+              }
+            }
+          }
+          await SecureStore.setItemAsync("q2l_registered_accounts", JSON.stringify(accounts));
+        }
+      } catch {}
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.parentStudents });
+      queryClient.invalidateQueries({ queryKey: queryKeys.me });
+      closeEditChildModal();
+      setTimeout(() => {
+        Alert.alert("Success", "Child details updated successfully.");
+      }, 150);
+    } catch {
+      setEditChildError("Failed to update child details. Please try again.");
+    } finally {
+      setIsSavingChild(false);
+    }
   };
 
   return (
@@ -267,156 +421,274 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: 22,
-            paddingVertical: 18,
-            paddingHorizontal: 16,
+            borderRadius: 24,
             borderWidth: 1,
-            borderColor: colors.border,
-            marginBottom: 12,
-            alignItems: 'center',
+            borderColor: '#E2E8F0',
+            marginBottom: 14,
+            overflow: 'hidden',
             shadowColor: '#0F172A',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 6,
-            elevation: 2,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.06,
+            shadowRadius: 12,
+            elevation: 3,
           }}
-          className="bg-surface rounded-2xl p-4 border border-border mb-3 items-center shadow-xs"
         >
-          {/* Avatar with accent ring */}
+          {/* Decorative Header Banner */}
           <View
             style={{
-              padding: 4,
-              borderRadius: 36,
-              backgroundColor: '#EFF6FF',
-              borderWidth: 1.5,
-              borderColor: '#BFDBFE',
-              marginBottom: 10,
-            }}
-          >
-            <Avatar name={fullName} size="xl" />
-          </View>
-
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '800',
-              color: colors.ink,
-              textAlign: 'center',
-              marginBottom: 6,
-            }}
-            className="text-h3 font-bold text-ink text-center mb-1.5"
-          >
-            {fullName}
-          </Text>
-
-          {/* Badges */}
-          <View
-            style={{
+              height: 72,
+              backgroundColor: role === "parent" ? '#EFF6FF' : '#F0FDF4',
+              borderBottomWidth: 1,
+              borderBottomColor: role === "parent" ? '#DBEAFE' : '#DCFCE7',
+              paddingHorizontal: 16,
+              paddingTop: 12,
               flexDirection: 'row',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: 6,
-              marginBottom: profile?.school ? 8 : 12,
+              justifyContent: 'flex-end',
+              alignItems: 'flex-start',
             }}
-            className="flex-row items-center flex-wrap justify-center space-x-1.5 mb-2"
           >
             <View
               style={{
-                backgroundColor: colors.primary,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
                 paddingHorizontal: 10,
-                paddingVertical: 3,
-                borderRadius: 12,
+                paddingVertical: 4,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: role === "parent" ? '#BFDBFE' : '#BBF7D0',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 2,
               }}
             >
-              <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
-                {role.toUpperCase()}
+              <ShieldCheck size={13} color={role === "parent" ? '#2563EB' : '#16A34A'} />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: role === "parent" ? '#1E40AF' : '#15803D',
+                  letterSpacing: 0.2,
+                }}
+              >
+                {role === "parent" ? "Parent Portal" : "Student Portal"}
               </Text>
             </View>
-
-            {role === "student" && profile?.classLevel ? (
-              <View
-                style={{
-                  backgroundColor: '#F1F5F9',
-                  borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  borderRadius: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <GraduationCap size={12} color="#475569" />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
-                  Class {profile.classLevel}{profile.board ? ` • ${profile.board.toUpperCase()}` : ''}
-                </Text>
-              </View>
-            ) : null}
-
-            {role === "parent" ? (
-              <View
-                style={{
-                  backgroundColor: '#F1F5F9',
-                  borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  borderRadius: 12,
-                }}
-              >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
-                  {linkedStudents.length} {linkedStudents.length === 1 ? "Child" : "Children"}
-                </Text>
-              </View>
-            ) : null}
           </View>
 
-          {profile?.school ? (
-            <Text
-              style={{
-                fontSize: 12,
-                color: colors['ink-muted'],
-                textAlign: 'center',
-                marginBottom: 12,
-                fontWeight: '500',
-              }}
-              className="text-caption text-ink-muted text-center mb-3"
-            >
-              {profile.school}
-            </Text>
-          ) : null}
-
-          {/* Edit Profile Action Button */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => router.push("/(app)/profile/edit" as any)}
+          {/* Profile Card Body */}
+          <View
             style={{
-              flexDirection: 'row',
               alignItems: 'center',
-              gap: 6,
-              backgroundColor: '#EFF6FF',
-              paddingVertical: 6,
               paddingHorizontal: 16,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: '#BFDBFE',
+              paddingBottom: 20,
+              paddingTop: 0,
             }}
-            className="flex-row items-center bg-blue-50 py-1.5 px-4 rounded-full border border-blue-200"
           >
-            <Edit3 size={13} color={colors.primary} />
+            {/* Elevated Overlapping Avatar with Role Emblem */}
+            <View
+              style={{
+                marginTop: -38,
+                position: 'relative',
+                marginBottom: 10,
+              }}
+            >
+              <View
+                style={{
+                  padding: 4,
+                  borderRadius: 999,
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 2,
+                  borderColor: role === "parent" ? '#BFDBFE' : '#BBF7D0',
+                  shadowColor: '#0F172A',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.12,
+                  shadowRadius: 10,
+                  elevation: 5,
+                }}
+              >
+                <Avatar name={fullName} size="xl" />
+              </View>
+
+              {/* Status / Role Emblem on Avatar */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 2,
+                  right: 2,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: '#FFFFFF',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 2,
+                  elevation: 2,
+                }}
+              >
+                {role === "parent" ? (
+                  <ShieldCheck size={11} color="#FFFFFF" strokeWidth={3} />
+                ) : (
+                  <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                )}
+              </View>
+            </View>
+
+            {/* User Full Name */}
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: colors.primary,
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0F172A',
+                textAlign: 'center',
+                marginBottom: 6,
+                letterSpacing: -0.2,
               }}
-              className="text-caption font-bold text-primary ml-1.5"
             >
-              {t("editProfileRow")}
+              {fullName}
             </Text>
-          </TouchableOpacity>
+
+            {/* Badges Row */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 6,
+                marginBottom: 10,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  paddingHorizontal: 11,
+                  paddingVertical: 3.5,
+                  borderRadius: 12,
+                  shadowColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.18,
+                  shadowRadius: 4,
+                  elevation: 1,
+                }}
+              >
+                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.7 }}>
+                  {role.toUpperCase()}
+                </Text>
+              </View>
+
+              {role === "student" && profile?.classLevel ? (
+                <View
+                  style={{
+                    backgroundColor: '#F1F5F9',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    paddingHorizontal: 10,
+                    paddingVertical: 3.5,
+                    borderRadius: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <GraduationCap size={12} color="#475569" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                    Class {profile.classLevel}{profile.board ? ` • ${profile.board.toUpperCase()}` : ''}
+                  </Text>
+                </View>
+              ) : null}
+
+              {role === "parent" ? (
+                <View
+                  style={{
+                    backgroundColor: '#EFF6FF',
+                    borderWidth: 1,
+                    borderColor: '#DBEAFE',
+                    paddingHorizontal: 10,
+                    paddingVertical: 3.5,
+                    borderRadius: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Users size={12} color="#2563EB" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#1E40AF' }}>
+                    {linkedStudents.length} {linkedStudents.length === 1 ? "Child" : "Children"}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* School / Institution Pill */}
+            {(profile?.school || "Quick2Learn High School") && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  paddingHorizontal: 12,
+                  paddingVertical: 4.5,
+                  borderRadius: 16,
+                  marginBottom: 14,
+                }}
+              >
+                <School size={12} color="#64748B" />
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    color: '#475569',
+                    fontWeight: '600',
+                  }}
+                >
+                  {profile?.school || "Quick2Learn High School"}
+                </Text>
+              </View>
+            )}
+
+            {/* Edit Profile Action Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push("/(app)/profile/edit" as any)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: '#FFFFFF',
+                paddingVertical: 8,
+                paddingHorizontal: 18,
+                borderRadius: 20,
+                borderWidth: 1.5,
+                borderColor: '#BFDBFE',
+                shadowColor: '#2563EB',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 1,
+              }}
+            >
+              <Edit3 size={13} color="#2563EB" />
+              <Text
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: '700',
+                  color: '#2563EB',
+                }}
+              >
+                {t("editProfileRow")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* STUDENT'S PARENT INVITE CODE CARD */}
@@ -509,85 +781,282 @@ export default function ProfileScreen() {
 
         {/* PARENT LINKED CHILDREN */}
         {role === "parent" && (
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center space-x-2">
-                <Users size={18} color="#2563EB" />
-                <Text className="text-h3 font-bold text-ink ml-2">
-                  Linked Children ({linkedStudents.length})
-                </Text>
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 22,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+              marginBottom: 14,
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+          >
+            {/* Section Header */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 14,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: '#EFF6FF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Users size={17} color="#2563EB" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>
+                    Linked Children ({linkedStudents.length})
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>
+                    Select active child to view dashboard
+                  </Text>
+                </View>
               </View>
+
               <TouchableOpacity
+                activeOpacity={0.7}
                 onPress={() => setLinkChildModalVisible(true)}
-                className="flex-row items-center bg-primary/10 px-2.5 py-1 rounded-full"
+                accessibilityLabel="Add Child"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#2563EB',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3,
+                  elevation: 2,
+                }}
               >
-                <UserPlus size={14} color="#2563EB" />
-                <Text className="text-caption font-semibold text-primary ml-1">
-                  Add Child
-                </Text>
+                <UserPlus size={16} color="#FFFFFF" strokeWidth={2.3} />
               </TouchableOpacity>
             </View>
 
             {linkedStudents.length === 0 ? (
-              <View className="items-center py-4">
-                <Text className="text-body text-ink-muted text-center mb-2">
-                  No children linked yet.
+              <View style={{ alignItems: 'center', paddingVertical: 18 }}>
+                <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', marginBottom: 12 }}>
+                  No children linked yet. Enter the student's invite code to view grades & attendance.
                 </Text>
                 <Button
                   size="sm"
                   variant="primary"
                   onPress={() => setLinkChildModalVisible(true)}
-                  icon={<UserPlus size={16} color="#FFFFFF" />}
+                  icon={<UserPlus size={15} color="#FFFFFF" />}
                 >
                   Link Child with Code
                 </Button>
               </View>
             ) : (
-              <View className="space-y-2">
+              <View style={{ gap: 10 }}>
                 {linkedStudents.map((child: any) => {
                   const childKey = child.userId || child.id;
                   const isSelected =
                     selectedChildId === child.userId ||
                     selectedChildId === child.id ||
                     (!selectedChildId && childKey === (linkedStudents[0]?.userId || linkedStudents[0]?.id));
+
+                  const nameParts = (child.fullName || "").trim().split(" ");
+                  const initials =
+                    nameParts.length >= 2
+                      ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+                      : (nameParts[0] || "S").slice(0, 2).toUpperCase();
+
                   return (
                     <TouchableOpacity
                       key={childKey}
                       activeOpacity={0.7}
                       onPress={() => setSelectedChildId(childKey)}
-                      className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
-                        isSelected
-                          ? "bg-primary-soft/40 border-primary"
-                          : "bg-surface-elevated/50 border-border"
-                      }`}
+                      style={{
+                        padding: 13,
+                        borderRadius: 16,
+                        borderWidth: isSelected ? 1.5 : 1,
+                        borderColor: isSelected ? '#2563EB' : '#E2E8F0',
+                        backgroundColor: isSelected ? '#F8FAFF' : '#FFFFFF',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        shadowColor: isSelected ? '#2563EB' : '#0F172A',
+                        shadowOffset: { width: 0, height: isSelected ? 3 : 1 },
+                        shadowOpacity: isSelected ? 0.08 : 0.03,
+                        shadowRadius: isSelected ? 6 : 3,
+                        elevation: isSelected ? 2 : 1,
+                      }}
                     >
-                      <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                        <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-                          <User size={18} color="#2563EB" />
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1, marginRight: 10 }}>
+                        {/* Child Initials Avatar */}
+                        <View
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 21,
+                            backgroundColor: isSelected ? '#EFF6FF' : '#F1F5F9',
+                            borderWidth: 1.5,
+                            borderColor: isSelected ? '#BFDBFE' : '#E2E8F0',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: '800',
+                              color: isSelected ? '#1D4ED8' : '#475569',
+                            }}
+                          >
+                            {initials}
+                          </Text>
                         </View>
-                        <View className="flex-1">
-                          <Text className="text-body font-bold text-ink">
+
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 14.5,
+                              fontWeight: '800',
+                              color: '#0F172A',
+                              marginBottom: 3,
+                            }}
+                            numberOfLines={1}
+                          >
                             {child.fullName}
                           </Text>
-                          <Text className="text-caption text-ink-muted mt-0.5">
-                            {child.classLevel ? `Class ${child.classLevel}` : "Secondary"}
-                            {child.board ? ` • ${child.board.toUpperCase()}` : " • CBSE"}
-                            {child.school ? ` • ${child.school}` : " • Quick2Learn Center"}
-                          </Text>
+
+                          {/* Chips and School */}
+                          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 5 }}>
+                            <View
+                              style={{
+                                backgroundColor: isSelected ? '#DBEAFE' : '#F1F5F9',
+                                paddingHorizontal: 6,
+                                paddingVertical: 1.5,
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: '700',
+                                  color: isSelected ? '#1E40AF' : '#475569',
+                                }}
+                              >
+                                Class {child.classLevel || 10}
+                              </Text>
+                            </View>
+
+                            <View
+                              style={{
+                                backgroundColor: isSelected ? '#DBEAFE' : '#F1F5F9',
+                                paddingHorizontal: 6,
+                                paddingVertical: 1.5,
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: '700',
+                                  color: isSelected ? '#1E40AF' : '#475569',
+                                }}
+                              >
+                                {(child.board || "CBSE").toUpperCase()}
+                              </Text>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
+                              <School size={11} color="#94A3B8" />
+                              <Text
+                                style={{
+                                  fontSize: 11,
+                                  color: '#64748B',
+                                  fontWeight: '500',
+                                }}
+                                numberOfLines={1}
+                              >
+                                {child.school || "Quick2Learn High School"}
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
-                      {isSelected ? (
-                        <View className="flex-row items-center bg-primary px-2.5 py-1 rounded-full">
-                          <Check size={12} color="#FFFFFF" />
-                          <Text className="text-caption text-white font-bold ml-1">
-                            Active
-                          </Text>
-                        </View>
-                      ) : (
-                        <Text className="text-caption text-ink-muted font-medium">
-                          Select
-                        </Text>
-                      )}
+
+                      {/* Actions: Edit & Select/Active */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            openEditChildModal(child);
+                          }}
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: isSelected ? '#EFF6FF' : '#F1F5F9',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderWidth: 1,
+                            borderColor: isSelected ? '#BFDBFE' : '#E2E8F0',
+                          }}
+                          accessibilityLabel="Edit child details"
+                        >
+                          <Edit3 size={14} color={isSelected ? '#2563EB' : '#475569'} />
+                        </TouchableOpacity>
+
+                        {isSelected ? (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              backgroundColor: '#2563EB',
+                              paddingHorizontal: 12,
+                              paddingVertical: 5.5,
+                              borderRadius: 14,
+                              gap: 4,
+                              shadowColor: '#2563EB',
+                              shadowOffset: { width: 0, height: 2 },
+                              shadowOpacity: 0.25,
+                              shadowRadius: 3,
+                              elevation: 2,
+                            }}
+                          >
+                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                            <Text style={{ fontSize: 11.5, color: '#FFFFFF', fontWeight: '800' }}>
+                              Active
+                            </Text>
+                          </View>
+                        ) : (
+                          <View
+                            style={{
+                              backgroundColor: '#F8FAFC',
+                              borderWidth: 1,
+                              borderColor: '#CBD5E1',
+                              paddingHorizontal: 11,
+                              paddingVertical: 5,
+                              borderRadius: 14,
+                            }}
+                          >
+                            <Text style={{ fontSize: 11, color: '#475569', fontWeight: '700' }}>
+                              Select
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
@@ -1339,19 +1808,41 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-1">
-          <Button
-            variant="outline"
-            size="md"
+        <View style={{ marginTop: 8, marginBottom: 4 }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
             onPress={handleSignOut}
-            loading={isSigningOut}
-            className="border-danger/40 active:bg-danger/5"
-            icon={<LogOut size={16} color="#DC2626" />}
+            disabled={isSigningOut}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 14,
+              borderWidth: 1.5,
+              borderColor: "rgba(239, 68, 68, 0.35)",
+              backgroundColor: "#FEF2F2",
+            }}
           >
-            <Text className="text-caption font-semibold text-danger ml-2">
-              {t("logOut")}
-            </Text>
-          </Button>
+            {isSigningOut ? (
+              <ActivityIndicator size="small" color="#DC2626" />
+            ) : (
+              <>
+                <LogOut size={18} color="#DC2626" strokeWidth={2.2} />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#DC2626",
+                    marginLeft: 8,
+                  }}
+                >
+                  {t("logOut")}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Developed by GLAD Studio Tag */}
@@ -1461,59 +1952,850 @@ export default function ProfileScreen() {
         visible={linkChildModalVisible}
         animationType="slide"
         transparent
-        onRequestClose={() => setLinkChildModalVisible(false)}
+        statusBarTranslucent
+        onRequestClose={closeLinkChildModal}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <KeyboardAwareView style={{ width: '100%' }}>
-            <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
-              <View className="flex-row justify-between items-center mb-1">
-                <View className="flex-row items-center">
-                  <UserPlus size={20} color="#2563EB" />
-                  <Text className="text-h2 font-bold text-ink ml-2">
-                    Link Student Account
-                  </Text>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={closeLinkChildModal}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Animated.View
+            style={{
+              width: "100%",
+              paddingBottom: keyboardHeightAnim,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: colors.surface,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                paddingHorizontal: 22,
+                paddingTop: 12,
+                paddingBottom: isKeyboardOpen ? 14 : Math.max(insets.bottom + 8, 24),
+                borderTopWidth: 1,
+                borderColor: "rgba(226, 232, 240, 0.9)",
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: -6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 20,
+                elevation: 20,
+              }}
+            >
+              {/* Drag indicator pill */}
+              <View
+                style={{
+                  width: 38,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: "#CBD5E1",
+                  alignSelf: "center",
+                  marginBottom: 14,
+                }}
+              />
+
+              {/* Modal Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flex: 1,
+                    marginRight: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 14,
+                      backgroundColor: "#EFF6FF",
+                      borderWidth: 1,
+                      borderColor: "#DBEAFE",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <UserPlus size={22} color="#2563EB" strokeWidth={2.4} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "800",
+                        color: colors.ink,
+                        letterSpacing: -0.3,
+                      }}
+                    >
+                      Link Student Account
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors["ink-muted"],
+                        marginTop: 1,
+                      }}
+                    >
+                      Sync attendance, scores & batches
+                    </Text>
+                  </View>
                 </View>
-                <TouchableOpacity onPress={() => setLinkChildModalVisible(false)}>
-                  <Text className="text-body font-semibold text-ink-muted">Cancel</Text>
+
+                <TouchableOpacity
+                  onPress={closeLinkChildModal}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 17,
+                    backgroundColor: "#F1F5F9",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <X size={18} color="#64748B" strokeWidth={2.4} />
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-caption text-ink-muted leading-relaxed">
-                Enter the 6-character invite code from your child's Quick2Learn app (found under Profile → Parent Access).
-              </Text>
-
-              <View className="bg-surface-elevated rounded-xl p-3 border border-border">
-                <TextInput
-                  value={claimCodeInput}
-                  onChangeText={(text) => {
-                    setClaimCodeInput(text.toUpperCase());
-                    setClaimError("");
+              {/* Instructions Banner */}
+              <View
+                style={{
+                  backgroundColor: "#F8FAFC",
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 4,
                   }}
-                  placeholder="e.g. A1B2C3"
-                  placeholderTextColor="#9CA3AF"
-                  autoCapitalize="characters"
-                  maxLength={8}
-                  className="text-h2 font-mono font-bold text-ink text-center tracking-widest py-2"
-                />
+                >
+                  <KeyRound size={14} color="#2563EB" />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: "#1E293B",
+                      marginLeft: 6,
+                    }}
+                  >
+                    Where to find the 6-character code?
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    color: "#64748B",
+                    lineHeight: 17,
+                  }}
+                >
+                  On your child's phone, open Quick2Learn → go to{" "}
+                  <Text style={{ fontWeight: "700", color: "#0F172A" }}>
+                    Profile
+                  </Text>{" "}
+                  → tap{" "}
+                  <Text style={{ fontWeight: "700", color: "#2563EB" }}>
+                    Parent Access
+                  </Text>{" "}
+                  to view or share their invite code.
+                </Text>
               </View>
 
-              {claimError ? (
-                <Text className="text-caption text-danger text-center">
-                  {claimError}
+              {/* Code Slots Container with Hidden Input */}
+              <View style={{ position: "relative", marginBottom: 6 }}>
+                <TextInput
+                  ref={claimInputRef}
+                  value={claimCodeInput}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+                    setClaimCodeInput(cleaned.slice(0, 6));
+                    setClaimError("");
+                  }}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  maxLength={6}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: 54,
+                    opacity: 0.01,
+                    zIndex: 10,
+                  }}
+                />
+
+                {/* 6 Visual Character Slots */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  {[0, 1, 2, 3, 4, 5].map((index) => {
+                    const char = claimCodeInput[index];
+                    const isFilled = Boolean(char);
+                    const isFocused = claimCodeInput.length === index;
+
+                    return (
+                      <View
+                        key={index}
+                        style={{
+                          flex: 1,
+                          height: 54,
+                          borderRadius: 14,
+                          backgroundColor: isFilled
+                            ? "#FFFFFF"
+                            : isFocused
+                            ? "#EFF6FF"
+                            : "#F8FAFC",
+                          borderWidth: isFocused ? 2 : isFilled ? 1.5 : 1,
+                          borderColor: isFocused
+                            ? "#2563EB"
+                            : isFilled
+                            ? "#93C5FD"
+                            : "#E2E8F0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          shadowColor: isFocused || isFilled ? "#2563EB" : "transparent",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: isFocused ? 0.15 : isFilled ? 0.08 : 0,
+                          shadowRadius: 4,
+                          elevation: isFocused ? 2 : 0,
+                        }}
+                      >
+                        {isFilled ? (
+                          <Text
+                            style={{
+                              fontSize: 22,
+                              fontWeight: "800",
+                              color: "#0F172A",
+                              letterSpacing: 0,
+                            }}
+                          >
+                            {char}
+                          </Text>
+                        ) : isFocused ? (
+                          <View
+                            style={{
+                              width: 2,
+                              height: 22,
+                              backgroundColor: "#2563EB",
+                              borderRadius: 1,
+                            }}
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: 3,
+                              backgroundColor: "#CBD5E1",
+                            }}
+                          />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Status and Clear Row */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 6,
+                  marginBottom: claimError ? 8 : 14,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: "600",
+                    color: colors["ink-muted"],
+                  }}
+                >
+                  {claimCodeInput.length}/6 characters
                 </Text>
+                {claimCodeInput.length > 0 ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setClaimCodeInput("");
+                      setClaimError("");
+                      claimInputRef.current?.focus();
+                    }}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 11.5,
+                        fontWeight: "700",
+                        color: "#2563EB",
+                      }}
+                    >
+                      Clear code
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
+              {/* Error Alert Pill */}
+              {claimError ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#FEF2F2",
+                    borderRadius: 10,
+                    paddingVertical: 7,
+                    paddingHorizontal: 12,
+                    marginBottom: 14,
+                    borderWidth: 1,
+                    borderColor: "#FEE2E2",
+                  }}
+                >
+                  <AlertCircle size={15} color="#DC2626" />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: "#DC2626",
+                      marginLeft: 6,
+                      flex: 1,
+                    }}
+                  >
+                    {claimError}
+                  </Text>
+                </View>
               ) : null}
 
+              {/* Link Account Button */}
               <Button
                 variant="primary"
                 size="lg"
+                fullWidth
                 onPress={handleClaimCode}
                 loading={claimCodeMutation.isPending}
+                disabled={claimCodeInput.trim().length !== 6 || claimCodeMutation.isPending}
+                style={{
+                  height: 48,
+                  borderRadius: 16,
+                  backgroundColor:
+                    claimCodeInput.trim().length === 6 ? "#2563EB" : "#94A3B8",
+                }}
               >
                 Link Account
               </Button>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* EDIT CHILD DETAILS MODAL */}
+      <Modal
+        visible={!!editingChild}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeEditChildModal}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={closeEditChildModal}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.6)",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <Animated.View
+            style={{
+              paddingBottom: keyboardHeightAnim,
+              width: "100%",
+              maxWidth: 440,
+              alignSelf: "center",
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 24,
+                padding: 22,
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.25,
+                shadowRadius: 28,
+                elevation: 12,
+              }}
+            >
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 16,
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: "#EFF6FF",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <User size={20} color="#2563EB" />
+                  </View>
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: "800",
+                        color: "#0F172A",
+                      }}
+                    >
+                      Edit Student Details
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#64748B",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Update name, class, board, and school
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={closeEditChildModal}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#F1F5F9",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <X size={16} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Student Name */}
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#334155", marginBottom: 6 }}>
+                  Student Full Name *
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#F8FAFC",
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
+                    borderRadius: 14,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <User size={16} color="#64748B" />
+                  <TextInput
+                    value={editChildName}
+                    onChangeText={setEditChildName}
+                    placeholder="e.g. Arjun Singh Rajput"
+                    placeholderTextColor="#94A3B8"
+                    style={{
+                      flex: 1,
+                      marginLeft: 8,
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: "#0F172A",
+                    }}
+                  />
+                </View>
+              </View>
+
+              {/* Class Level Pills */}
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#334155", marginBottom: 6 }}>
+                  Class Level *
+                </Text>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {[9, 10, 11, 12].map((lvl) => {
+                    const isSelected = editChildClass === lvl;
+                    return (
+                      <TouchableOpacity
+                        key={lvl}
+                        activeOpacity={0.7}
+                        onPress={() => setEditChildClass(lvl)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: isSelected ? "#2563EB" : "#F8FAFC",
+                          borderWidth: 1,
+                          borderColor: isSelected ? "#2563EB" : "#E2E8F0",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "800",
+                            color: isSelected ? "#FFFFFF" : "#334155",
+                          }}
+                        >
+                          Class {lvl}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Board Selector Pills */}
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#334155", marginBottom: 6 }}>
+                  Board *
+                </Text>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {["cbse", "icse", "isc"].map((b) => {
+                    const isSelected = editChildBoard.toLowerCase() === b;
+                    return (
+                      <TouchableOpacity
+                        key={b}
+                        activeOpacity={0.7}
+                        onPress={() => setEditChildBoard(b)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: isSelected ? "#2563EB" : "#F8FAFC",
+                          borderWidth: 1,
+                          borderColor: isSelected ? "#2563EB" : "#E2E8F0",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: "800",
+                            color: isSelected ? "#FFFFFF" : "#334155",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {b}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* School Name */}
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#334155", marginBottom: 6 }}>
+                  School Name
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#F8FAFC",
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
+                    borderRadius: 14,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <School size={16} color="#64748B" />
+                  <TextInput
+                    value={editChildSchool}
+                    onChangeText={setEditChildSchool}
+                    placeholder="e.g. Quick2Learn High School"
+                    placeholderTextColor="#94A3B8"
+                    style={{
+                      flex: 1,
+                      marginLeft: 8,
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: "#0F172A",
+                    }}
+                  />
+                </View>
+              </View>
+
+              {/* Error Message */}
+              {editChildError ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#FEF2F2",
+                    borderRadius: 10,
+                    paddingVertical: 7,
+                    paddingHorizontal: 12,
+                    marginBottom: 14,
+                    borderWidth: 1,
+                    borderColor: "#FEE2E2",
+                  }}
+                >
+                  <AlertCircle size={15} color="#DC2626" />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: "#DC2626",
+                      marginLeft: 6,
+                      flex: 1,
+                    }}
+                  >
+                    {editChildError}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Action Buttons */}
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={closeEditChildModal}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
+                    backgroundColor: "#F8FAFC",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: "700", color: "#64748B" }}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={handleSaveChildDetails}
+                  disabled={isSavingChild}
+                  style={{
+                    flex: 2,
+                    paddingVertical: 12,
+                    borderRadius: 14,
+                    backgroundColor: "#2563EB",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: "#2563EB",
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 5,
+                    elevation: 3,
+                  }}
+                >
+                  {isSavingChild ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={{ fontSize: 13, fontWeight: "800", color: "#FFFFFF" }}>
+                      Save Changes
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {
+          if (!isSigningOut) setLogoutModalVisible(false);
+        }}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            if (!isSigningOut) setLogoutModalVisible(false);
+          }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 24,
+              paddingVertical: 24,
+              paddingHorizontal: 22,
+              alignItems: "center",
+              shadowColor: "#0F172A",
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.18,
+              shadowRadius: 24,
+              elevation: 14,
+            }}
+          >
+            {/* Danger Emblem Badge */}
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: "#FEE2E2",
+                borderWidth: 2,
+                borderColor: "#FECACA",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 23,
+                  backgroundColor: "#EF4444",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#EF4444",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.35,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <LogOut size={22} color="#FFFFFF" strokeWidth={2.4} />
+              </View>
             </View>
-          </KeyboardAwareView>
-        </View>
+
+            {/* Title */}
+            <Text
+              style={{
+                fontSize: 19,
+                fontWeight: "800",
+                color: "#0F172A",
+                textAlign: "center",
+                marginBottom: 8,
+                letterSpacing: -0.3,
+              }}
+            >
+              {t("logOut")}
+            </Text>
+
+            {/* Confirmation Message */}
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#64748B",
+                textAlign: "center",
+                lineHeight: 21,
+                marginBottom: 22,
+                paddingHorizontal: 6,
+              }}
+            >
+              {t("logOutConfirm")}
+            </Text>
+
+            {/* Action Buttons */}
+            <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                disabled={isSigningOut}
+                onPress={() => setLogoutModalVisible(false)}
+                style={{
+                  flex: 1,
+                  height: 44,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: "#E2E8F0",
+                  backgroundColor: "#F8FAFC",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: "700", color: "#475569" }}>
+                  {t("cancel")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                disabled={isSigningOut}
+                onPress={handleConfirmSignOut}
+                style={{
+                  flex: 1,
+                  height: 44,
+                  borderRadius: 14,
+                  backgroundColor: "#DC2626",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#DC2626",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                {isSigningOut ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={{ fontSize: 14, fontWeight: "800", color: "#FFFFFF" }}>
+                    {t("logOut")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </Screen>
   );

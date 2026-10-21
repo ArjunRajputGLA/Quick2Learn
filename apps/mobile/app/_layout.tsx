@@ -1,6 +1,10 @@
 import '../src/global.css';
 import React, { useEffect } from 'react';
-import { Platform, StatusBar as RNStatusBar } from 'react-native';
+import { Platform, StatusBar as RNStatusBar, LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Looks like you have configured linking in multiple places',
+]);
 import { StatusBar } from 'expo-status-bar';
 import { Slot } from 'expo-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';

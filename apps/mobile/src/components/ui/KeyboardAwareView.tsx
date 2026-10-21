@@ -24,12 +24,14 @@ export interface KeyboardAwareViewProps extends ViewProps {
   children: React.ReactNode;
   extraScrollMargin?: number;
   animationDuration?: number;
+  enabled?: boolean;
 }
 
 export function KeyboardAwareView({
   children,
   extraScrollMargin = 20,
   animationDuration = 250,
+  enabled = true,
   style,
   ...restProps
 }: KeyboardAwareViewProps) {
@@ -68,6 +70,7 @@ export function KeyboardAwareView({
 
   const checkAndAdjustView = useCallback(
     (customRef?: any, customMargin?: number) => {
+      if (!enabled) return;
       const targetRef = customRef || activeFieldRef.current;
       const margin = typeof customMargin === 'number' ? customMargin : activeMarginRef.current;
 
@@ -152,15 +155,9 @@ export function KeyboardAwareView({
     const showSub: EmitterSubscription = Keyboard.addListener(showEvent, onKeyboardShow);
     const hideSub: EmitterSubscription = Keyboard.addListener(hideEvent, onKeyboardHide);
 
-    let showSubAndroid: EmitterSubscription | null = null;
-    if (Platform.OS === 'android') {
-      showSubAndroid = Keyboard.addListener('keyboardDidShow', onKeyboardShow);
-    }
-
     return () => {
       showSub.remove();
       hideSub.remove();
-      showSubAndroid?.remove();
     };
   }, [animateTo, checkAndAdjustView]);
 

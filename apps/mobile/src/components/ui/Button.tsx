@@ -39,12 +39,12 @@ export function Button({
   onPress,
   ...rest
 }: ButtonProps) {
-  const handlePress = async (e: any) => {
+  const handlePress = (e: any) => {
     if (disabled || loading) return;
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     } catch {
-      // Haptics might fail on emulator or unsupported devices
+      // Haptics safe fallback
     }
     onPress?.(e);
   };

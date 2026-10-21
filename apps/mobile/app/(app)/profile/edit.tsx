@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,12 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  Animated,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
   User,
@@ -39,6 +44,7 @@ import { authClient } from "../../../src/api/auth-client";
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { data: me, isLoading: isMeLoading } = useMe();
   const updateMeMutation = useUpdateMe();
@@ -64,6 +70,37 @@ export default function EditProfileScreen() {
   const [newPhone, setNewPhone] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
   const [phoneStep, setPhoneStep] = useState<"phone" | "otp">("phone");
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const keyboardHeightAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const height = e?.endCoordinates?.height || 0;
+      setIsKeyboardOpen(true);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: height,
+        duration: Platform.OS === "ios" ? (e.duration || 250) : 160,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      setIsKeyboardOpen(false);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: 0,
+        duration: Platform.OS === "ios" ? (e.duration || 200) : 140,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardHeightAnim]);
 
   const handleSaveProfile = async () => {
     if (!fullName.trim() || fullName.trim().length < 2) {
@@ -359,12 +396,62 @@ export default function EditProfileScreen() {
         visible={phoneModalOpen}
         animationType="slide"
         transparent
-        onRequestClose={() => setPhoneModalOpen(false)}
+        statusBarTranslucent
+        onRequestClose={() => {
+          Keyboard.dismiss();
+          setPhoneModalOpen(false);
+        }}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <KeyboardAwareView style={{ width: '100%' }}>
-            <View className="bg-surface rounded-t-3xl p-6 border-t border-border space-y-4">
-              <View className="flex-row justify-between items-center mb-1">
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            Keyboard.dismiss();
+            setPhoneModalOpen(false);
+          }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Animated.View
+            style={{
+              width: "100%",
+              paddingBottom: keyboardHeightAnim,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                paddingHorizontal: 22,
+                paddingTop: 12,
+                paddingBottom: isKeyboardOpen ? 14 : Math.max(insets.bottom + 8, 24),
+                borderTopWidth: 1,
+                borderColor: "rgba(226, 232, 240, 0.9)",
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: -6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 20,
+                elevation: 20,
+              }}
+            >
+              {/* Drag indicator pill */}
+              <View
+                style={{
+                  width: 38,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: "#CBD5E1",
+                  alignSelf: "center",
+                  marginBottom: 14,
+                }}
+              />
+
+              <View className="flex-row justify-between items-center mb-3">
                 <Text className="text-h2 font-bold text-ink">Change Mobile Number</Text>
                 <TouchableOpacity onPress={() => setPhoneModalOpen(false)}>
                   <Text className="text-body font-semibold text-primary">Cancel</Text>
@@ -439,9 +526,9 @@ export default function EditProfileScreen() {
                   </View>
                 </View>
               )}
-            </View>
-          </KeyboardAwareView>
-        </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
       </Modal>
     </Screen>
   );

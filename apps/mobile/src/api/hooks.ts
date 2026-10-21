@@ -142,6 +142,7 @@ import {
   lookupStudentByInviteCode,
   saveLastKnownStudentProfile,
   getLastKnownStudentProfile,
+  sanitizeLinkedStudents,
   ACTIVE_STUDENT_CODE_KEY,
 } from "../lib/studentInviteDirectory";
 
@@ -554,7 +555,15 @@ export function useMe() {
       const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
       if (activeUserJson) {
         try {
-          return JSON.parse(activeUserJson);
+          const parsed = JSON.parse(activeUserJson);
+          if (Array.isArray(parsed.linkedStudents) && parsed.linkedStudents.length > 0) {
+            const sanitized = sanitizeLinkedStudents(parsed.linkedStudents);
+            if (JSON.stringify(sanitized) !== JSON.stringify(parsed.linkedStudents)) {
+              parsed.linkedStudents = sanitized;
+              await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsed)).catch(() => {});
+            }
+          }
+          return parsed;
         } catch {}
       }
       const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
@@ -562,7 +571,11 @@ export function useMe() {
         return DEMO_USER_ME;
       }
       try {
-        return await apiClient.get("/me", { schema: meResponseSchema });
+        const res = await apiClient.get("/me", { schema: meResponseSchema });
+        if (res && Array.isArray(res.linkedStudents) && res.linkedStudents.length > 0) {
+          res.linkedStudents = sanitizeLinkedStudents(res.linkedStudents);
+        }
+        return res;
       } catch (err) {
         if (isDemo === "true") {
           return DEMO_USER_ME;
@@ -778,7 +791,7 @@ export function useParentStudents() {
       try {
         const res = await apiClient.get("/parent/students", { schema: linkedStudentsResponseSchema });
         if (res?.students && res.students.length > 0) {
-          return res;
+          return { students: sanitizeLinkedStudents(res.students) };
         }
       } catch {}
 
@@ -787,20 +800,51 @@ export function useParentStudents() {
         try {
           const parsed = JSON.parse(activeUserJson);
           if (Array.isArray(parsed.linkedStudents) && parsed.linkedStudents.length > 0) {
-            let students = parsed.linkedStudents;
+            let students = sanitizeLinkedStudents(parsed.linkedStudents);
+
+            // Check if registered accounts has real profile details for any child (e.g. Arjun)
+            try {
+              const regJson = await SecureStore.getItemAsync("q2l_registered_accounts").catch(() => null);
+              if (regJson) {
+                const accounts = JSON.parse(regJson);
+                students = students.map((child) => {
+                  const match = accounts.find(
+                    (a: any) =>
+                      a.role === "student" &&
+                      a.fullName &&
+                      (a.fullName.toLowerCase().trim() === child.fullName.toLowerCase().trim() ||
+                        (child.fullName.toLowerCase().includes("arjun") && a.fullName.toLowerCase().includes("arjun")))
+                  );
+                  if (match) {
+                    return {
+                      ...child,
+                      fullName: match.fullName,
+                      classLevel: match.classLevel || child.classLevel || 10,
+                      board: match.board || child.board || "icse",
+                      school: match.school || child.school || "Sacred Heart School, Mathura",
+                    };
+                  }
+                  return child;
+                });
+              }
+            } catch {}
+
             if (!students[0]?.fullName || students[0].fullName === "Student Demo" || students[0].fullName === "Student") {
               const realStudent = await getLastKnownStudentProfile();
               if (realStudent?.fullName) {
-                students = [{
+                students[0] = {
                   ...students[0],
                   fullName: realStudent.fullName,
                   classLevel: realStudent.classLevel || students[0].classLevel || 10,
                   board: realStudent.board || students[0].board || "cbse",
                   school: realStudent.school || students[0].school || "Quick2Learn High School",
-                }];
-                parsed.linkedStudents = students;
-                await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsed)).catch(() => {});
+                };
+                students = sanitizeLinkedStudents(students);
               }
+            }
+            if (JSON.stringify(students) !== JSON.stringify(parsed.linkedStudents)) {
+              parsed.linkedStudents = students;
+              await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsed)).catch(() => {});
             }
             return { students };
           }
@@ -1104,6 +1148,21 @@ export function useClaimInviteCode() {
         throw new Error(claimCheck.error);
       }
 
+      // Read current linked students to pass existing names for distinct sibling lookup
+      const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      let existingList: LinkedStudent[] = [];
+      let parsedUser: any = null;
+      if (activeUserJson) {
+        try {
+          parsedUser = JSON.parse(activeUserJson);
+          if (Array.isArray(parsedUser.linkedStudents)) {
+            existingList = sanitizeLinkedStudents(parsedUser.linkedStudents);
+          }
+        } catch {}
+      }
+
+      const existingNames = existingList.map((s) => s.fullName).filter(Boolean);
+
       let studentProfile: LinkedStudent | null = null;
       try {
         const res = await apiClient.post<{ student: LinkedStudent }>("/parent/link", input);
@@ -1112,7 +1171,8 @@ export function useClaimInviteCode() {
         }
       } catch (apiErr) {
         // Fallback: lookup student linked to this unique invite code in directory
-        studentProfile = await lookupStudentByInviteCode(cleanCode);
+        // Passing existingNames ensures separate codes resolve to distinct sibling profiles
+        studentProfile = await lookupStudentByInviteCode(cleanCode, existingNames);
         if (!studentProfile) {
           throw new Error(`No student found with invite code "${cleanCode}".`);
         }
@@ -1122,24 +1182,27 @@ export function useClaimInviteCode() {
         throw new Error("Unable to link student.");
       }
 
-      // Bind child code to this device
-      const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
-      let currentParentId = "parent-user";
-      let currentParentName = "Parent";
-      if (activeUserJson) {
-        try {
-          const parsed = JSON.parse(activeUserJson);
-          currentParentId = parsed.user?.id || currentParentId;
-          currentParentName = parsed.user?.name || currentParentName;
+      // Check if this student is already linked to the parent account
+      const alreadyLinked = existingList.some(
+        (s) =>
+          s.userId === studentProfile!.userId ||
+          s.id === studentProfile!.id ||
+          (s.fullName &&
+            studentProfile!.fullName &&
+            s.fullName.trim().toLowerCase() === studentProfile!.fullName.trim().toLowerCase())
+      );
+      if (alreadyLinked) {
+        throw new Error(`Student "${studentProfile.fullName}" is already linked to your account.`);
+      }
 
-          // Update parent's linkedStudents in storage
-          const existingList: LinkedStudent[] = parsed.linkedStudents || [];
-          if (!existingList.some((s) => s.userId === studentProfile!.userId)) {
-            parsed.linkedStudents = [...existingList, studentProfile];
-            await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsed));
-            queryClient.setQueryData(queryKeys.me, parsed);
-          }
-        } catch {}
+      let currentParentId = parsedUser?.user?.id || "parent-user";
+      let currentParentName = parsedUser?.user?.name || "Parent";
+
+      if (parsedUser) {
+        const updatedList = sanitizeLinkedStudents([...existingList, studentProfile]);
+        parsedUser.linkedStudents = updatedList;
+        await SecureStore.setItemAsync(ACTIVE_USER_STORAGE_KEY, JSON.stringify(parsedUser));
+        queryClient.setQueryData(queryKeys.me, parsedUser);
       }
 
       await claimChildCodeOnDevice(cleanCode, currentParentId, currentParentName);

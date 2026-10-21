@@ -20,6 +20,7 @@ export interface ScreenProps {
   contentContainerStyle?: ViewStyle;
   subtle?: boolean;
   safeAreaBottom?: boolean;
+  keyboardAware?: boolean;
 }
 
 export function Screen({
@@ -32,6 +33,7 @@ export function Screen({
   contentContainerStyle,
   subtle = true,
   safeAreaBottom,
+  keyboardAware = false,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
@@ -69,7 +71,7 @@ export function Screen({
     >
       {children}
     </KeyboardAwareScrollView>
-  ) : (
+  ) : keyboardAware ? (
     <KeyboardAwareView
       className="flex-1"
       style={[
@@ -82,6 +84,19 @@ export function Screen({
     >
       {children}
     </KeyboardAwareView>
+  ) : (
+    <View
+      className="flex-1"
+      style={[
+        {
+          flex: 1,
+          paddingBottom: shouldApplySafeAreaBottom ? Math.max(insets.bottom, 16) : 0,
+        },
+        contentContainerStyle,
+      ]}
+    >
+      {children}
+    </View>
   );
 
   return (
