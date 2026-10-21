@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@quick2learn/shared"],
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",

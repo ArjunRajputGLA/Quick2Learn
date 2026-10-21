@@ -149,6 +149,14 @@ export default async function MarketingHomePage() {
     (allSettings.hero_promo_card as HeroPromotionalCard) || defaultPromoCard;
 
 
+  const addressConfig = (allSettings.address as {
+    line1?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    landmark?: string;
+  }) || {};
+
   const organizationLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -158,6 +166,8 @@ export default async function MarketingHomePage() {
         name: "Quick2Learn",
         alternateName: "Quick2Learn Coaching Institute Mathura",
         url: "https://quick2learn.in",
+        logo: "https://quick2learn.in/images/assets/app-logo.png",
+        image: "https://quick2learn.in/images/og/quick2learn-og.jpg",
         description:
           "Mathura's premier coaching institute for CBSE & ICSE/ISC Classes 9 to 12. Founded by Dinesh Singh Rajput (25+ years experience in Mathematics).",
         telephone: contact?.phone || "+91 76688 75809",
@@ -165,10 +175,10 @@ export default async function MarketingHomePage() {
         priceRange: "₹₹",
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Mathura",
-          addressLocality: "Mathura",
-          addressRegion: "Uttar Pradesh",
-          postalCode: "281004",
+          streetAddress: addressConfig.line1 || "BSA College Road",
+          addressLocality: addressConfig.city || "Mathura",
+          addressRegion: addressConfig.state || "Uttar Pradesh",
+          postalCode: addressConfig.pincode || "281004",
           addressCountry: "IN",
         },
         geo: {
@@ -176,6 +186,35 @@ export default async function MarketingHomePage() {
           latitude: 27.4924,
           longitude: 77.6737,
         },
+        openingHoursSpecification: [
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ],
+            opens: "08:00",
+            closes: "20:00",
+          },
+        ],
+        areaServed: [
+          {
+            "@type": "City",
+            name: "Mathura",
+            containedInPlace: {
+              "@type": "State",
+              name: "Uttar Pradesh",
+            },
+          },
+          {
+            "@type": "Country",
+            name: "India",
+          },
+        ],
         founder: {
           "@type": "Person",
           name: "Dinesh Singh Rajput",

@@ -10,7 +10,20 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/admin", "/dashboard", "/checkout", "/api"],
       },
+      {
+        userAgent: [
+          "GPTBot",
+          "ChatGPT-User",
+          "ClaudeBot",
+          "PerplexityBot",
+          "Google-Extended",
+          "Applebot-Extended",
+        ],
+        allow: ["/", "/learn", "/lectures", "/batches", "/about", "/results", "/faq"],
+        disallow: ["/admin", "/dashboard", "/checkout", "/api"],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: "https://quick2learn.in",
   };
 }

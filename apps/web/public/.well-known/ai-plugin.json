@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "quick2learn_education",
+  "name_for_human": "Quick2Learn Coaching",
+  "description_for_model": "Search, discover, and learn Mathematics and Science curriculum for CBSE & ICSE Classes 9-12 from Quick2Learn Institute Mathura, founded by Dinesh Singh Rajput.",
+  "description_for_human": "Explore CBSE & ICSE Maths and Science lectures, batches, and admission details for Quick2Learn Mathura.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://quick2learn.in/llms.txt"
+  },
+  "logo_url": "https://quick2learn.in/images/assets/app-logo.png",
+  "contact_email": "quick2learn23203@gmail.com",
+  "legal_info_url": "https://quick2learn.in/terms"
+}
