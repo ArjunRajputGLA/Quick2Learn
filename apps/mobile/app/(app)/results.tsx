@@ -3,6 +3,8 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
+  Platform,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
@@ -40,49 +42,100 @@ export default function ResultsScreen() {
     >
       {/* Segment Selector */}
       <View className="flex-row p-3 bg-surface border-b border-border">
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab("results")}
           accessibilityRole="tab"
           accessibilityLabel="Board Toppers tab"
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center space-x-1.5 ${
-            activeTab === "results" ? "bg-primary" : "bg-surface-subtle"
-          }`}
+          style={({ pressed }) => ({
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            backgroundColor: activeTab === 'results'
+              ? (pressed ? '#1D4ED8' : '#2563EB')
+              : (pressed ? '#E2E8F0' : '#F1F5F9'),
+            ...(Platform.OS === 'web'
+              ? ({
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
+                } as any)
+              : {}),
+          })}
         >
           <Trophy
             size={16}
             color={activeTab === "results" ? "#FFFFFF" : "#6B7280"}
           />
           <Text
-            className={`text-small font-bold ml-1.5 ${
-              activeTab === "results" ? "text-white" : "text-ink-muted"
-            }`}
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === "results" ? "#FFFFFF" : "#475569",
+              ...(Platform.OS === 'web'
+                ? ({
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  } as any)
+                : {}),
+            }}
           >
             Board Toppers
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab("testimonials")}
           accessibilityRole="tab"
           accessibilityLabel="Student Reviews tab"
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center space-x-1.5 ml-2 ${
-            activeTab === "testimonials" ? "bg-primary" : "bg-surface-subtle"
-          }`}
+          style={({ pressed }) => ({
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            marginLeft: 8,
+            backgroundColor: activeTab === 'testimonials'
+              ? (pressed ? '#1D4ED8' : '#2563EB')
+              : (pressed ? '#E2E8F0' : '#F1F5F9'),
+            ...(Platform.OS === 'web'
+              ? ({
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
+                } as any)
+              : {}),
+          })}
         >
           <Quote
             size={16}
             color={activeTab === "testimonials" ? "#FFFFFF" : "#6B7280"}
           />
           <Text
-            className={`text-small font-bold ml-1.5 ${
-              activeTab === "testimonials" ? "text-white" : "text-ink-muted"
-            }`}
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === "testimonials" ? "#FFFFFF" : "#475569",
+              ...(Platform.OS === 'web'
+                ? ({
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  } as any)
+                : {}),
+            }}
           >
             Student Reviews
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {isLoading ? (

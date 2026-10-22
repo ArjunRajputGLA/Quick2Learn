@@ -15,6 +15,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { Image } from 'expo-image';
+import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import {
   Play,
   Share2,
@@ -323,9 +325,18 @@ export default function LecturePlayerScreen() {
               </View>
 
               {lecture.facultyName ? (
-                <Text className="text-caption text-ink-muted">
-                  Faculty: {lecture.facultyName}
-                </Text>
+                <View className="flex-row items-center">
+                  {getFacultyAvatarSource(lecture.facultyName) ? (
+                    <Image
+                      source={getFacultyAvatarSource(lecture.facultyName)!}
+                      style={{ width: 16, height: 16, borderRadius: 8, marginRight: 5 }}
+                      contentFit="cover"
+                    />
+                  ) : null}
+                  <Text className="text-caption text-ink-muted">
+                    Faculty: {lecture.facultyName}
+                  </Text>
+                </View>
               ) : null}
             </View>
 

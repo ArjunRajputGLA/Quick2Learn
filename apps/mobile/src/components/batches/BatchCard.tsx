@@ -12,6 +12,7 @@ import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
 import { colors, radii } from '@quick2learn/shared';
 import type { MyBatchItem } from '@quick2learn/shared';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
 
 interface BatchCardProps {
   batch: MyBatchItem;
@@ -204,17 +205,18 @@ export function BatchCard({ batch, onPress }: BatchCardProps) {
         className="flex-row items-center justify-between pt-2 mt-2 border-t border-border/50"
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} className="flex-row items-center space-x-1.5">
-          {batch.teacherAvatarUrl ? (
+          {getFacultyAvatarSource(batch.teacherName) || batch.teacherAvatarUrl ? (
             <Image
-              source={{ uri: batch.teacherAvatarUrl }}
-              style={{ width: 20, height: 20, borderRadius: 10 }}
+              source={getFacultyAvatarSource(batch.teacherName) || { uri: batch.teacherAvatarUrl! }}
+              style={{ width: 22, height: 22, borderRadius: 11 }}
+              contentFit="cover"
             />
           ) : (
             <View
               style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
+                width: 22,
+                height: 22,
+                borderRadius: 11,
                 backgroundColor: colors['primary-soft'],
                 alignItems: 'center',
                 justifyContent: 'center',

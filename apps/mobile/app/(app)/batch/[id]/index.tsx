@@ -24,6 +24,7 @@ import { BatchTodaySection } from '../../../../src/components/batches/BatchToday
 import { BatchContentSection } from '../../../../src/components/batches/BatchContentSection';
 import { BatchTestsSection } from '../../../../src/components/batches/BatchTestsSection';
 import { BatchMoreSection } from '../../../../src/components/batches/BatchMoreSection';
+import { getFacultyAvatarSource } from '../../../../src/lib/facultyImages';
 
 const SECTIONS = ['Today', 'Content', 'Tests', 'More'];
 
@@ -122,36 +123,48 @@ export default function BatchScreen() {
             {/* Teacher Avatars Row */}
             <View className="flex-row items-center justify-between pt-2 border-t border-border/50">
               <View className="flex-row items-center space-x-2">
-                <View className="flex-row -space-x-2">
-                  {(batch?.teachers || []).map((t, idx) => (
-                    <View
-                      key={t.id || idx}
-                      className="border-2 border-surface rounded-full overflow-hidden"
-                    >
-                      {t.avatarUrl ? (
-                        <Image
-                          source={{ uri: t.avatarUrl }}
-                          style={{ width: 32, height: 32, borderRadius: 16 }}
-                        />
-                      ) : (
-                        <View className="w-8 h-8 rounded-full bg-primary-soft items-center justify-center">
-                          <Text className="text-caption font-bold text-primary">
-                            {t.name.slice(0, 1)}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  ))}
-                </View>
+                {(() => {
+                  const effectiveTeachers =
+                    batch?.teachers && batch.teachers.length > 0
+                      ? batch.teachers
+                      : [{ id: 'faculty-dinesh', name: 'Dinesh Singh Rajput', role: 'Founder & Senior Faculty', avatarUrl: undefined }];
 
-                <View>
-                  <Text className="text-caption font-bold text-ink">
-                    {batch?.teachers.map((t) => t.name).join(', ') || 'Faculty'}
-                  </Text>
-                  <Text className="text-[11px] text-ink-muted">
-                    {batch?.teachers[0]?.role || 'Senior Faculty'}
-                  </Text>
-                </View>
+                  return (
+                    <>
+                      <View className="flex-row -space-x-2">
+                        {effectiveTeachers.map((t, idx) => (
+                          <View
+                            key={t.id || idx}
+                            className="border-2 border-surface rounded-full overflow-hidden"
+                          >
+                            {getFacultyAvatarSource(t.name) || t.avatarUrl ? (
+                              <Image
+                                source={getFacultyAvatarSource(t.name) || { uri: t.avatarUrl! }}
+                                style={{ width: 32, height: 32, borderRadius: 16 }}
+                                contentFit="cover"
+                              />
+                            ) : (
+                              <View className="w-8 h-8 rounded-full bg-primary-soft items-center justify-center">
+                                <Text className="text-caption font-bold text-primary">
+                                  {t.name.slice(0, 1)}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+
+                      <View>
+                        <Text className="text-caption font-bold text-ink">
+                          {effectiveTeachers.map((t) => t.name).join(', ')}
+                        </Text>
+                        <Text className="text-[11px] text-ink-muted">
+                          {effectiveTeachers[0]?.role || 'Senior Faculty'}
+                        </Text>
+                      </View>
+                    </>
+                  );
+                })()}
               </View>
 
               {batch?.enrollment && (

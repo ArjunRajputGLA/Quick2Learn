@@ -1,18 +1,18 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   ActivityIndicator,
   View,
-  TouchableOpacityProps,
   StyleProp,
   ViewStyle,
   TextStyle,
+  Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radii } from '@quick2learn/shared';
 
-export interface ButtonProps extends TouchableOpacityProps {
+export interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
@@ -23,6 +23,9 @@ export interface ButtonProps extends TouchableOpacityProps {
   children: React.ReactNode;
   className?: string;
   style?: StyleProp<ViewStyle>;
+  onPress?: (e: any) => void;
+  accessibilityLabel?: string;
+  testID?: string;
 }
 
 export function Button({
@@ -37,7 +40,8 @@ export function Button({
   className = '',
   style,
   onPress,
-  ...rest
+  accessibilityLabel,
+  testID,
 }: ButtonProps) {
   const handlePress = (e: any) => {
     if (disabled || loading) return;
@@ -73,115 +77,136 @@ export function Button({
     lg: { fontSize: 15, fontWeight: '600' },
   };
 
-  let variantContainer = '';
-  let variantText = '';
-  let spinnerColor = '#FFFFFF';
-  let variantStyle: ViewStyle = {};
-  let variantTextStyle: TextStyle = {};
-
-  switch (variant) {
-    case 'primary':
-      variantContainer = disabled
-        ? 'bg-primary/50'
-        : 'bg-primary active:bg-primary-hover';
-      variantText = 'text-white';
-      spinnerColor = '#FFFFFF';
-      variantStyle = {
-        backgroundColor: disabled ? 'rgba(59, 130, 246, 0.5)' : colors.primary,
-      };
-      variantTextStyle = { color: '#FFFFFF' };
-      break;
-    case 'secondary':
-      variantContainer = disabled
-        ? 'bg-surface-subtle/50 border border-border/50'
-        : 'bg-surface-subtle border border-border active:bg-border/60';
-      variantText = disabled ? 'text-ink-muted' : 'text-ink';
-      spinnerColor = colors.ink;
-      variantStyle = {
-        backgroundColor: disabled ? 'rgba(245, 247, 251, 0.5)' : colors['surface-subtle'],
-        borderWidth: 1,
-        borderColor: colors.border,
-      };
-      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.ink };
-      break;
-    case 'outline':
-      variantContainer = disabled
-        ? 'border border-border bg-transparent'
-        : 'border border-primary bg-transparent active:bg-primary-soft';
-      variantText = disabled ? 'text-ink-muted' : 'text-primary';
-      spinnerColor = colors.primary;
-      variantStyle = {
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: disabled ? colors.border : colors.primary,
-      };
-      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.primary };
-      break;
-    case 'ghost':
-      variantContainer = disabled
-        ? 'bg-transparent'
-        : 'bg-transparent active:bg-surface-subtle';
-      variantText = disabled ? 'text-ink-muted' : 'text-primary';
-      spinnerColor = colors.primary;
-      variantStyle = { backgroundColor: 'transparent' };
-      variantTextStyle = { color: disabled ? colors['ink-muted'] : colors.primary };
-      break;
-    case 'danger':
-      variantContainer = disabled
-        ? 'bg-danger/50'
-        : 'bg-danger active:opacity-90';
-      variantText = 'text-white';
-      spinnerColor = '#FFFFFF';
-      variantStyle = {
-        backgroundColor: disabled ? 'rgba(185, 28, 28, 0.5)' : colors.danger,
-      };
-      variantTextStyle = { color: '#FFFFFF' };
-      break;
-  }
-
-  const widthClass = fullWidth ? 'w-full' : '';
+  const getVariantStyles = (pressed: boolean): { container: ViewStyle; text: TextStyle; spinner: string } => {
+    switch (variant) {
+      case 'primary':
+        return {
+          container: {
+            backgroundColor: disabled
+              ? 'rgba(59, 130, 246, 0.5)'
+              : pressed
+              ? colors['primary-hover']
+              : colors.primary,
+          },
+          text: { color: '#FFFFFF' },
+          spinner: '#FFFFFF',
+        };
+      case 'secondary':
+        return {
+          container: {
+            backgroundColor: disabled
+              ? 'rgba(245, 247, 251, 0.5)'
+              : pressed
+              ? '#E2E8F0'
+              : colors['surface-subtle'],
+            borderWidth: 1,
+            borderColor: colors.border,
+          },
+          text: { color: disabled ? colors['ink-muted'] : colors.ink },
+          spinner: colors.ink,
+        };
+      case 'outline':
+        return {
+          container: {
+            backgroundColor: pressed ? '#F1F5F9' : 'transparent',
+            borderWidth: 1,
+            borderColor: disabled ? colors.border : colors.primary,
+          },
+          text: { color: disabled ? colors['ink-muted'] : colors.primary },
+          spinner: colors.primary,
+        };
+      case 'ghost':
+        return {
+          container: {
+            backgroundColor: pressed ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+          },
+          text: { color: disabled ? colors['ink-muted'] : colors.primary },
+          spinner: colors.primary,
+        };
+      case 'danger':
+        return {
+          container: {
+            backgroundColor: disabled
+              ? 'rgba(185, 28, 28, 0.5)'
+              : pressed
+              ? '#991B1B'
+              : colors.danger,
+          },
+          text: { color: '#FFFFFF' },
+          spinner: '#FFFFFF',
+        };
+    }
+  };
 
   return (
-    <TouchableOpacity
+    <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: disabled || loading }}
-      activeOpacity={0.8}
       disabled={disabled || loading}
       onPress={handlePress}
-      className={`rounded-lg flex-row items-center justify-center ${sizeClasses} ${variantContainer} ${widthClass} ${className}`}
-      style={[
-        {
-          borderRadius: radii.md,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: fullWidth ? '100%' : undefined,
-        },
-        sizeStyles[size],
-        variantStyle,
-        style,
-      ]}
+      testID={testID}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      {...rest}
+      style={({ pressed }) => {
+        const { container } = getVariantStyles(pressed);
+        return [
+          {
+            borderRadius: radii.md,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: fullWidth ? '100%' : undefined,
+            opacity: disabled && variant !== 'primary' && variant !== 'danger' ? 0.6 : 1,
+            ...(Platform.OS === 'web'
+              ? ({
+                  cursor: disabled || loading ? 'default' : 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
+                } as any)
+              : {}),
+          },
+          sizeStyles[size],
+          container,
+          style as any,
+        ];
+      }}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={spinnerColor} style={{ marginRight: 8 }} />
-      ) : null}
+      {({ pressed }) => {
+        const { text, spinner } = getVariantStyles(pressed);
+        return (
+          <>
+            {loading ? (
+              <ActivityIndicator size="small" color={spinner} style={{ marginRight: 8 }} />
+            ) : null}
 
-      {!loading && icon && iconPosition === 'left' ? (
-        <View style={{ marginRight: 8 }}>{icon}</View>
-      ) : null}
+            {!loading && icon && iconPosition === 'left' ? (
+              <View style={{ marginRight: 8 }}>{icon}</View>
+            ) : null}
 
-      <Text
-        className={`${textSizes} ${variantText} text-center`}
-        style={[{ textAlign: 'center' }, textStyles[size], variantTextStyle]}
-      >
-        {children}
-      </Text>
+            <Text
+              style={[
+                { textAlign: 'center' },
+                textStyles[size],
+                text,
+                Platform.OS === 'web'
+                  ? ({
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                    } as any)
+                  : {},
+              ]}
+            >
+              {children}
+            </Text>
 
-      {!loading && icon && iconPosition === 'right' ? (
-        <View style={{ marginLeft: 8 }}>{icon}</View>
-      ) : null}
-    </TouchableOpacity>
+            {!loading && icon && iconPosition === 'right' ? (
+              <View style={{ marginLeft: 8 }}>{icon}</View>
+            ) : null}
+          </>
+        );
+      }}
+    </Pressable>
   );
 }

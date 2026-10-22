@@ -3,6 +3,8 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -27,7 +29,14 @@ import {
 import { AnnouncementAttachmentViewer } from './AnnouncementAttachmentViewer';
 import { LiveBanner } from './LiveBanner';
 import { BatchRecordingsSection } from './BatchRecordingsSection';
-import type { BatchDetailResponse, AnnouncementAttachment } from '@quick2learn/shared';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
+import type {
+  BatchDetailResponse,
+  AnnouncementAttachment,
+  BatchTimetableSlot,
+  LiveSessionItem,
+  BatchAnnouncementItem,
+} from '@quick2learn/shared';
 
 interface BatchTodaySectionProps {
   batchId: string;
@@ -65,12 +74,12 @@ export function BatchTodaySection({
 
   const [activeWeekday, setActiveWeekday] = useState<number>(todayWeekday);
 
-  const slots = timetableData?.slots || [];
-  const selectedDaySlots = slots.filter((s) => s.weekday === activeWeekday);
+  const slots: BatchTimetableSlot[] = (timetableData as any)?.slots || [];
+  const selectedDaySlots = slots.filter((s: BatchTimetableSlot) => s.weekday === activeWeekday);
 
-  const activeLiveSession = liveData?.liveNow || liveData?.nextSession || null;
+  const activeLiveSession: LiveSessionItem | null = (liveData as any)?.liveNow || (liveData as any)?.nextSession || null;
 
-  const announcements = announcementsData?.announcements || [];
+  const announcements = (announcementsData as any)?.announcements || [];
 
   if (isLoadingDetail && !batchDetail) {
     return (
@@ -100,8 +109,8 @@ export function BatchTodaySection({
       )}
 
       {/* 2. Past Sessions & Recordings */}
-      {liveData?.recentRecordings && liveData.recentRecordings.length > 0 && (
-        <BatchRecordingsSection recordings={liveData.recentRecordings} />
+      {(liveData as any)?.recentRecordings && (liveData as any).recentRecordings.length > 0 && (
+        <BatchRecordingsSection recordings={(liveData as any).recentRecordings} />
       )}
 
       {/* 2. Week Strip with Today Highlighted */}
@@ -119,44 +128,72 @@ export function BatchTodaySection({
           {WEEKDAYS.map((wd) => {
             const isToday = wd.day === todayWeekday;
             const isSelected = wd.day === activeWeekday;
-            const hasClasses = slots.some((s) => s.weekday === wd.day);
+            const hasClasses = slots.some((s: BatchTimetableSlot) => s.weekday === wd.day);
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={wd.day}
                 onPress={() => setActiveWeekday(wd.day)}
                 accessibilityLabel={`${wd.short}${isToday ? ' (Today)' : ''}`}
-                className={`flex-1 py-2 rounded-xl items-center justify-center ${
-                  isSelected
-                    ? 'bg-primary shadow-xs'
+                style={({ pressed }) => ({
+                  flex: 1,
+                  paddingVertical: 8,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: isSelected
+                    ? (pressed ? '#1D4ED8' : '#2563EB')
                     : isToday
-                    ? 'bg-surface border border-primary/30'
-                    : ''
-                }`}
+                    ? (pressed ? '#EFF6FF' : '#FFFFFF')
+                    : (pressed ? '#E2E8F0' : 'transparent'),
+                  borderWidth: isToday && !isSelected ? 1 : 0,
+                  borderColor: isToday && !isSelected ? '#93C5FD' : 'transparent',
+                  ...(Platform.OS === 'web'
+                    ? ({
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                        outline: 'none',
+                      } as any)
+                    : {}),
+                })}
               >
                 <Text
-                  className={`text-[11px] font-bold ${
-                    isSelected
-                      ? 'text-white'
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: isSelected
+                      ? '#FFFFFF'
                       : isToday
-                      ? 'text-primary'
-                      : 'text-ink-muted'
-                  }`}
+                      ? '#2563EB'
+                      : '#64748B',
+                    ...(Platform.OS === 'web'
+                      ? ({
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                        } as any)
+                      : {}),
+                  }}
                 >
                   {wd.short}
                 </Text>
 
                 {/* Dot indicator if has classes */}
                 <View
-                  className={`w-1.5 h-1.5 rounded-full mt-1 ${
-                    isSelected
-                      ? 'bg-white'
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 9999,
+                    marginTop: 4,
+                    backgroundColor: isSelected
+                      ? '#FFFFFF'
                       : hasClasses
-                      ? 'bg-primary'
-                      : 'bg-transparent'
-                  }`}
+                      ? '#2563EB'
+                      : 'transparent',
+                  }}
                 />
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>
@@ -170,7 +207,7 @@ export function BatchTodaySection({
               </Text>
             </View>
           ) : (
-            selectedDaySlots.map((slot) => (
+            selectedDaySlots.map((slot: BatchTimetableSlot) => (
               <View
                 key={slot.id}
                 className="bg-surface rounded-xl p-3.5 border border-border shadow-2xs flex-row items-center justify-between"
@@ -186,9 +223,18 @@ export function BatchTodaySection({
                       {slot.subjectName}
                     </Text>
                   </View>
-                  <Text className="text-caption text-ink-muted">
-                    {slot.teacherName} {slot.roomOrLinkNote ? `· ${slot.roomOrLinkNote}` : ''}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                    {getFacultyAvatarSource(slot.teacherName) ? (
+                      <Image
+                        source={getFacultyAvatarSource(slot.teacherName)!}
+                        style={{ width: 16, height: 16, borderRadius: 8, marginRight: 5 }}
+                        contentFit="cover"
+                      />
+                    ) : null}
+                    <Text className="text-caption text-ink-muted">
+                      {slot.teacherName} {slot.roomOrLinkNote ? `· ${slot.roomOrLinkNote}` : ''}
+                    </Text>
+                  </View>
                 </View>
 
                 <View className="items-end">
@@ -223,7 +269,7 @@ export function BatchTodaySection({
             </Text>
           </View>
         ) : (
-          announcements.map((item) => (
+          announcements.map((item: BatchAnnouncementItem) => (
             <View
               key={item.id}
               className="bg-surface rounded-2xl p-4 border border-border shadow-2xs space-y-2"
@@ -253,7 +299,7 @@ export function BatchTodaySection({
                     Attachments ({item.attachments.length})
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
-                    {item.attachments.map((att, idx) => (
+                    {item.attachments.map((att: AnnouncementAttachment, idx: number) => (
                       <TouchableOpacity
                         key={idx}
                         onPress={() => setSelectedAttachment(att)}

@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   TextInput,
   Modal,
   Alert,
@@ -69,6 +70,8 @@ import { Toast } from '../ui/Toast';
 import { EmptyState } from '../ui/EmptyState';
 import { colors, radii } from '@quick2learn/shared';
 import { BatchDetailAdminModal } from './BatchDetailAdminModal';
+import { CoursesManagerSection, CourseFormModal } from './CoursesManagerSection';
+import { ChatsManagerSection } from './ChatsManagerSection';
 import {
   useAdminStore,
   type BatchItem,
@@ -81,11 +84,16 @@ import {
   type AdminDoubtItem,
   type AdminAnnouncementItem,
   type AdminEnquiryItem,
+  type AdminCourseItem,
+  type AdminChatChannelItem,
+  type ChatMessageItem,
 } from '../../lib/adminDataStore';
 
 type AdminSection =
   | 'overview'
   | 'batches'
+  | 'courses'
+  | 'chats'
   | 'resources'
   | 'lectures'
   | 'questions'
@@ -121,15 +129,20 @@ export function AdminPortal() {
     const openDoubts = store.doubts.filter((d) => d.status === 'open').length;
     const newEnqs = store.enquiries.filter((e) => e.status === 'new').length;
     const overdueDues = store.feeDues.filter((d) => d.status === 'overdue').length;
+    const totalUnreadChats = store.chats.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
     return {
       batches: pendingReqs > 0 ? pendingReqs : undefined,
+      chats: totalUnreadChats > 0 ? totalUnreadChats : undefined,
       doubts: openDoubts > 0 ? openDoubts : undefined,
       enquiries: newEnqs > 0 ? newEnqs : undefined,
       fees: overdueDues > 0 ? overdueDues : undefined,
     };
-  }, [store.joinRequests, store.doubts, store.enquiries, store.feeDues]);
+  }, [store.joinRequests, store.doubts, store.enquiries, store.feeDues, store.chats]);
 
   // Modals visibility
+  const [courseModalVisible, setCourseModalVisible] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<AdminCourseItem | null>(null);
+
   const [batchModalVisible, setBatchModalVisible] = useState(false);
   const [editingBatch, setEditingBatch] = useState<BatchItem | null>(null);
   const [selectedBatchForConsole, setSelectedBatchForConsole] = useState<BatchItem | null>(null);
@@ -172,7 +185,7 @@ export function AdminPortal() {
         <AppHeader
           title="Institute Admin"
           rightActions={
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
                 Alert.alert(
                   'Reset Admin Demo Data',
@@ -190,22 +203,31 @@ export function AdminPortal() {
                   ]
                 );
               }}
-              style={{
+              style={({ pressed }) => ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: radii.full,
-                backgroundColor: '#EFF6FF',
+                backgroundColor: pressed ? '#DBEAFE' : '#EFF6FF',
                 borderWidth: 1,
                 borderColor: '#BFDBFE',
-              }}
+                ...(Platform.OS === 'web'
+                  ? ({
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      outline: 'none',
+                    } as any)
+                  : {}),
+              })}
             >
               <RefreshCw size={12} color="#2563EB" />
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB', marginLeft: 4 }}>
                 Reset
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           }
         />
       }
@@ -234,6 +256,26 @@ export function AdminPortal() {
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setActiveSection('batches');
+            }}
+          />
+          <SectionPill
+            label="Courses"
+            icon={<Sparkles size={14} color={activeSection === 'courses' ? '#FFFFFF' : '#4B5563'} />}
+            isActive={activeSection === 'courses'}
+            badge={store.courses?.length > 0 ? store.courses.length : undefined}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setActiveSection('courses');
+            }}
+          />
+          <SectionPill
+            label="Chats"
+            icon={<MessageSquare size={14} color={activeSection === 'chats' ? '#FFFFFF' : '#4B5563'} />}
+            isActive={activeSection === 'chats'}
+            badge={badgesCount.chats}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setActiveSection('chats');
             }}
           />
           <SectionPill
@@ -391,6 +433,36 @@ export function AdminPortal() {
               setSelectedBatchForConsole(b);
             }}
             onToast={(t) => setToastMessage(t)}
+          />
+        )}
+
+        {/* COURSES & TEST PACKS SECTION */}
+        {activeSection === 'courses' && (
+          <CoursesManagerSection
+            store={store}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onAddCourse={() => {
+              setEditingCourse(null);
+              setCourseModalVisible(true);
+            }}
+            onEditCourse={(c: AdminCourseItem) => {
+              setEditingCourse(c);
+              setCourseModalVisible(true);
+            }}
+            onNotify={(msg: string, type: 'success' | 'error' | 'info') =>
+              setToastMessage({ type, message: msg })
+            }
+          />
+        )}
+
+        {/* CHATS & STUDENT MESSAGING SECTION */}
+        {activeSection === 'chats' && (
+          <ChatsManagerSection
+            store={store}
+            onNotify={(msg: string, type: 'success' | 'error' | 'info') =>
+              setToastMessage({ type, message: msg })
+            }
           />
         )}
 
@@ -720,6 +792,27 @@ export function AdminPortal() {
         }}
       />
 
+      {/* Course Create / Edit Modal */}
+      <CourseFormModal
+        visible={courseModalVisible}
+        initialData={editingCourse}
+        onClose={() => {
+          setCourseModalVisible(false);
+          setEditingCourse(null);
+        }}
+        onSave={async (courseData: Partial<AdminCourseItem>) => {
+          if (editingCourse) {
+            await store.updateCourse(editingCourse.id, courseData);
+            setToastMessage({ type: 'success', message: 'Course updated successfully!' });
+          } else {
+            await store.createCourse(courseData as any);
+            setToastMessage({ type: 'success', message: 'New course published to student app!' });
+          }
+          setCourseModalVisible(false);
+          setEditingCourse(null);
+        }}
+      />
+
       {/* K. Batch Command Center (Classplus 8 Tabs) */}
       <BatchDetailAdminModal
         visible={!!selectedBatchForConsole}
@@ -763,20 +856,32 @@ function SectionPill({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Pressable
       onPress={onPress}
-      style={{
+      style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 12,
         paddingVertical: 7,
         borderRadius: radii.full,
-        backgroundColor: isActive ? '#2563EB' : '#F1F5F9',
+        backgroundColor: isActive
+          ? (pressed ? '#1D4ED8' : '#2563EB')
+          : (pressed ? '#E2E8F0' : '#F1F5F9'),
         borderWidth: 1,
-        borderColor: isActive ? '#1D4ED8' : '#E2E8F0',
+        borderColor: isActive
+          ? (pressed ? '#1E40AF' : '#1D4ED8')
+          : (pressed ? '#CBD5E1' : '#E2E8F0'),
         minHeight: 34,
-      }}
+        ...(Platform.OS === 'web'
+          ? ({
+              cursor: 'pointer',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              outline: 'none',
+            } as any)
+          : {}),
+      })}
     >
       {icon}
       <Text
@@ -785,6 +890,12 @@ function SectionPill({
           fontWeight: '700',
           color: isActive ? '#FFFFFF' : '#334155',
           marginLeft: 5,
+          ...(Platform.OS === 'web'
+            ? ({
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+              } as any)
+            : {}),
         }}
       >
         {label}
@@ -812,7 +923,7 @@ function SectionPill({
           </Text>
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -1340,16 +1451,18 @@ function BatchesManagerSection({
 
             {/* Timetable & Room */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 2 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 }}>
                 <Calendar size={13} color="#64748B" />
-                <Text style={{ fontSize: 11.5, color: '#475569' }}>
+                <Text style={{ fontSize: 11.5, color: '#475569' }} numberOfLines={1}>
                   {b.scheduleDays.join(', ')} • {b.scheduleTime}
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <School size={13} color="#64748B" />
-                <Text style={{ fontSize: 11.5, color: '#475569' }}>{b.room}</Text>
-              </View>
+              {b.mode !== 'online' && b.room ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <School size={13} color="#64748B" />
+                  <Text style={{ fontSize: 11.5, color: '#475569' }}>{b.room}</Text>
+                </View>
+              ) : null}
             </View>
 
             {/* Enrolled & Fee info footer */}
@@ -3048,26 +3161,43 @@ function ClassFilterRow({
       {options.map((opt) => {
         const isSelected = selected === opt.value;
         return (
-          <TouchableOpacity
+          <Pressable
             key={opt.value}
             onPress={() => onSelect(opt.value)}
-            style={{
+            style={({ pressed }) => ({
               paddingHorizontal: 11,
               paddingVertical: 5,
               borderRadius: radii.full,
-              backgroundColor: isSelected ? '#0F172A' : '#F1F5F9',
-            }}
+              backgroundColor: isSelected
+                ? (pressed ? '#1E293B' : '#0F172A')
+                : (pressed ? '#E2E8F0' : '#F1F5F9'),
+              ...(Platform.OS === 'web'
+                ? ({
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    outline: 'none',
+                  } as any)
+                : {}),
+            })}
           >
             <Text
               style={{
                 fontSize: 11.5,
                 fontWeight: '700',
                 color: isSelected ? '#FFFFFF' : '#475569',
+                ...(Platform.OS === 'web'
+                  ? ({
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                    } as any)
+                  : {}),
               }}
             >
               {opt.label}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </ScrollView>
@@ -3096,10 +3226,10 @@ export function BatchFormModal({
   const [subject, setSubject] = useState('Mathematics');
   const [classLevel, setClassLevel] = useState<9 | 10 | 11 | 12>(12);
   const [board, setBoard] = useState<'cbse' | 'icse' | 'isc'>('cbse');
-  const [mode, setMode] = useState<'offline' | 'hybrid' | 'online'>('offline');
+  const [mode, setMode] = useState<'offline' | 'hybrid' | 'online'>('online');
   const [fee, setFee] = useState('20000');
   const [capacity, setCapacity] = useState('35');
-  const [room, setRoom] = useState('Hall 1');
+  const [room, setRoom] = useState('');
   const [faculty, setFaculty] = useState('Dinesh Singh Rajput');
   const [scheduleTime, setScheduleTime] = useState('5:00 PM - 6:30 PM');
 
@@ -3120,10 +3250,10 @@ export function BatchFormModal({
       setSubject('Mathematics');
       setClassLevel(12);
       setBoard('cbse');
-      setMode('offline');
+      setMode('online');
       setFee('20000');
       setCapacity('35');
-      setRoom('Hall 1');
+      setRoom('');
       setFaculty('Dinesh Singh Rajput');
       setScheduleTime('5:00 PM - 6:30 PM');
     }
@@ -3298,7 +3428,9 @@ export function BatchFormModal({
             </View>
 
             <FormField label="Schedule Time" value={scheduleTime} onChangeText={setScheduleTime} placeholder="e.g. 5:00 PM - 6:30 PM" />
-            <FormField label="Classroom / Room" value={room} onChangeText={setRoom} placeholder="Room 101 or Hall 1" />
+            {mode !== 'online' && (
+              <FormField label="Classroom / Room" value={room} onChangeText={setRoom} placeholder="Room 101 or Hall 1" />
+            )}
             <FormField label="Faculty" value={faculty} onChangeText={setFaculty} />
 
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
@@ -3337,7 +3469,7 @@ export function BatchFormModal({
                     mode,
                     fee: parseInt(fee) || 20000,
                     capacity: parseInt(capacity) || 35,
-                    room,
+                    room: mode === 'online' ? '' : room,
                     faculty,
                     scheduleTime,
                     scheduleDays: ['Mon', 'Wed', 'Fri'],
@@ -4912,7 +5044,7 @@ function EnrollStudentModal({
                 >
                   <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{b.title}</Text>
                   <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
-                    Class {b.classLevel} • {b.room} • ₹{b.fee.toLocaleString('en-IN')}
+                    Class {b.classLevel}{b.mode !== 'online' && b.room ? ` • ${b.room}` : ''} • ₹{b.fee.toLocaleString('en-IN')}
                   </Text>
                 </TouchableOpacity>
               );

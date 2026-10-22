@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { Pressable, Text, View, ViewStyle, TextStyle, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { colors, radii } from '@quick2learn/shared';
+import { radii } from '@quick2learn/shared';
 
 export interface ChipProps {
   label: string;
@@ -22,53 +22,69 @@ export function Chip({
   className = '',
   style,
 }: ChipProps) {
-  const handlePress = async () => {
+  const handlePress = () => {
     if (disabled || !onPress) return;
     try {
-      await Haptics.selectionAsync();
+      void Haptics.selectionAsync().catch(() => {});
     } catch {
       // Haptics fallback
     }
     onPress();
   };
 
-  const containerStyle: ViewStyle = {
-    minHeight: 28,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radii.full,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: selected ? colors.primary : colors.surface,
-    borderColor: selected ? colors.primary : colors.border,
-  };
-
-  const textStyle: TextStyle = {
-    fontSize: 12,
-    fontWeight: selected ? '600' : '500',
-    color: selected ? '#FFFFFF' : colors.ink,
-  };
-
-  const containerClasses = selected
-    ? 'bg-primary border-primary'
-    : 'bg-surface border-border active:bg-surface-subtle';
-
-  const textClasses = selected ? 'text-white font-semibold' : 'text-ink font-medium';
-
   return (
-    <TouchableOpacity
+    <Pressable
       accessibilityRole="checkbox"
       accessibilityState={{ selected, disabled }}
       disabled={disabled}
       onPress={handlePress}
-      style={[containerStyle, style]}
-      className={`min-h-[28px] px-2.5 py-1 rounded-full border flex-row items-center justify-center ${containerClasses} ${className}`}
       hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+      style={({ pressed }) => [
+        {
+          minHeight: 30,
+          paddingHorizontal: 12,
+          paddingVertical: 4.5,
+          borderRadius: radii.full,
+          borderWidth: 1.2,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: selected
+            ? (pressed ? '#1D4ED8' : '#2563EB')
+            : (pressed ? '#F1F5F9' : '#FFFFFF'),
+          borderColor: selected
+            ? '#1D4ED8'
+            : (pressed ? '#CBD5E1' : '#E2E8F0'),
+          opacity: disabled ? 0.5 : 1,
+          ...(Platform.OS === 'web'
+            ? ({
+                cursor: disabled ? 'default' : 'pointer',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                WebkitTapHighlightColor: 'transparent',
+                outline: 'none',
+              } as any)
+            : {}),
+        },
+        style,
+      ]}
     >
-      {icon ? <View style={{ marginRight: 6 }} className="mr-1.5">{icon}</View> : null}
-      <Text style={textStyle} className={`text-small ${textClasses}`}>{label}</Text>
-    </TouchableOpacity>
+      {icon ? <View style={{ marginRight: 6 }}>{icon}</View> : null}
+      <Text
+        style={{
+          fontSize: 12,
+          fontWeight: selected ? '700' : '600',
+          color: selected ? '#FFFFFF' : '#334155',
+          ...(Platform.OS === 'web'
+            ? ({
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+              } as any)
+            : {}),
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }

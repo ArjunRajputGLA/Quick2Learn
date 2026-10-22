@@ -6,6 +6,7 @@ import {
   BookOpen,
   GraduationCap,
   HelpCircle,
+  MessageCircle,
   User,
   Calendar,
   Award,
@@ -127,15 +128,15 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 7. Student Doubts Tab (Hidden for parents and staff; staff uses Teach tab) */}
+      {/* 7. Student Chats & Doubts Tab */}
       <Tabs.Screen
         name="doubts"
         options={{
           href: !isParent && !isTeacherOrStaff ? '/doubts' : null,
-          title: 'Doubts',
-          tabBarLabel: 'Doubts',
+          title: 'Chats',
+          tabBarLabel: 'Chats',
           tabBarIcon: ({ color }) => (
-            <HelpCircle size={20} color={color} />
+            <MessageCircle size={20} color={color} />
           ),
         }}
       />

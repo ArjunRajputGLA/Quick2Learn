@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Calendar, User } from 'lucide-react-native';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
 
 export interface BatchCardProps {
   classNameBadge: string; // e.g. "Class XII"
@@ -29,6 +31,8 @@ function BatchCardComponent({
   onPress,
   className = '',
 }: BatchCardProps) {
+  const facultyAvatar = getFacultyAvatarSource(teacher);
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -54,7 +58,15 @@ function BatchCardComponent({
 
       {/* Teacher Name (strictly shown once per batch card, never per row) */}
       <View className="flex-row items-center mb-3">
-        <User size={14} color="#6B7280" className="mr-1.5" />
+        {facultyAvatar ? (
+          <Image
+            source={facultyAvatar}
+            style={{ width: 18, height: 18, borderRadius: 9, marginRight: 6 }}
+            contentFit="cover"
+          />
+        ) : (
+          <User size={14} color="#6B7280" className="mr-1.5" />
+        )}
         <Text className="text-small text-ink-muted ml-1" numberOfLines={1}>
           {teacher}
         </Text>

@@ -3,9 +3,10 @@ import { View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { User } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
 
 export interface AvatarProps {
-  source?: string | null;
+  source?: any;
   name?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
@@ -37,8 +38,12 @@ export function Avatar({
     return str.slice(0, 2).toUpperCase();
   };
 
+  const facultyFallback = !source ? getFacultyAvatarSource(name) : null;
+  const effectiveSource = source || facultyFallback;
+  const imageSource = typeof effectiveSource === 'string' ? { uri: effectiveSource } : effectiveSource;
+
   const initials = getInitials(name);
-  const showFallback = !source || imageError;
+  const showFallback = !imageSource || imageError;
 
   return (
     <View
@@ -57,7 +62,7 @@ export function Avatar({
     >
       {!showFallback ? (
         <Image
-          source={{ uri: source }}
+          source={imageSource}
           style={{ width: dim, height: dim }}
           contentFit="cover"
           transition={200}

@@ -5,6 +5,8 @@ import {
   ScrollView,
   Switch,
   TouchableOpacity,
+  Pressable,
+  Platform,
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -214,41 +216,96 @@ export default function SettingsScreen() {
           </View>
 
           <View className="flex-row space-x-3 pt-1">
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <Pressable
               onPress={() => setLanguage("en")}
-              className={`flex-1 py-3 px-4 rounded-xl border flex-row items-center justify-center ${
-                language === "en"
-                  ? "bg-primary border-primary"
-                  : "bg-surface-subtle border-border"
-              }`}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: language === 'en'
+                  ? (pressed ? '#1D4ED8' : '#2563EB')
+                  : (pressed ? '#E2E8F0' : '#F1F5F9'),
+                borderColor: language === 'en'
+                  ? (pressed ? '#1E40AF' : '#1D4ED8')
+                  : (pressed ? '#CBD5E1' : '#E2E8F0'),
+                ...(Platform.OS === 'web'
+                  ? ({
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      outline: 'none',
+                    } as any)
+                  : {}),
+              })}
             >
               <Text
-                className={`text-body font-bold ${
-                  language === "en" ? "text-white" : "text-ink"
-                }`}
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: language === "en" ? "#FFFFFF" : "#1E293B",
+                  ...(Platform.OS === 'web'
+                    ? ({
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                      } as any)
+                    : {}),
+                }}
               >
                 English
               </Text>
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <Pressable
               onPress={() => setLanguage("hi")}
-              className={`flex-1 py-3 px-4 rounded-xl border flex-row items-center justify-center ml-2 ${
-                language === "hi"
-                  ? "bg-primary border-primary"
-                  : "bg-surface-subtle border-border"
-              }`}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 8,
+                backgroundColor: language === 'hi'
+                  ? (pressed ? '#1D4ED8' : '#2563EB')
+                  : (pressed ? '#E2E8F0' : '#F1F5F9'),
+                borderColor: language === 'hi'
+                  ? (pressed ? '#1E40AF' : '#1D4ED8')
+                  : (pressed ? '#CBD5E1' : '#E2E8F0'),
+                ...(Platform.OS === 'web'
+                  ? ({
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      outline: 'none',
+                    } as any)
+                  : {}),
+              })}
             >
               <Text
-                className={`text-body font-bold ${
-                  language === "hi" ? "text-white" : "text-ink"
-                }`}
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: language === "hi" ? "#FFFFFF" : "#1E293B",
+                  ...(Platform.OS === 'web'
+                    ? ({
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                      } as any)
+                    : {}),
+                }}
               >
                 हिंदी (Hindi)
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
 

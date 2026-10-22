@@ -4,6 +4,8 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Pressable,
+  Platform,
   RefreshControl,
   Share,
   ActivityIndicator,
@@ -107,45 +109,96 @@ export default function FeesScreen() {
     >
       {/* Segment Tabs */}
       <View className="flex-row p-3 bg-surface border-b border-border">
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab("dues")}
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center space-x-2 ${
-            activeTab === "dues" ? "bg-primary" : "bg-surface-subtle"
-          }`}
+          style={({ pressed }) => ({
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            backgroundColor: activeTab === 'dues'
+              ? (pressed ? '#1D4ED8' : '#2563EB')
+              : (pressed ? '#E2E8F0' : '#F1F5F9'),
+            ...(Platform.OS === 'web'
+              ? ({
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
+                } as any)
+              : {}),
+          })}
         >
           <CreditCard
             size={16}
             color={activeTab === "dues" ? "#FFFFFF" : "#6B7280"}
           />
           <Text
-            className={`text-small font-bold ml-1.5 ${
-              activeTab === "dues" ? "text-white" : "text-ink-muted"
-            }`}
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === "dues" ? "#FFFFFF" : "#475569",
+              ...(Platform.OS === 'web'
+                ? ({
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  } as any)
+                : {}),
+            }}
           >
             {t("pendingDues")} {pendingDues.length > 0 ? `(${pendingDues.length})` : ""}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab("history")}
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center space-x-2 ml-2 ${
-            activeTab === "history" ? "bg-primary" : "bg-surface-subtle"
-          }`}
+          style={({ pressed }) => ({
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            marginLeft: 8,
+            backgroundColor: activeTab === 'history'
+              ? (pressed ? '#1D4ED8' : '#2563EB')
+              : (pressed ? '#E2E8F0' : '#F1F5F9'),
+            ...(Platform.OS === 'web'
+              ? ({
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
+                } as any)
+              : {}),
+          })}
         >
           <Receipt
             size={16}
             color={activeTab === "history" ? "#FFFFFF" : "#6B7280"}
           />
           <Text
-            className={`text-small font-bold ml-1.5 ${
-              activeTab === "history" ? "text-white" : "text-ink-muted"
-            }`}
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === "history" ? "#FFFFFF" : "#475569",
+              ...(Platform.OS === 'web'
+                ? ({
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  } as any)
+                : {}),
+            }}
           >
             {t("paymentHistory")} {paymentHistory.length > 0 ? `(${paymentHistory.length})` : ""}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <ScrollView

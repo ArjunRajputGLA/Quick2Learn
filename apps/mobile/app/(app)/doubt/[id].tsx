@@ -45,6 +45,7 @@ import {
   useMarkDoubtHelpful,
   usePresignedDoubtUploads,
 } from '../../../src/api/hooks';
+import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import type { DoubtMessageItem } from '@quick2learn/shared';
 
 interface SelectedPhoto {
@@ -439,13 +440,22 @@ export default function DoubtThreadScreen() {
           {/* Solved Banner / "This solved it" Callout */}
           {doubt.status === 'answered' && !doubt.isHelpful && (
             <View className="bg-emerald-50/80 rounded-2xl p-4 border border-emerald-200 shadow-xs mb-4 flex-row items-center justify-between">
-              <View className="flex-1 mr-3">
-                <Text className="text-small font-bold text-emerald-950 mb-0.5">
-                  Did this answer solve your doubt?
-                </Text>
-                <Text className="text-caption text-emerald-800">
-                  Let Dinesh Sir know your doubt is resolved.
-                </Text>
+              <View className="flex-row items-center flex-1 mr-3 gap-3">
+                {getFacultyAvatarSource('Dinesh Sir') ? (
+                  <Image
+                    source={getFacultyAvatarSource('Dinesh Sir')!}
+                    style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: '#A7F3D0' }}
+                    contentFit="cover"
+                  />
+                ) : null}
+                <View className="flex-1">
+                  <Text className="text-small font-bold text-emerald-950 mb-0.5">
+                    Did this answer solve your doubt?
+                  </Text>
+                  <Text className="text-caption text-emerald-800">
+                    Let Dinesh Sir know your doubt is resolved.
+                  </Text>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -475,6 +485,13 @@ export default function DoubtThreadScreen() {
                   }`}
                 >
                   <View className="flex-row items-center space-x-1.5 mb-1 px-1">
+                    {isTeacher && getFacultyAvatarSource(doubt.subjectName?.toLowerCase().includes('chemistry') ? 'Namita' : 'Dinesh') ? (
+                      <Image
+                        source={getFacultyAvatarSource(doubt.subjectName?.toLowerCase().includes('chemistry') ? 'Namita' : 'Dinesh')!}
+                        style={{ width: 16, height: 16, borderRadius: 8, marginRight: 4 }}
+                        contentFit="cover"
+                      />
+                    ) : null}
                     <Text className="text-[11px] font-bold text-ink">
                       {isTeacher ? 'Dinesh Sir / Faculty' : 'You'}
                     </Text>

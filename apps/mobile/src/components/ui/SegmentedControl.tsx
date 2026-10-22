@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, Text, Pressable, ViewStyle, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radii } from '@quick2learn/shared';
 
@@ -18,10 +18,10 @@ export function SegmentedControl({
   className = '',
   style,
 }: SegmentedControlProps) {
-  const handleSelect = async (index: number) => {
+  const handleSelect = (index: number) => {
     if (index === selectedIndex) return;
     try {
-      await Haptics.selectionAsync();
+      void Haptics.selectionAsync().catch(() => {});
     } catch {
       // Haptics fallback
     }
@@ -48,30 +48,42 @@ export function SegmentedControl({
       {options.map((option, index) => {
         const isSelected = selectedIndex === index;
         return (
-          <TouchableOpacity
+          <Pressable
             key={option}
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
             onPress={() => handleSelect(index)}
-            style={{
-              flex: 1,
-              minHeight: 32,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: radii.md,
-              backgroundColor: isSelected ? colors.surface : 'transparent',
-              borderWidth: isSelected ? 1 : 0,
-              borderColor: isSelected ? colors.border : 'transparent',
-              elevation: isSelected ? 1 : 0,
-              shadowColor: '#000000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: isSelected ? 0.06 : 0,
-              shadowRadius: 2,
-            }}
-            className={`flex-1 min-h-[32px] items-center justify-center rounded-md ${
-              isSelected ? 'bg-surface border border-border/80 shadow-xs' : ''
-            }`}
             hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+            style={({ pressed }) => [
+              {
+                flex: 1,
+                minHeight: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: radii.md,
+                backgroundColor: isSelected
+                  ? colors.surface
+                  : pressed
+                  ? 'rgba(0,0,0,0.04)'
+                  : 'transparent',
+                borderWidth: isSelected ? 1 : 0,
+                borderColor: isSelected ? colors.border : 'transparent',
+                elevation: isSelected ? 1 : 0,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: isSelected ? 0.06 : 0,
+                shadowRadius: 2,
+                ...(Platform.OS === 'web'
+                  ? ({
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      outline: 'none',
+                    } as any)
+                  : {}),
+              },
+            ]}
           >
             <Text
               style={{
@@ -79,17 +91,18 @@ export function SegmentedControl({
                 textAlign: 'center',
                 fontWeight: isSelected ? '600' : '500',
                 color: isSelected ? colors.primary : colors['ink-muted'],
+                ...(Platform.OS === 'web'
+                  ? ({
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                    } as any)
+                  : {}),
               }}
-              className={`text-[12px] text-center ${
-                isSelected
-                  ? 'font-semibold text-primary'
-                  : 'font-medium text-ink-muted'
-              }`}
               numberOfLines={1}
             >
               {option}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>

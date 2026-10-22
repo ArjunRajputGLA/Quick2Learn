@@ -10,10 +10,11 @@ import {
   FolderOpen,
 } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
+import { Chip } from '../ui/Chip';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Skeleton } from '../ui/Skeleton';
 import { useBatchContent } from '../../api/hooks';
-import type { BatchDetailResponse } from '@quick2learn/shared';
+import type { BatchDetailResponse, BatchContentSubject, BatchContentChapter } from '@quick2learn/shared';
 
 interface BatchContentSectionProps {
   batchId?: string;
@@ -34,16 +35,16 @@ export function BatchContentSection({
     isLoading: isLoadingContent,
   } = useBatchContent(actualBatchId);
 
-  const subjects = contentData?.subjects || [];
+  const subjects: BatchContentSubject[] = (contentData as any)?.subjects || [];
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
 
   const activeSubjectId =
-    selectedSubjectId && subjects.some((s) => s.id === selectedSubjectId)
+    selectedSubjectId && subjects.some((s: BatchContentSubject) => s.id === selectedSubjectId)
       ? selectedSubjectId
       : subjects[0]?.id || '';
 
-  const activeSubject = subjects.find((s) => s.id === activeSubjectId) || subjects[0];
-  const chapters = activeSubject?.chapters || [];
+  const activeSubject = subjects.find((s: BatchContentSubject) => s.id === activeSubjectId) || subjects[0];
+  const chapters: BatchContentChapter[] = activeSubject?.chapters || [];
 
   if ((isLoading || isLoadingContent) && !contentData) {
     return (
@@ -57,13 +58,13 @@ export function BatchContentSection({
   }
 
   // Calculate totals across all subjects
-  const totalChapters = subjects.reduce((sum, s) => sum + s.chapters.length, 0);
+  const totalChapters = subjects.reduce((sum: number, s: BatchContentSubject) => sum + s.chapters.length, 0);
   const totalLectures = subjects.reduce(
-    (sum, s) => sum + s.chapters.reduce((csum, c) => csum + c.lecturesCount, 0),
+    (sum: number, s: BatchContentSubject) => sum + s.chapters.reduce((csum: number, c: BatchContentChapter) => csum + c.lecturesCount, 0),
     0
   );
   const totalNotes = subjects.reduce(
-    (sum, s) => sum + s.chapters.reduce((csum, c) => csum + c.notesCount, 0),
+    (sum: number, s: BatchContentSubject) => sum + s.chapters.reduce((csum: number, c: BatchContentChapter) => csum + c.notesCount, 0),
     0
   );
 
@@ -76,26 +77,15 @@ export function BatchContentSection({
           showsHorizontalScrollIndicator={false}
           className="flex-row space-x-2"
         >
-          {subjects.map((sub) => {
+          {subjects.map((sub: BatchContentSubject) => {
             const isSelected = sub.id === activeSubjectId;
             return (
-              <TouchableOpacity
+              <Chip
                 key={sub.id}
+                label={sub.name}
+                selected={isSelected}
                 onPress={() => setSelectedSubjectId(sub.id)}
-                className={`px-4 py-2 rounded-xl border ${
-                  isSelected
-                    ? 'bg-primary border-primary'
-                    : 'bg-surface border-border'
-                }`}
-              >
-                <Text
-                  className={`text-small font-bold ${
-                    isSelected ? 'text-white' : 'text-ink-muted'
-                  }`}
-                >
-                  {sub.name}
-                </Text>
-              </TouchableOpacity>
+              />
             );
           })}
         </ScrollView>
@@ -128,7 +118,7 @@ export function BatchContentSection({
       ) : (
         /* Chapters List */
         <View className="space-y-3">
-          {chapters.map((ch, idx) => (
+          {chapters.map((ch: BatchContentChapter, idx: number) => (
             <TouchableOpacity
               key={ch.id}
               onPress={() => {

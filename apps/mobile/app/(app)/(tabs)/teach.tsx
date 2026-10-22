@@ -40,6 +40,7 @@ import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
+import { Chip } from '../../../src/components/ui/Chip';
 import { Card } from '../../../src/components/ui/Card';
 import { KeyboardAwareScrollView } from '../../../src/components/ui/KeyboardAwareScrollView';
 import { Toast } from '../../../src/components/ui/Toast';
@@ -1167,39 +1168,16 @@ function DoubtsInboxSection({
       {/* Filter Tabs */}
       <View className="bg-surface px-4 py-2 border-b border-border flex-row items-center justify-between">
         <View className="flex-row items-center space-x-2">
-          <TouchableOpacity
+          <Chip
+            label={`Unanswered (${data?.openCount || 0})`}
+            selected={filterStatus === 'open'}
             onPress={() => setFilterStatus('open')}
-            className={`px-3 py-1.5 rounded-full border min-h-[40px] items-center justify-center ${
-              filterStatus === 'open'
-                ? 'bg-primary border-primary'
-                : 'bg-surface border-border'
-            }`}
-          >
-            <Text
-              className={`text-small font-semibold ${
-                filterStatus === 'open' ? 'text-white' : 'text-ink'
-              }`}
-            >
-              Unanswered ({data?.openCount || 0})
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+          />
+          <Chip
+            label="Answered"
+            selected={filterStatus === 'answered'}
             onPress={() => setFilterStatus('answered')}
-            className={`px-3 py-1.5 rounded-full border min-h-[40px] items-center justify-center ${
-              filterStatus === 'answered'
-                ? 'bg-primary border-primary'
-                : 'bg-surface border-border'
-            }`}
-          >
-            <Text
-              className={`text-small font-semibold ${
-                filterStatus === 'answered' ? 'text-white' : 'text-ink'
-              }`}
-            >
-              Answered
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
 
         <TouchableOpacity onPress={() => refetch()} className="p-2">

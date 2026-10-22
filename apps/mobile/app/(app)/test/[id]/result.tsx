@@ -28,6 +28,7 @@ import { Screen } from '../../../../src/components/ui/Screen';
 import { AppHeader } from '../../../../src/components/ui/AppHeader';
 import { Button } from '../../../../src/components/ui/Button';
 import { Badge } from '../../../../src/components/ui/Badge';
+import { Chip } from '../../../../src/components/ui/Chip';
 import { ProgressRing } from '../../../../src/components/ui/ProgressRing';
 import { ProgressBar } from '../../../../src/components/ui/ProgressBar';
 import { MathView } from '../../../../src/components/composite/MathView';
@@ -325,29 +326,20 @@ export default function TestResultScreen() {
           {/* Filter Pills */}
           <View className="flex-row space-x-2">
             {(['all', 'wrong', 'correct', 'skipped'] as const).map((tab) => (
-              <TouchableOpacity
+              <Chip
                 key={tab}
-                onPress={() => setFilter(tab)}
-                className={`py-1.5 px-3 rounded-xl border mr-1.5 ${
-                  filter === tab
-                    ? 'bg-primary border-primary'
-                    : 'bg-surface border-border'
-                }`}
-              >
-                <Text
-                  className={`text-caption font-bold capitalize ${
-                    filter === tab ? 'text-white' : 'text-ink-muted'
-                  }`}
-                >
-                  {tab === 'all'
+                label={
+                  tab === 'all'
                     ? 'All'
                     : tab === 'wrong'
                     ? `Wrong (${result.wrong})`
                     : tab === 'correct'
                     ? `Correct (${result.correct})`
-                    : `Skipped (${result.skipped})`}
-                </Text>
-              </TouchableOpacity>
+                    : `Skipped (${result.skipped})`
+                }
+                selected={filter === tab}
+                onPress={() => setFilter(tab)}
+              />
             ))}
           </View>
 

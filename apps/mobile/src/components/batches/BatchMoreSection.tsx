@@ -6,7 +6,9 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
 import {
   Calendar,
   Clock,
@@ -25,7 +27,7 @@ import { Button } from '../ui/Button';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Skeleton } from '../ui/Skeleton';
 import { useBatchTimetable } from '../../api/hooks';
-import type { BatchDetailResponse } from '@quick2learn/shared';
+import type { BatchDetailResponse, BatchTimetableSlot } from '@quick2learn/shared';
 
 interface BatchMoreSectionProps {
   batchId: string;
@@ -51,7 +53,7 @@ export function BatchMoreSection({
   const router = useRouter();
   const { data: timetableData, isLoading: isLoadingTimetable } = useBatchTimetable(batchId);
 
-  const slots = timetableData?.slots || [];
+  const slots: BatchTimetableSlot[] = (timetableData as any)?.slots || [];
 
   const handleOpenWhatsApp = async () => {
     const url = batchDetail?.whatsappGroupUrl || 'https://chat.whatsapp.com/Quick2Learn';
@@ -128,7 +130,7 @@ export function BatchMoreSection({
                     {WEEKDAY_NAMES[dayNum]}
                   </Text>
 
-                  {daySlots.map((slot) => (
+                  {daySlots.map((slot: BatchTimetableSlot) => (
                     <View
                       key={slot.id}
                       className="flex-row items-center justify-between bg-surface-subtle p-2.5 rounded-xl border border-border/40"
@@ -259,9 +261,29 @@ export function BatchMoreSection({
 
           <View className="flex-row items-center justify-between py-2 last:pb-0">
             <Text className="text-caption text-ink-muted">Instructors</Text>
-            <Text className="text-caption font-semibold text-ink">
-              {batchDetail?.teachers.map((t) => t.name).join(', ') || 'Dinesh Singh Rajput'}
-            </Text>
+            {(() => {
+              const names = batchDetail?.teachers && batchDetail.teachers.length > 0
+                ? batchDetail.teachers.map((t) => t.name)
+                : ['Dinesh Singh Rajput'];
+              return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  {names.map((name, i) => {
+                    const avatar = getFacultyAvatarSource(name);
+                    return avatar ? (
+                      <Image
+                        key={i}
+                        source={avatar}
+                        style={{ width: 18, height: 18, borderRadius: 9 }}
+                        contentFit="cover"
+                      />
+                    ) : null;
+                  })}
+                  <Text className="text-caption font-semibold text-ink">
+                    {names.join(', ')}
+                  </Text>
+                </View>
+              );
+            })()}
           </View>
         </View>
       </View>

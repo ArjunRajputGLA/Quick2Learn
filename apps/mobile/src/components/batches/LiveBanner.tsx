@@ -9,8 +9,10 @@ import {
   Modal,
 } from "react-native";
 import { Video, Radio, Clock, Play, X, ExternalLink } from "lucide-react-native";
+import { Image } from "expo-image";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { useJoinLiveSession } from "../../api/hooks";
+import { getFacultyAvatarSource } from "../../lib/facultyImages";
 import type { LiveSessionItem } from "@quick2learn/shared";
 
 interface LiveBannerProps {
@@ -173,9 +175,18 @@ export function LiveBanner({ session, onJoinSuccess }: LiveBannerProps) {
               {session.timeFormatted}
             </Text>
             {session.teacherName && (
-              <Text className="text-slate-300 text-xs font-medium mt-0.5">
-                Instructor: {session.teacherName}
-              </Text>
+              <View className="flex-row items-center mt-1">
+                {getFacultyAvatarSource(session.teacherName) ? (
+                  <Image
+                    source={getFacultyAvatarSource(session.teacherName)!}
+                    style={{ width: 16, height: 16, borderRadius: 8, marginRight: 5 }}
+                    contentFit="cover"
+                  />
+                ) : null}
+                <Text className="text-slate-300 text-xs font-medium">
+                  Instructor: {session.teacherName}
+                </Text>
+              </View>
             )}
           </View>
 

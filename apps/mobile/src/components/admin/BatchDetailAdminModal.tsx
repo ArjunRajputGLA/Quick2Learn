@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -55,6 +56,8 @@ import {
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
+import { Image } from 'expo-image';
+import { getFacultyAvatarSource } from '../../lib/facultyImages';
 import { colors, radii } from '@quick2learn/shared';
 import {
   useAdminStore,
@@ -101,6 +104,8 @@ export function BatchDetailAdminModal({
     insets.top,
     Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 20
   ) + 8;
+  const { height: windowHeight } = useWindowDimensions();
+  const availableTabHeight = Math.max(windowHeight - headerPaddingTop - 130 - Math.max(insets.bottom, 20), 400);
   const store = useAdminStore();
   const [activeTab, setActiveTab] = useState<BatchDetailTab>(initialTab);
 
@@ -378,9 +383,9 @@ export function BatchDetailAdminModal({
               activeOpacity={0.7}
               onPress={onClose}
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
                 backgroundColor: '#F8FAFC',
                 borderWidth: 1,
                 borderColor: '#E2E8F0',
@@ -392,25 +397,25 @@ export function BatchDetailAdminModal({
               <ArrowLeft size={18} color="#0F172A" />
             </TouchableOpacity>
 
-            <View style={{ flex: 1, marginHorizontal: 12 }}>
+            <View style={{ flex: 1, marginHorizontal: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
+                <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
                   {batch.title}
                 </Text>
               </View>
               <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '500', marginTop: 1 }} numberOfLines={1}>
-                {batch.subject} • {batch.faculty} • Class {batch.classLevel} ({batch.board.toUpperCase()})
+                {batch.subject} • {batch.faculty} • Class {batch.classLevel}
               </Text>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => onEditBatch(batch)}
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
                   backgroundColor: '#EFF6FF',
                   borderWidth: 1,
                   borderColor: '#BFDBFE',
@@ -419,15 +424,15 @@ export function BatchDetailAdminModal({
                 }}
                 accessibilityLabel="Edit batch settings"
               >
-                <Edit3 size={17} color="#2563EB" />
+                <Edit3 size={16} color="#2563EB" />
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={onClose}
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
                   backgroundColor: '#F8FAFC',
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
@@ -436,7 +441,7 @@ export function BatchDetailAdminModal({
                 }}
                 accessibilityLabel="Close batch console"
               >
-                <X size={18} color="#64748B" />
+                <X size={17} color="#64748B" />
               </TouchableOpacity>
             </View>
           </View>
@@ -445,7 +450,7 @@ export function BatchDetailAdminModal({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingTop: 12, paddingBottom: 4, paddingHorizontal: 2 }}
+            contentContainerStyle={{ gap: 8, paddingTop: 12, paddingBottom: 6, paddingHorizontal: 4 }}
           >
             <SubTabPill
               label="Overview"
@@ -509,71 +514,72 @@ export function BatchDetailAdminModal({
           contentContainerStyle={{
             padding: 14,
             paddingBottom: Math.max(insets.bottom, 24) + 40,
+            flexGrow: 1,
           }}
         >
           {/* 1. OVERVIEW TAB */}
           {activeTab === 'overview' && (
-            <View style={{ gap: 14 }}>
-              {/* 1. EXACT 2x2 METADATA GRID (Matching Screenshot 2) */}
+            <View style={{ gap: 12 }}>
+              {/* 1. EXACT 2x2 METADATA GRID (Compact & Clean) */}
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 16,
-                  padding: 16,
+                  borderRadius: 14,
+                  padding: 12,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  gap: 14,
+                  gap: 10,
                   elevation: 1,
                   shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 3,
+                  shadowOpacity: 0.04,
+                  shadowRadius: 2,
                 }}
               >
                 {/* Row 1: Batch Start Date & Course */}
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 9,
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
                         backgroundColor: '#EFF6FF',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Calendar size={18} color="#2563EB" />
+                      <Calendar size={16} color="#2563EB" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
                         Batch Start Date
                       </Text>
-                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }}>
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }}>
                         {formattedBatchStartDate}
                       </Text>
                     </View>
                   </View>
 
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 9,
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
                         backgroundColor: '#F5F3FF',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <BookOpen size={18} color="#7C3AED" />
+                      <BookOpen size={16} color="#7C3AED" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
                         Course
                       </Text>
-                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
-                        {batch.courseName || `Class ${batch.classLevel} - Tests available`}
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
+                        {batch.courseName || `Class ${batch.classLevel}`}
                       </Text>
                     </View>
                   </View>
@@ -583,13 +589,13 @@ export function BatchDetailAdminModal({
                 <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
 
                 {/* Row 2: Batch Code & Subjects */}
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 9,
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
                         backgroundColor: '#F8FAFC',
                         borderWidth: 1,
                         borderColor: '#E2E8F0',
@@ -597,14 +603,14 @@ export function BatchDetailAdminModal({
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 16, fontWeight: '900', color: '#64748B' }}>#</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '900', color: '#64748B' }}>#</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
                         Batch Code
                       </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
-                        <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 }}>
                           {batch.joinCode}
                         </Text>
                         <TouchableOpacity
@@ -613,9 +619,10 @@ export function BatchDetailAdminModal({
                             void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                             Alert.alert('Code Copied', `Batch Code ${batch.joinCode} copied!`);
                           }}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                          style={{ padding: 2 }}
                         >
-                          <Copy size={13} color="#2563EB" />
+                          <Copy size={12} color="#2563EB" />
                         </TouchableOpacity>
                         <TouchableOpacity
                           activeOpacity={0.7}
@@ -626,32 +633,33 @@ export function BatchDetailAdminModal({
                               message: `Join ${batch.title} at Quick2Learn!\nBatch Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
                             });
                           }}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                          style={{ padding: 2 }}
                         >
-                          <Share2 size={13} color="#64748B" />
+                          <Share2 size={12} color="#64748B" />
                         </TouchableOpacity>
                       </View>
                     </View>
                   </View>
 
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 9,
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
                         backgroundColor: '#ECFDF5',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Layers size={18} color="#059669" />
+                      <Layers size={16} color="#059669" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
                         Subjects
                       </Text>
-                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
                         {batch.subject}
                       </Text>
                     </View>
@@ -659,53 +667,57 @@ export function BatchDetailAdminModal({
                 </View>
               </View>
 
-              {/* 2. LIVE CLASS ALERT BANNER (Matching Screenshot 11 & 13) */}
+              {/* 2. LIVE CLASS ALERT BANNER (Fixed overflow & reduced height) */}
               {activeLiveClass ? (
                 <View
                   style={{
                     backgroundColor: '#FFF1F2',
-                    borderRadius: 16,
-                    padding: 14,
-                    borderWidth: 1.5,
+                    borderRadius: 14,
+                    padding: 11,
+                    borderWidth: 1.2,
                     borderColor: '#FECDD3',
-                    gap: 10,
-                    elevation: 2,
+                    gap: 8,
+                    elevation: 1,
                     shadowColor: '#E11D48',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 4,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#E11D48' }} />
-                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#9F1239' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
+                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#E11D48' }} />
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#9F1239' }} numberOfLines={1}>
                         Join your live class now.
                       </Text>
                     </View>
                     <View
                       style={{
                         backgroundColor: '#FFE4E6',
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 8,
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 6,
                         borderWidth: 1,
                         borderColor: '#FDA4AF',
+                        flexShrink: 0,
                       }}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#BE123C' }}>
+                      <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#BE123C' }}>
                         {activeLiveClass.platform.toUpperCase()}
                       </Text>
                     </View>
                   </View>
 
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#881337' }}>
+                    <Text
+                      style={{ fontSize: 13, fontWeight: '800', color: '#881337', flex: 1, marginRight: 8 }}
+                      numberOfLines={1}
+                    >
                       {activeLiveClass.title}
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Clock size={12} color="#9F1239" />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#9F1239' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      <Clock size={11} color="#9F1239" />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#9F1239' }}>
                         {activeLiveClass.duration}
                       </Text>
                     </View>
@@ -721,16 +733,16 @@ export function BatchDetailAdminModal({
                       style={{
                         flex: 1,
                         backgroundColor: '#E11D48',
-                        paddingVertical: 10,
-                        borderRadius: 10,
+                        paddingVertical: 8,
+                        borderRadius: 8,
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexDirection: 'row',
-                        gap: 6,
+                        gap: 5,
                       }}
                     >
-                      <Radio size={15} color="#FFFFFF" />
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>Join Now</Text>
+                      <Radio size={14} color="#FFFFFF" />
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>Join Now</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       activeOpacity={0.7}
@@ -751,14 +763,14 @@ export function BatchDetailAdminModal({
                         backgroundColor: '#FFFFFF',
                         borderWidth: 1,
                         borderColor: '#FECDD3',
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
-                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 8,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#9F1239' }}>End Class</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#9F1239' }}>End Class</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -806,10 +818,10 @@ export function BatchDetailAdminModal({
               {/* 3. BATCH TIMINGS SECTION (Matching Screenshot 2) */}
               <View style={{ gap: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
                     BATCH TIMINGS
                   </Text>
-                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
                     View All ({batchTimingsList.length})
                   </Text>
                 </View>
@@ -819,54 +831,69 @@ export function BatchDetailAdminModal({
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
                 >
-                  {batchTimingsList.map((slot) => (
-                    <View
-                      key={slot.id}
-                      style={{
-                        width: 195,
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: 14,
-                        padding: 12,
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                        gap: 8,
-                        elevation: 1,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.04,
-                        shadowRadius: 2,
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
-                        {slot.subject}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                        <Clock size={12} color="#64748B" />
-                        <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }} numberOfLines={1}>
-                          {slot.dayTime}
+                  {batchTimingsList.map((slot) => {
+                    const avatarSrc = getFacultyAvatarSource(slot.faculty);
+                    return (
+                      <View
+                        key={slot.id}
+                        style={{
+                          width: 175,
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: 12,
+                          padding: 10,
+                          borderWidth: 1,
+                          borderColor: '#E2E8F0',
+                          gap: 6,
+                          elevation: 1,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.04,
+                          shadowRadius: 2,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}>
+                          {slot.subject}
                         </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#F8FAFC' }}>
-                        <View
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 11,
-                            backgroundColor: '#EFF6FF',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#2563EB' }}>
-                            {slot.faculty.slice(0, 2)}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                          <Clock size={11} color="#64748B" />
+                          <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }} numberOfLines={1}>
+                            {slot.dayTime}
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }} numberOfLines={1}>
-                          {slot.faculty}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#F8FAFC' }}>
+                          {avatarSrc ? (
+                            <Image
+                              source={avatarSrc}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                              }}
+                              contentFit="cover"
+                            />
+                          ) : (
+                            <View
+                              style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                backgroundColor: '#EFF6FF',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Text style={{ fontSize: 9, fontWeight: '800', color: '#2563EB' }}>
+                                {slot.faculty.slice(0, 2)}
+                              </Text>
+                            </View>
+                          )}
+                          <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#334155', flex: 1 }} numberOfLines={1}>
+                            {slot.faculty}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </ScrollView>
               </View>
 
@@ -874,11 +901,11 @@ export function BatchDetailAdminModal({
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 16,
-                  padding: 16,
+                  borderRadius: 14,
+                  padding: 12,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  gap: 12,
+                  gap: 10,
                   elevation: 1,
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 1 },
@@ -887,32 +914,32 @@ export function BatchDetailAdminModal({
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
                     RECENT ANNOUNCEMENTS
                   </Text>
                   <TouchableOpacity onPress={() => setAddAnnouncementModalVisible(true)}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>+ Post Notice</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>+ Post Notice</Text>
                   </TouchableOpacity>
                 </View>
 
                 {batchAnnouncements.length === 0 ? (
-                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 6 }}>
+                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 14, gap: 5 }}>
                     <View
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
+                        width: 38,
+                        height: 38,
+                        borderRadius: 19,
                         backgroundColor: '#F1F5F9',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Bell size={20} color="#94A3B8" />
+                      <Bell size={18} color="#94A3B8" />
                     </View>
-                    <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#334155' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#334155' }}>
                       No Announcements Yet
                     </Text>
-                    <Text style={{ fontSize: 11.5, color: '#94A3B8', textAlign: 'center' }}>
+                    <Text style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center' }}>
                       Important updates and notices will appear here.
                     </Text>
                   </View>
@@ -922,27 +949,27 @@ export function BatchDetailAdminModal({
                       key={a.id}
                       style={{
                         backgroundColor: '#F8FAFC',
-                        borderRadius: 12,
-                        padding: 12,
-                        borderLeftWidth: 3.5,
+                        borderRadius: 10,
+                        padding: 10,
+                        borderLeftWidth: 3,
                         borderLeftColor: a.priority === 'urgent' ? '#EF4444' : '#2563EB',
-                        gap: 4,
+                        gap: 3,
                       }}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', flex: 1 }} numberOfLines={1}>
+                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', flex: 1 }} numberOfLines={1}>
                           {a.title}
                         </Text>
                         {a.priority === 'urgent' && (
-                          <View style={{ backgroundColor: '#FEE2E2', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, marginLeft: 6 }}>
-                            <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#DC2626' }}>URGENT</Text>
+                          <View style={{ backgroundColor: '#FEE2E2', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, marginLeft: 6 }}>
+                            <Text style={{ fontSize: 9, fontWeight: '800', color: '#DC2626' }}>URGENT</Text>
                           </View>
                         )}
                       </View>
-                      <Text style={{ fontSize: 11.5, color: '#475569', lineHeight: 16 }} numberOfLines={2}>
+                      <Text style={{ fontSize: 11, color: '#475569', lineHeight: 15 }} numberOfLines={2}>
                         {a.body}
                       </Text>
-                      <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                      <Text style={{ fontSize: 9.5, color: '#94A3B8', marginTop: 2 }}>
                         {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • By {a.authorName}
                       </Text>
                     </View>
@@ -951,44 +978,44 @@ export function BatchDetailAdminModal({
               </View>
 
               {/* 5. QUICK ACTIONS ROW */}
-              <View style={{ gap: 10 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+              <View style={{ gap: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.6 }}>
                   Quick Batch Actions
                 </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   <ActionButton
                     label="+ Add Video"
-                    icon={<Video size={16} color="#2563EB" />}
+                    icon={<Video size={15} color="#2563EB" />}
                     bgColor="#EFF6FF"
                     onPress={() => setAddLectureModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Upload Notes"
-                    icon={<FileText size={16} color="#059669" />}
+                    icon={<FileText size={15} color="#059669" />}
                     bgColor="#ECFDF5"
                     onPress={() => setAddResourceModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Homework"
-                    icon={<BookOpen size={16} color="#7C3AED" />}
+                    icon={<BookOpen size={15} color="#7C3AED" />}
                     bgColor="#F5F3FF"
                     onPress={() => setAddAssignmentModalVisible(true)}
                   />
                   <ActionButton
-                    label="Mark Attendance"
-                    icon={<CheckCircle2 size={16} color="#D97706" />}
+                    label="+ Attendance"
+                    icon={<CheckCircle2 size={15} color="#D97706" />}
                     bgColor="#FEF3C7"
                     onPress={() => setActiveTab('attendance')}
                   />
                   <ActionButton
                     label="+ Post Notice"
-                    icon={<Send size={16} color="#E11D48" />}
+                    icon={<Send size={15} color="#E11D48" />}
                     bgColor="#FFF1F2"
                     onPress={() => setAddAnnouncementModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Add Student"
-                    icon={<Users size={16} color="#0284C7" />}
+                    icon={<Users size={15} color="#0284C7" />}
                     bgColor="#F0F9FF"
                     onPress={() => setAddStudentModalVisible(true)}
                   />
@@ -999,39 +1026,39 @@ export function BatchDetailAdminModal({
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 16,
-                  padding: 16,
+                  borderRadius: 14,
+                  padding: 12,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  gap: 12,
+                  gap: 10,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}>Batch Specifications</Text>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A' }}>Batch Specifications</Text>
                   <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 5,
+                      gap: 4,
                       backgroundColor: batch.status === 'ongoing' ? '#ECFDF5' : '#F1F5F9',
-                      paddingHorizontal: 8,
-                      paddingVertical: 3,
-                      borderRadius: 12,
+                      paddingHorizontal: 7,
+                      paddingVertical: 2.5,
+                      borderRadius: 10,
                       borderWidth: 1,
                       borderColor: batch.status === 'ongoing' ? '#A7F3D0' : '#CBD5E1',
                     }}
                   >
                     <View
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
+                        width: 5,
+                        height: 5,
+                        borderRadius: 2.5,
                         backgroundColor: batch.status === 'ongoing' ? '#10B981' : '#64748B',
                       }}
                     />
                     <Text
                       style={{
-                        fontSize: 10,
+                        fontSize: 9.5,
                         fontWeight: '800',
                         color: batch.status === 'ongoing' ? '#047857' : '#475569',
                         textTransform: 'uppercase',
@@ -1043,20 +1070,21 @@ export function BatchDetailAdminModal({
                 </View>
 
                 {/* KPI Triad */}
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
                   <View
                     style={{
                       flex: 1,
                       backgroundColor: '#F0F9FF',
                       borderWidth: 1,
                       borderColor: '#BAE6FD',
-                      padding: 10,
-                      borderRadius: 12,
+                      paddingVertical: 8,
+                      paddingHorizontal: 6,
+                      borderRadius: 10,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 9.5, color: '#0369A1', fontWeight: '800', letterSpacing: 0.5 }}>STUDENTS</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#0C4A6E', marginTop: 2 }}>
+                    <Text style={{ fontSize: 9, color: '#0369A1', fontWeight: '800', letterSpacing: 0.5 }}>STUDENTS</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#0C4A6E', marginTop: 1 }}>
                       {batchStudents.length} / {batch.capacity}
                     </Text>
                   </View>
@@ -1066,13 +1094,14 @@ export function BatchDetailAdminModal({
                       backgroundColor: '#ECFDF5',
                       borderWidth: 1,
                       borderColor: '#A7F3D0',
-                      padding: 10,
-                      borderRadius: 12,
+                      paddingVertical: 8,
+                      paddingHorizontal: 6,
+                      borderRadius: 10,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 9.5, color: '#047857', fontWeight: '800', letterSpacing: 0.5 }}>FEE</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#064E3B', marginTop: 2 }}>
+                    <Text style={{ fontSize: 9, color: '#047857', fontWeight: '800', letterSpacing: 0.5 }}>FEE</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#064E3B', marginTop: 1 }}>
                       ₹{batch.fee.toLocaleString('en-IN')}
                     </Text>
                   </View>
@@ -1082,18 +1111,19 @@ export function BatchDetailAdminModal({
                       backgroundColor: batch.mode === 'offline' ? '#FEF3C7' : '#EFF6FF',
                       borderWidth: 1,
                       borderColor: batch.mode === 'offline' ? '#FDE68A' : '#BFDBFE',
-                      padding: 10,
-                      borderRadius: 12,
+                      paddingVertical: 8,
+                      paddingHorizontal: 6,
+                      borderRadius: 10,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 9.5, color: batch.mode === 'offline' ? '#92400E' : '#1E40AF', fontWeight: '800', letterSpacing: 0.5 }}>MODE</Text>
+                    <Text style={{ fontSize: 9, color: batch.mode === 'offline' ? '#92400E' : '#1E40AF', fontWeight: '800', letterSpacing: 0.5 }}>MODE</Text>
                     <Text
                       style={{
-                        fontSize: 13.5,
+                        fontSize: 12.5,
                         fontWeight: '900',
                         color: batch.mode === 'offline' ? '#78350F' : '#1E3A8A',
-                        marginTop: 2,
+                        marginTop: 1,
                         textTransform: 'uppercase',
                       }}
                     >
@@ -1103,19 +1133,34 @@ export function BatchDetailAdminModal({
                 </View>
 
                 {/* Detailed info rows */}
-                <View style={{ gap: 8, paddingTop: 4 }}>
-                  <Text style={{ fontSize: 12, color: '#475569' }}>
-                    <Text style={{ fontWeight: '700', color: '#0F172A' }}>Faculty: </Text>
-                    {batch.faculty}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: '#475569' }}>
-                    <Text style={{ fontWeight: '700', color: '#0F172A' }}>Location Room: </Text>
-                    {batch.room}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: '#475569' }}>
-                    <Text style={{ fontWeight: '700', color: '#0F172A' }}>Session Duration: </Text>
-                    {batch.startDate} to {batch.endDate}
-                  </Text>
+                <View style={{ gap: 6, paddingTop: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Faculty:</Text>
+                    {getFacultyAvatarSource(batch.faculty) ? (
+                      <Image
+                        source={getFacultyAvatarSource(batch.faculty)!}
+                        style={{ width: 18, height: 18, borderRadius: 9 }}
+                        contentFit="cover"
+                      />
+                    ) : null}
+                    <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
+                      {batch.faculty}
+                    </Text>
+                  </View>
+                  {batch.mode !== 'online' && batch.room ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Location Room:</Text>
+                      <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
+                        {batch.room}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Session Duration:</Text>
+                    <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
+                      {batch.startDate} to {batch.endDate}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -1123,10 +1168,10 @@ export function BatchDetailAdminModal({
 
           {/* 2. VIDEOS TAB (Hierarchical folder view matching Screenshots 5, 6, 7) */}
           {activeTab === 'videos' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 12, flex: 1, minHeight: availableTabHeight }}>
               {/* LEVEL 0: Subject Folders (Screenshot 5) */}
               {!selectedVideoSubject && (
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: 10, flex: 1 }}>
                   {/* Search Bar matching screenshot */}
                   <View
                     style={{
@@ -1157,17 +1202,17 @@ export function BatchDetailAdminModal({
 
                   {/* Header Row: TOTAL (X) and FILTER / Add Video */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
                       TOTAL ({videoSubjects.length})
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <TouchableOpacity
-                        activeOpacity={0.7}
+                        activeOpacity={0.8}
                         onPress={() => setAddLectureModalVisible(true)}
                         style={{
                           backgroundColor: '#2563EB',
                           paddingHorizontal: 10,
-                          paddingVertical: 5,
+                          paddingVertical: 6,
                           borderRadius: 8,
                           flexDirection: 'row',
                           alignItems: 'center',
@@ -1184,99 +1229,119 @@ export function BatchDetailAdminModal({
                           alignItems: 'center',
                           gap: 4,
                           paddingHorizontal: 9,
-                          paddingVertical: 5,
+                          paddingVertical: 6,
                           borderRadius: 8,
                           backgroundColor: '#FFFFFF',
                           borderWidth: 1,
                           borderColor: '#E2E8F0',
                         }}
                       >
-                        <Filter size={12} color="#64748B" />
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748B' }}>FILTER</Text>
+                        <Filter size={11} color="#64748B" />
+                        <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#64748B' }}>FILTER</Text>
                       </View>
                     </View>
                   </View>
 
                   {/* List of Subject Folders */}
-                  <View style={{ gap: 8 }}>
-                    {videoSubjects.map((subj) => {
-                      const count = batchLectures.filter(
-                        (l) => l.subject.toUpperCase() === subj.toUpperCase()
-                      ).length;
-                      return (
-                        <TouchableOpacity
-                          key={subj}
-                          activeOpacity={0.75}
-                          onPress={() => {
-                            setSelectedVideoSubject(subj);
-                            setSelectedVideoChapter(null);
-                          }}
-                          style={{
-                            backgroundColor: '#FFFFFF',
-                            borderRadius: 14,
-                            padding: 14,
-                            borderWidth: 1,
-                            borderColor: '#E2E8F0',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            elevation: 1,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.04,
-                            shadowRadius: 2,
-                          }}
-                        >
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                            <View
-                              style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 10,
-                                backgroundColor: '#EFF6FF',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Folder size={20} color="#2563EB" />
+                  {videoSubjects.length === 0 ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No video folders yet"
+                        description="Upload recorded lectures and video solutions for this batch."
+                        actionLabel="Add Video"
+                        onAction={() => setAddLectureModalVisible(true)}
+                      />
+                    </View>
+                  ) : (
+                    <View style={{ gap: 8 }}>
+                      {videoSubjects.map((subj) => {
+                        const count = batchLectures.filter(
+                          (l) => l.subject.toUpperCase() === subj.toUpperCase()
+                        ).length;
+                        return (
+                          <TouchableOpacity
+                            key={subj}
+                            activeOpacity={0.75}
+                            onPress={() => {
+                              setSelectedVideoSubject(subj);
+                              setSelectedVideoChapter(null);
+                            }}
+                            style={{
+                              backgroundColor: '#FFFFFF',
+                              borderRadius: 14,
+                              padding: 12,
+                              borderWidth: 1,
+                              borderColor: '#E2E8F0',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              elevation: 1,
+                              shadowColor: '#000',
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.04,
+                              shadowRadius: 2,
+                            }}
+                          >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, marginRight: 8 }}>
+                              <View
+                                style={{
+                                  width: 38,
+                                  height: 38,
+                                  borderRadius: 10,
+                                  backgroundColor: '#EFF6FF',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Folder size={18} color="#2563EB" />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                                  {subj}
+                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                                  {getFacultyAvatarSource(batch.faculty) ? (
+                                    <Image
+                                      source={getFacultyAvatarSource(batch.faculty)!}
+                                      style={{ width: 14, height: 14, borderRadius: 7 }}
+                                      contentFit="cover"
+                                    />
+                                  ) : null}
+                                  <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
+                                    By {batch.faculty || 'Dinesh Singh Rajput'}
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
-                                {subj}
-                              </Text>
-                              <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
-                                By {batch.faculty || 'DINESH SINGH RAJPUT'}
-                              </Text>
-                            </View>
-                          </View>
 
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <View
-                              style={{
-                                backgroundColor: '#F8FAFC',
-                                borderWidth: 1,
-                                borderColor: '#E2E8F0',
-                                paddingHorizontal: 8,
-                                paddingVertical: 3,
-                                borderRadius: 8,
-                              }}
-                            >
-                              <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748B' }}>
-                                Uncategorized
-                              </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                              <View
+                                style={{
+                                  backgroundColor: '#F0F9FF',
+                                  borderWidth: 1,
+                                  borderColor: '#BAE6FD',
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 3,
+                                  borderRadius: 6,
+                                }}
+                              >
+                                <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>
+                                  {count} {count === 1 ? 'Video' : 'Videos'}
+                                </Text>
+                              </View>
+                              <ChevronRight size={15} color="#94A3B8" />
                             </View>
-                            <ChevronRight size={16} color="#94A3B8" />
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               )}
 
               {/* LEVEL 1: Chapter Sub-Folders inside Subject (Screenshot 6) */}
               {selectedVideoSubject && !selectedVideoChapter && (
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: 10, flex: 1 }}>
                   {/* Back Navigation Header */}
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -1328,7 +1393,7 @@ export function BatchDetailAdminModal({
 
                   {/* Header Row: TOTAL (X) and RECENT ▾ sort */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
                       TOTAL ({videoChaptersForSubject.length})
                     </Text>
                     <View
@@ -1350,65 +1415,76 @@ export function BatchDetailAdminModal({
                   </View>
 
                   {/* List of Chapter Folders */}
-                  <View style={{ gap: 8 }}>
-                    {videoChaptersForSubject.map((chName) => {
-                      const count = batchLectures.filter(
-                        (l) => l.subject.toUpperCase() === selectedVideoSubject.toUpperCase() && l.chapter === chName
-                      ).length;
-                      return (
-                        <TouchableOpacity
-                          key={chName}
-                          activeOpacity={0.75}
-                          onPress={() => setSelectedVideoChapter(chName)}
-                          style={{
-                            backgroundColor: '#FFFFFF',
-                            borderRadius: 14,
-                            padding: 14,
-                            borderWidth: 1,
-                            borderColor: '#E2E8F0',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            elevation: 1,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.04,
-                            shadowRadius: 2,
-                          }}
-                        >
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                            <View
-                              style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 10,
-                                backgroundColor: '#EFF6FF',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Folder size={20} color="#2563EB" />
+                  {videoChaptersForSubject.length === 0 ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No chapters created"
+                        description={`Add video lessons to ${selectedVideoSubject} to create chapters.`}
+                        actionLabel="Add Video"
+                        onAction={() => setAddLectureModalVisible(true)}
+                      />
+                    </View>
+                  ) : (
+                    <View style={{ gap: 8 }}>
+                      {videoChaptersForSubject.map((chName) => {
+                        const count = batchLectures.filter(
+                          (l) => l.subject.toUpperCase() === selectedVideoSubject.toUpperCase() && l.chapter === chName
+                        ).length;
+                        return (
+                          <TouchableOpacity
+                            key={chName}
+                            activeOpacity={0.75}
+                            onPress={() => setSelectedVideoChapter(chName)}
+                            style={{
+                              backgroundColor: '#FFFFFF',
+                              borderRadius: 14,
+                              padding: 12,
+                              borderWidth: 1,
+                              borderColor: '#E2E8F0',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              elevation: 1,
+                              shadowColor: '#000',
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.04,
+                              shadowRadius: 2,
+                            }}
+                          >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, marginRight: 8 }}>
+                              <View
+                                style={{
+                                  width: 38,
+                                  height: 38,
+                                  borderRadius: 10,
+                                  backgroundColor: '#EFF6FF',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Folder size={18} color="#2563EB" />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                                  {chName}
+                                </Text>
+                                <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
+                                  {count} lecture{count !== 1 ? 's' : ''}
+                                </Text>
+                              </View>
                             </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>
-                                {chName}
-                              </Text>
-                              <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
-                                {count} lecture{count !== 1 ? 's' : ''}
-                              </Text>
-                            </View>
-                          </View>
-                          <ChevronRight size={16} color="#94A3B8" />
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                            <ChevronRight size={15} color="#94A3B8" />
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               )}
 
               {/* LEVEL 2: Lectures List inside Chapter (Screenshot 7) */}
               {selectedVideoSubject && selectedVideoChapter && (
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: 10, flex: 1 }}>
                   {/* Back Navigation Header */}
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -1460,7 +1536,7 @@ export function BatchDetailAdminModal({
 
                   {/* Header Row: TOTAL (X) and RECENT ▾ sort */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
                       TOTAL ({filteredLectures.length})
                     </Text>
                     <View
@@ -1483,12 +1559,14 @@ export function BatchDetailAdminModal({
 
                   {/* Lectures List */}
                   {filteredLectures.length === 0 ? (
-                    <EmptyState
-                      title="No lectures uploaded"
-                      description="Add video lessons to this chapter folder for your students."
-                      actionLabel="Add Video Lecture"
-                      onAction={() => setAddLectureModalVisible(true)}
-                    />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No lectures uploaded"
+                        description="Add video lessons to this chapter folder for your students."
+                        actionLabel="Add Video Lecture"
+                        onAction={() => setAddLectureModalVisible(true)}
+                      />
+                    </View>
                   ) : (
                     filteredLectures.map((l) => (
                       <View
@@ -1626,35 +1704,37 @@ export function BatchDetailAdminModal({
 
           {/* 3. STUDY MATERIAL TAB (3-level folder hierarchy matching Screenshots 8, 9, 10) */}
           {activeTab === 'materials' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 12, flex: 1, minHeight: availableTabHeight }}>
               {/* Header row: Title + Upload PDF */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Batch Study Material</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>Batch Study Material</Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
                     {batchResources.length} PDF documents & notes
                   </Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   onPress={() => setAddResourceModalVisible(true)}
                   style={{
                     backgroundColor: '#2563EB',
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 10,
+                    paddingHorizontal: 11,
+                    paddingVertical: 7,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 4,
+                    flexShrink: 0,
                   }}
                 >
-                  <Plus size={15} color="#FFFFFF" />
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Upload PDF</Text>
+                  <Plus size={14} color="#FFFFFF" />
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Upload PDF</Text>
                 </TouchableOpacity>
               </View>
 
               {/* LEVEL 0: Book / Subject Folders List (Screenshot 8) */}
               {!selectedMaterialBook && (
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: 10, flex: 1 }}>
                   {/* Search Bar */}
                   <View
                     style={{
@@ -1685,7 +1765,7 @@ export function BatchDetailAdminModal({
 
                   {/* Header Row: TOTAL (X) and RECENT ▾ sort */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
                       TOTAL ({materialBooks.length})
                     </Text>
                     <View
@@ -1708,12 +1788,14 @@ export function BatchDetailAdminModal({
 
                   {/* Folders List */}
                   {materialBooks.length === 0 ? (
-                    <EmptyState
-                      title="No study material uploaded"
-                      description="Upload exercise sheets, Selina solutions, or notes for this batch."
-                      actionLabel="Upload PDF"
-                      onAction={() => setAddResourceModalVisible(true)}
-                    />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No study material uploaded"
+                        description="Upload exercise sheets, Selina solutions, or notes for this batch."
+                        actionLabel="Upload PDF"
+                        onAction={() => setAddResourceModalVisible(true)}
+                      />
+                    </View>
                   ) : (
                     <View style={{ gap: 8 }}>
                       {materialBooks
@@ -1739,7 +1821,7 @@ export function BatchDetailAdminModal({
                               style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: 14,
-                                padding: 14,
+                                padding: 12,
                                 borderWidth: 1,
                                 borderColor: '#E2E8F0',
                                 flexDirection: 'row',
@@ -1752,29 +1834,29 @@ export function BatchDetailAdminModal({
                                 shadowRadius: 2,
                               }}
                             >
-                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, marginRight: 8 }}>
                                 <View
                                   style={{
-                                    width: 42,
-                                    height: 42,
+                                    width: 38,
+                                    height: 38,
                                     borderRadius: 10,
                                     backgroundColor: '#EFF6FF',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                   }}
                                 >
-                                  <Folder size={22} color="#2563EB" />
+                                  <Folder size={18} color="#2563EB" />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                  <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>
+                                  <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
                                     {bName}
                                   </Text>
-                                  <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+                                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
                                     {chCount} chapter{chCount !== 1 ? 's' : ''} • {docCount} document{docCount !== 1 ? 's' : ''}
                                   </Text>
                                 </View>
                               </View>
-                              <ChevronRight size={16} color="#94A3B8" />
+                              <ChevronRight size={15} color="#94A3B8" />
                             </TouchableOpacity>
                           );
                         })}
@@ -1863,12 +1945,14 @@ export function BatchDetailAdminModal({
 
                   {/* Chapter Folders List */}
                   {materialChaptersForBook.length === 0 ? (
-                    <EmptyState
-                      title="No chapters found"
-                      description="No chapter subfolders exist in this book yet."
-                      actionLabel="Upload PDF"
-                      onAction={() => setAddResourceModalVisible(true)}
-                    />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No chapters found"
+                        description="No chapter subfolders exist in this book yet."
+                        actionLabel="Upload PDF"
+                        onAction={() => setAddResourceModalVisible(true)}
+                      />
+                    </View>
                   ) : (
                     <View style={{ gap: 8 }}>
                       {materialChaptersForBook
@@ -1890,7 +1974,7 @@ export function BatchDetailAdminModal({
                               style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: 14,
-                                padding: 14,
+                                padding: 12,
                                 borderWidth: 1,
                                 borderColor: '#E2E8F0',
                                 flexDirection: 'row',
@@ -1903,29 +1987,29 @@ export function BatchDetailAdminModal({
                                 shadowRadius: 2,
                               }}
                             >
-                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, marginRight: 8 }}>
                                 <View
                                   style={{
-                                    width: 40,
-                                    height: 40,
+                                    width: 38,
+                                    height: 38,
                                     borderRadius: 10,
                                     backgroundColor: '#EFF6FF',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                   }}
                                 >
-                                  <Folder size={20} color="#2563EB" />
+                                  <Folder size={18} color="#2563EB" />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                  <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>
+                                  <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
                                     {chName}
                                   </Text>
-                                  <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+                                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
                                     {count} PDF file{count !== 1 ? 's' : ''}
                                   </Text>
                                 </View>
                               </View>
-                              <ChevronRight size={16} color="#94A3B8" />
+                              <ChevronRight size={15} color="#94A3B8" />
                             </TouchableOpacity>
                           );
                         })}
@@ -1936,7 +2020,7 @@ export function BatchDetailAdminModal({
 
               {/* LEVEL 2: PDF Document items inside Chapter (Screenshot 10) */}
               {selectedMaterialBook && selectedMaterialChapter && (
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: 10, flex: 1 }}>
                   {/* Back Navigation Header */}
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -1991,7 +2075,7 @@ export function BatchDetailAdminModal({
 
                   {/* Header Row: TOTAL (X) and RECENT ▾ sort */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 }}>
                       TOTAL ({filteredResources.length})
                     </Text>
                     <View
@@ -2014,12 +2098,14 @@ export function BatchDetailAdminModal({
 
                   {/* PDF Document Cards */}
                   {filteredResources.length === 0 ? (
-                    <EmptyState
-                      title="No documents uploaded"
-                      description="Add PDF exercises or notes to this chapter folder."
-                      actionLabel="Upload PDF"
-                      onAction={() => setAddResourceModalVisible(true)}
-                    />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 115, 460), paddingVertical: 20 }}>
+                      <EmptyState
+                        title="No documents uploaded"
+                        description="Add PDF exercises or notes to this chapter folder."
+                        actionLabel="Upload PDF"
+                        onAction={() => setAddResourceModalVisible(true)}
+                      />
+                    </View>
                   ) : (
                     filteredResources.map((res) => (
                       <View
@@ -2150,38 +2236,42 @@ export function BatchDetailAdminModal({
 
           {/* 4. ASSIGNMENTS TAB (Matching Classplus Homework) */}
           {activeTab === 'assignments' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 12, flex: 1, minHeight: availableTabHeight }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Batch Assignments</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Batch Assignments</Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
                     Homework and worksheets given to this batch
                   </Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   onPress={() => setAddAssignmentModalVisible(true)}
                   style={{
                     backgroundColor: '#2563EB',
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 10,
+                    paddingVertical: 7,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 5,
+                    flexShrink: 0,
                   }}
                 >
-                  <Plus size={15} color="#FFFFFF" />
+                  <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
                   <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>New Assignment</Text>
                 </TouchableOpacity>
               </View>
 
               {batchAssignments.length === 0 ? (
-                <EmptyState
-                  title="No assignments yet"
-                  description="Assign homework or worksheets with submission due dates."
-                  actionLabel="Create Assignment"
-                  onAction={() => setAddAssignmentModalVisible(true)}
-                />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 70, 480), paddingVertical: 20 }}>
+                  <EmptyState
+                    title="No assignments yet"
+                    description="Assign homework or worksheets with submission due dates."
+                    actionLabel="Create Assignment"
+                    onAction={() => setAddAssignmentModalVisible(true)}
+                  />
+                </View>
               ) : (
                 batchAssignments.map((asg) => {
                   const subsCount = asg.submissions.length;
@@ -2298,38 +2388,42 @@ export function BatchDetailAdminModal({
 
           {/* 5. ANNOUNCEMENTS TAB */}
           {activeTab === 'announcements' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 12, flex: 1, minHeight: availableTabHeight }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Batch Notice Board</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Batch Notice Board</Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
                     Announcements broadcast to students in this batch
                   </Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   onPress={() => setAddAnnouncementModalVisible(true)}
                   style={{
                     backgroundColor: '#2563EB',
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 10,
+                    paddingVertical: 7,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 5,
+                    flexShrink: 0,
                   }}
                 >
-                  <Plus size={15} color="#FFFFFF" />
+                  <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
                   <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Post Notice</Text>
                 </TouchableOpacity>
               </View>
 
               {batchAnnouncements.length === 0 ? (
-                <EmptyState
-                  title="No notices posted"
-                  description="Post alerts about tests, schedule changes, or holidays."
-                  actionLabel="Post Notice"
-                  onAction={() => setAddAnnouncementModalVisible(true)}
-                />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 70, 480), paddingVertical: 20 }}>
+                  <EmptyState
+                    title="No notices posted"
+                    description="Post alerts about tests, schedule changes, or holidays."
+                    actionLabel="Post Notice"
+                    onAction={() => setAddAnnouncementModalVisible(true)}
+                  />
+                </View>
               ) : (
                 batchAnnouncements.map((ann) => (
                   <View
@@ -2337,21 +2431,31 @@ export function BatchDetailAdminModal({
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: 14,
-                      padding: 14,
+                      padding: 12,
                       borderWidth: 1,
                       borderColor: '#E2E8F0',
                       gap: 8,
-                      borderLeftWidth: 4,
+                      borderLeftWidth: 3.5,
                       borderLeftColor: ann.priority === 'urgent' ? '#EF4444' : '#2563EB',
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Badge
-                        label={ann.priority.toUpperCase()}
-                        variant={ann.priority === 'urgent' ? 'danger' : 'primary'}
-                        size="sm"
-                      />
+                      <View
+                        style={{
+                          backgroundColor: ann.priority === 'urgent' ? '#FEE2E2' : '#EFF6FF',
+                          paddingHorizontal: 7,
+                          paddingVertical: 2,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: ann.priority === 'urgent' ? '#FECACA' : '#BFDBFE',
+                        }}
+                      >
+                        <Text style={{ fontSize: 9.5, fontWeight: '800', color: ann.priority === 'urgent' ? '#DC2626' : '#2563EB' }}>
+                          {ann.priority.toUpperCase()}
+                        </Text>
+                      </View>
                       <TouchableOpacity
+                        activeOpacity={0.7}
                         onPress={() => {
                           Alert.alert('Delete Notice', 'Delete this announcement?', [
                             { text: 'Cancel', style: 'cancel' },
@@ -2365,15 +2469,25 @@ export function BatchDetailAdminModal({
                             },
                           ]);
                         }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
                         <Trash2 size={14} color="#EF4444" />
                       </TouchableOpacity>
                     </View>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{ann.title}</Text>
-                    <Text style={{ fontSize: 12.5, color: '#334155', lineHeight: 18 }}>{ann.body}</Text>
-                    <Text style={{ fontSize: 10.5, color: '#94A3B8', marginTop: 2 }}>
-                      Posted on {new Date(ann.createdAt).toLocaleDateString('en-IN')} by {ann.authorName}
-                    </Text>
+                    <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>{ann.title}</Text>
+                    <Text style={{ fontSize: 11.5, color: '#334155', lineHeight: 16 }}>{ann.body}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                      {getFacultyAvatarSource(ann.authorName) ? (
+                        <Image
+                          source={getFacultyAvatarSource(ann.authorName)!}
+                          style={{ width: 14, height: 14, borderRadius: 7 }}
+                          contentFit="cover"
+                        />
+                      ) : null}
+                      <Text style={{ fontSize: 10, color: '#94A3B8' }}>
+                        Posted on {new Date(ann.createdAt).toLocaleDateString('en-IN')} by {ann.authorName}
+                      </Text>
+                    </View>
                   </View>
                 ))
               )}
@@ -2382,21 +2496,23 @@ export function BatchDetailAdminModal({
 
           {/* 6. TESTS TAB */}
           {activeTab === 'tests' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 12, flex: 1, minHeight: availableTabHeight }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Batch Tests & Quizzes</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Batch Tests & Quizzes</Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
                     Scheduled assessments and results
                   </Text>
                 </View>
               </View>
 
               {batchTests.length === 0 ? (
-                <EmptyState
-                  title="No tests assigned"
-                  description="Create assessments and assign them to this batch."
-                />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 70, 480), paddingVertical: 20 }}>
+                  <EmptyState
+                    title="No tests assigned"
+                    description="Create assessments and assign them to this batch."
+                  />
+                </View>
               ) : (
                 batchTests.map((t) => (
                   <View
@@ -2471,7 +2587,7 @@ export function BatchDetailAdminModal({
 
           {/* 7. LIVE CLASSES TAB */}
           {activeTab === 'live' && (
-            <View style={{ gap: 14 }}>
+            <View style={{ flex: 1, minHeight: availableTabHeight, gap: 14 }}>
               {/* Studio Header Card */}
               <View
                 style={{
@@ -2504,15 +2620,27 @@ export function BatchDetailAdminModal({
                     }}
                   >
                     <Radio size={20} color="#2563EB" />
+                    {activeLiveClass && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -2,
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: '#EF4444',
+                          borderWidth: 2,
+                          borderColor: '#FFFFFF',
+                        }}
+                      />
+                    )}
                   </View>
                   <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Live Lectures Console</Text>
-                      {activeLiveClass && (
-                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' }} />
-                      )}
-                    </View>
-                    <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>
+                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                      Live Lectures Console
+                    </Text>
+                    <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
                       Zoom, YouTube Live & Google Meet sessions
                     </Text>
                   </View>
@@ -2531,6 +2659,7 @@ export function BatchDetailAdminModal({
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 5,
+                    flexShrink: 0,
                     elevation: 2,
                     shadowColor: '#2563EB',
                     shadowOffset: { width: 0, height: 2 },
@@ -2544,12 +2673,14 @@ export function BatchDetailAdminModal({
               </View>
 
               {batchLiveClasses.length === 0 ? (
-                <EmptyState
-                  title="No live classes scheduled"
-                  description="Schedule an online interactive lecture with meeting link for this batch."
-                  actionLabel="Schedule Live Class"
-                  onAction={() => setScheduleLiveModalVisible(true)}
-                />
+                <View style={{ flex: 1, minHeight: Math.max(availableTabHeight - 95, 460), justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
+                  <EmptyState
+                    title="No live classes scheduled"
+                    description="Schedule an online interactive lecture with meeting link for this batch."
+                    actionLabel="Schedule Live Class"
+                    onAction={() => setScheduleLiveModalVisible(true)}
+                  />
+                </View>
               ) : (
                 batchLiveClasses.map((live) => {
                   const isZoom = live.platform.toLowerCase() === 'zoom';
@@ -2646,9 +2777,18 @@ export function BatchDetailAdminModal({
                         <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#0F172A', lineHeight: 21 }}>
                           {live.title}
                         </Text>
-                        <Text style={{ fontSize: 12, color: '#475569', lineHeight: 18 }}>
-                          Faculty: <Text style={{ fontWeight: '700', color: '#1E293B' }}>{live.faculty}</Text> • Time: {new Date(live.scheduledAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} ({live.duration})
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          {getFacultyAvatarSource(live.faculty) && (
+                            <Image
+                              source={getFacultyAvatarSource(live.faculty)!}
+                              style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1, borderColor: '#CBD5E1' }}
+                              resizeMode="cover"
+                            />
+                          )}
+                          <Text style={{ fontSize: 12, color: '#475569', lineHeight: 18, flexShrink: 1 }}>
+                            Faculty: <Text style={{ fontWeight: '700', color: '#1E293B' }}>{live.faculty}</Text> • Time: {new Date(live.scheduledAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} ({live.duration})
+                          </Text>
+                        </View>
                       </View>
 
                       {/* Ticket: Meeting ID & Passcode with 1-tap Copy/Share */}
@@ -2798,7 +2938,7 @@ export function BatchDetailAdminModal({
 
           {/* 8. ATTENDANCE TAB (Matching Classplus daily attendance sheet) */}
           {activeTab === 'attendance' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ flex: 1, minHeight: availableTabHeight, gap: 12 }}>
               {/* Date Header & Quick Actions */}
               <View
                 style={{
@@ -2811,16 +2951,16 @@ export function BatchDetailAdminModal({
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View>
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }}>
+                  <View style={{ flex: 1, marginRight: 10 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }} numberOfLines={1}>
                       Marking Attendance For
                     </Text>
-                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', marginTop: 2 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', marginTop: 2 }} numberOfLines={1}>
                       {attendanceDate} {attendanceDate === todayStr ? '(Today)' : ''}
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
                     <TouchableOpacity
                       onPress={() => {
                         const allP: Record<string, 'P' | 'A' | 'L'> = {};
@@ -2872,18 +3012,20 @@ export function BatchDetailAdminModal({
               </View>
 
               {/* Student Attendance Roster */}
-              <View style={{ gap: 8 }}>
+              <View style={{ flex: 1, gap: 8 }}>
                 <Text style={{ fontSize: 11, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }}>
                   Student Attendance Roster ({batchStudents.length})
                 </Text>
 
                 {batchStudents.length === 0 ? (
-                  <EmptyState
-                    title="No students enrolled"
-                    description="Enroll students into this batch to track daily attendance."
-                    actionLabel="Add Student"
-                    onAction={() => setAddStudentModalVisible(true)}
-                  />
+                  <View style={{ flex: 1, minHeight: Math.max(availableTabHeight - 230, 360), justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
+                    <EmptyState
+                      title="No students enrolled"
+                      description="Enroll students into this batch to track daily attendance."
+                      actionLabel="Add Student"
+                      onAction={() => setAddStudentModalVisible(true)}
+                    />
+                  </View>
                 ) : (
                   batchStudents.map((stud, idx) => {
                     const status = dailyAttendance[stud.id] || 'P';
@@ -2917,13 +3059,13 @@ export function BatchDetailAdminModal({
                             </Text>
                           </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}>{stud.fullName}</Text>
-                            <Text style={{ fontSize: 10.5, color: '#64748B' }}>{stud.school}</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>{stud.fullName}</Text>
+                            <Text style={{ fontSize: 10.5, color: '#64748B' }} numberOfLines={1}>{stud.school}</Text>
                           </View>
                         </View>
 
                         {/* P / A / L Selector Pills */}
-                        <View style={{ flexDirection: 'row', gap: 6 }}>
+                        <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
                           <TouchableOpacity
                             onPress={() => {
                               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -3014,11 +3156,11 @@ export function BatchDetailAdminModal({
 
           {/* 9. STUDENTS TAB (Batch Roster with Classplus 1-tap call/whatsapp) */}
           {activeTab === 'students' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ flex: 1, minHeight: availableTabHeight, gap: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Batch Student Roster</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Batch Student Roster</Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
                     {batchStudents.length} of {batch.capacity} capacity enrolled
                   </Text>
                 </View>
@@ -3032,6 +3174,7 @@ export function BatchDetailAdminModal({
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 4,
+                    flexShrink: 0,
                   }}
                 >
                   <Plus size={15} color="#FFFFFF" />
@@ -3064,16 +3207,34 @@ export function BatchDetailAdminModal({
 
               {/* Students List */}
               {batchStudents.length === 0 ? (
-                <EmptyState
-                  title="No students enrolled yet"
-                  description="Add students from your institute registry or share the batch code."
-                  actionLabel="Add Student"
-                  onAction={() => setAddStudentModalVisible(true)}
-                />
+                <View style={{ flex: 1, minHeight: Math.max(availableTabHeight - 120, 440), justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
+                  <EmptyState
+                    title="No students enrolled yet"
+                    description="Add students from your institute registry or share the batch code."
+                    actionLabel="Add Student"
+                    onAction={() => setAddStudentModalVisible(true)}
+                  />
+                </View>
               ) : (
-                batchStudents
-                  .filter((s) => s.fullName.toLowerCase().includes(studentSearch.toLowerCase()) || s.school.toLowerCase().includes(studentSearch.toLowerCase()))
-                  .map((stud) => (
+                (() => {
+                  const filteredStudents = batchStudents.filter(
+                    (s) =>
+                      s.fullName.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                      s.school.toLowerCase().includes(studentSearch.toLowerCase())
+                  );
+                  if (filteredStudents.length === 0) {
+                    return (
+                      <View style={{ flex: 1, minHeight: Math.max(availableTabHeight - 120, 360), justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
+                        <EmptyState
+                          title="No students found"
+                          description={`No student matches "${studentSearch}". Try a different name or school.`}
+                          actionLabel="Clear Search"
+                          onAction={() => setStudentSearch('')}
+                        />
+                      </View>
+                    );
+                  }
+                  return filteredStudents.map((stud) => (
                     <View
                       key={stud.id}
                       style={{
@@ -3208,7 +3369,8 @@ export function BatchDetailAdminModal({
                         )}
                       </View>
                     </View>
-                  ))
+                  ));
+                })()
               )}
             </View>
           )}
@@ -3391,7 +3553,7 @@ function ActionButton({
 }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={0.8}
       onPress={() => {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
@@ -3400,9 +3562,9 @@ function ActionButton({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 14,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E2E8F0',
         elevation: 1,
@@ -3410,16 +3572,16 @@ function ActionButton({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.04,
         shadowRadius: 2,
-        gap: 10,
+        gap: 8,
         flex: 1,
         minWidth: '47%',
       }}
     >
       <View
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 10,
+          width: 28,
+          height: 28,
+          borderRadius: 8,
           backgroundColor: bgColor,
           alignItems: 'center',
           justifyContent: 'center',
@@ -3427,7 +3589,7 @@ function ActionButton({
       >
         {icon}
       </View>
-      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A', flex: 1 }} numberOfLines={1}>
+      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A', flex: 1 }} numberOfLines={1}>
         {label}
       </Text>
     </TouchableOpacity>

@@ -1,7 +1,63 @@
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
-export const ADMIN_DATA_STORAGE_KEY = 'q2l_admin_portal_data_v4';
+export const ADMIN_DATA_STORAGE_KEY = 'q2l_admin_portal_data_v5';
+
+export interface AdminCourseItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  thumbnailUrl: string;
+  classLevel: 9 | 10 | 11 | 12;
+  targetClass?: 9 | 10 | 11 | 12;
+  board: 'cbse' | 'icse' | 'isc' | 'all';
+  subjects: string[];
+  price: number;
+  originalPrice?: number;
+  discountedPrice?: number;
+  validityDays?: number;
+  validity?: string;
+  badge?: string;
+  features: string[];
+  enrolledCount: number;
+  isPublished: boolean;
+  status?: 'published' | 'draft';
+  faculty: string;
+  rating: number;
+  reviewsCount: number;
+  batchId?: string;
+  createdAt: string;
+}
+
+export interface ChatMessageItem {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'admin' | 'teacher' | 'student';
+  senderType?: 'admin' | 'teacher' | 'student';
+  text: string;
+  time?: string;
+  imageUrl?: string;
+  createdAt: string;
+}
+
+export interface AdminChatChannelItem {
+  id: string;
+  type: 'batch_group' | 'direct' | 'announcements';
+  title: string;
+  subtitle?: string;
+  batchId?: string;
+  studentId?: string;
+  studentName?: string;
+  facultyName?: string;
+  avatarUrl?: string;
+  unreadCount: number;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  messages: ChatMessageItem[];
+  createdAt: string;
+}
 
 export interface BatchTimingItem {
   id: string;
@@ -267,6 +323,8 @@ export interface AdminEnquiryItem {
 
 export interface AdminPortalState {
   batches: BatchItem[];
+  courses: AdminCourseItem[];
+  chats: AdminChatChannelItem[];
   joinRequests: JoinRequestItem[];
   lectures: AdminLectureItem[];
   resources: AdminResourceItem[];
@@ -1526,10 +1584,290 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       savedAt: '2026-10-20T17:30:00Z',
     },
   ],
+
+  courses: [
+    {
+      id: 'course-ix-icse-maths-sci',
+      title: 'Class 9 ICSE Complete Maths & Science',
+      subtitle: 'Comprehensive Selina Solutions & Board Preparation',
+      description: 'Master Class 9 ICSE Mathematics and Science with Dinesh Singh Rajput & expert faculty. Includes full video lectures for all chapters, exercise-by-exercise Selina solutions in PDF, regular chapter tests, and live doubt clearing sessions.',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=600&q=80',
+      classLevel: 9,
+      targetClass: 9,
+      board: 'icse',
+      subjects: ['Maths', 'Physics', 'Chemistry', 'Biology'],
+      price: 16999,
+      originalPrice: 16999,
+      discountedPrice: 12999,
+      validityDays: 365,
+      validity: '365 Days Access',
+      badge: 'Bestseller',
+      features: [
+        'Complete Selina Solutions PDF',
+        'Chapter-wise Recorded Video Lectures',
+        'Live Class Access & Recordings',
+        'Weekly Assessment & Chapter Tests',
+        'Direct Teacher Doubt Support',
+      ],
+      enrolledCount: 28,
+      isPublished: true,
+      status: 'published',
+      faculty: 'DINESH SINGH RAJPUT',
+      rating: 4.9,
+      reviewsCount: 114,
+      batchId: 'batch-ix-icse-maths-sci',
+      createdAt: '2026-04-20T10:00:00Z',
+    },
+    {
+      id: 'course-x-cbse-board-booster',
+      title: 'Class 10 CBSE Board 2027 Full Booster',
+      subtitle: 'Maths & Science Target 100/100',
+      description: 'The proven Class 10 CBSE program covering NCERT, exemplar, and past 10-year board questions. In-depth concept mastery and speed-building tests.',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80',
+      classLevel: 10,
+      targetClass: 10,
+      board: 'cbse',
+      subjects: ['Maths', 'Science'],
+      price: 18999,
+      originalPrice: 18999,
+      discountedPrice: 14999,
+      validityDays: 365,
+      validity: 'Till Boards 2027',
+      badge: 'Popular',
+      features: [
+        'Complete NCERT & Exemplar Solutions',
+        '100+ Chapter Video Lectures',
+        'Formula Sheet & Quick Revision Notes',
+        'Full Length Mock Board Exams',
+      ],
+      enrolledCount: 42,
+      isPublished: true,
+      status: 'published',
+      faculty: 'DINESH SINGH RAJPUT',
+      rating: 4.95,
+      reviewsCount: 186,
+      batchId: 'batch-x-cbse-board',
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
+      id: 'course-selina-solutions-mastery',
+      title: 'Selina ICSE Mathematics & Science Solutions Master Pack',
+      subtitle: 'Complete Exercise Solutions for Classes 9 & 10',
+      description: 'Instant access to chapter-by-chapter Selina Concise Mathematics and Science solutions with step-by-step explanations, downloadable offline PDFs, and formula cheat sheets.',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
+      classLevel: 9,
+      targetClass: 9,
+      board: 'icse',
+      subjects: ['Maths', 'Physics', 'Chemistry', 'Biology'],
+      price: 5000,
+      originalPrice: 5000,
+      discountedPrice: 3499,
+      validityDays: 365,
+      validity: '365 Days Access',
+      badge: 'PDF Pack',
+      features: [
+        'All Exercises (Expansions, Factorisation, etc.)',
+        'High-Resolution Downloadable PDFs',
+        'Step-by-step ICSE Marking Scheme',
+        'Offline Study Access',
+      ],
+      enrolledCount: 65,
+      isPublished: true,
+      status: 'published',
+      faculty: 'DINESH SINGH RAJPUT',
+      rating: 4.88,
+      reviewsCount: 92,
+      createdAt: '2026-04-15T10:00:00Z',
+    },
+    {
+      id: 'course-xi-jee-neet-foundation',
+      title: 'Class 11 Science & JEE/NEET Foundation',
+      subtitle: 'Calculus, Mechanics & Physical Chemistry',
+      description: 'Bridge the gap from Class 10 to 11 with rigorous foundation coaching designed for CBSE Board, JEE Main & Advanced, and NEET.',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80',
+      classLevel: 11,
+      targetClass: 11,
+      board: 'cbse',
+      subjects: ['Physics', 'Chemistry', 'Mathematics'],
+      price: 32000,
+      originalPrice: 32000,
+      discountedPrice: 24999,
+      validityDays: 365,
+      validity: '1 Year Program',
+      badge: 'Advanced',
+      features: [
+        'JEE / NEET Question Banks & PYQs',
+        'Daily Practice Problems (DPPs)',
+        'Weekly Sunday Test Series',
+        '1-on-1 Mentorship Sessions',
+      ],
+      enrolledCount: 31,
+      isPublished: true,
+      status: 'published',
+      faculty: 'Dinesh Sir & Senior Faculty',
+      rating: 4.92,
+      reviewsCount: 78,
+      createdAt: '2026-04-10T10:00:00Z',
+    },
+  ],
+
+  chats: [
+    {
+      id: 'chat-batch-ix-icse',
+      type: 'batch_group',
+      title: 'IX ICSE Batch Discussion',
+      subtitle: 'Class 9 Maths & Science • 28 Students',
+      batchId: 'batch-ix-icse-maths-sci',
+      facultyName: 'DINESH SINGH RAJPUT',
+      unreadCount: 0,
+      lastMessage: 'All questions from Ex 2(C) are now uploaded with solutions.',
+      lastMessageTime: '2026-10-22T14:30:00Z',
+      messages: [
+        {
+          id: 'msg-01',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'Welcome students! In this group we will discuss lecture doubts, assignments, and test updates.',
+          createdAt: '2026-05-20T10:00:00Z',
+        },
+        {
+          id: 'msg-02',
+          senderId: 'stud-01',
+          senderName: 'Aarav Sharma',
+          senderRole: 'student',
+          text: 'Sir, when is the next Selina Chapter 4 Expansions practice sheet test?',
+          createdAt: '2026-10-21T16:15:00Z',
+        },
+        {
+          id: 'msg-03',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'The test will be live this Saturday at 05:00 PM. Please review EX 4(A) and EX 4(B) notes in the Study Material tab.',
+          createdAt: '2026-10-21T16:45:00Z',
+        },
+        {
+          id: 'msg-04',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'All questions from Ex 2(C) are now uploaded with solutions.',
+          createdAt: '2026-10-22T14:30:00Z',
+        },
+      ],
+      createdAt: '2026-04-22T10:00:00Z',
+    },
+    {
+      id: 'chat-batch-x-cbse',
+      type: 'batch_group',
+      title: 'Class 10 CBSE Board Group',
+      subtitle: 'Maths & Science Excellence • 42 Students',
+      batchId: 'batch-x-cbse-board',
+      facultyName: 'DINESH SINGH RAJPUT',
+      unreadCount: 1,
+      lastMessage: 'Tomorrow class will cover Quadratic Equations word problems.',
+      lastMessageTime: '2026-10-22T12:00:00Z',
+      messages: [
+        {
+          id: 'msg-10',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'Tomorrow class will cover Quadratic Equations word problems.',
+          createdAt: '2026-10-22T12:00:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
+      id: 'chat-direct-aarav',
+      type: 'direct',
+      title: 'Aarav Sharma',
+      subtitle: 'Class 9 ICSE • Roll #12',
+      studentId: 'stud-01',
+      studentName: 'Aarav Sharma',
+      facultyName: 'Dinesh Singh Rajput',
+      unreadCount: 0,
+      lastMessage: 'Thank you Sir, the concept in Ex 2(C) is clear now!',
+      lastMessageTime: '2026-10-22T15:10:00Z',
+      messages: [
+        {
+          id: 'msg-21',
+          senderId: 'stud-01',
+          senderName: 'Aarav Sharma',
+          senderRole: 'student',
+          text: 'Sir, could you please check if my step in Expansions formula is valid for ICSE?',
+          createdAt: '2026-10-22T14:50:00Z',
+        },
+        {
+          id: 'msg-22',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput',
+          senderRole: 'admin',
+          text: 'Yes Aarav, using (a+b+c)^2 identity directly is standard and awards full marks. Good work.',
+          createdAt: '2026-10-22T15:05:00Z',
+        },
+        {
+          id: 'msg-23',
+          senderId: 'stud-01',
+          senderName: 'Aarav Sharma',
+          senderRole: 'student',
+          text: 'Thank you Sir, the concept in Ex 2(C) is clear now!',
+          createdAt: '2026-10-22T15:10:00Z',
+        },
+      ],
+      createdAt: '2026-05-01T10:00:00Z',
+    },
+    {
+      id: 'chat-announcements',
+      type: 'announcements',
+      title: 'Quick2Learn Official Broadcast',
+      subtitle: 'All Batches & Institute Notices',
+      facultyName: 'Quick2Learn Administration',
+      unreadCount: 0,
+      lastMessage: 'Diwali break schedule and revision assignments posted.',
+      lastMessageTime: '2026-10-22T09:00:00Z',
+      messages: [
+        {
+          id: 'msg-30',
+          senderId: 'admin-inst',
+          senderName: 'Quick2Learn Administration',
+          senderRole: 'admin',
+          text: 'Welcome to Quick2Learn! Live classes, tests, and study notes are synchronized here.',
+          createdAt: '2026-04-01T08:00:00Z',
+        },
+        {
+          id: 'msg-31',
+          senderId: 'admin-inst',
+          senderName: 'Quick2Learn Administration',
+          senderRole: 'admin',
+          text: 'Diwali break schedule and revision assignments posted in the Announcements tab.',
+          createdAt: '2026-10-22T09:00:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T08:00:00Z',
+    },
+  ],
 };
 
 interface AdminStoreActions {
   init: () => Promise<void>;
+  // Courses
+  createCourse: (course: Omit<AdminCourseItem, 'id' | 'createdAt' | 'enrolledCount' | 'rating' | 'reviewsCount'>) => Promise<AdminCourseItem>;
+  updateCourse: (id: string, updates: Partial<AdminCourseItem>) => Promise<void>;
+  deleteCourse: (id: string) => Promise<void>;
+
+  // Chats
+  sendChatMessage: (
+    channelId: string,
+    text: string,
+    senderRole?: 'admin' | 'teacher' | 'student',
+    senderName?: string,
+    imageUrl?: string
+  ) => Promise<ChatMessageItem>;
+  createChatChannel: (channel: Omit<AdminChatChannelItem, 'id' | 'createdAt' | 'messages' | 'unreadCount'>) => Promise<AdminChatChannelItem>;
+
   // Batches
   createBatch: (batch: Omit<BatchItem, 'id' | 'enrolledCount' | 'joinCode'>) => Promise<BatchItem>;
   updateBatch: (id: string, updates: Partial<BatchItem>) => Promise<void>;
@@ -1623,6 +1961,24 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
           assignments: parsed.assignments || INITIAL_ADMIN_DATA.assignments,
           liveClasses: parsed.liveClasses || INITIAL_ADMIN_DATA.liveClasses,
           attendanceRecords: parsed.attendanceRecords || INITIAL_ADMIN_DATA.attendanceRecords,
+          courses: (parsed.courses || INITIAL_ADMIN_DATA.courses).map((c: any) => {
+            const classLevel = c.classLevel || c.targetClass || 9;
+            const isPublished = c.isPublished !== undefined ? c.isPublished : c.status === 'published';
+            const price = c.price || c.originalPrice || 9999;
+            const discountedPrice = c.discountedPrice ?? price;
+            return {
+              ...c,
+              classLevel,
+              targetClass: classLevel,
+              isPublished,
+              status: isPublished ? 'published' : 'draft',
+              price,
+              originalPrice: c.originalPrice || price,
+              discountedPrice,
+              validity: c.validity || `${c.validityDays || 365} Days Access`,
+            };
+          }),
+          chats: parsed.chats || INITIAL_ADMIN_DATA.chats,
           isInitialized: true,
         });
         return;
@@ -2061,6 +2417,121 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     await persistState(get());
   },
 
+  // Courses Actions
+  createCourse: async (courseInput) => {
+    const newId = `course-${Date.now()}`;
+    const classLevel = courseInput.classLevel || courseInput.targetClass || 9;
+    const isPublished =
+      courseInput.isPublished !== undefined
+        ? courseInput.isPublished
+        : courseInput.status === 'published';
+    const price = courseInput.price || courseInput.originalPrice || 9999;
+    const discountedPrice = courseInput.discountedPrice ?? price;
+    const newCourse: AdminCourseItem = {
+      ...courseInput,
+      id: newId,
+      classLevel,
+      targetClass: classLevel,
+      isPublished,
+      status: isPublished ? 'published' : 'draft',
+      price,
+      originalPrice: courseInput.originalPrice || price,
+      discountedPrice,
+      validity: courseInput.validity || `${courseInput.validityDays || 365} Days Access`,
+      enrolledCount: 0,
+      rating: 5.0,
+      reviewsCount: 1,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newCourse, ...get().courses];
+    set({ courses: updated });
+    await persistState(get());
+    return newCourse;
+  },
+
+  updateCourse: async (id, updates) => {
+    const updated = get().courses.map((c) => {
+      if (c.id !== id) return c;
+      const classLevel = updates.classLevel || updates.targetClass || c.classLevel;
+      const isPublished =
+        updates.isPublished !== undefined
+          ? updates.isPublished
+          : updates.status !== undefined
+          ? updates.status === 'published'
+          : c.isPublished;
+      const status = updates.status || (isPublished ? 'published' : 'draft');
+      const discountedPrice = updates.discountedPrice ?? updates.price ?? c.discountedPrice;
+      return {
+        ...c,
+        ...updates,
+        classLevel,
+        targetClass: classLevel,
+        isPublished,
+        status,
+        discountedPrice,
+      };
+    });
+    set({ courses: updated });
+    await persistState(get());
+  },
+
+  deleteCourse: async (id) => {
+    const updated = get().courses.filter((c) => c.id !== id);
+    set({ courses: updated });
+    await persistState(get());
+  },
+
+  // Chats Actions
+  sendChatMessage: async (channelId, text, senderRole = 'admin', senderName, imageUrl) => {
+    const role = senderRole || 'admin';
+    const name =
+      senderName ||
+      (role === 'admin'
+        ? 'Dinesh Singh Rajput (Administrator)'
+        : role === 'teacher'
+        ? 'Dinesh Singh Rajput (Faculty)'
+        : 'Student');
+    const newMsg: ChatMessageItem = {
+      id: `msg-${Date.now()}`,
+      senderId: role === 'student' ? 'stud-01' : 'faculty-dinesh',
+      senderName: name,
+      senderRole: role,
+      senderType: role,
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      imageUrl,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = get().chats.map((c) =>
+      c.id === channelId
+        ? {
+            ...c,
+            lastMessage: text,
+            lastMessageTime: newMsg.createdAt,
+            messages: [...c.messages, newMsg],
+          }
+        : c
+    );
+    set({ chats: updated });
+    await persistState(get());
+    return newMsg;
+  },
+
+  createChatChannel: async (channelInput) => {
+    const newId = `chat-${Date.now()}`;
+    const newChannel: AdminChatChannelItem = {
+      ...channelInput,
+      id: newId,
+      unreadCount: 0,
+      messages: [],
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newChannel, ...get().chats];
+    set({ chats: updated });
+    await persistState(get());
+    return newChannel;
+  },
+
   resetToDefault: async () => {
     set({ ...INITIAL_ADMIN_DATA });
     await persistState(get());
@@ -2071,6 +2542,8 @@ async function persistState(state: AdminPortalState) {
   try {
     const dataToSave = {
       batches: state.batches,
+      courses: state.courses,
+      chats: state.chats,
       joinRequests: state.joinRequests,
       lectures: state.lectures,
       resources: state.resources,

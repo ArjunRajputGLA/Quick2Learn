@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Pressable, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Award,
@@ -135,22 +135,45 @@ export function BatchTestsSection({
             { key: 'missed', label: `Missed (${missedTests.length})` },
           ] as const
         ).map((tab) => (
-          <TouchableOpacity
+          <Pressable
             key={tab.key}
-            activeOpacity={0.8}
             onPress={() => setActiveTab(tab.key)}
-            className={`flex-1 py-2 rounded-xl items-center justify-center ${
-              activeTab === tab.key ? 'bg-primary' : 'bg-transparent'
-            }`}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: 8,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: activeTab === tab.key
+                ? (pressed ? '#1D4ED8' : '#2563EB')
+                : (pressed ? '#E2E8F0' : 'transparent'),
+              ...(Platform.OS === 'web'
+                ? ({
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    outline: 'none',
+                  } as any)
+                : {}),
+            })}
           >
             <Text
-              className={`text-[11px] font-bold ${
-                activeTab === tab.key ? 'text-white' : 'text-ink-muted'
-              }`}
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color: activeTab === tab.key ? '#FFFFFF' : '#64748B',
+                ...(Platform.OS === 'web'
+                  ? ({
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                    } as any)
+                  : {}),
+              }}
             >
               {tab.label}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
 

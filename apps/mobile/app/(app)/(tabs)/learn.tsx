@@ -9,7 +9,24 @@ import {
   FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Search, BookOpen, Sparkles, ChevronRight } from 'lucide-react-native';
+import {
+  Search,
+  BookOpen,
+  Sparkles,
+  ChevronRight,
+  ShoppingBag,
+  Tag,
+  Clock,
+  Check,
+  CheckCircle2,
+  Star,
+  Award,
+  Video,
+  FileText,
+  ArrowRight,
+  Filter,
+} from 'lucide-react-native';
+import { TextInput, Alert } from 'react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
@@ -22,6 +39,10 @@ import {
   useLearnClasses,
   useLearnChapters,
 } from '../../../src/api/hooks';
+import {
+  useAdminStore,
+  type AdminCourseItem,
+} from '../../../src/lib/adminDataStore';
 import type { LearnChapterItem } from '@quick2learn/shared';
 import { colors, radii } from '@quick2learn/shared';
 
@@ -124,6 +145,71 @@ export default function LearnScreen() {
   const { data: me } = useMe();
   const { data: classesData, isLoading: isClassesLoading } = useLearnClasses();
 
+  // Admin store for live courses and study packages
+  const adminStore = useAdminStore();
+  const [activeMainTab, setActiveMainTab] = useState<0 | 1>(0); // 0 = Institute Courses, 1 = Curriculum Syllabus
+  const [courseSearch, setCourseSearch] = useState('');
+  const [courseClassFilter, setCourseClassFilter] = useState<'all' | '9' | '10' | '11' | '12'>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    adminStore.init();
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await adminStore.init();
+    await refetch();
+    setIsRefreshing(false);
+  };
+
+  const publishedCourses = useMemo(() => {
+    const list = adminStore.courses || [];
+    return list.filter((c) => {
+      if (c.status !== 'published') return false;
+      const cls = (c.targetClass || c.classLevel || 9).toString();
+      if (courseClassFilter !== 'all' && cls !== courseClassFilter) return false;
+      if (courseSearch.trim()) {
+        const q = courseSearch.toLowerCase();
+        const matchTitle = c.title.toLowerCase().includes(q);
+        const matchSub = (c.subtitle || '').toLowerCase().includes(q);
+        const matchDesc = c.description.toLowerCase().includes(q);
+        if (!matchTitle && !matchSub && !matchDesc) return false;
+      }
+      return true;
+    });
+  }, [adminStore.courses, courseClassFilter, courseSearch]);
+
+  const handleCourseAction = (course: AdminCourseItem) => {
+    if (course.batchId) {
+      router.push(`/(app)/batch/${course.batchId}` as any);
+    } else {
+      const sellingPrice = course.discountedPrice ?? course.price;
+      Alert.alert(
+        'Enroll in Course',
+        `Join "${course.title}" for ₹${sellingPrice.toLocaleString('en-IN')} (Original: ₹${course.price.toLocaleString('en-IN')})?\n\nThis grants complete access to all video lectures, study materials, notes, and tests managed by Dinesh Sir.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Confirm Enrollment',
+            onPress: () => {
+              Alert.alert(
+                'Enrollment Successful! 🎉',
+                `Welcome to "${course.title}"! Your batch study material and classes are now live in the Batches tab.`,
+                [
+                  {
+                    text: 'View Batches',
+                    onPress: () => router.push('/(app)/(tabs)/batches' as any),
+                  },
+                ]
+              );
+            },
+          },
+        ]
+      );
+    }
+  };
+
   // Initialize selected class level from user's profile
   const userClass = me?.profile?.classLevel || 10;
   const initialClassIndex = Math.max(0, CLASS_VALUES.indexOf(userClass));
@@ -193,7 +279,7 @@ export default function LearnScreen() {
       scrollable={false}
       header={
         <AppHeader
-          title="Learn"
+          title="Learn & Courses"
           rightActions={
             <TouchableOpacity
               activeOpacity={0.7}
@@ -216,184 +302,432 @@ export default function LearnScreen() {
         />
       }
     >
-      <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }} className="flex-1 bg-surface-subtle">
-        {/* 1. Class Switcher card */}
-        <View
-          style={{
-            marginHorizontal: 12,
-            marginBottom: 6,
-            paddingHorizontal: 10,
-            paddingVertical: 7,
-            backgroundColor: colors.surface,
-            borderRadius: radii.md,
-            borderWidth: 1,
-            borderColor: colors.border,
-            elevation: 1,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 2,
-          }}
-          className="mx-3 mb-1.5 px-2.5 py-2 bg-surface rounded-xl border border-border shadow-2xs"
-        >
+      <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }}>
+        {/* TOP SEGMENTED CONTROL: COURSES VS SYLLABUS */}
+        <View style={{ backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           <SegmentedControl
-            options={CLASS_OPTIONS}
-            selectedIndex={selectedClassIndex}
-            onChange={setSelectedClassIndex}
+            options={['Institute Courses', 'Curriculum Syllabus']}
+            selectedIndex={activeMainTab}
+            onChange={(idx) => setActiveMainTab(idx as 0 | 1)}
           />
-
-          {/* 2. Subject Filter Chips */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingTop: 6, paddingHorizontal: 2 }}
-          >
-            {subjects.map((sub) => {
-              const isSelected = selectedSubjectSlug === sub.slug;
-              return (
-                <View key={sub.id} style={{ marginRight: 8 }} className="mr-2">
-                  <Chip
-                    label={sub.name}
-                    selected={isSelected}
-                    onPress={() => setSelectedSubjectSlug(sub.slug)}
-                  />
-                </View>
-              );
-            })}
-          </ScrollView>
         </View>
 
-        {/* 3. Chapter List using FlashList (high-performance for 300+ items) */}
-        {isChaptersLoading && chapters.length === 0 ? (
+        {/* 1. COURSES & TEST PACKS TAB (LOADED LIVE FROM ADMIN DATA STORE) */}
+        {activeMainTab === 0 && (
           <ScrollView
             style={{ flex: 1 }}
-            className="flex-1"
+            contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-              <View
-                key={i}
+            {/* Search Input */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: radii.md,
+                paddingHorizontal: 10,
+                paddingVertical: 7,
+                marginBottom: 10,
+              }}
+            >
+              <Search size={16} color="#64748B" />
+              <TextInput
+                value={courseSearch}
+                onChangeText={setCourseSearch}
+                placeholder="Search courses, test packs, board booster..."
+                placeholderTextColor="#94A3B8"
                 style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: radii.md,
-                  padding: 12,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
+                  flex: 1,
+                  marginLeft: 8,
+                  fontSize: 13,
+                  color: colors.ink,
+                  padding: 0,
                 }}
-                className="bg-surface rounded-xl p-3 border border-border flex-row items-center justify-between"
-              >
-                <View style={{ flex: 1, marginRight: 10 }} className="flex-1 mr-2.5">
-                  <Skeleton width={140} height={16} borderRadius={4} className="mb-1.5" />
-                  <Skeleton width={100} height={12} borderRadius={4} />
-                </View>
-                <Skeleton width={38} height={38} borderRadius={19} />
-              </View>
-            ))}
-          </ScrollView>
-        ) : chapters.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', padding: 16 }} className="flex-1 justify-center p-4">
-            <EmptyState
-              title="No chapters available"
-              description={`No chapters found for Class ${selectedClassLevel} ${chaptersData?.subject.name || 'this subject'}.`}
-              actionLabel="Refresh"
-              onAction={() => refetch()}
-            />
-          </View>
-        ) : (
-          <View style={{ flex: 1 }} className="flex-1">
-            <FlatList
-              data={chapters}
-              contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefetching}
-                  onRefresh={() => {
-                    void refetch();
-                  }}
-                  colors={[colors.primary]}
-                  tintColor={colors.primary}
-                />
-              }
-              keyExtractor={(item: LearnChapterItem) => item.id}
-              renderItem={({ item }: { item: LearnChapterItem }) => (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleOpenChapter(item.id)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: radii.md,
-                    padding: 12,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    marginBottom: 8,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    elevation: 1,
-                    shadowColor: '#000000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 2,
-                  }}
-                  className="bg-surface rounded-xl p-3 border border-border mb-2 shadow-2xs flex-row items-center justify-between active:bg-surface-subtle"
-                >
-                  <View style={{ flex: 1, marginRight: 10, justifyContent: 'center' }} className="flex-1 mr-2.5 justify-center">
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }} className="flex-row items-center mb-1">
-                      <View
-                        style={{
-                          paddingHorizontal: 6,
-                          paddingVertical: 1.5,
-                          borderRadius: radii.sm,
-                          backgroundColor: colors['primary-soft'],
-                          borderWidth: 1,
-                          borderColor: 'rgba(37, 99, 235, 0.2)',
-                          marginRight: 6,
-                        }}
-                        className="px-1.5 py-0.5 rounded bg-primary-soft border border-primary/20 mr-1.5"
-                      >
-                        <Text style={{ fontSize: 10.5, fontWeight: '700', color: colors.primary }} className="text-[10.5px] font-bold text-primary">
-                          Ch {item.number}
-                        </Text>
-                      </View>
-                      <Text
-                        style={{ fontSize: 14, fontWeight: '700', color: colors.ink, flex: 1 }}
-                        className="text-body font-bold text-ink flex-1"
-                        numberOfLines={1}
-                      >
-                        {item.title}
-                      </Text>
-                    </View>
-
-                    {/* e.g. "4 of 9 lectures · 3 h 20 m" */}
-                    <Text
-                      style={{ fontSize: 12, color: colors['ink-muted'] }}
-                      className="text-caption text-ink-muted"
-                    >
-                      {item.completedLecturesCount} of {item.lectureCount} lectures •{' '}
-                      {item.totalDurationFormatted}
-                    </Text>
-                  </View>
-
-                  {/* ProgressRing */}
-                  <View style={{ alignItems: 'center', justifyContent: 'center' }} className="items-center justify-center">
-                    <ProgressRing
-                      progress={item.progressPercentage}
-                      size={38}
-                      strokeWidth={3.5}
-                      color={colors.primary}
-                      trackColor={colors.border}
-                      showText
-                    />
-                  </View>
+              />
+              {courseSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setCourseSearch('')}>
+                  <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600' }}>Clear</Text>
                 </TouchableOpacity>
               )}
-            />
+            </View>
+
+            {/* Class Filter Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 6, marginBottom: 12 }}
+            >
+              {(
+                [
+                  { id: 'all', label: 'All Classes' },
+                  { id: '9', label: 'Class 9' },
+                  { id: '10', label: 'Class 10' },
+                  { id: '11', label: 'Class 11' },
+                  { id: '12', label: 'Class 12' },
+                ] as const
+              ).map((chip) => (
+                <Chip
+                  key={chip.id}
+                  label={chip.label}
+                  selected={courseClassFilter === chip.id}
+                  onPress={() => setCourseClassFilter(chip.id)}
+                />
+              ))}
+            </ScrollView>
+
+            {/* Course Cards List */}
+            {publishedCourses.length === 0 ? (
+              <EmptyState
+                title="No Courses Found"
+                description={
+                  courseSearch
+                    ? `No courses matching "${courseSearch}".`
+                    : 'No courses published yet for this selection.'
+                }
+                actionLabel="View All Courses"
+                onAction={() => {
+                  setCourseSearch('');
+                  setCourseClassFilter('all');
+                }}
+              />
+            ) : (
+              <View style={{ gap: 12 }}>
+                {publishedCourses.map((course) => {
+                  const discountedPrice = course.discountedPrice ?? course.price;
+                  const discountPercent =
+                    course.price > discountedPrice
+                      ? Math.round(((course.price - discountedPrice) / course.price) * 100)
+                      : 0;
+
+                  return (
+                    <View
+                      key={course.id}
+                      style={{
+                        backgroundColor: colors.surface,
+                        borderRadius: radii.lg,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        padding: 14,
+                        elevation: 1,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 3,
+                      }}
+                    >
+                      {/* Top Badges Row */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          {course.badge ? (
+                            <View
+                              style={{
+                                backgroundColor: '#EFF6FF',
+                                borderWidth: 1,
+                                borderColor: '#BFDBFE',
+                                paddingHorizontal: 8,
+                                paddingVertical: 2,
+                                borderRadius: radii.full,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <Sparkles size={11} color="#2563EB" />
+                              <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#1D4ED8' }}>
+                                {course.badge}
+                              </Text>
+                            </View>
+                          ) : null}
+                          <View
+                            style={{
+                              backgroundColor: '#F1F5F9',
+                              paddingHorizontal: 7,
+                              paddingVertical: 2,
+                              borderRadius: radii.sm,
+                            }}
+                          >
+                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                              Class {course.targetClass || course.classLevel || 9} • {course.board.toUpperCase()}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                          <Star size={12} color="#F59E0B" fill="#F59E0B" />
+                          <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#1E293B' }}>4.9</Text>
+                          <Text style={{ fontSize: 10.5, color: '#64748B' }}>(180+)</Text>
+                        </View>
+                      </View>
+
+                      {/* Course Title & Subtitle */}
+                      <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#0F172A', marginBottom: 3 }}>
+                        {course.title}
+                      </Text>
+                      {course.subtitle ? (
+                        <Text style={{ fontSize: 12.5, color: '#475569', lineHeight: 17, marginBottom: 8 }}>
+                          {course.subtitle}
+                        </Text>
+                      ) : null}
+
+                      {/* Features Bullet Points */}
+                      {course.features && course.features.length > 0 && (
+                        <View style={{ gap: 4, marginBottom: 12, backgroundColor: '#F8FAFC', padding: 10, borderRadius: radii.md }}>
+                          {course.features.slice(0, 4).map((f, idx) => (
+                            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <CheckCircle2 size={13} color="#059669" />
+                              <Text style={{ fontSize: 12, color: '#334155', fontWeight: '500', flex: 1 }}>
+                                {f}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+
+                      {/* Bottom Pricing & Action */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: '#F1F5F9',
+                        }}
+                      >
+                        <View>
+                          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+                            <Text style={{ fontSize: 17, fontWeight: '900', color: '#0F172A' }}>
+                              ₹{discountedPrice.toLocaleString('en-IN')}
+                            </Text>
+                            {course.price > discountedPrice && (
+                              <Text style={{ fontSize: 12.5, color: '#94A3B8', textDecorationLine: 'line-through' }}>
+                                ₹{course.price.toLocaleString('en-IN')}
+                              </Text>
+                            )}
+                            {discountPercent > 0 && (
+                              <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 }}>
+                                <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803D' }}>
+                                  {discountPercent}% OFF
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 1 }}>
+                            {course.validity}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => handleCourseAction(course)}
+                          style={{
+                            backgroundColor: colors.primary,
+                            paddingHorizontal: 14,
+                            paddingVertical: 7,
+                            borderRadius: radii.md,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                        >
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>
+                            {course.batchId ? 'Explore Batch' : 'Enroll Now'}
+                          </Text>
+                          <ArrowRight size={13} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </ScrollView>
+        )}
+
+        {/* 2. CURRICULUM SYLLABUS TAB */}
+        {activeMainTab === 1 && (
+          <View style={{ flex: 1 }}>
+            {/* Class Switcher card */}
+            <View
+              style={{
+                marginHorizontal: 12,
+                marginTop: 8,
+                marginBottom: 6,
+                paddingHorizontal: 10,
+                paddingVertical: 7,
+                backgroundColor: colors.surface,
+                borderRadius: radii.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                elevation: 1,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 2,
+              }}
+            >
+              <SegmentedControl
+                options={CLASS_OPTIONS}
+                selectedIndex={selectedClassIndex}
+                onChange={setSelectedClassIndex}
+              />
+
+              {/* Subject Filter Chips */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingTop: 6, paddingHorizontal: 2 }}
+              >
+                {subjects.map((sub) => {
+                  const isSelected = selectedSubjectSlug === sub.slug;
+                  return (
+                    <View key={sub.id} style={{ marginRight: 8 }}>
+                      <Chip
+                        label={sub.name}
+                        selected={isSelected}
+                        onPress={() => setSelectedSubjectSlug(sub.slug)}
+                      />
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Chapter List using FlatList */}
+            {isChaptersLoading && chapters.length === 0 ? (
+              <ScrollView
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+                  <View
+                    key={i}
+                    style={{
+                      backgroundColor: colors.surface,
+                      borderRadius: radii.md,
+                      padding: 12,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 8,
+                    }}
+                  >
+                    <View style={{ flex: 1, marginRight: 10 }}>
+                      <Skeleton width={140} height={16} borderRadius={4} style={{ marginBottom: 6 }} />
+                      <Skeleton width={100} height={12} borderRadius={4} />
+                    </View>
+                    <Skeleton width={38} height={38} borderRadius={19} />
+                  </View>
+                ))}
+              </ScrollView>
+            ) : chapters.length === 0 ? (
+              <View style={{ flex: 1, justifyContent: 'center', padding: 16 }}>
+                <EmptyState
+                  title="No chapters available"
+                  description={`No chapters found for Class ${selectedClassLevel} ${chaptersData?.subject.name || 'this subject'}.`}
+                  actionLabel="Refresh"
+                  onAction={() => refetch()}
+                />
+              </View>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <FlatList
+                  data={chapters}
+                  contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
+                  showsVerticalScrollIndicator={false}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={isRefetching}
+                      onRefresh={() => {
+                        void refetch();
+                      }}
+                      colors={[colors.primary]}
+                      tintColor={colors.primary}
+                    />
+                  }
+                  keyExtractor={(item: LearnChapterItem) => item.id}
+                  renderItem={({ item }: { item: LearnChapterItem }) => (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => handleOpenChapter(item.id)}
+                      style={{
+                        backgroundColor: colors.surface,
+                        borderRadius: radii.md,
+                        padding: 12,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        marginBottom: 8,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        elevation: 1,
+                        shadowColor: '#000000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 2,
+                      }}
+                    >
+                      <View style={{ flex: 1, marginRight: 10, justifyContent: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+                          <View
+                            style={{
+                              paddingHorizontal: 6,
+                              paddingVertical: 1.5,
+                              borderRadius: radii.sm,
+                              backgroundColor: colors['primary-soft'],
+                              borderWidth: 1,
+                              borderColor: 'rgba(37, 99, 235, 0.2)',
+                              marginRight: 6,
+                            }}
+                          >
+                            <Text style={{ fontSize: 10.5, fontWeight: '700', color: colors.primary }}>
+                              Ch {item.number}
+                            </Text>
+                          </View>
+                          <Text
+                            style={{ fontSize: 14, fontWeight: '700', color: colors.ink, flex: 1 }}
+                            numberOfLines={1}
+                          >
+                            {item.title}
+                          </Text>
+                        </View>
+
+                        <Text style={{ fontSize: 12, color: colors['ink-muted'] }}>
+                          {item.completedLecturesCount} of {item.lectureCount} lectures •{' '}
+                          {item.totalDurationFormatted}
+                        </Text>
+                      </View>
+
+                      {/* ProgressRing */}
+                      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                        <ProgressRing
+                          progress={item.progressPercentage}
+                          size={38}
+                          strokeWidth={3.5}
+                          color={colors.primary}
+                          trackColor={colors.border}
+                          showText
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
           </View>
         )}
       </View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleProp, ViewStyle } from 'react-native';
 import { Button } from './Button';
 import { FolderOpen } from 'lucide-react-native';
 import { colors, radii } from '@quick2learn/shared';
@@ -13,6 +13,7 @@ export interface EmptyStateProps {
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
   className?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function EmptyState({
@@ -24,15 +25,19 @@ export function EmptyState({
   secondaryActionLabel,
   onSecondaryAction,
   className = '',
+  style,
 }: EmptyStateProps) {
   return (
     <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        marginVertical: 8,
-      }}
+      style={[
+        {
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+          marginVertical: 8,
+        },
+        style,
+      ]}
       className={`items-center justify-center p-4 my-2 ${className}`}
     >
       <View

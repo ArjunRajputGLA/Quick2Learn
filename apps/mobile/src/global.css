@@ -2,3 +2,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Disable webkit tap highlight and unwanted blue outlines/selection across web */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+*:focus {
+  outline: none !important;
+}
+
+*:focus-visible {
+  outline: none !important;
+}
+
+button,
+[role="button"],
+[role="checkbox"],
+[role="tab"],
+[data-focusable="true"],
+button *,
+[role="button"] *,
+[role="checkbox"] *,
+[role="tab"] * {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  outline: none !important;
+}
+

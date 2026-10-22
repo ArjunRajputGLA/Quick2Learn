@@ -47,6 +47,7 @@ import { ProgressBar } from '../../../src/components/ui/ProgressBar';
 import { LiveBanner } from '../../../src/components/composite/LiveBanner';
 import { analytics } from '../../../src/lib/analytics';
 import { colors, radii } from '@quick2learn/shared';
+import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -613,9 +614,18 @@ function StudentHomeScreen() {
                   <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
                     {cls.batchTitle}
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
-                    {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    {getFacultyAvatarSource(cls.facultyName || 'Dinesh Singh Rajput') ? (
+                      <Image
+                        source={getFacultyAvatarSource(cls.facultyName || 'Dinesh Singh Rajput')!}
+                        style={{ width: 14, height: 14, borderRadius: 7, marginRight: 5 }}
+                        contentFit="cover"
+                      />
+                    ) : null}
+                    <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+                      {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
+                    </Text>
+                  </View>
                   {cls.locationText ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} className="flex-row items-center mt-1.5">
                       <MapPin size={11} color="#6B7280" />

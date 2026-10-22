@@ -5,6 +5,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  Pressable,
   Alert,
   ActivityIndicator,
   Modal,
@@ -545,24 +546,49 @@ export default function EditProfileScreen() {
               </Text>
               <View className="flex-row space-x-2">
                 {[9, 10, 11, 12].map((lvl) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={lvl}
-                    activeOpacity={0.8}
                     onPress={() => setClassLevel(lvl)}
-                    className={`flex-1 py-2.5 rounded-xl border items-center justify-center ${
-                      classLevel === lvl
-                        ? "bg-primary border-primary"
-                        : "bg-surface-subtle border-border"
-                    }`}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: classLevel === lvl
+                        ? (pressed ? '#1D4ED8' : '#2563EB')
+                        : (pressed ? '#E2E8F0' : '#F1F5F9'),
+                      borderColor: classLevel === lvl
+                        ? (pressed ? '#1E40AF' : '#1D4ED8')
+                        : (pressed ? '#CBD5E1' : '#E2E8F0'),
+                      ...(Platform.OS === 'web'
+                        ? ({
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                            outline: 'none',
+                          } as any)
+                        : {}),
+                    })}
                   >
                     <Text
-                      className={`text-body font-bold ${
-                        classLevel === lvl ? "text-white" : "text-ink"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: classLevel === lvl ? '#FFFFFF' : '#1E293B',
+                        ...(Platform.OS === 'web'
+                          ? ({
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none',
+                            } as any)
+                          : {}),
+                      }}
                     >
                       Class {lvl}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -574,24 +600,50 @@ export default function EditProfileScreen() {
               </Text>
               <View className="flex-row space-x-2">
                 {(["cbse", "icse", "isc"] as const).map((b) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={b}
-                    activeOpacity={0.8}
                     onPress={() => setBoard(b)}
-                    className={`flex-1 py-2.5 rounded-xl border items-center justify-center ${
-                      board === b
-                        ? "bg-primary border-primary"
-                        : "bg-surface-subtle border-border"
-                    }`}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: board === b
+                        ? (pressed ? '#1D4ED8' : '#2563EB')
+                        : (pressed ? '#E2E8F0' : '#F1F5F9'),
+                      borderColor: board === b
+                        ? (pressed ? '#1E40AF' : '#1D4ED8')
+                        : (pressed ? '#CBD5E1' : '#E2E8F0'),
+                      ...(Platform.OS === 'web'
+                        ? ({
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                            outline: 'none',
+                          } as any)
+                        : {}),
+                    })}
                   >
                     <Text
-                      className={`text-body font-bold uppercase ${
-                        board === b ? "text-white" : "text-ink"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: board === b ? '#FFFFFF' : '#1E293B',
+                        ...(Platform.OS === 'web'
+                          ? ({
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none',
+                            } as any)
+                          : {}),
+                      }}
                     >
                       {b}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>
