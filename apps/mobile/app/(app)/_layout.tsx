@@ -31,6 +31,7 @@ export default function AppLayout() {
       <Stack.Screen name="help" options={{ headerShown: false }} />
       <Stack.Screen name="results" options={{ headerShown: false }} />
       <Stack.Screen name="payments/result" options={{ headerShown: false }} />
+      <Stack.Screen name="admin/index" options={{ headerShown: false }} />
     </Stack>
     </>
   );

@@ -11,6 +11,7 @@ import {
   Award,
   CreditCard,
   Briefcase,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -22,6 +23,7 @@ export default function TabsLayout() {
   const role = me?.role || 'student';
 
   const isParent = role === 'parent';
+  const isAdmin = role === 'admin';
   const isTeacherOrStaff = role === 'teacher' || role === 'admin';
 
   return (
@@ -138,15 +140,15 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 8. Teacher Teach Tab (Visible for teacher and admin in place of Doubts) */}
+      {/* 8. Admin / Teacher Tab */}
       <Tabs.Screen
         name="teach"
         options={{
           href: isTeacherOrStaff ? '/teach' : null,
-          title: 'Teach',
-          tabBarLabel: 'Teach',
+          title: isAdmin ? 'Admin' : 'Teach',
+          tabBarLabel: isAdmin ? 'Admin' : 'Teach',
           tabBarIcon: ({ color }) => (
-            <Briefcase size={20} color={color} />
+            isAdmin ? <ShieldCheck size={20} color={color} /> : <Briefcase size={20} color={color} />
           ),
         }}
       />

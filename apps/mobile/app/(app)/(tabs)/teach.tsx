@@ -58,7 +58,9 @@ import {
   useTeacherBatchChapters,
   useTeacherQuickUpload,
   useTeacherPresignedUrl,
+  useMe,
 } from '../../../src/api/hooks';
+import { AdminPortal } from '../../../src/components/admin/AdminPortal';
 import {
   saveAttendanceLocally,
   syncPendingAttendance,
@@ -71,6 +73,11 @@ import type { TeacherBatchStudent } from '@quick2learn/shared';
 type TeachTabSection = 'today' | 'attendance' | 'announcement' | 'doubts' | 'upload';
 
 export default function TeachScreen() {
+  const { data: me } = useMe();
+  if (me?.role === 'admin') {
+    return <AdminPortal />;
+  }
+
   const [activeSection, setActiveSection] = useState<TeachTabSection>('today');
   const [toastMessage, setToastMessage] = useState<{
     type: 'success' | 'error' | 'info';

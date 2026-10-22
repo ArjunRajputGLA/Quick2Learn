@@ -30,6 +30,7 @@ import {
   Layers,
   FileText,
   Volume2,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -309,6 +310,78 @@ function StudentHomeScreen() {
             />
           </View>
         ) : null}
+
+        {/* Admin Quick Launch Banner (for Admin role) */}
+        {me?.role === 'admin' && (
+          <View style={{ marginHorizontal: 16, marginTop: 12 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push('/(app)/admin' as any)}
+              style={{
+                backgroundColor: '#0F172A',
+                borderRadius: 20,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: '#1E293B',
+                shadowColor: '#0F172A',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                elevation: 3,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 10,
+                      backgroundColor: '#2563EB',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ShieldCheck size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                    Administrator Controls
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: '#059669',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>MATHURA CENTER</Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 12, color: '#94A3B8', marginBottom: 10, lineHeight: 16 }}>
+                Full access to upload & edit batches, notes, question bank, test exams, student records, and fee collections.
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: 8,
+                  borderTopWidth: 1,
+                  borderTopColor: '#1E293B',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#60A5FA' }}>
+                  Launch Admin Management Suite
+                </Text>
+                <ChevronRight size={14} color="#60A5FA" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Live Test Card (When test is Live now or In Progress) */}
         {(() => {

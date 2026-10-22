@@ -1239,6 +1239,81 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* ADMIN PORTAL ACCESS CARD */}
+        {role === "admin" && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push("/(app)/admin" as any)}
+            style={{
+              backgroundColor: '#1E293B',
+              borderRadius: 20,
+              padding: 16,
+              marginBottom: 14,
+              borderWidth: 1,
+              borderColor: '#334155',
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+              elevation: 4,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    backgroundColor: '#2563EB',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ShieldCheck size={20} color="#FFFFFF" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF' }}>
+                    Institute Admin Portal
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#94A3B8' }}>
+                    Quick2Learn Mathura Center Control
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  backgroundColor: '#059669',
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 10,
+                }}
+              >
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>FULL ACCESS</Text>
+              </View>
+            </View>
+
+            <Text style={{ fontSize: 12.5, color: '#CBD5E1', lineHeight: 18, marginBottom: 12 }}>
+              Upload notes & formula sheets, publish video lectures, manage batches, schedule tests, record offline tuition fees, and manage question bank.
+            </Text>
+
+            <View
+              style={{
+                backgroundColor: '#2563EB',
+                paddingVertical: 10,
+                borderRadius: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>Launch Admin Portal</Text>
+              <ChevronRight size={16} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* 3. CORE ACADEMIC MODULES */}
         <View
           style={{
