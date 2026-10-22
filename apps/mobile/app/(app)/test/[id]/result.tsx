@@ -3,10 +3,12 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
   Share,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Award,
@@ -42,7 +44,23 @@ export default function TestResultScreen() {
   }>();
   const router = useRouter();
 
-  const { data: result, isLoading, error } = useTestResult(attemptId || '');
+  const { data: result, isLoading, error, refetch } = useTestResult(attemptId || '');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        refetch(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[TestResult] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Filter questions by All / Incorrect / Correct / Skipped
   const [filter, setFilter] = useState<'all' | 'wrong' | 'correct' | 'skipped'>('all');
@@ -155,6 +173,14 @@ export default function TestResultScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
       >
         {/* 1. HERO SCORE CARD */}
         <View className="bg-surface rounded-3xl p-5 border border-border shadow-xs mb-4">

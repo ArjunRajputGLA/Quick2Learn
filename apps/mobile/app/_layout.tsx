@@ -1,6 +1,6 @@
 import '../src/global.css';
 import React, { useEffect } from 'react';
-import { Platform, StatusBar as RNStatusBar, LogBox } from 'react-native';
+import { View, Platform, StatusBar as RNStatusBar, LogBox } from 'react-native';
 
 LogBox.ignoreLogs([
   'Looks like you have configured linking in multiple places',
@@ -105,8 +105,10 @@ function RootLayout() {
           <ErrorBoundary>
             <GlobalAppStatusGuard>
               <ConfirmDialogProvider>
-                <Slot />
-                <SidebarDrawer />
+                <View style={{ flex: 1, position: 'relative' }}>
+                  <Slot />
+                  <SidebarDrawer />
+                </View>
               </ConfirmDialogProvider>
             </GlobalAppStatusGuard>
           </ErrorBoundary>

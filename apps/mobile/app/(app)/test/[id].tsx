@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Alert } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Clock,
@@ -25,6 +26,22 @@ export default function TestIntroScreen() {
 
   const { data, isLoading, error, refetch } = useTestDetail(id || '');
   const startAttemptMutation = useStartTestAttempt();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        refetch(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[TestIntro] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const test = data?.test;
 
@@ -79,6 +96,14 @@ export default function TestIntroScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#2563EB']}
+              tintColor="#2563EB"
+            />
+          }
         >
           {/* Main Info Card */}
           <View className="bg-surface rounded-2xl p-5 border border-border mb-4 shadow-xs">

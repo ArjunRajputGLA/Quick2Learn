@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   TextInput,
   Alert,
@@ -11,6 +12,8 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -58,6 +61,23 @@ interface SelectedPhoto {
 export default function AskDoubtScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        queryClient.refetchQueries({ type: 'active' }),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[AskDoubt] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const params = useLocalSearchParams<{
     sourceType?: 'lecture' | 'test_question' | 'general';
     sourceId?: string;
@@ -377,6 +397,14 @@ export default function AskDoubtScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 110 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#2563EB']}
+              tintColor="#2563EB"
+            />
+          }
         >
           {/* Context Pill Banner if asked from lecture or test */}
           {initialSourceType === 'lecture' && params.lectureTitle ? (

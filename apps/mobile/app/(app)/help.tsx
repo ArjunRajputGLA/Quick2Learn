@@ -3,10 +3,13 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   Linking,
   Alert,
 } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import * as Haptics from "expo-haptics";
 import {
   MessageSquare,
   HelpCircle,
@@ -28,6 +31,24 @@ import { useI18n } from "../../src/lib/i18n";
 
 export default function HelpScreen() {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        queryClient.refetchQueries({ type: 'active' }),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Help] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const [activeSlide, setActiveSlide] = useState(0);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
@@ -115,6 +136,14 @@ export default function HelpScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
       >
         {/* Top Support Banner (WhatsApp) */}
         <View className="bg-emerald-600 rounded-2xl p-5 mb-5 shadow-sm text-white">

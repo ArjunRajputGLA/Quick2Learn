@@ -9,6 +9,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import {
   Search,
   BookOpen,
@@ -157,10 +158,19 @@ export default function LearnScreen() {
   }, []);
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await adminStore.init();
-    await refetch();
-    setIsRefreshing(false);
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        adminStore.init(),
+        refetch(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Learn] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const publishedCourses = useMemo(() => {
@@ -610,6 +620,14 @@ export default function LearnScreen() {
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    colors={[colors.primary]}
+                    tintColor={colors.primary}
+                  />
+                }
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                   <View
@@ -640,7 +658,7 @@ export default function LearnScreen() {
                   title="No chapters available"
                   description={`No chapters found for Class ${selectedClassLevel} ${chaptersData?.subject.name || 'this subject'}.`}
                   actionLabel="Refresh"
-                  onAction={() => refetch()}
+                  onAction={handleRefresh}
                 />
               </View>
             ) : (
@@ -651,10 +669,8 @@ export default function LearnScreen() {
                   showsVerticalScrollIndicator={false}
                   refreshControl={
                     <RefreshControl
-                      refreshing={isRefetching}
-                      onRefresh={() => {
-                        void refetch();
-                      }}
+                      refreshing={isRefreshing || isRefetching}
+                      onRefresh={handleRefresh}
                       colors={[colors.primary]}
                       tintColor={colors.primary}
                     />

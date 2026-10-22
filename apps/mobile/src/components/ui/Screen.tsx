@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   RefreshControl,
@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { colors } from '@quick2learn/shared';
 import { KeyboardAwareScrollView } from './KeyboardAwareScrollView';
 import { KeyboardAwareView } from './KeyboardAwareView';
@@ -15,7 +17,8 @@ export interface ScreenProps {
   header?: React.ReactNode;
   scrollable?: boolean;
   refreshing?: boolean;
-  onRefresh?: () => void;
+  onRefresh?: () => unknown | Promise<unknown>;
+  enablePullToRefresh?: boolean;
   className?: string;
   contentContainerStyle?: ViewStyle;
   subtle?: boolean;
@@ -29,6 +32,7 @@ export function Screen({
   scrollable = true,
   refreshing = false,
   onRefresh,
+  enablePullToRefresh = true,
   className = '',
   contentContainerStyle,
   subtle = true,
@@ -36,6 +40,36 @@ export function Screen({
   keyboardAware = false,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  let queryClient: ReturnType<typeof useQueryClient> | null = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    queryClient = useQueryClient();
+  } catch {
+    // Fallback if rendered outside QueryClientProvider
+  }
+
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+  const isRefreshing = refreshing || internalRefreshing;
+
+  const handleRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setInternalRefreshing(true);
+    try {
+      if (onRefresh) {
+        await onRefresh();
+      } else if (queryClient) {
+        await queryClient.refetchQueries({ type: 'active' });
+      }
+    } catch (err) {
+      console.warn('[Screen] Pull to refresh error:', err);
+    } finally {
+      setTimeout(() => {
+        setInternalRefreshing(false);
+      }, 350);
+    }
+  }, [onRefresh, queryClient]);
+
+  const hasRefresh = enablePullToRefresh && Boolean(onRefresh || queryClient);
 
   const bgColor = subtle ? 'bg-surface-subtle' : 'bg-surface';
   const resolvedBg = subtle ? colors['surface-subtle'] : colors.surface;
@@ -59,12 +93,12 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       refreshControl={
-        onRefresh ? (
+        hasRefresh ? (
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#3B82F6']}
-            tintColor="#3B82F6"
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
           />
         ) : undefined
       }

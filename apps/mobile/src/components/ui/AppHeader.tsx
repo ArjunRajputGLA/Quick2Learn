@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Menu } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
 import { NotificationBell } from './NotificationBell';
+import * as Haptics from 'expo-haptics';
 import { useDrawerStore } from '../../lib/drawerStore';
 
 export interface AppHeaderProps {
@@ -42,6 +43,7 @@ export function AppHeader({
   const { openDrawer } = useDrawerStore();
 
   const handleBack = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (onBack) {
       onBack();
     } else if (router && router.canGoBack()) {
@@ -50,6 +52,7 @@ export function AppHeader({
   };
 
   const handleMenu = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (onMenu) {
       onMenu();
     } else {

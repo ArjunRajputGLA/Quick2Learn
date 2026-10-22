@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   Share,
   ActivityIndicator,
@@ -16,6 +17,7 @@ import {
   KeyboardAvoidingView,
   Animated,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -98,6 +100,22 @@ export default function ProfileScreen() {
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        queryClient.refetchQueries({ type: 'active' }),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Profile] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const [parentModalVisible, setParentModalVisible] = useState(false);
   const [linkChildModalVisible, setLinkChildModalVisible] = useState(false);
   const [claimCodeInput, setClaimCodeInput] = useState("");
@@ -421,6 +439,14 @@ export default function ProfileScreen() {
         className="flex-1"
         contentContainerStyle={{ padding: 12, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
       >
         {/* 1. USER PROFILE CARD */}
         <View

@@ -247,6 +247,9 @@ export default function LecturePlayerScreen() {
   return (
     <Screen
       scrollable={!isFullScreen}
+      onRefresh={async () => {
+        await refetch();
+      }}
       header={
         isFullScreen ? undefined : (
           <AppHeader

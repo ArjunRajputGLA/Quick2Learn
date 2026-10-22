@@ -99,6 +99,7 @@ export interface JoinRequestItem {
   classLevel: number;
   requestedAt: string;
   status: 'pending' | 'approved' | 'rejected';
+  note?: string;
 }
 
 export interface AdminLectureItem {
@@ -500,10 +501,11 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       batchTitle: 'Class XII CBSE Maths Target 100',
       studentId: 'stud-ayush',
       studentName: 'Ayush Agarwal',
-      studentPhone: '+919876543299',
+      studentPhone: '+91 98765 43299',
       classLevel: 12,
-      requestedAt: '2026-10-21T08:30:00Z',
+      requestedAt: '2026-10-22T10:15:00Z',
       status: 'pending',
+      note: 'Wants to attend online calculus problem sessions',
     },
     {
       id: 'req-02',
@@ -511,10 +513,71 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       batchTitle: 'Class XI CBSE Foundation & Calculus',
       studentId: 'stud-shreya',
       studentName: 'Shreya Sharma',
-      studentPhone: '+919876543110',
+      studentPhone: '+91 98765 43110',
       classLevel: 11,
-      requestedAt: '2026-10-20T14:15:00Z',
+      requestedAt: '2026-10-22T08:30:00Z',
       status: 'pending',
+      note: 'Transferring from evening offline batch',
+    },
+    {
+      id: 'req-03',
+      batchId: 'batch-x-cbse-board',
+      batchTitle: 'Class X CBSE Board Excellence',
+      studentId: 'stud-kabir',
+      studentName: 'Kabir Sen',
+      studentPhone: '+91 98765 43555',
+      classLevel: 10,
+      requestedAt: '2026-10-21T18:45:00Z',
+      status: 'pending',
+      note: 'Board revision & formula practice',
+    },
+    {
+      id: 'req-04',
+      batchId: 'batch-ix-icse-maths-sci',
+      batchTitle: 'IX ICSE ( 2026 - 2027 )',
+      studentId: 'stud-aarav',
+      studentName: 'Aarav Sharma',
+      studentPhone: '+91 98765 43210',
+      classLevel: 9,
+      requestedAt: '2026-10-20T12:00:00Z',
+      status: 'approved',
+      note: 'Joined via code iiwbpg • Fee confirmed',
+    },
+    {
+      id: 'req-05',
+      batchId: 'batch-xii-cbse-maths',
+      batchTitle: 'Class XII CBSE Maths Target 100',
+      studentId: 'stud-ananya',
+      studentName: 'Ananya Gupta',
+      studentPhone: '+91 98765 43212',
+      classLevel: 12,
+      requestedAt: '2026-10-19T14:20:00Z',
+      status: 'approved',
+      note: 'Enrolled & batch materials unlocked',
+    },
+    {
+      id: 'req-06',
+      batchId: 'batch-x-cbse-board',
+      batchTitle: 'Class X CBSE Board Excellence',
+      studentId: 'stud-priya',
+      studentName: 'Priya Verma',
+      studentPhone: '+91 98765 43789',
+      classLevel: 9,
+      requestedAt: '2026-10-18T09:10:00Z',
+      status: 'rejected',
+      note: 'Currently in Class 9, applied for Class 10 batch',
+    },
+    {
+      id: 'req-07',
+      batchId: 'batch-ix-icse-maths-sci',
+      batchTitle: 'IX ICSE ( 2026 - 2027 )',
+      studentId: 'stud-rohit',
+      studentName: 'Rohit Deshmukh',
+      studentPhone: '+91 98765 43901',
+      classLevel: 9,
+      requestedAt: '2026-10-17T11:40:00Z',
+      status: 'rejected',
+      note: 'Duplicate join code submission',
     },
   ],
 
@@ -2003,6 +2066,9 @@ interface AdminStoreActions {
   regenerateJoinCode: (id: string) => Promise<string>;
   approveJoinRequest: (id: string) => Promise<void>;
   rejectJoinRequest: (id: string) => Promise<void>;
+  approveAllPendingJoinRequests: () => Promise<void>;
+  deleteJoinRequest: (id: string) => Promise<void>;
+  addJoinRequest: (request: Omit<JoinRequestItem, 'id' | 'requestedAt'>) => Promise<JoinRequestItem>;
 
   // Lectures
   addLecture: (lecture: Omit<AdminLectureItem, 'id' | 'viewsCount' | 'uploadedAt'>) => Promise<AdminLectureItem>;
@@ -2180,6 +2246,43 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ joinRequests: updatedReqs });
     await persistState(get());
+  },
+
+  approveAllPendingJoinRequests: async () => {
+    const pendingReqs = get().joinRequests.filter((r) => r.status === 'pending');
+    if (pendingReqs.length === 0) return;
+    const batchIncrementMap = new Map<string, number>();
+    for (const r of pendingReqs) {
+      batchIncrementMap.set(r.batchId, (batchIncrementMap.get(r.batchId) || 0) + 1);
+    }
+    const updatedReqs = get().joinRequests.map((r) =>
+      r.status === 'pending' ? { ...r, status: 'approved' as const } : r
+    );
+    const updatedBatches = get().batches.map((b) => {
+      const increment = batchIncrementMap.get(b.id) || 0;
+      return increment > 0 ? { ...b, enrolledCount: b.enrolledCount + increment } : b;
+    });
+    set({ joinRequests: updatedReqs, batches: updatedBatches });
+    await persistState(get());
+  },
+
+  deleteJoinRequest: async (requestId) => {
+    const updatedReqs = get().joinRequests.filter((r) => r.id !== requestId);
+    set({ joinRequests: updatedReqs });
+    await persistState(get());
+  },
+
+  addJoinRequest: async (requestInput) => {
+    const newId = `req-${Date.now()}`;
+    const newReq: JoinRequestItem = {
+      ...requestInput,
+      id: newId,
+      requestedAt: new Date().toISOString(),
+    };
+    const updated = [newReq, ...get().joinRequests];
+    set({ joinRequests: updated });
+    await persistState(get());
+    return newReq;
   },
 
   addLecture: async (lectureInput) => {

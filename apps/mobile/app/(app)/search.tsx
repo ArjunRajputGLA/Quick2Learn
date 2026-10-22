@@ -5,11 +5,14 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
   ActivityIndicator,
   Linking,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import {
   Search as SearchIcon,
@@ -123,11 +126,30 @@ export default function SearchScreen() {
     return list;
   }, [classesData]);
 
-  const { data: searchResults, isLoading, isFetching } = useLibrarySearch(
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { data: searchResults, isLoading, isFetching, refetch } = useLibrarySearch(
     activeQuery,
     selectedClass,
     selectedSubject
   );
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        refetch(),
+        queryClient.refetchQueries({ type: 'active' }),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Search] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const lectures = searchResults?.lectures || [];
   const chapters = searchResults?.chapters || [];
@@ -234,6 +256,14 @@ export default function SearchScreen() {
           className="flex-1"
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#2563EB']}
+              tintColor="#2563EB"
+            />
+          }
         >
           {/* Query Empty: Show Recent Searches */}
           {!activeQuery ? (

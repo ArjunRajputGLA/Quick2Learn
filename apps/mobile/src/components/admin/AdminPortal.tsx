@@ -65,6 +65,7 @@ import {
   CheckSquare,
   Square,
   Play,
+  UserCheck,
 } from 'lucide-react-native';
 import { Screen } from '../ui/Screen';
 import { AppHeader } from '../ui/AppHeader';
@@ -77,6 +78,7 @@ import { colors, radii } from '@quick2learn/shared';
 import { BatchDetailAdminModal } from './BatchDetailAdminModal';
 import { CoursesManagerSection, CourseFormModal } from './CoursesManagerSection';
 import { ChatsManagerSection } from './ChatsManagerSection';
+import { RequestsManagerSection } from './RequestsManagerSection';
 import {
   useAdminStore,
   type BatchItem,
@@ -96,6 +98,7 @@ import {
 
 type AdminSection =
   | 'overview'
+  | 'requests'
   | 'batches'
   | 'courses'
   | 'chats'
@@ -123,9 +126,18 @@ export function AdminPortal() {
   }, []);
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await store.init();
-    setIsRefreshing(false);
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        store.init(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[AdminPortal] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Section Tab Badges count
@@ -136,7 +148,8 @@ export function AdminPortal() {
     const overdueDues = store.feeDues.filter((d) => d.status === 'overdue').length;
     const totalUnreadChats = store.chats.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
     return {
-      batches: pendingReqs > 0 ? pendingReqs : undefined,
+      requests: pendingReqs > 0 ? pendingReqs : undefined,
+      batches: undefined,
       chats: totalUnreadChats > 0 ? totalUnreadChats : undefined,
       doubts: openDoubts > 0 ? openDoubts : undefined,
       enquiries: newEnqs > 0 ? newEnqs : undefined,
@@ -243,6 +256,16 @@ export function AdminPortal() {
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setActiveSection('overview');
+            }}
+          />
+          <SectionPill
+            label="Requests"
+            icon={<UserCheck size={14} color={activeSection === 'requests' ? '#FFFFFF' : '#4B5563'} />}
+            isActive={activeSection === 'requests'}
+            badge={badgesCount.requests}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setActiveSection('requests');
             }}
           />
           <SectionPill
@@ -407,6 +430,17 @@ export function AdminPortal() {
             }}
             onRecordFee={() => setPaymentModalVisible(true)}
             onBroadcast={() => setAnnouncementModalVisible(true)}
+          />
+        )}
+
+        {/* REQUESTS SECTION */}
+        {activeSection === 'requests' && (
+          <RequestsManagerSection
+            store={store}
+            onNotify={(msg: string, type: 'success' | 'error' | 'info') =>
+              setToastMessage({ type, message: msg })
+            }
+            onToast={(t) => setToastMessage(t)}
           />
         )}
 
@@ -1068,8 +1102,8 @@ function OverviewSection({
                 Pending Batch Join Requests ({store.joinRequests.filter((r: any) => r.status === 'pending').length})
               </Text>
             </View>
-            <TouchableOpacity onPress={() => onNavigate('batches')}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#B45309' }}>View All</Text>
+            <TouchableOpacity onPress={() => onNavigate('requests')}>
+              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#B45309' }}>View All Requests ({store.joinRequests.length})</Text>
             </TouchableOpacity>
           </View>
 

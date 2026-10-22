@@ -3,10 +3,12 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Line, Circle, Polyline, Text as SvgText } from 'react-native-svg';
 import {
@@ -36,6 +38,22 @@ export default function PerformanceScreen() {
   const router = useRouter();
 
   const { data: perf, isLoading, error, refetch } = useStudentPerformance(studentId);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        refetch(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Performance] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isLoading && !perf) {
     return (
@@ -104,6 +122,14 @@ export default function PerformanceScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
       >
         {/* 1. OVERALL STATS CARDS: Average %, Total Attempted vs Missed */}
         <View className="bg-surface rounded-3xl p-5 border border-border shadow-xs mb-4">

@@ -3,17 +3,21 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   ScrollView,
   Share,
   Linking,
   Platform,
+  Easing,
+  StyleSheet,
+  BackHandler,
+  PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import * as Haptics from 'expo-haptics';
 import {
   Download,
   Folder,
@@ -27,9 +31,6 @@ import {
 } from 'lucide-react-native';
 import { useDrawerStore } from '../../lib/drawerStore';
 import { useMe } from '../../api/hooks';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DRAWER_WIDTH = Math.min(320, SCREEN_WIDTH * 0.82);
 
 interface MenuItem {
   id: string;
@@ -45,36 +46,86 @@ export function SidebarDrawer() {
   const { isOpen, closeDrawer } = useDrawerStore();
   const { data: me } = useMe();
 
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  const { width: screenWidth } = useWindowDimensions();
+  const drawerWidth = Math.min(320, screenWidth * 0.82);
 
+  // Native hardware-accelerated animated progress: 0 (closed) to 1 (open)
+  const anim = useRef(new Animated.Value(0)).current;
+
+  // Intercept Android hardware back press when drawer is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const onBackPress = () => {
+      closeDrawer();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [isOpen, closeDrawer]);
+
+  // Smooth, immediate, 0ms latency spring & timing transitions
   useEffect(() => {
     if (isOpen) {
-      slideAnim.setValue(-DRAWER_WIDTH);
-      Animated.spring(slideAnim, {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      anim.stopAnimation();
+      Animated.spring(anim, {
+        toValue: 1,
+        damping: 26,
+        mass: 0.85,
+        stiffness: 240,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      anim.stopAnimation();
+      Animated.timing(anim, {
         toValue: 0,
-        damping: 24,
-        mass: 0.8,
-        stiffness: 220,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start();
     }
-  }, [isOpen, slideAnim]);
+  }, [isOpen, anim]);
+
+  // Gesture handling: Swipe left to drag & dismiss drawer smoothly
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dx < -10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0) {
+          const progress = Math.max(0, Math.min(1, 1 + gestureState.dx / drawerWidth));
+          anim.setValue(progress);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -55 || gestureState.vx < -0.4) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          closeDrawer();
+        } else {
+          Animated.spring(anim, {
+            toValue: 1,
+            damping: 26,
+            mass: 0.85,
+            stiffness: 240,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const handleClose = () => {
-    Animated.timing(slideAnim, {
-      toValue: -DRAWER_WIDTH,
-      duration: 180,
-      useNativeDriver: true,
-    }).start(() => {
-      closeDrawer();
-    });
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    closeDrawer();
   };
 
   const navigateTo = (route: string) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     closeDrawer();
     setTimeout(() => {
       router.push(route as any);
-    }, 100);
+    }, 120);
   };
 
   const handleOpenPrivacyPolicy = async () => {
@@ -167,226 +218,248 @@ export function SidebarDrawer() {
     },
   ];
 
-  if (!isOpen) {
-    return null;
-  }
+  const translateX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-drawerWidth, 0],
+  });
+
+  const backdropOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.45],
+  });
 
   return (
-    <Modal
-      transparent
-      visible={isOpen}
-      animationType="fade"
-      onRequestClose={handleClose}
-      statusBarTranslucent
+    <View
+      pointerEvents={isOpen ? 'auto' : 'none'}
+      aria-hidden={!isOpen}
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          zIndex: 99999,
+          elevation: 99999,
+        },
+      ]}
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}>
-        {/* Dimmed Backdrop (tappable to close) */}
-        <TouchableOpacity
-          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-          activeOpacity={1}
-          onPress={handleClose}
-          accessibilityLabel="Close sidebar"
-          accessibilityRole="button"
-        />
+      {/* 1. Dimmed Animated Backdrop */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: '#000000',
+            opacity: backdropOpacity,
+          },
+        ]}
+      />
 
-        {/* Sliding Drawer Container */}
-        <Animated.View
+      {/* 2. Backdrop touchable to close */}
+      <TouchableOpacity
+        style={StyleSheet.absoluteFill}
+        activeOpacity={1}
+        onPress={handleClose}
+        accessibilityLabel="Close sidebar"
+        accessibilityRole="button"
+      />
+
+      {/* 3. Sliding Drawer Panel (with Pan Gesture support) */}
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: drawerWidth,
+          backgroundColor: '#FFFFFF',
+          shadowColor: '#000',
+          shadowOffset: { width: 4, height: 0 },
+          shadowOpacity: 0.22,
+          shadowRadius: 18,
+          elevation: 28,
+          transform: [{ translateX }],
+          paddingTop: insets.top + 16,
+        }}
+      >
+        {/* Close button top right */}
+        <TouchableOpacity
+          onPress={handleClose}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel="Close sidebar drawer"
+          accessibilityRole="button"
           style={{
             position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            width: DRAWER_WIDTH,
-            backgroundColor: '#FFFFFF',
-            shadowColor: '#000',
-            shadowOffset: { width: 4, height: 0 },
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-            elevation: 16,
-            transform: [{ translateX: slideAnim }],
-            paddingTop: insets.top + 16,
+            top: insets.top + 12,
+            right: 14,
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#F1F5F9',
+            zIndex: 10,
           }}
         >
-          {/* Close button top right */}
-          <TouchableOpacity
-            onPress={handleClose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Close sidebar drawer"
-            accessibilityRole="button"
+          <X size={18} color="#64748B" />
+        </TouchableOpacity>
+
+        {/* Top Profile Header */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 }}>
+          {/* Avatar Circle */}
+          <View
             style={{
-              position: 'absolute',
-              top: insets.top + 12,
-              right: 14,
-              width: 32,
-              height: 32,
-              borderRadius: 16,
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              backgroundColor: '#EFF6FF',
+              borderWidth: 2,
+              borderColor: '#BFDBFE',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#F1F5F9',
-              zIndex: 10,
+              marginBottom: 14,
             }}
           >
-            <X size={18} color="#64748B" />
-          </TouchableOpacity>
-
-          {/* Top Profile Header (matching 2.jpeg) */}
-          <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 }}>
-            {/* Avatar Circle */}
-            <View
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: 36,
-                backgroundColor: '#E2E8F0',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 14,
-              }}
-            >
-              <User size={38} color="#334155" strokeWidth={1.8} />
-            </View>
-
-            {/* User Full Name */}
-            <Text
-              style={{
-                fontSize: 19,
-                fontWeight: '700',
-                color: '#1E293B',
-                marginBottom: 4,
-                letterSpacing: -0.2,
-              }}
-              numberOfLines={1}
-            >
-              {fullName}
-            </Text>
-
-            {/* Organization Code */}
-            <Text
-              style={{
-                fontSize: 13.5,
-                fontWeight: '500',
-                color: '#64748B',
-              }}
-              numberOfLines={1}
-            >
-              {orgCode}
-            </Text>
+            <User size={38} color="#2563EB" strokeWidth={1.8} />
           </View>
 
-          {/* Thin subtle divider */}
-          <View style={{ height: 1, backgroundColor: '#F1F5F9', marginBottom: 4 }} />
-
-          {/* Menu Items List */}
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ paddingVertical: 4 }}
-            showsVerticalScrollIndicator={false}
+          {/* User Full Name */}
+          <Text
+            style={{
+              fontSize: 19,
+              fontWeight: '700',
+              color: '#0F172A',
+              marginBottom: 4,
+              letterSpacing: -0.2,
+            }}
+            numberOfLines={1}
           >
-            {menuItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={item.onPress}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={item.label}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 13,
-                  paddingHorizontal: 20,
-                }}
-              >
-                <View style={{ width: 28, alignItems: 'center', marginRight: 16 }}>
-                  {item.icon}
-                </View>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 15,
-                    fontWeight: '500',
-                    color: '#334155',
-                  }}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-                {item.badge ? (
-                  <View
-                    style={{
-                      backgroundColor: '#5551FF',
-                      borderRadius: 10,
-                      paddingHorizontal: 7.5,
-                      paddingVertical: 2.5,
-                      marginLeft: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: '#FFFFFF',
-                        fontSize: 10,
-                        fontWeight: '700',
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      {item.badge}
-                    </Text>
-                  </View>
-                ) : null}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            {fullName}
+          </Text>
 
-          {/* Bottom Facebook Share Button (matching 2.jpeg) */}
-          <View style={{ paddingHorizontal: 16, paddingBottom: Math.max(16, insets.bottom + 8), paddingTop: 8 }}>
+          {/* Organization Code */}
+          <Text
+            style={{
+              fontSize: 13.5,
+              fontWeight: '500',
+              color: '#64748B',
+            }}
+            numberOfLines={1}
+          >
+            {orgCode}
+          </Text>
+        </View>
+
+        {/* Thin subtle divider */}
+        <View style={{ height: 1, backgroundColor: '#F1F5F9', marginBottom: 4 }} />
+
+        {/* Menu Items List */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingVertical: 4 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {menuItems.map((item) => (
             <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleShareOnFacebook}
+              key={item.id}
+              onPress={item.onPress}
+              activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel="Share on facebook"
+              accessibilityLabel={item.label}
               style={{
-                backgroundColor: '#5057D7',
-                borderRadius: 8,
-                height: 48,
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-                shadowColor: '#5057D7',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 3,
+                paddingVertical: 13,
+                paddingHorizontal: 20,
               }}
             >
-              <View
+              <View style={{ width: 28, alignItems: 'center', marginRight: 16 }}>
+                {item.icon}
+              </View>
+              <Text
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 4,
-                  backgroundColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '500',
+                  color: '#334155',
                 }}
+                numberOfLines={1}
               >
-                <Text
+                {item.label}
+              </Text>
+              {item.badge ? (
+                <View
                   style={{
-                    color: '#5057D7',
-                    fontWeight: '900',
-                    fontSize: 16,
-                    lineHeight: 18,
-                    fontFamily: Platform.OS === 'ios' ? 'HelveticaNeue-Bold' : 'sans-serif-black',
+                    backgroundColor: '#2563EB',
+                    borderRadius: 10,
+                    paddingHorizontal: 7.5,
+                    paddingVertical: 2.5,
+                    marginLeft: 8,
                   }}
                 >
-                  f
-                </Text>
-              </View>
-              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
-                Share on facebook
-              </Text>
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: 10,
+                      fontWeight: '700',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {item.badge}
+                  </Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+          ))}
+        </ScrollView>
+
+        {/* Bottom Facebook Share Button */}
+        <View style={{ paddingHorizontal: 16, paddingBottom: Math.max(16, insets.bottom + 8), paddingTop: 8 }}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleShareOnFacebook}
+            accessibilityRole="button"
+            accessibilityLabel="Share on facebook"
+            style={{
+              backgroundColor: '#1877F2',
+              borderRadius: 12,
+              height: 48,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              shadowColor: '#1877F2',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 12,
+                backgroundColor: '#FFFFFF',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#1877F2',
+                  fontWeight: '900',
+                  fontSize: 16,
+                  lineHeight: 18,
+                  fontFamily: Platform.OS === 'ios' ? 'HelveticaNeue-Bold' : 'sans-serif-black',
+                }}
+              >
+                f
+              </Text>
+            </View>
+            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
+              Share on facebook
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </View>
   );
 }

@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   TextInput,
   Alert,
@@ -12,6 +13,7 @@ import {
   Linking,
   ActionSheetIOS,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -62,6 +64,23 @@ export default function DoubtThreadScreen() {
   const closeMutation = useCloseDoubt(id || '');
   const markHelpfulMutation = useMarkDoubtHelpful(id || '');
   const presignedUploadsMutation = usePresignedDoubtUploads();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        refetch(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[DoubtThread] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const [replyText, setReplyText] = useState('');
   const [replyPhotos, setReplyPhotos] = useState<SelectedPhoto[]>([]);
@@ -340,6 +359,14 @@ export default function DoubtThreadScreen() {
           ref={scrollViewRef}
           contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#2563EB']}
+              tintColor="#2563EB"
+            />
+          }
         >
           {/* Header Metadata Pill Banner */}
           <View className="bg-surface rounded-2xl p-4 border border-border shadow-xs mb-4">

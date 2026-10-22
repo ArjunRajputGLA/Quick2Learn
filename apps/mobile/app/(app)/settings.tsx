@@ -3,12 +3,14 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   Switch,
   TouchableOpacity,
   Pressable,
   Platform,
   Alert,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import Constants from "expo-constants";
@@ -55,6 +57,22 @@ export default function SettingsScreen() {
   } = useSettingsStore();
 
   const { confirm } = useConfirmDialog();
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Promise.all([
+        queryClient.refetchQueries({ type: 'active' }),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
+    } catch (err) {
+      console.warn('[Settings] Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleClearCache = () => {
     confirm({
@@ -82,6 +100,14 @@ export default function SettingsScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={['#2563EB']}
+            tintColor="#2563EB"
+          />
+        }
       >
         {/* 1. NOTIFICATION PREFERENCES */}
         <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
