@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   RefreshControl,
+  Share,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import {
   GraduationCap,
   Plus,
@@ -16,34 +20,131 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  Search,
+  Users,
+  Copy,
+  Share2,
+  Video,
+  Edit3,
+  ChevronRight,
+  School,
+  Sparkles,
+  Layers,
+  X,
 } from 'lucide-react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
+import { Chip } from '../../../src/components/ui/Chip';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
-import { useStudentBatches } from '../../../src/api/hooks';
+import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
+import { useMe, useStudentBatches } from '../../../src/api/hooks';
 import { BatchCard } from '../../../src/components/batches/BatchCard';
 import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
 import { cleanupOrphanedBatchDownloads } from '../../../src/lib/offline-downloads';
+import {
+  useAdminStore,
+  type BatchItem,
+} from '../../../src/lib/adminDataStore';
+import {
+  BatchDetailAdminModal,
+  type BatchDetailTab,
+} from '../../../src/components/admin/BatchDetailAdminModal';
+import { BatchFormModal } from '../../../src/components/admin/AdminPortal';
 import { colors, radii } from '@quick2learn/shared';
+
+const CLASS_FILTERS = ['all', '9', '10', '11', '12'] as const;
+type ClassFilterType = (typeof CLASS_FILTERS)[number];
 
 export default function BatchesScreen() {
   const router = useRouter();
-  const { data, isLoading, refetch, isRefetching } = useStudentBatches();
+  const { data: me } = useMe();
+  const isAdmin = me?.role === 'admin' || me?.role === 'teacher';
+
+  // Student hook data
+  const { data: studentData, isLoading: isStudentLoading, refetch: refetchStudent, isRefetching: isStudentRefetching } = useStudentBatches();
   const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const batches = data?.enrolled || [];
-  const pendingRequests = data?.pendingRequests || [];
+  // Admin store data
+  const adminStore = useAdminStore();
+  const [adminClassFilter, setAdminClassFilter] = useState<ClassFilterType>('all');
+  const [adminSearchQuery, setAdminSearchQuery] = useState('');
+  const [selectedViewIndex, setSelectedViewIndex] = useState(0); // 0 = Institute Batches, 1 = Student View
+  const [refreshingAdmin, setRefreshingAdmin] = useState(false);
 
-  // If the student leaves a batch, its downloads are removed on next launch
-  React.useEffect(() => {
-    if (data?.enrolled) {
-      const activeIds = data.enrolled.map((b) => b.id);
+  // Admin Batch Modals
+  const [selectedBatchForConsole, setSelectedBatchForConsole] = useState<BatchItem | null>(null);
+  const [consoleInitialTab, setConsoleInitialTab] = useState<BatchDetailTab>('overview');
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [editingBatch, setEditingBatch] = useState<BatchItem | null>(null);
+
+  // Init admin store on mount
+  useEffect(() => {
+    if (isAdmin) {
+      adminStore.init();
+    }
+  }, [isAdmin]);
+
+  const batches = studentData?.enrolled || [];
+  const pendingRequests = studentData?.pendingRequests || [];
+
+  // Cleanup downloads if student leaves a batch
+  useEffect(() => {
+    if (studentData?.enrolled) {
+      const activeIds = studentData.enrolled.map((b) => b.id);
       void cleanupOrphanedBatchDownloads(activeIds);
     }
-  }, [data?.enrolled]);
+  }, [studentData?.enrolled]);
+
+  // Filtered Institute Batches for Admin
+  const filteredAdminBatches = useMemo(() => {
+    return adminStore.batches.filter((b) => {
+      const matchSearch =
+        b.title.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+        b.subject.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+        b.faculty.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+        b.joinCode.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+        b.room.toLowerCase().includes(adminSearchQuery.toLowerCase());
+      const matchClass =
+        adminClassFilter === 'all' || b.classLevel.toString() === adminClassFilter;
+      return matchSearch && matchClass;
+    });
+  }, [adminStore.batches, adminSearchQuery, adminClassFilter]);
+
+  const handleRefresh = async () => {
+    if (isAdmin) {
+      setRefreshingAdmin(true);
+      await Promise.all([adminStore.init(), refetchStudent()]);
+      setRefreshingAdmin(false);
+    } else {
+      refetchStudent();
+    }
+  };
+
+  const handleShareBatchCode = async (batch: BatchItem) => {
+    try {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({
+        title: `Join ${batch.title} on Quick2Learn`,
+        message: `Join ${batch.title} (${batch.subject}) by ${batch.faculty} at Quick2Learn Mathura Center!\n\nUse Batch Join Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert('Code Copied!', `Batch Join Code ${code} copied for student invitations.`);
+  };
+
+  const handleOpenConsole = (batch: BatchItem, tab: BatchDetailTab = 'overview') => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setConsoleInitialTab(tab);
+    setSelectedBatchForConsole(batch);
+  };
 
   return (
     <Screen
@@ -52,170 +153,599 @@ export default function BatchesScreen() {
         <AppHeader
           title="Batches"
           rightActions={
-            <TouchableOpacity
-              onPress={() => setShowJoinModal(true)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: colors['primary-soft'],
-                borderWidth: 1,
-                borderColor: 'rgba(37, 99, 235, 0.2)',
-                borderRadius: radii.full,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                minHeight: 32,
-              }}
-              accessibilityLabel="Join a Batch"
-            >
-              <Plus size={14} color={colors.primary} />
-              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 4 }}>
-                Join Batch
-              </Text>
-            </TouchableOpacity>
+            isAdmin && selectedViewIndex === 0 ? (
+              <TouchableOpacity
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setEditingBatch(null);
+                  setBatchModalVisible(true);
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#2563EB',
+                  borderRadius: radii.full,
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+                  minHeight: 32,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 2,
+                  elevation: 2,
+                }}
+                accessibilityLabel="Create New Batch"
+              >
+                <Plus size={14} color="#FFFFFF" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>
+                  New Batch
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setShowJoinModal(true)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: colors['primary-soft'],
+                  borderWidth: 1,
+                  borderColor: 'rgba(37, 99, 235, 0.2)',
+                  borderRadius: radii.full,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  minHeight: 32,
+                }}
+                accessibilityLabel="Join a Batch"
+              >
+                <Plus size={14} color={colors.primary} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 4 }}>
+                  Join Batch
+                </Text>
+              </TouchableOpacity>
+            )
           }
         />
       }
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        className="flex-1"
-        contentContainerStyle={{ padding: 12, paddingBottom: 36 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={() => {
-              refetch();
+      <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }}>
+        {/* If Administrator, offer toggle between Institute Admin view & Student view */}
+        {isAdmin && (
+          <View
+            style={{
+              paddingHorizontal: 14,
+              paddingTop: 8,
+              paddingBottom: 4,
+              backgroundColor: '#FFFFFF',
+              borderBottomWidth: 1,
+              borderBottomColor: '#E2E8F0',
             }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-      >
-        {/* Loading Skeletons */}
-        {isLoading && !data && (
-          <View className="space-y-4">
-            <Skeleton width="100%" height={160} borderRadius={16} />
-            <Skeleton width="100%" height={160} borderRadius={16} />
+          >
+            <SegmentedControl
+              options={[
+                `Institute Batches (${adminStore.batches.length})`,
+                `Student View (${batches.length})`,
+              ]}
+              selectedIndex={selectedViewIndex}
+              onChange={setSelectedViewIndex}
+            />
           </View>
         )}
 
-        {/* Pending Requests Section */}
-        {pendingRequests.length > 0 && (
-          <View className="mb-6 space-y-2">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-caption font-bold text-ink-muted uppercase tracking-wider">
-                Pending Requests ({pendingRequests.length})
+        {/* ---------------- ADMIN VIEW (INSTITUTE BATCHES) ---------------- */}
+        {isAdmin && selectedViewIndex === 0 ? (
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 12, paddingBottom: 48 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshingAdmin}
+                onRefresh={handleRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+          >
+            {/* Search Bar */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#FFFFFF',
+                borderRadius: radii.md,
+                paddingHorizontal: 12,
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
+                height: 42,
+                marginBottom: 10,
+                elevation: 1,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 2,
+              }}
+            >
+              <Search size={16} color="#94A3B8" />
+              <TextInput
+                value={adminSearchQuery}
+                onChangeText={setAdminSearchQuery}
+                placeholder="Search batch title, faculty, join code..."
+                placeholderTextColor="#94A3B8"
+                style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#0F172A' }}
+              />
+              {adminSearchQuery ? (
+                <TouchableOpacity onPress={() => setAdminSearchQuery('')}>
+                  <X size={15} color="#94A3B8" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {/* Class Filter Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 6, paddingBottom: 10 }}
+            >
+              <Chip
+                label="All Classes"
+                selected={adminClassFilter === 'all'}
+                onPress={() => setAdminClassFilter('all')}
+              />
+              {(['9', '10', '11', '12'] as const).map((lvl) => (
+                <Chip
+                  key={lvl}
+                  label={`Class ${lvl}`}
+                  selected={adminClassFilter === lvl}
+                  onPress={() => setAdminClassFilter(lvl)}
+                />
+              ))}
+            </ScrollView>
+
+            {/* Center Summary Header */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: '#EFF6FF',
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: radii.md,
+                borderWidth: 1,
+                borderColor: '#BFDBFE',
+                marginBottom: 12,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <School size={15} color="#2563EB" />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#1E40AF' }}>
+                  Mathura Center Active Batches
+                </Text>
+              </View>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                {filteredAdminBatches.length} Batches
               </Text>
             </View>
 
-            {pendingRequests.map((req) => (
-              <View
-                key={req.id}
-                className="bg-surface rounded-2xl border border-amber-200/80 p-4 shadow-2xs space-y-2"
-              >
+            {/* Empty State */}
+            {filteredAdminBatches.length === 0 ? (
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: radii.lg, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center' }}>
+                <EmptyState
+                  title="No Batches Found"
+                  description="No institute batches match your active search and class filter."
+                  actionLabel="Create Batch"
+                  onAction={() => {
+                    setEditingBatch(null);
+                    setBatchModalVisible(true);
+                  }}
+                />
+              </View>
+            ) : (
+              /* Batch Cards List */
+              filteredAdminBatches.map((batch) => {
+                const liveClass = adminStore.liveClasses.find(
+                  (l) => l.batchId === batch.id && l.isLive
+                );
+                return (
+                  <View
+                    key={batch.id}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: radii.lg,
+                      borderWidth: 1,
+                      borderColor: '#E2E8F0',
+                      padding: 14,
+                      marginBottom: 12,
+                      elevation: 1,
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 3,
+                      gap: 10,
+                    }}
+                  >
+                    {/* Header Row: Badges & Status */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <Badge label={`CLASS ${batch.classLevel}`} variant="primary" size="sm" />
+                        <Badge label={batch.board.toUpperCase()} variant="neutral" size="sm" />
+                        <Badge
+                          label={batch.mode.toUpperCase()}
+                          variant={batch.mode === 'online' ? 'primary' : batch.mode === 'hybrid' ? 'warning' : 'neutral'}
+                          size="sm"
+                        />
+                      </View>
+                      <Badge
+                        label={batch.status.toUpperCase()}
+                        variant={batch.status === 'ongoing' ? 'success' : 'neutral'}
+                        size="sm"
+                      />
+                    </View>
+
+                    {/* Batch Title */}
+                    <View>
+                      <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', lineHeight: 22 }}>
+                        {batch.title}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2, fontWeight: '600' }}>
+                        {batch.subject} • Faculty: {batch.faculty}
+                      </Text>
+                    </View>
+
+                    {/* Live Class in progress banner if active */}
+                    {liveClass && (
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => handleOpenConsole(batch, 'live')}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          backgroundColor: '#FEF2F2',
+                          borderRadius: radii.sm,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          borderWidth: 1,
+                          borderColor: '#FECACA',
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' }} />
+                          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#DC2626' }} numberOfLines={1}>
+                            LIVE NOW: {liveClass.title}
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#EF4444' }}>Join Room →</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Details: Timetable, Room, Capacity */}
+                    <View
+                      style={{
+                        backgroundColor: '#F8FAFC',
+                        borderRadius: radii.md,
+                        padding: 10,
+                        gap: 6,
+                        borderWidth: 1,
+                        borderColor: '#F1F5F9',
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Clock size={13} color="#64748B" />
+                        <Text style={{ fontSize: 12, color: '#334155', fontWeight: '600' }}>
+                          {batch.scheduleDays.join(', ')} • {batch.scheduleTime}
+                        </Text>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <School size={13} color="#64748B" />
+                        <Text style={{ fontSize: 12, color: '#334155' }}>
+                          {batch.room}
+                        </Text>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Users size={13} color="#2563EB" />
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E293B' }}>
+                            {batch.enrolledCount} / {batch.capacity} Students Enrolled
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: '#059669' }}>
+                          ₹{batch.fee.toLocaleString('en-IN')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Join Code Box with 1-tap Copy and Share */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: '#F1F5F9',
+                        borderRadius: radii.md,
+                        paddingHorizontal: 10,
+                        paddingVertical: 7,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <KeyRound size={14} color="#475569" />
+                        <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>Join Code:</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '900', color: '#0F172A', letterSpacing: 0.8 }}>
+                          {batch.joinCode}
+                        </Text>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <TouchableOpacity
+                          onPress={() => handleCopyCode(batch.joinCode)}
+                          style={{
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: radii.sm,
+                            borderWidth: 1,
+                            borderColor: '#CBD5E1',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <Copy size={12} color="#334155" />
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>Copy</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          onPress={() => handleShareBatchCode(batch)}
+                          style={{
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            backgroundColor: '#2563EB',
+                            borderRadius: radii.sm,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <Share2 size={12} color="#FFFFFF" />
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>Share</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Action Buttons: Open Command Center, Mark Attendance, Edit */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 4 }}>
+                      <View style={{ flex: 1 }}>
+                        <Button
+                          variant="primary"
+                          size="md"
+                          onPress={() => handleOpenConsole(batch, 'overview')}
+                          icon={<ChevronRight size={16} color="#FFFFFF" />}
+                          iconPosition="right"
+                        >
+                          Open Batch Center
+                        </Button>
+                      </View>
+
+                      <Button
+                        variant="outline"
+                        size="md"
+                        onPress={() => handleOpenConsole(batch, 'attendance')}
+                        icon={<CheckCircle2 size={15} color="#2563EB" />}
+                      >
+                        Attendance
+                      </Button>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditingBatch(batch);
+                          setBatchModalVisible(true);
+                        }}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: radii.md,
+                          backgroundColor: '#F1F5F9',
+                          borderWidth: 1,
+                          borderColor: '#E2E8F0',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        accessibilityLabel="Edit batch settings"
+                      >
+                        <Edit3 size={16} color="#475569" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+        ) : (
+          /* ---------------- STUDENT VIEW (ENROLLED BATCHES) ---------------- */
+          <ScrollView
+            style={{ flex: 1 }}
+            className="flex-1"
+            contentContainerStyle={{ padding: 12, paddingBottom: 36 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isStudentRefetching}
+                onRefresh={() => {
+                  void refetchStudent();
+                }}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+          >
+            {/* Loading Skeletons */}
+            {isStudentLoading && !studentData && (
+              <View className="space-y-4">
+                <Skeleton width="100%" height={160} borderRadius={16} />
+                <Skeleton width="100%" height={160} borderRadius={16} />
+              </View>
+            )}
+
+            {/* Pending Requests Section */}
+            {pendingRequests.length > 0 && (
+              <View className="mb-6 space-y-2">
                 <View className="flex-row items-center justify-between">
-                  <Badge
-                    label={
-                      req.status === 'pending'
-                        ? 'WAITING FOR APPROVAL'
-                        : req.status.toUpperCase()
-                    }
-                    variant={req.status === 'pending' ? 'neutral' : 'danger'}
-                    size="sm"
-                  />
-                  <Text className="text-[11px] font-semibold text-ink-muted">
-                    Class {req.classLevel}
+                  <Text className="text-caption font-bold text-ink-muted uppercase tracking-wider">
+                    Pending Requests ({pendingRequests.length})
                   </Text>
                 </View>
 
-                <Text className="text-body font-bold text-ink">
-                  {req.batchTitle}
-                </Text>
+                {pendingRequests.map((req) => (
+                  <View
+                    key={req.id}
+                    className="bg-surface rounded-2xl border border-amber-200/80 p-4 shadow-2xs space-y-2"
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <Badge
+                        label={
+                          req.status === 'pending'
+                            ? 'WAITING FOR APPROVAL'
+                            : req.status.toUpperCase()
+                        }
+                        variant={req.status === 'pending' ? 'neutral' : 'danger'}
+                        size="sm"
+                      />
+                      <Text className="text-[11px] font-semibold text-ink-muted">
+                        Class {req.classLevel}
+                      </Text>
+                    </View>
 
-                <Text className="text-caption text-ink-muted leading-relaxed">
-                  {req.status === 'pending'
-                    ? 'Your join request was submitted. Quick2Learn administration will approve your enrollment shortly.'
-                    : req.note
-                    ? `Reason: ${req.note}`
-                    : 'Your request could not be approved. Please contact the centre office.'}
-                </Text>
+                    <Text className="text-body font-bold text-ink">
+                      {req.batchTitle}
+                    </Text>
 
-                <View className="flex-row items-center pt-1 border-t border-border/40">
-                  <Clock size={13} color="#9CA3AF" />
-                  <Text className="text-[11px] text-ink-muted ml-1.5">
-                    Requested on {new Date(req.requestedAt).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
+                    <Text className="text-caption text-ink-muted leading-relaxed">
+                      {req.status === 'pending'
+                        ? 'Your join request was submitted. Quick2Learn administration will approve your enrollment shortly.'
+                        : req.note
+                        ? `Reason: ${req.note}`
+                        : 'Your request could not be approved. Please contact the centre office.'}
+                    </Text>
+
+                    <View className="flex-row items-center pt-1 border-t border-border/40">
+                      <Clock size={13} color="#9CA3AF" />
+                      <Text className="text-[11px] text-ink-muted ml-1.5">
+                        Requested on {new Date(req.requestedAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Enrolled Batches Section */}
+            {!isStudentLoading && batches.length > 0 && (
+              <View style={{ marginBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.6 }}>
+                    My Enrolled Batches ({batches.length})
                   </Text>
+                </View>
+
+                {batches.map((batch) => (
+                  <BatchCard
+                    key={batch.id}
+                    batch={batch}
+                    onPress={() => router.push(`/batch/${batch.id}`)}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Empty State when no enrolled batches & no pending requests */}
+            {!isStudentLoading && batches.length === 0 && pendingRequests.length === 0 && (
+              <View className="bg-surface rounded-2xl p-4 border border-border items-center shadow-2xs mt-2">
+                <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
+                  <GraduationCap size={24} color="#2563EB" />
+                </View>
+                <Text className="text-body font-bold text-ink text-center mb-1">
+                  Join Your First Batch
+                </Text>
+                <Text className="text-caption text-ink-muted text-center mb-4 leading-relaxed max-w-xs">
+                  Access your timetable, live lectures, notes, test series, and teacher announcements.
+                </Text>
+
+                <View className="w-full space-y-2">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onPress={() => setShowJoinModal(true)}
+                    icon={<KeyRound size={16} color="#FFFFFF" />}
+                  >
+                    Enter Batch Join Code
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="md"
+                    onPress={() => setShowJoinModal(true)}
+                    icon={<QrCode size={16} color="#2563EB" />}
+                  >
+                    Scan Classroom QR Code
+                  </Button>
                 </View>
               </View>
-            ))}
-          </View>
+            )}
+          </ScrollView>
         )}
+      </View>
 
-        {/* Enrolled Batches Section */}
-        {!isLoading && batches.length > 0 && (
-          <View style={{ marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.6 }}>
-                My Enrolled Batches ({batches.length})
-              </Text>
-            </View>
+      {/* ---------------- MODALS ---------------- */}
 
-            {batches.map((batch) => (
-              <BatchCard
-                key={batch.id}
-                batch={batch}
-                onPress={() => router.push(`/batch/${batch.id}`)}
-              />
-            ))}
-          </View>
-        )}
-
-        {/* Empty State when no enrolled batches & no pending requests */}
-        {!isLoading && batches.length === 0 && pendingRequests.length === 0 && (
-          <View className="bg-surface rounded-2xl p-4 border border-border items-center shadow-2xs mt-2">
-            <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
-              <GraduationCap size={24} color="#2563EB" />
-            </View>
-            <Text className="text-body font-bold text-ink text-center mb-1">
-              Join Your First Batch
-            </Text>
-            <Text className="text-caption text-ink-muted text-center mb-4 leading-relaxed max-w-xs">
-              Access your timetable, live lectures, notes, test series, and teacher announcements.
-            </Text>
-
-            <View className="w-full space-y-2">
-              <Button
-                variant="primary"
-                size="md"
-                onPress={() => setShowJoinModal(true)}
-                icon={<KeyRound size={16} color="#FFFFFF" />}
-              >
-                Enter Batch Join Code
-              </Button>
-
-              <Button
-                variant="outline"
-                size="md"
-                onPress={() => setShowJoinModal(true)}
-                icon={<QrCode size={16} color="#2563EB" />}
-              >
-                Scan Classroom QR Code
-              </Button>
-            </View>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Join Batch Modal */}
+      {/* Student: Join Batch Modal */}
       <JoinBatchModal
         visible={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onSuccess={() => {
-          refetch();
+          refetchStudent();
+        }}
+      />
+
+      {/* Admin: Batch Command Center (Classplus 8 Tabs Modal) */}
+      <BatchDetailAdminModal
+        visible={!!selectedBatchForConsole}
+        batch={selectedBatchForConsole}
+        initialTab={consoleInitialTab}
+        onClose={() => setSelectedBatchForConsole(null)}
+        onEditBatch={(b) => {
+          setSelectedBatchForConsole(null);
+          setEditingBatch(b);
+          setBatchModalVisible(true);
+        }}
+        onToast={(t) => {
+          Alert.alert(t.type === 'error' ? 'Notice' : 'Success', t.message);
+        }}
+      />
+
+      {/* Admin: Create / Edit Batch Modal */}
+      <BatchFormModal
+        visible={batchModalVisible}
+        batch={editingBatch}
+        onClose={() => setBatchModalVisible(false)}
+        onSave={async (batchData) => {
+          if (editingBatch) {
+            await adminStore.updateBatch(editingBatch.id, batchData);
+            Alert.alert('Success', 'Batch updated successfully!');
+          } else {
+            await adminStore.createBatch(batchData as any);
+            Alert.alert('Success', 'New batch published!');
+          }
+          setBatchModalVisible(false);
+        }}
+        onDelete={async (id) => {
+          await adminStore.deleteBatch(id);
+          Alert.alert('Removed', 'Batch removed from center.');
+          setBatchModalVisible(false);
         }}
       />
     </Screen>

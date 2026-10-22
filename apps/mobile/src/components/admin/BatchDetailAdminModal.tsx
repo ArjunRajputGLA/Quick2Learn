@@ -11,7 +11,9 @@ import {
   Linking,
   Platform,
   KeyboardAvoidingView,
+  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   X,
@@ -77,18 +79,31 @@ interface BatchDetailAdminModalProps {
   batch: BatchItem | null;
   onClose: () => void;
   onEditBatch: (batch: BatchItem) => void;
+  initialTab?: BatchDetailTab;
   onToast: (toast: { type: 'success' | 'error' | 'info'; message: string }) => void;
 }
 
 export function BatchDetailAdminModal({
   visible,
   batch,
+  initialTab = 'overview',
   onClose,
   onEditBatch,
   onToast,
 }: BatchDetailAdminModalProps) {
+  const insets = useSafeAreaInsets();
+  const headerPaddingTop = Math.max(
+    insets.top,
+    Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 20
+  ) + 8;
   const store = useAdminStore();
-  const [activeTab, setActiveTab] = useState<BatchDetailTab>('overview');
+  const [activeTab, setActiveTab] = useState<BatchDetailTab>(initialTab);
+
+  React.useEffect(() => {
+    if (visible && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [visible, initialTab]);
 
   // Video folder navigation
   const [selectedVideoChapter, setSelectedVideoChapter] = useState<string | null>(null);
@@ -113,39 +128,71 @@ export function BatchDetailAdminModal({
   // Student search
   const [studentSearch, setStudentSearch] = useState('');
 
-  if (!batch) return null;
+  // Filter batch specific data safely without conditional hooks
+  const batchLectures = useMemo(() => {
+    if (!batch) return [];
+    return store.lectures.filter(
+      (l) => l.batchId === batch.id || (l.subject.toLowerCase() === batch.subject.toLowerCase() && l.classLevel === batch.classLevel)
+    );
+  }, [store.lectures, batch]);
 
-  // Filter batch specific data
-  const batchLectures = store.lectures.filter(
-    (l) => l.batchId === batch.id || (l.subject.toLowerCase() === batch.subject.toLowerCase() && l.classLevel === batch.classLevel)
-  );
-  const batchResources = store.resources.filter(
-    (r) => r.batchId === batch.id || r.batchTitle === batch.title || (r.subject.toLowerCase() === batch.subject.toLowerCase() && r.classLevel === batch.classLevel)
-  );
-  const batchAssignments = store.assignments.filter(
-    (a) => a.batchId === batch.id || a.batchTitle === batch.title
-  );
-  const batchLiveClasses = store.liveClasses.filter(
-    (l) => l.batchId === batch.id || l.batchTitle === batch.title
-  );
-  const activeLiveClass = batchLiveClasses.find((l) => l.isLive);
-  const batchTests = store.tests.filter(
-    (t) => t.subject.toLowerCase() === batch.subject.toLowerCase() && t.classLevel === batch.classLevel
-  );
-  const batchAnnouncements = store.announcements.filter(
-    (a) => a.targetAudience.includes(batch.title) || a.targetAudience.includes('All Batches')
-  );
-  const batchStudents = store.students.filter(
-    (s) => s.enrolledBatchIds.includes(batch.id) || s.enrolledBatchNames.includes(batch.title)
-  );
+  const batchResources = useMemo(() => {
+    if (!batch) return [];
+    return store.resources.filter(
+      (r) => r.batchId === batch.id || r.batchTitle === batch.title || (r.subject.toLowerCase() === batch.subject.toLowerCase() && r.classLevel === batch.classLevel)
+    );
+  }, [store.resources, batch]);
+
+  const batchAssignments = useMemo(() => {
+    if (!batch) return [];
+    return store.assignments.filter(
+      (a) => a.batchId === batch.id || a.batchTitle === batch.title
+    );
+  }, [store.assignments, batch]);
+
+  const batchLiveClasses = useMemo(() => {
+    if (!batch) return [];
+    return store.liveClasses.filter(
+      (l) => l.batchId === batch.id || l.batchTitle === batch.title
+    );
+  }, [store.liveClasses, batch]);
+
+  const activeLiveClass = useMemo(() => {
+    return batchLiveClasses.find((l) => l.isLive);
+  }, [batchLiveClasses]);
+
+  const batchTests = useMemo(() => {
+    if (!batch) return [];
+    return store.tests.filter(
+      (t) => t.subject.toLowerCase() === batch.subject.toLowerCase() && t.classLevel === batch.classLevel
+    );
+  }, [store.tests, batch]);
+
+  const batchAnnouncements = useMemo(() => {
+    if (!batch) return [];
+    return store.announcements.filter(
+      (a) => a.targetAudience.includes(batch.title) || a.targetAudience.includes('All Batches')
+    );
+  }, [store.announcements, batch]);
+
+  const batchStudents = useMemo(() => {
+    if (!batch) return [];
+    return store.students.filter(
+      (s) => s.enrolledBatchIds.includes(batch.id) || s.enrolledBatchNames.includes(batch.title)
+    );
+  }, [store.students, batch]);
 
   // Load attendance record whenever date or batch changes
-  const currentAttendanceRecord = store.attendanceRecords.find(
-    (r) => r.batchId === batch.id && r.date === attendanceDate
-  );
+  const currentAttendanceRecord = useMemo(() => {
+    if (!batch) return undefined;
+    return store.attendanceRecords.find(
+      (r) => r.batchId === batch.id && r.date === attendanceDate
+    );
+  }, [store.attendanceRecords, batch, attendanceDate]);
 
   // Sync attendance record when record loads
   React.useEffect(() => {
+    if (!batch) return;
     if (currentAttendanceRecord) {
       setDailyAttendance(currentAttendanceRecord.records);
     } else {
@@ -156,12 +203,11 @@ export function BatchDetailAdminModal({
       });
       setDailyAttendance(initial);
     }
-  }, [batch.id, attendanceDate, currentAttendanceRecord?.savedAt, batchStudents.length]);
+  }, [batch?.id, attendanceDate, currentAttendanceRecord?.savedAt, batchStudents.length]);
 
   // Video chapters grouping
   const videoChapters = useMemo(() => {
-    const chapters = Array.from(new Set(batchLectures.map((l) => l.chapter)));
-    return chapters;
+    return Array.from(new Set(batchLectures.map((l) => l.chapter)));
   }, [batchLectures]);
 
   const filteredLectures = useMemo(() => {
@@ -171,10 +217,9 @@ export function BatchDetailAdminModal({
 
   // Material folders grouping
   const materialFolders = useMemo(() => {
-    const folders = Array.from(
+    return Array.from(
       new Set(batchResources.map((r) => r.folderName || r.chapter || 'Class Study Material'))
     );
-    return folders;
   }, [batchResources]);
 
   const filteredResources = useMemo(() => {
@@ -186,6 +231,7 @@ export function BatchDetailAdminModal({
 
   // Handle Save Attendance
   const handleSaveAttendance = async () => {
+    if (!batch) return;
     try {
       await store.saveBatchAttendance(batch.id, attendanceDate, dailyAttendance);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -198,70 +244,89 @@ export function BatchDetailAdminModal({
     }
   };
 
+  if (!batch || !visible) return null;
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-        {/* HEADER BAR */}
+        {/* HEADER BAR WITH SAFE AREA AWARENESS */}
         <View
           style={{
             backgroundColor: '#FFFFFF',
             borderBottomWidth: 1,
             borderBottomColor: '#E2E8F0',
-            paddingTop: Platform.OS === 'ios' ? 12 : 16,
-            paddingBottom: 8,
+            paddingTop: headerPaddingTop,
+            paddingBottom: 10,
             paddingHorizontal: 16,
+            elevation: 2,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <TouchableOpacity
+              activeOpacity={0.7}
               onPress={onClose}
               style={{
                 width: 38,
                 height: 38,
                 borderRadius: 19,
-                backgroundColor: '#F1F5F9',
+                backgroundColor: '#F8FAFC',
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
+              accessibilityLabel="Back to batches"
             >
               <ArrowLeft size={18} color="#0F172A" />
             </TouchableOpacity>
 
             <View style={{ flex: 1, marginHorizontal: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
                   {batch.title}
                 </Text>
               </View>
-              <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                {batch.subject} • {batch.faculty}
+              <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '500', marginTop: 1 }} numberOfLines={1}>
+                {batch.subject} • {batch.faculty} • Class {batch.classLevel} ({batch.board.toUpperCase()})
               </Text>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <TouchableOpacity
+                activeOpacity={0.7}
                 onPress={() => onEditBatch(batch)}
                 style={{
                   width: 38,
                   height: 38,
                   borderRadius: 19,
                   backgroundColor: '#EFF6FF',
+                  borderWidth: 1,
+                  borderColor: '#BFDBFE',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
+                accessibilityLabel="Edit batch settings"
               >
                 <Edit3 size={17} color="#2563EB" />
               </TouchableOpacity>
               <TouchableOpacity
+                activeOpacity={0.7}
                 onPress={onClose}
                 style={{
                   width: 38,
                   height: 38,
                   borderRadius: 19,
-                  backgroundColor: '#F1F5F9',
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
+                accessibilityLabel="Close batch console"
               >
                 <X size={18} color="#64748B" />
               </TouchableOpacity>
@@ -272,141 +337,154 @@ export function BatchDetailAdminModal({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 6, paddingTop: 12, paddingBottom: 4 }}
+            contentContainerStyle={{ gap: 8, paddingTop: 12, paddingBottom: 4, paddingHorizontal: 2 }}
           >
             <SubTabPill
               label="Overview"
               isActive={activeTab === 'overview'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('overview');
-              }}
+              onPress={() => setActiveTab('overview')}
             />
             <SubTabPill
               label="Videos"
               badge={batchLectures.length}
               isActive={activeTab === 'videos'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('videos');
-              }}
+              onPress={() => setActiveTab('videos')}
             />
             <SubTabPill
               label="Study Material"
               badge={batchResources.length}
               isActive={activeTab === 'materials'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('materials');
-              }}
+              onPress={() => setActiveTab('materials')}
             />
             <SubTabPill
               label="Assignments"
               badge={batchAssignments.length}
               isActive={activeTab === 'assignments'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('assignments');
-              }}
+              onPress={() => setActiveTab('assignments')}
             />
             <SubTabPill
               label="Announcements"
               badge={batchAnnouncements.length}
               isActive={activeTab === 'announcements'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('announcements');
-              }}
+              onPress={() => setActiveTab('announcements')}
             />
             <SubTabPill
               label="Tests"
               badge={batchTests.length}
               isActive={activeTab === 'tests'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('tests');
-              }}
+              onPress={() => setActiveTab('tests')}
             />
             <SubTabPill
               label="Live Classes"
               badge={activeLiveClass ? 'LIVE' : batchLiveClasses.length}
-              badgeColor={activeLiveClass ? '#EF4444' : undefined}
               isActive={activeTab === 'live'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('live');
-              }}
+              onPress={() => setActiveTab('live')}
             />
             <SubTabPill
               label="Attendance"
               isActive={activeTab === 'attendance'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('attendance');
-              }}
+              onPress={() => setActiveTab('attendance')}
             />
             <SubTabPill
               label="Students"
               badge={batchStudents.length}
               isActive={activeTab === 'students'}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setActiveTab('students');
-              }}
+              onPress={() => setActiveTab('students')}
             />
           </ScrollView>
         </View>
 
         {/* TAB CONTENTS */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 14, paddingBottom: 60 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            padding: 14,
+            paddingBottom: Math.max(insets.bottom, 24) + 40,
+          }}
+        >
           {/* 1. OVERVIEW TAB */}
           {activeTab === 'overview' && (
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 14 }}>
               {/* LIVE CLASS BANNER (Matching Classplus "Join your live class now") */}
               {activeLiveClass ? (
                 <View
                   style={{
-                    backgroundColor: '#FEF2F2',
-                    borderRadius: 16,
-                    padding: 14,
+                    backgroundColor: '#FFF1F2',
+                    borderRadius: 18,
+                    padding: 16,
                     borderWidth: 1.5,
-                    borderColor: '#F87171',
+                    borderColor: '#FECDD3',
                     gap: 10,
+                    elevation: 2,
+                    shadowColor: '#E11D48',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 6,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444' }} />
-                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#B91C1C', letterSpacing: 0.5 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#E11D48' }} />
+                      <Text style={{ fontSize: 12, fontWeight: '900', color: '#9F1239', letterSpacing: 0.8 }}>
                         LIVE CLASS IN PROGRESS
                       </Text>
                     </View>
-                    <Badge label={activeLiveClass.platform.toUpperCase()} variant="danger" size="sm" />
+                    <View
+                      style={{
+                        backgroundColor: '#FFE4E6',
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: '#FDA4AF',
+                      }}
+                    >
+                      <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#BE123C' }}>
+                        {activeLiveClass.platform.toUpperCase()}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#7F1D1D' }}>
+
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#881337', lineHeight: 22 }}>
                     {activeLiveClass.title}
                   </Text>
-                  <Text style={{ fontSize: 12, color: '#991B1B' }}>
-                    Faculty: {activeLiveClass.faculty} • {activeLiveClass.duration}
-                  </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Clock size={13} color="#9F1239" />
+                    <Text style={{ fontSize: 12, color: '#9F1239', fontWeight: '600' }}>
+                      Faculty: {activeLiveClass.faculty} • {activeLiveClass.duration} Session
+                    </Text>
+                  </View>
+
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                     <TouchableOpacity
-                      onPress={() => Linking.openURL(activeLiveClass.meetingUrl)}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        Linking.openURL(activeLiveClass.meetingUrl);
+                      }}
                       style={{
                         flex: 1,
-                        backgroundColor: '#EF4444',
-                        paddingVertical: 10,
-                        borderRadius: 10,
+                        backgroundColor: '#E11D48',
+                        paddingVertical: 11,
+                        borderRadius: 12,
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexDirection: 'row',
                         gap: 6,
+                        elevation: 2,
+                        shadowColor: '#E11D48',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 4,
                       }}
                     >
                       <Radio size={16} color="#FFFFFF" />
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>Join Live Class Now</Text>
+                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#FFFFFF' }}>Join Live Room Now</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      activeOpacity={0.7}
                       onPress={() => {
                         Alert.alert('End Live Class', 'Mark this live session as completed?', [
                           { text: 'Cancel', style: 'cancel' },
@@ -421,25 +499,28 @@ export function BatchDetailAdminModal({
                         ]);
                       }}
                       style={{
-                        backgroundColor: '#FEE2E2',
-                        paddingHorizontal: 12,
-                        paddingVertical: 10,
-                        borderRadius: 10,
+                        backgroundColor: '#FFFFFF',
+                        borderWidth: 1,
+                        borderColor: '#FECDD3',
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        borderRadius: 12,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#B91C1C' }}>End</Text>
+                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#9F1239' }}>End</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               ) : (
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   onPress={() => setScheduleLiveModalVisible(true)}
                   style={{
                     backgroundColor: '#EFF6FF',
-                    borderRadius: 14,
-                    padding: 12,
+                    borderRadius: 16,
+                    padding: 14,
                     borderWidth: 1,
                     borderColor: '#BFDBFE',
                     flexDirection: 'row',
@@ -450,9 +531,9 @@ export function BatchDetailAdminModal({
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 18,
+                        width: 38,
+                        height: 38,
+                        borderRadius: 19,
                         backgroundColor: '#DBEAFE',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -461,10 +542,10 @@ export function BatchDetailAdminModal({
                       <Video size={18} color="#2563EB" />
                     </View>
                     <View>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E3A8A' }}>
+                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#1E3A8A' }}>
                         Schedule or Go Live Now
                       </Text>
-                      <Text style={{ fontSize: 11, color: '#3B82F6' }}>
+                      <Text style={{ fontSize: 11.5, color: '#3B82F6', marginTop: 1 }}>
                         Stream live lecture via Zoom, YouTube or Google Meet
                       </Text>
                     </View>
@@ -477,27 +558,59 @@ export function BatchDetailAdminModal({
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 16,
+                  borderRadius: 18,
                   padding: 16,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  gap: 12,
+                  gap: 14,
+                  elevation: 1,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 3,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>Batch Information</Text>
-                  <Badge
-                    label={batch.status.toUpperCase()}
-                    variant={batch.status === 'ongoing' ? 'success' : 'neutral'}
-                    size="sm"
-                  />
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>Batch Information</Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      backgroundColor: batch.status === 'ongoing' ? '#ECFDF5' : '#F1F5F9',
+                      paddingHorizontal: 9,
+                      paddingVertical: 3.5,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: batch.status === 'ongoing' ? '#A7F3D0' : '#CBD5E1',
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: batch.status === 'ongoing' ? '#10B981' : '#64748B',
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: '800',
+                        color: batch.status === 'ongoing' ? '#047857' : '#475569',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {batch.status}
+                    </Text>
+                  </View>
                 </View>
 
-                {/* Batch Code Banner with Copy */}
+                {/* Batch Code Banner with Copy & Share */}
                 <View
                   style={{
                     backgroundColor: '#F8FAFC',
-                    borderRadius: 12,
+                    borderRadius: 14,
                     padding: 12,
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
@@ -507,43 +620,71 @@ export function BatchDetailAdminModal({
                   }}
                 >
                   <View>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }}>
-                      Batch Join Code
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      BATCH JOIN CODE
                     </Text>
-                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', letterSpacing: 1 }}>
+                    <Text style={{ fontSize: 17, fontWeight: '900', color: '#0F172A', letterSpacing: 1.2, marginTop: 1 }}>
                       {batch.joinCode}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
                     <TouchableOpacity
+                      activeOpacity={0.7}
                       onPress={() => {
-                        Share.share({
-                          message: `Join ${batch.title} at Quick2Learn using Batch Code: ${batch.joinCode}`,
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        void Share.share({
+                          title: `Join ${batch.title} on Quick2Learn`,
+                          message: `Join ${batch.title} at Quick2Learn Mathura Center!\nBatch Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
                         });
                       }}
                       style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        borderRadius: 8,
-                        backgroundColor: '#EFF6FF',
+                        paddingHorizontal: 11,
+                        paddingVertical: 7,
+                        borderRadius: 9,
+                        backgroundColor: '#2563EB',
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 4,
                       }}
                     >
-                      <Share2 size={13} color="#2563EB" />
-                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>Share</Text>
+                      <Share2 size={13} color="#FFFFFF" />
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Share</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        Alert.alert('Code Copied', `Batch Code ${batch.joinCode} copied to clipboard!`);
+                      }}
+                      style={{
+                        paddingHorizontal: 9,
+                        paddingVertical: 7,
+                        borderRadius: 9,
+                        backgroundColor: '#FFFFFF',
+                        borderWidth: 1,
+                        borderColor: '#CBD5E1',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Copy size={13} color="#334155" />
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155' }}>Copy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
                       onPress={async () => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         const newCode = await store.regenerateJoinCode(batch.id);
                         onToast({ type: 'info', message: `Regenerated new code: ${newCode}` });
                       }}
                       style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 6,
-                        borderRadius: 8,
+                        paddingHorizontal: 9,
+                        paddingVertical: 7,
+                        borderRadius: 9,
                         backgroundColor: '#F1F5F9',
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
                       }}
                     >
                       <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Refresh</Text>
@@ -551,44 +692,55 @@ export function BatchDetailAdminModal({
                   </View>
                 </View>
 
-                {/* Faculty & Schedule */}
-                <View style={{ gap: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Users size={15} color="#64748B" />
-                    <Text style={{ fontSize: 12.5, color: '#334155' }}>
-                      <Text style={{ fontWeight: '700' }}>Faculty: </Text>
+                {/* Faculty & Schedule Details with soft icon chips */}
+                <View style={{ gap: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' }}>
+                      <Users size={15} color="#4F46E5" />
+                    </View>
+                    <Text style={{ fontSize: 13, color: '#334155', flex: 1 }}>
+                      <Text style={{ fontWeight: '700', color: '#0F172A' }}>Faculty: </Text>
                       {batch.faculty}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Calendar size={15} color="#64748B" />
-                    <Text style={{ fontSize: 12.5, color: '#334155' }}>
-                      <Text style={{ fontWeight: '700' }}>Schedule: </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' }}>
+                      <Calendar size={15} color="#D97706" />
+                    </View>
+                    <Text style={{ fontSize: 13, color: '#334155', flex: 1 }}>
+                      <Text style={{ fontWeight: '700', color: '#0F172A' }}>Schedule: </Text>
                       {batch.scheduleDays.join(', ')} • {batch.scheduleTime}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <School size={15} color="#64748B" />
-                    <Text style={{ fontSize: 12.5, color: '#334155' }}>
-                      <Text style={{ fontWeight: '700' }}>Location: </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center' }}>
+                      <School size={15} color="#059669" />
+                    </View>
+                    <Text style={{ fontSize: 13, color: '#334155', flex: 1 }}>
+                      <Text style={{ fontWeight: '700', color: '#0F172A' }}>Location: </Text>
                       {batch.room}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Clock size={15} color="#64748B" />
-                    <Text style={{ fontSize: 12.5, color: '#334155' }}>
-                      <Text style={{ fontWeight: '700' }}>Session Duration: </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                      <Clock size={15} color="#64748B" />
+                    </View>
+                    <Text style={{ fontSize: 13, color: '#334155', flex: 1 }}>
+                      <Text style={{ fontWeight: '700', color: '#0F172A' }}>Session Duration: </Text>
                       {batch.startDate} to {batch.endDate}
                     </Text>
                   </View>
                 </View>
 
-                {/* KPI stats grid */}
+                {/* 3 KPI stats cards */}
                 <View
                   style={{
                     flexDirection: 'row',
                     gap: 10,
-                    paddingTop: 8,
+                    paddingTop: 10,
                     borderTopWidth: 1,
                     borderTopColor: '#F1F5F9',
                   }}
@@ -596,46 +748,52 @@ export function BatchDetailAdminModal({
                   <View
                     style={{
                       flex: 1,
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#F0F9FF',
+                      borderWidth: 1,
+                      borderColor: '#BAE6FD',
                       padding: 10,
-                      borderRadius: 10,
+                      borderRadius: 12,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 10, color: '#64748B', fontWeight: '700' }}>STUDENTS</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A', marginTop: 2 }}>
+                    <Text style={{ fontSize: 10, color: '#0369A1', fontWeight: '800', letterSpacing: 0.5 }}>STUDENTS</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#0C4A6E', marginTop: 2 }}>
                       {batchStudents.length} / {batch.capacity}
                     </Text>
                   </View>
                   <View
                     style={{
                       flex: 1,
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#ECFDF5',
+                      borderWidth: 1,
+                      borderColor: '#A7F3D0',
                       padding: 10,
-                      borderRadius: 10,
+                      borderRadius: 12,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 10, color: '#64748B', fontWeight: '700' }}>FEE</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A', marginTop: 2 }}>
+                    <Text style={{ fontSize: 10, color: '#047857', fontWeight: '800', letterSpacing: 0.5 }}>COURSE FEE</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '900', color: '#064E3B', marginTop: 2 }}>
                       ₹{batch.fee.toLocaleString('en-IN')}
                     </Text>
                   </View>
                   <View
                     style={{
                       flex: 1,
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: batch.mode === 'offline' ? '#FEF3C7' : '#EFF6FF',
+                      borderWidth: 1,
+                      borderColor: batch.mode === 'offline' ? '#FDE68A' : '#BFDBFE',
                       padding: 10,
-                      borderRadius: 10,
+                      borderRadius: 12,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 10, color: '#64748B', fontWeight: '700' }}>MODE</Text>
+                    <Text style={{ fontSize: 10, color: batch.mode === 'offline' ? '#92400E' : '#1E40AF', fontWeight: '800', letterSpacing: 0.5 }}>MODE</Text>
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontWeight: '800',
-                        color: batch.mode === 'offline' ? '#16A34A' : '#2563EB',
+                        fontSize: 14,
+                        fontWeight: '900',
+                        color: batch.mode === 'offline' ? '#78350F' : '#1E3A8A',
                         marginTop: 2,
                         textTransform: 'uppercase',
                       }}
@@ -647,39 +805,45 @@ export function BatchDetailAdminModal({
               </View>
 
               {/* QUICK ACTIONS ROW */}
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>
+              <View style={{ gap: 10 }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Quick Batch Actions
                 </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                   <ActionButton
                     label="+ Add Video"
-                    icon={<Video size={14} color="#2563EB" />}
+                    icon={<Video size={16} color="#2563EB" />}
+                    bgColor="#EFF6FF"
                     onPress={() => setAddLectureModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Upload Notes"
-                    icon={<FileText size={14} color="#2563EB" />}
+                    icon={<FileText size={16} color="#059669" />}
+                    bgColor="#ECFDF5"
                     onPress={() => setAddResourceModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Homework"
-                    icon={<BookOpen size={14} color="#2563EB" />}
+                    icon={<BookOpen size={16} color="#7C3AED" />}
+                    bgColor="#F5F3FF"
                     onPress={() => setAddAssignmentModalVisible(true)}
                   />
                   <ActionButton
                     label="Mark Attendance"
-                    icon={<CheckCircle2 size={14} color="#16A34A" />}
+                    icon={<CheckCircle2 size={16} color="#D97706" />}
+                    bgColor="#FEF3C7"
                     onPress={() => setActiveTab('attendance')}
                   />
                   <ActionButton
                     label="+ Post Notice"
-                    icon={<Send size={14} color="#2563EB" />}
+                    icon={<Send size={16} color="#E11D48" />}
+                    bgColor="#FFF1F2"
                     onPress={() => setAddAnnouncementModalVisible(true)}
                   />
                   <ActionButton
                     label="+ Add Student"
-                    icon={<Users size={14} color="#2563EB" />}
+                    icon={<Users size={16} color="#0284C7" />}
+                    bgColor="#F0F9FF"
                     onPress={() => setAddStudentModalVisible(true)}
                   />
                 </View>
@@ -689,21 +853,26 @@ export function BatchDetailAdminModal({
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 16,
+                  borderRadius: 18,
                   padding: 16,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  gap: 10,
+                  gap: 12,
+                  elevation: 1,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 2,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>Recent Notices</Text>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>Recent Notices</Text>
                   <TouchableOpacity onPress={() => setActiveTab('announcements')}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>View All ({batchAnnouncements.length})</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>View All ({batchAnnouncements.length})</Text>
                   </TouchableOpacity>
                 </View>
                 {batchAnnouncements.length === 0 ? (
-                  <Text style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic' }}>
+                  <Text style={{ fontSize: 12.5, color: '#94A3B8', fontStyle: 'italic', paddingVertical: 8 }}>
                     No announcements posted for this batch yet.
                   </Text>
                 ) : (
@@ -712,18 +881,28 @@ export function BatchDetailAdminModal({
                       key={a.id}
                       style={{
                         backgroundColor: '#F8FAFC',
-                        borderRadius: 10,
-                        padding: 10,
-                        borderLeftWidth: 3,
+                        borderRadius: 12,
+                        padding: 12,
+                        borderLeftWidth: 3.5,
                         borderLeftColor: a.priority === 'urgent' ? '#EF4444' : '#2563EB',
+                        gap: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A' }}>{a.title}</Text>
-                      <Text style={{ fontSize: 11.5, color: '#475569', marginTop: 2 }} numberOfLines={2}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', flex: 1 }} numberOfLines={1}>
+                          {a.title}
+                        </Text>
+                        {a.priority === 'urgent' && (
+                          <View style={{ backgroundColor: '#FEE2E2', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, marginLeft: 6 }}>
+                            <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#DC2626' }}>URGENT</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={{ fontSize: 12, color: '#475569', lineHeight: 17 }} numberOfLines={2}>
                         {a.body}
                       </Text>
-                      <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 4 }}>
-                        {new Date(a.createdAt).toLocaleDateString('en-IN')} • By {a.authorName}
+                      <Text style={{ fontSize: 10.5, color: '#94A3B8', marginTop: 2 }}>
+                        {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • By {a.authorName}
                       </Text>
                     </View>
                   ))
@@ -2178,24 +2357,39 @@ function SubTabPill({
   isActive: boolean;
   onPress: () => void;
 }) {
+  const isLive = badge === 'LIVE';
   return (
     <TouchableOpacity
-      onPress={onPress}
+      activeOpacity={0.75}
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        backgroundColor: isActive ? '#0F172A' : '#F1F5F9',
+        paddingHorizontal: 14,
+        paddingVertical: 7,
+        borderRadius: 24,
+        backgroundColor: isActive ? '#2563EB' : '#FFFFFF',
+        borderWidth: 1,
+        borderColor: isActive ? '#1D4ED8' : '#E2E8F0',
+        elevation: isActive ? 2 : 1,
+        shadowColor: isActive ? '#2563EB' : '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isActive ? 0.25 : 0.04,
+        shadowRadius: 2,
         gap: 6,
       }}
     >
+      {isLive && (
+        <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#EF4444' }} />
+      )}
       <Text
         style={{
-          fontSize: 12,
+          fontSize: 12.5,
           fontWeight: isActive ? '800' : '600',
-          color: isActive ? '#FFFFFF' : '#475569',
+          color: isActive ? '#FFFFFF' : '#334155',
         }}
       >
         {label}
@@ -2203,9 +2397,11 @@ function SubTabPill({
       {badge !== undefined && (
         <View
           style={{
-            backgroundColor: badgeColor || (isActive ? '#3B82F6' : '#E2E8F0'),
+            backgroundColor: isLive
+              ? '#EF4444'
+              : badgeColor || (isActive ? 'rgba(255, 255, 255, 0.25)' : '#F1F5F9'),
             paddingHorizontal: 6,
-            paddingVertical: 1,
+            paddingVertical: 1.5,
             borderRadius: 10,
           }}
         >
@@ -2213,7 +2409,7 @@ function SubTabPill({
             style={{
               fontSize: 10,
               fontWeight: '800',
-              color: badgeColor || isActive ? '#FFFFFF' : '#475569',
+              color: isLive ? '#FFFFFF' : isActive ? '#FFFFFF' : '#475569',
             }}
           >
             {badge}
@@ -2227,29 +2423,55 @@ function SubTabPill({
 function ActionButton({
   label,
   icon,
+  bgColor = '#EFF6FF',
   onPress,
 }: {
   label: string;
   icon: React.ReactNode;
+  bgColor?: string;
   onPress: () => void;
 }) {
   return (
     <TouchableOpacity
-      onPress={onPress}
+      activeOpacity={0.75}
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 14,
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        gap: 6,
+        elevation: 1,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        gap: 10,
+        flex: 1,
+        minWidth: '47%',
       }}
     >
-      {icon}
-      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A' }}>{label}</Text>
+      <View
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 10,
+          backgroundColor: bgColor,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icon}
+      </View>
+      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A', flex: 1 }} numberOfLines={1}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }

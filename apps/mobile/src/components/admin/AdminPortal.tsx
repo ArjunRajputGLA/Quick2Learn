@@ -3074,7 +3074,7 @@ function ClassFilterRow({
 // MODALS IMPLEMENTATION
 // -------------------------------------------------------------
 
-function BatchFormModal({
+export function BatchFormModal({
   visible,
   batch,
   onClose,
