@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import {
   Bell,
@@ -31,14 +32,13 @@ import {
   FileText,
   Volume2,
   ShieldCheck,
-  Menu,
+  ChevronDown,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
 import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
 import { useQueryClient } from '@tanstack/react-query';
-import { useDrawerStore } from '../../../src/lib/drawerStore';
+import { useDropdownStore } from '../../../src/lib/drawerStore';
 import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { NotificationBell } from '../../../src/components/ui/NotificationBell';
@@ -69,7 +69,7 @@ function StudentHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { openDrawer } = useDrawerStore();
+  const { toggleDropdown } = useDropdownStore();
   const { data: me } = useMe();
   const { data: home, isLoading, isRefetching, refetch } = useHome();
   const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
@@ -78,6 +78,7 @@ function StudentHomeScreen() {
   const [showBatchCodeModal, setShowBatchCodeModal] = useState(false);
   const [batchCodeInput, setBatchCodeInput] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+  const lastToggleRef = React.useRef(0);
 
   // Refresh home data on screen focus
   useFocusEffect(
@@ -245,12 +246,18 @@ function StudentHomeScreen() {
         className="mx-3 mt-1 mb-1.5 px-2 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-          {/* Hamburger Menu 3-lined Icon */}
+          {/* Down arrow dropdown trigger */}
           <TouchableOpacity
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Open sidebar menu"
-            onPress={() => openDrawer()}
+            accessibilityLabel="Open menu dropdown"
+            onPress={() => {
+              const now = Date.now();
+              if (now - lastToggleRef.current < 400) return;
+              lastToggleRef.current = now;
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              toggleDropdown();
+            }}
             style={{
               width: 34,
               height: 34,
@@ -262,9 +269,9 @@ function StudentHomeScreen() {
               borderColor: colors.border,
               marginRight: 8,
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
+            <ChevronDown size={19} color={colors.ink} strokeWidth={2.3} />
           </TouchableOpacity>
 
           <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">

@@ -1,19 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Menu } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
 import { NotificationBell } from './NotificationBell';
 import * as Haptics from 'expo-haptics';
-import { useDrawerStore } from '../../lib/drawerStore';
+import { useDropdownStore } from '../../lib/drawerStore';
 
 export interface AppHeaderProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
-  showMenu?: boolean;
-  onMenu?: () => void;
   showNotificationBell?: boolean;
   unreadCount?: number;
   rightActions?: React.ReactNode;
@@ -25,8 +23,6 @@ export function AppHeader({
   subtitle,
   showBack = false,
   onBack,
-  showMenu = true,
-  onMenu,
   showNotificationBell = true,
   unreadCount,
   rightActions,
@@ -40,7 +36,7 @@ export function AppHeader({
     // Fallback if rendered outside navigation context (e.g. tests or isolated preview)
   }
 
-  const { openDrawer } = useDrawerStore();
+  const { toggleDropdown } = useDropdownStore();
 
   const handleBack = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -51,16 +47,17 @@ export function AppHeader({
     }
   };
 
-  const handleMenu = () => {
+  const lastToggleRef = React.useRef(0);
+
+  const handleToggle = () => {
+    const now = Date.now();
+    if (now - lastToggleRef.current < 400) return;
+    lastToggleRef.current = now;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (onMenu) {
-      onMenu();
-    } else {
-      openDrawer();
-    }
+    toggleDropdown();
   };
 
-  const hasLeadingIcon = showBack || showMenu !== false;
+  const hasLeadingIcon = true;
 
   return (
     <View
@@ -108,12 +105,12 @@ export function AppHeader({
           >
             <ArrowLeft size={16} color={colors.ink} />
           </TouchableOpacity>
-        ) : showMenu !== false ? (
+        ) : (
           <TouchableOpacity
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Open sidebar menu"
-            onPress={handleMenu}
+            accessibilityLabel="Open menu dropdown"
+            onPress={handleToggle}
             style={{
               width: 34,
               height: 34,
@@ -125,11 +122,11 @@ export function AppHeader({
               borderColor: colors.border,
               marginRight: 8,
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
+            <ChevronDown size={19} color={colors.ink} strokeWidth={2.3} />
           </TouchableOpacity>
-        ) : null}
+        )}
         <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
           <Text
             style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}

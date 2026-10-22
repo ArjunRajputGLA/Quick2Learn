@@ -388,7 +388,7 @@ export function AdminPortal() {
       {/* 2. MAIN SCROLLABLE CONTENT BODY */}
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 12, paddingBottom: 60 }}
+        contentContainerStyle={{ padding: 10, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -1095,15 +1095,20 @@ function OverviewSection({
             borderColor: '#FDE68A',
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Clock size={16} color="#D97706" />
-              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#92400E' }}>
-                Pending Batch Join Requests ({store.joinRequests.filter((r: any) => r.status === 'pending').length})
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+              <Clock size={15} color="#D97706" />
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400E' }} numberOfLines={1}>
+                Pending Requests ({store.joinRequests.filter((r: any) => r.status === 'pending').length})
               </Text>
             </View>
-            <TouchableOpacity onPress={() => onNavigate('requests')}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#B45309' }}>View All Requests ({store.joinRequests.length})</Text>
+            <TouchableOpacity
+              onPress={() => onNavigate('requests')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>View All</Text>
+              <ChevronRight size={13} color="#B45309" />
             </TouchableOpacity>
           </View>
 
@@ -1123,15 +1128,18 @@ function OverviewSection({
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  gap: 8,
                 }}
               >
-                <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A' }}>{req.studentName}</Text>
-                  <Text style={{ fontSize: 11, color: '#64748B' }}>
+                <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A' }} numberOfLines={1}>
+                    {req.studentName}
+                  </Text>
+                  <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 1 }} numberOfLines={1} ellipsizeMode="tail">
                     {req.batchTitle} • Class {req.classLevel}
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
+                <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
                   <TouchableOpacity
                     onPress={() => store.approveJoinRequest(req.id)}
                     style={{
@@ -1170,15 +1178,20 @@ function OverviewSection({
           borderColor: '#E2E8F0',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <MessageSquare size={16} color="#2563EB" />
-            <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+            <MessageSquare size={15} color="#2563EB" />
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
               Recent Admission Leads
             </Text>
           </View>
-          <TouchableOpacity onPress={() => onNavigate('enquiries')}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>Manage Leads</Text>
+          <TouchableOpacity
+            onPress={() => onNavigate('enquiries')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>Manage Leads</Text>
+            <ChevronRight size={13} color="#2563EB" />
           </TouchableOpacity>
         </View>
 
@@ -1192,22 +1205,25 @@ function OverviewSection({
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
+              gap: 8,
             }}
           >
-            <View style={{ flex: 1, marginRight: 8 }}>
+            <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A' }}>{enq.studentName}</Text>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
+                  {enq.studentName}
+                </Text>
                 <Badge
                   label={enq.status.toUpperCase()}
                   variant={enq.status === 'new' ? 'warning' : enq.status === 'enrolled' ? 'success' : 'neutral'}
                   size="sm"
                 />
               </View>
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }} numberOfLines={1}>
+              <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
                 Class {enq.classLevel} • {enq.message}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 6 }}>
+            <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
               <TouchableOpacity
                 onPress={() => Linking.openURL(`tel:${enq.phone}`)}
                 style={{
