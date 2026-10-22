@@ -48,6 +48,8 @@ import {
   AlertCircle,
   School,
   ShieldCheck,
+  Briefcase,
+  BookOpen,
 } from "lucide-react-native";
 import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
@@ -165,7 +167,10 @@ export default function ProfileScreen() {
   const user = me?.user;
   const profile = me?.profile;
   const role = me?.role || "student";
-  const fullName = profile?.fullName || user?.name || "Student";
+  const isAdmin = role === "admin";
+  const isTeacher = role === "teacher";
+  const isStaff = isAdmin || isTeacher;
+  const fullName = profile?.fullName || user?.name || (isAdmin ? "Dinesh Sir (Administrator)" : "Student");
   const studentInviteCodeValue =
     inviteCodeData?.code ||
     (profile as any)?.inviteCode ||
@@ -332,7 +337,7 @@ export default function ProfileScreen() {
     setEditChildName(child.fullName || "");
     setEditChildClass(child.classLevel || 10);
     setEditChildBoard(child.board || "icse");
-    setEditChildSchool(child.school || "Sacred Heart School, Mathura");
+    setEditChildSchool(child.school || "Sacred Heart School");
     setEditChildError("");
   };
 
@@ -364,7 +369,7 @@ export default function ProfileScreen() {
                 fullName: editChildName.trim(),
                 classLevel: editChildClass,
                 board: editChildBoard,
-                school: editChildSchool.trim() || "Sacred Heart School, Mathura",
+                school: editChildSchool.trim() || "Sacred Heart School",
               };
             }
             return c;
@@ -387,7 +392,7 @@ export default function ProfileScreen() {
                   s.fullName = editChildName.trim();
                   s.classLevel = editChildClass;
                   s.board = editChildBoard;
-                  s.school = editChildSchool.trim() || "Sacred Heart School, Mathura";
+                  s.school = editChildSchool.trim() || "Sacred Heart School";
                 }
               }
             }
@@ -437,9 +442,9 @@ export default function ProfileScreen() {
           <View
             style={{
               height: 72,
-              backgroundColor: role === "parent" ? '#EFF6FF' : '#F0FDF4',
+              backgroundColor: role === "parent" ? '#EFF6FF' : isAdmin ? '#EEF2FF' : '#F0FDF4',
               borderBottomWidth: 1,
-              borderBottomColor: role === "parent" ? '#DBEAFE' : '#DCFCE7',
+              borderBottomColor: role === "parent" ? '#DBEAFE' : isAdmin ? '#E0E7FF' : '#DCFCE7',
               paddingHorizontal: 16,
               paddingTop: 12,
               flexDirection: 'row',
@@ -457,23 +462,23 @@ export default function ProfileScreen() {
                 paddingVertical: 4,
                 borderRadius: 14,
                 borderWidth: 1,
-                borderColor: role === "parent" ? '#BFDBFE' : '#BBF7D0',
+                borderColor: role === "parent" ? '#BFDBFE' : isAdmin ? '#C7D2FE' : '#BBF7D0',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.04,
                 shadowRadius: 2,
               }}
             >
-              <ShieldCheck size={13} color={role === "parent" ? '#2563EB' : '#16A34A'} />
+              <ShieldCheck size={13} color={role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A'} />
               <Text
                 style={{
                   fontSize: 11,
                   fontWeight: '700',
-                  color: role === "parent" ? '#1E40AF' : '#15803D',
+                  color: role === "parent" ? '#1E40AF' : isAdmin ? '#3730A3' : '#15803D',
                   letterSpacing: 0.2,
                 }}
               >
-                {role === "parent" ? "Parent Portal" : "Student Portal"}
+                {role === "parent" ? "Parent Portal" : isAdmin ? "Admin Portal" : "Student Portal"}
               </Text>
             </View>
           </View>
@@ -501,7 +506,7 @@ export default function ProfileScreen() {
                   borderRadius: 999,
                   backgroundColor: '#FFFFFF',
                   borderWidth: 2,
-                  borderColor: role === "parent" ? '#BFDBFE' : '#BBF7D0',
+                  borderColor: role === "parent" ? '#BFDBFE' : isAdmin ? '#C7D2FE' : '#BBF7D0',
                   shadowColor: '#0F172A',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.12,
@@ -521,7 +526,7 @@ export default function ProfileScreen() {
                   width: 22,
                   height: 22,
                   borderRadius: 11,
-                  backgroundColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  backgroundColor: role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A',
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 2,
@@ -533,8 +538,8 @@ export default function ProfileScreen() {
                   elevation: 2,
                 }}
               >
-                {role === "parent" ? (
-                  <ShieldCheck size={11} color="#FFFFFF" strokeWidth={3} />
+                {role === "parent" || isAdmin ? (
+                  <ShieldCheck size={11} color="#FFFFFF" strokeWidth={2.6} />
                 ) : (
                   <Check size={11} color="#FFFFFF" strokeWidth={3} />
                 )}
@@ -568,11 +573,11 @@ export default function ProfileScreen() {
             >
               <View
                 style={{
-                  backgroundColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  backgroundColor: role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A',
                   paddingHorizontal: 11,
                   paddingVertical: 3.5,
                   borderRadius: 12,
-                  shadowColor: role === "parent" ? '#2563EB' : '#16A34A',
+                  shadowColor: role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.18,
                   shadowRadius: 4,
@@ -580,9 +585,30 @@ export default function ProfileScreen() {
                 }}
               >
                 <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.7 }}>
-                  {role.toUpperCase()}
+                  {isAdmin ? "ADMINISTRATOR" : role.toUpperCase()}
                 </Text>
               </View>
+
+              {isAdmin ? (
+                <View
+                  style={{
+                    backgroundColor: '#F1F5F9',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    paddingHorizontal: 10,
+                    paddingVertical: 3.5,
+                    borderRadius: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Briefcase size={12} color="#475569" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                    Director & Master Faculty
+                  </Text>
+                </View>
+              ) : null}
 
               {role === "student" && profile?.classLevel ? (
                 <View
@@ -628,7 +654,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* School / Institution Pill */}
-            {(profile?.school || "Quick2Learn High School") && (
+            {(profile?.school || "Quick2Learn Institute") && (
               <View
                 style={{
                   flexDirection: 'row',
@@ -651,7 +677,7 @@ export default function ProfileScreen() {
                     fontWeight: '600',
                   }}
                 >
-                  {profile?.school || "Quick2Learn High School"}
+                  {isAdmin ? (profile?.school || "Quick2Learn Institute") : (profile?.school || "Quick2Learn Institute")}
                 </Text>
               </View>
             )}
@@ -669,27 +695,198 @@ export default function ProfileScreen() {
                 paddingHorizontal: 18,
                 borderRadius: 20,
                 borderWidth: 1.5,
-                borderColor: '#BFDBFE',
-                shadowColor: '#2563EB',
+                borderColor: isAdmin ? '#C7D2FE' : '#BFDBFE',
+                shadowColor: isAdmin ? '#4F46E5' : '#2563EB',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.08,
                 shadowRadius: 4,
                 elevation: 1,
               }}
             >
-              <Edit3 size={13} color="#2563EB" />
+              <Edit3 size={13} color={isAdmin ? "#4F46E5" : "#2563EB"} />
               <Text
                 style={{
                   fontSize: 12.5,
                   fontWeight: '700',
-                  color: '#2563EB',
+                  color: isAdmin ? "#4F46E5" : "#2563EB",
                 }}
               >
-                {t("editProfileRow")}
+                {isAdmin ? "Edit Faculty Profile" : t("editProfileRow")}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ADMIN QUICK STATS ROW */}
+        {isAdmin && (
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+            {/* Stat 1: Batches */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/(app)/(tabs)/batches" as any)}
+              style={{
+                flex: 1,
+                backgroundColor: '#EEF2FF',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
+                borderWidth: 1,
+                borderColor: '#C7D2FE',
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#4F46E5',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#E0E7FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <GraduationCap size={16} color="#4F46E5" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '800',
+                  color: '#312E81',
+                  marginBottom: 2,
+                }}
+              >
+                4 Batches
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#4F46E5',
+                  textAlign: 'center',
+                }}
+              >
+                Classes IX–XII
+              </Text>
+            </TouchableOpacity>
+
+            {/* Stat 2: Students */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/(app)/(tabs)/teach" as any)}
+              style={{
+                flex: 1,
+                backgroundColor: '#F0FDF4',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
+                borderWidth: 1,
+                borderColor: '#BBF7D0',
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#16A34A',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#DCFCE7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <Users size={16} color="#16A34A" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '800',
+                  color: '#14532D',
+                  marginBottom: 2,
+                }}
+              >
+                128 Enrolled
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#16A34A',
+                  textAlign: 'center',
+                }}
+              >
+                Active Students
+              </Text>
+            </TouchableOpacity>
+
+            {/* Stat 3: Experience */}
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: '#FFFBEB',
+                borderRadius: 18,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
+                borderWidth: 1,
+                borderColor: '#FDE68A',
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#D97706',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#FEF3C7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <Award size={16} color="#D97706" />
+              </View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '800',
+                  color: '#78350F',
+                  marginBottom: 2,
+                }}
+              >
+                25+ Yrs
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: '700',
+                  color: '#D97706',
+                  textAlign: 'center',
+                }}
+              >
+                Master Faculty
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* STUDENT'S PARENT INVITE CODE CARD */}
         {role === "student" && (

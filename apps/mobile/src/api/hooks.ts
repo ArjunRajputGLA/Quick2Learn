@@ -821,7 +821,7 @@ export function useParentStudents() {
                       fullName: match.fullName,
                       classLevel: match.classLevel || child.classLevel || 10,
                       board: match.board || child.board || "icse",
-                      school: match.school || child.school || "Sacred Heart School, Mathura",
+                      school: match.school || child.school || "Sacred Heart School",
                     };
                   }
                   return child;

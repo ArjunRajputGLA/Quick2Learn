@@ -101,11 +101,11 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5. Student Learn Tab (Hidden for parents) */}
+      {/* 5. Student Learn Tab (Hidden for parents and staff; staff uses Teach/Admin tab) */}
       <Tabs.Screen
         name="learn"
         options={{
-          href: !isParent ? '/learn' : null,
+          href: !isParent && !isTeacherOrStaff ? '/learn' : null,
           title: 'Learn',
           tabBarLabel: 'Learn',
           tabBarIcon: ({ color }) => (

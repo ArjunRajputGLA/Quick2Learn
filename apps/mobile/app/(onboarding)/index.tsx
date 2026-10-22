@@ -315,7 +315,7 @@ export default function OnboardingScreen() {
       <View className="mb-5">
         <TextField
           label="School / College Name *"
-          placeholder="e.g. Delhi Public School, Mathura"
+          placeholder="e.g. Delhi Public School"
           value={school}
           onChangeText={setSchool}
           leftIcon={<School size={18} color="#9CA3AF" />}

@@ -382,13 +382,16 @@ export default function BatchesScreen() {
                       />
                     </View>
 
-                    {/* Batch Title */}
+                    {/* Batch Title & Course Info (Screenshot 1) */}
                     <View>
                       <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', lineHeight: 22 }}>
                         {batch.title}
                       </Text>
-                      <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2, fontWeight: '600' }}>
-                        {batch.subject} • Faculty: {batch.faculty}
+                      <Text style={{ fontSize: 12, color: '#475569', marginTop: 2, fontWeight: '600' }}>
+                        {batch.courseName || `Class ${batch.classLevel} - Tests available`} • {batch.subject}
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1, fontWeight: '600' }}>
+                        {batch.faculty}
                       </Text>
                     </View>
 

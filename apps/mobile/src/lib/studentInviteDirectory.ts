@@ -220,11 +220,11 @@ export function sanitizeLinkedStudents(students: LinkedStudent[]): LinkedStudent
   const siblingClasses = [10, 11, 12, 9, 10, 11];
   const siblingBoards: Array<"cbse" | "icse"> = ["icse", "cbse", "cbse", "cbse", "icse", "cbse"];
   const siblingSchools = [
-    "Sacred Heart School, Mathura",
+    "Sacred Heart School",
     "Quick2Learn High School",
-    "Delhi Public School, Mathura",
+    "Delhi Public School",
     "Quick2Learn High School",
-    "St. Dominic's School, Mathura",
+    "St. Dominic's School",
     "Quick2Learn High School",
   ];
 
@@ -240,7 +240,7 @@ export function sanitizeLinkedStudents(students: LinkedStudent[]): LinkedStudent
       child.fullName = rawName;
       child.classLevel = 10;
       child.board = "icse";
-      child.school = "Sacred Heart School, Mathura";
+      child.school = "Sacred Heart School";
     }
 
     const isPlaceholder = !rawName || rawName === "Student Demo" || rawName === "Student";
@@ -274,7 +274,7 @@ export function sanitizeLinkedStudents(students: LinkedStudent[]): LinkedStudent
         fullName: newFullName,
         classLevel: siblingFirst === "Arjun" ? 10 : ((child.classLevel && child.classLevel !== 8) ? child.classLevel : siblingClass),
         board: siblingFirst === "Arjun" ? "icse" : (child.board || siblingBoard),
-        school: siblingFirst === "Arjun" ? "Sacred Heart School, Mathura" : (child.school || siblingSchool),
+        school: siblingFirst === "Arjun" ? "Sacred Heart School" : (child.school || siblingSchool),
       };
     }
 
@@ -319,7 +319,7 @@ export async function lookupStudentByInviteCode(
             fullName: unlinkedStudent.fullName,
             classLevel: unlinkedStudent.classLevel || 10,
             board: (unlinkedStudent.board || "icse") as "cbse" | "icse",
-            school: unlinkedStudent.school || "Sacred Heart School, Mathura",
+            school: unlinkedStudent.school || "Sacred Heart School",
             avatarUrl: null,
           };
         }
@@ -333,11 +333,11 @@ export async function lookupStudentByInviteCode(
     const siblingClasses = [10, 11, 12, 9, 10, 11];
     const siblingBoards: Array<"cbse" | "icse"> = ["icse", "cbse", "cbse", "cbse", "icse", "cbse"];
     const siblingSchools = [
-      "Sacred Heart School, Mathura",
+      "Sacred Heart School",
       "Quick2Learn High School",
-      "Delhi Public School, Mathura",
+      "Delhi Public School",
       "Quick2Learn High School",
-      "St. Dominic's School, Mathura",
+      "St. Dominic's School",
       "Quick2Learn High School",
     ];
 
@@ -357,7 +357,7 @@ export async function lookupStudentByInviteCode(
       fullName: uniqueName,
       classLevel: availableFirst === "Arjun" ? 10 : siblingClasses[resolvedIdx],
       board: availableFirst === "Arjun" ? "icse" : siblingBoards[resolvedIdx],
-      school: availableFirst === "Arjun" ? "Sacred Heart School, Mathura" : siblingSchools[resolvedIdx],
+      school: availableFirst === "Arjun" ? "Sacred Heart School" : siblingSchools[resolvedIdx],
       avatarUrl: null,
     };
 
@@ -368,7 +368,7 @@ export async function lookupStudentByInviteCode(
       fullName: uniqueName,
       classLevel: siblingRecord.classLevel || 10,
       board: (siblingRecord.board || "icse") as "cbse" | "icse",
-      school: siblingRecord.school || "Sacred Heart School, Mathura",
+      school: siblingRecord.school || "Sacred Heart School",
     });
 
     return siblingRecord;

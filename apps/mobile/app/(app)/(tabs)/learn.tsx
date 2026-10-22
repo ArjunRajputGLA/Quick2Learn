@@ -6,9 +6,9 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FlashList } from '@shopify/flash-list';
 import { Search, BookOpen, Sparkles, ChevronRight } from 'lucide-react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
@@ -306,9 +306,10 @@ export default function LearnScreen() {
           </View>
         ) : (
           <View style={{ flex: 1 }} className="flex-1">
-            <FlashList
+            <FlatList
               data={chapters}
               contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={isRefetching}
