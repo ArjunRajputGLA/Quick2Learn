@@ -56,7 +56,7 @@ export function CoursesManagerSection({
   store,
   searchQuery,
   setSearchQuery,
-  classFilter = 'all',
+  classFilter,
   setClassFilter,
   onCreateCourse,
   onAddCourse,
@@ -64,11 +64,24 @@ export function CoursesManagerSection({
   onToast,
   onNotify,
 }: CoursesManagerSectionProps) {
+  const [internalClassFilter, setInternalClassFilter] = useState<'all' | '9' | '10' | '11' | '12'>('all');
+  const activeClassFilter = classFilter !== undefined ? classFilter : internalClassFilter;
+  const handleSelectClass = (lvl: 'all' | '9' | '10' | '11' | '12') => {
+    if (setClassFilter) setClassFilter(lvl);
+    setInternalClassFilter(lvl);
+  };
+
   const notify = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
     if (onToast) onToast({ type, message: msg });
     if (onNotify) onNotify(msg, type);
   };
-  const triggerCreate = onCreateCourse || onAddCourse || (() => {});
+  const triggerCreate = () => {
+    if (onCreateCourse) {
+      onCreateCourse();
+    } else if (onAddCourse) {
+      onAddCourse();
+    }
+  };
   const courses = store.courses || [];
 
   const filteredCourses = courses.filter((c: AdminCourseItem) => {
@@ -77,8 +90,9 @@ export function CoursesManagerSection({
       (c.subtitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.faculty || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.subjects || []).some((s: string) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+    const courseClass = (c.targetClass || c.classLevel || 9).toString();
     const matchClass =
-      classFilter === 'all' || (c.targetClass || c.classLevel || 9).toString() === classFilter;
+      activeClassFilter === 'all' || courseClass === activeClassFilter;
     return matchSearch && matchClass;
   });
 
@@ -117,39 +131,64 @@ export function CoursesManagerSection({
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: '#FFFFFF',
-          padding: 14,
-          borderRadius: 16,
+          padding: 12,
+          borderRadius: 14,
           borderWidth: 1,
           borderColor: '#E2E8F0',
+          gap: 10,
         }}
       >
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Sparkles size={16} color="#2563EB" />
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>
-              Institute Courses & Packs
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: '#EFF6FF',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={15} color="#2563EB" />
+            </View>
+            <Text
+              style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', flexShrink: 1 }}
+              numberOfLines={1}
+            >
+              Institute Courses
             </Text>
           </View>
-          <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+          <Text
+            style={{ fontSize: 11, color: '#64748B', marginTop: 2, marginLeft: 35 }}
+            numberOfLines={1}
+          >
             {courses.length} courses loaded in student app
           </Text>
         </View>
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={onCreateCourse}
+          onPress={triggerCreate}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 5,
+            gap: 4,
             backgroundColor: '#2563EB',
-            paddingHorizontal: 12,
-            paddingVertical: 8,
+            paddingHorizontal: 11,
+            paddingVertical: 7.5,
             borderRadius: 10,
+            flexShrink: 0,
+            shadowColor: '#2563EB',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.18,
+            shadowRadius: 3,
+            elevation: 2,
           }}
         >
-          <Plus size={15} color="#FFFFFF" />
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Create Course</Text>
+          <Plus size={14} color="#FFFFFF" />
+          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Create Course</Text>
         </TouchableOpacity>
       </View>
 
@@ -188,8 +227,8 @@ export function CoursesManagerSection({
             <Chip
               key={lvl}
               label={lvl === 'all' ? 'All Classes' : `Class ${lvl}`}
-              selected={classFilter === lvl}
-              onPress={() => setClassFilter?.(lvl)}
+              selected={activeClassFilter === lvl}
+              onPress={() => handleSelectClass(lvl)}
             />
           ))}
         </ScrollView>
@@ -211,10 +250,10 @@ export function CoursesManagerSection({
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: 16,
-                padding: 16,
+                padding: 14,
                 borderWidth: 1,
                 borderColor: '#E2E8F0',
-                gap: 12,
+                gap: 10,
                 elevation: 1,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
@@ -223,8 +262,8 @@ export function CoursesManagerSection({
               }}
             >
               {/* Badges Row */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: 1 }}>
                   <Badge label={`CLASS ${c.targetClass || c.classLevel || 9}`} variant="primary" size="sm" />
                   <Badge label={(c.board || 'icse').toUpperCase()} variant="neutral" size="sm" />
                   <Badge
@@ -233,7 +272,7 @@ export function CoursesManagerSection({
                     size="sm"
                   />
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3.5, flexShrink: 0 }}>
                   <Star size={13} color="#F59E0B" fill="#F59E0B" />
                   <Text style={{ fontSize: 12, fontWeight: '800', color: '#0F172A' }}>4.9</Text>
                   <Text style={{ fontSize: 11, color: '#94A3B8' }}>(180+)</Text>
@@ -241,16 +280,16 @@ export function CoursesManagerSection({
               </View>
 
               {/* Course Title & Subtitle */}
-              <View>
-                <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#0F172A', lineHeight: 21 }}>
+              <View style={{ gap: 2 }}>
+                <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A', lineHeight: 20 }}>
                   {c.title}
                 </Text>
                 {c.subtitle ? (
-                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 3 }}>
+                  <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 16 }}>
                     {c.subtitle}
                   </Text>
                 ) : null}
-                <Text style={{ fontSize: 11.5, color: '#475569', marginTop: 3, fontWeight: '600' }}>
+                <Text style={{ fontSize: 11.5, color: '#475569', marginTop: 2, fontWeight: '600' }}>
                   Faculty: {c.faculty || 'DINESH SINGH RAJPUT'} • Subjects: {(c.subjects || []).join(', ')}
                 </Text>
               </View>
@@ -262,12 +301,16 @@ export function CoursesManagerSection({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   backgroundColor: '#F8FAFC',
-                  padding: 10,
-                  borderRadius: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: '#F1F5F9',
+                  gap: 8,
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, flex: 1, flexWrap: 'wrap' }}>
+                  <Text style={{ fontSize: 15.5, fontWeight: '900', color: '#0F172A' }}>
                     ₹{(c.discountedPrice ?? c.price).toLocaleString('en-IN')}
                   </Text>
                   {c.price > (c.discountedPrice ?? c.price) && (
@@ -283,32 +326,46 @@ export function CoursesManagerSection({
                   )}
                 </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                   <Clock size={12} color="#64748B" />
-                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#64748B' }}>
-                    {c.validity || '365 Days'}
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
+                    {c.validity || '365 Days Access'}
                   </Text>
                 </View>
               </View>
 
               {/* Features Tags */}
               {c.features && c.features.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                  {c.features.map((f: string, idx: number) => (
-                    <View
-                      key={idx}
-                      style={{
-                        backgroundColor: '#EFF6FF',
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                      }}
-                    >
-                      <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1E40AF' }}>
-                        ✓ {f}
-                      </Text>
-                    </View>
-                  ))}
+                <View style={{ gap: 4 }}>
+                  {c.features.map((f: string, idx: number) => {
+                    const cleanText = f.replace(/^[✓✔\s]+/, '');
+                    return (
+                      <View
+                        key={idx}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 6,
+                          backgroundColor: '#F0F7FF',
+                          borderWidth: 1,
+                          borderColor: '#DBEAFE',
+                          paddingHorizontal: 8,
+                          paddingVertical: 3.5,
+                          borderRadius: 6,
+                          alignSelf: 'flex-start',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>✓</Text>
+                        <Text
+                          style={{ fontSize: 11, fontWeight: '600', color: '#1E40AF', flexShrink: 1 }}
+                          numberOfLines={1}
+                        >
+                          {cleanText}
+                        </Text>
+                      </View>
+                    );
+                  })}
                 </View>
               )}
 
@@ -321,66 +378,70 @@ export function CoursesManagerSection({
                   paddingTop: 10,
                   borderTopWidth: 1,
                   borderTopColor: '#F1F5F9',
+                  gap: 8,
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Users size={13} color="#64748B" />
-                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#64748B' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, marginRight: 4 }}>
+                  <Users size={13} color="#64748B" style={{ flexShrink: 0 }} />
+                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#64748B' }} numberOfLines={1}>
                     {c.enrolledCount} Students Enrolled
                   </Text>
                 </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <TouchableOpacity
+                    activeOpacity={0.75}
                     onPress={() => handleTogglePublish(c)}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 4,
-                      paddingHorizontal: 9,
-                      paddingVertical: 5,
+                      gap: 3.5,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4.5,
                       borderRadius: 8,
                       backgroundColor: c.isPublished ? '#FEF2F2' : '#F0FDF4',
                     }}
                   >
                     {c.isPublished ? (
                       <>
-                        <EyeOff size={12} color="#DC2626" />
+                        <EyeOff size={11} color="#DC2626" />
                         <Text style={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>Draft</Text>
                       </>
                     ) : (
                       <>
-                        <Eye size={12} color="#16A34A" />
+                        <Eye size={11} color="#16A34A" />
                         <Text style={{ fontSize: 11, fontWeight: '700', color: '#16A34A' }}>Publish</Text>
                       </>
                     )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    activeOpacity={0.75}
                     onPress={() => onEditCourse(c)}
                     style={{
-                      paddingHorizontal: 9,
-                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4.5,
                       borderRadius: 8,
                       backgroundColor: '#EFF6FF',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 4,
+                      gap: 3.5,
                     }}
                   >
-                    <Edit3 size={12} color="#2563EB" />
+                    <Edit3 size={11} color="#2563EB" />
                     <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>Edit</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    activeOpacity={0.75}
                     onPress={() => handleDeleteCourse(c)}
                     style={{
-                      padding: 6,
+                      padding: 5,
                       borderRadius: 8,
                       backgroundColor: '#FEE2E2',
                     }}
                   >
-                    <Trash2 size={13} color="#EF4444" />
+                    <Trash2 size={12} color="#EF4444" />
                   </TouchableOpacity>
                 </View>
               </View>

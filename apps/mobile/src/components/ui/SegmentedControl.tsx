@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ViewStyle, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radii } from '@quick2learn/shared';
 
@@ -32,77 +32,58 @@ export function SegmentedControl({
     <View
       style={[
         {
-          minHeight: 38,
+          minHeight: 40,
           padding: 3,
-          backgroundColor: colors['surface-subtle'],
+          backgroundColor: '#F1F5F9',
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: '#E2E8F0',
           borderRadius: radii.lg,
           flexDirection: 'row',
           alignItems: 'center',
         },
         style,
       ]}
-      className={`min-h-[38px] p-0.5 bg-surface-subtle border border-border rounded-lg flex-row items-center ${className}`}
     >
       {options.map((option, index) => {
         const isSelected = selectedIndex === index;
         return (
-          <Pressable
+          <TouchableOpacity
             key={option}
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
+            activeOpacity={0.85}
             onPress={() => handleSelect(index)}
             hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-            style={({ pressed }) => [
-              {
-                flex: 1,
-                minHeight: 32,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: radii.md,
-                backgroundColor: isSelected
-                  ? colors.surface
-                  : pressed
-                  ? 'rgba(0,0,0,0.04)'
-                  : 'transparent',
-                borderWidth: isSelected ? 1 : 0,
-                borderColor: isSelected ? colors.border : 'transparent',
-                elevation: isSelected ? 1 : 0,
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: isSelected ? 0.06 : 0,
-                shadowRadius: 2,
-                ...(Platform.OS === 'web'
-                  ? ({
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                      outline: 'none',
-                    } as any)
-                  : {}),
-              },
-            ]}
+            style={{
+              flex: 1,
+              minHeight: 32,
+              paddingHorizontal: 8,
+              paddingVertical: 6,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: radii.md,
+              backgroundColor: isSelected ? '#FFFFFF' : 'transparent',
+              borderWidth: isSelected ? 1 : 0,
+              borderColor: isSelected ? '#CBD5E1' : 'transparent',
+              elevation: isSelected ? 1 : 0,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: isSelected ? 0.08 : 0,
+              shadowRadius: 2,
+            }}
           >
             <Text
               style={{
                 fontSize: 12,
                 textAlign: 'center',
-                fontWeight: isSelected ? '600' : '500',
-                color: isSelected ? colors.primary : colors['ink-muted'],
-                ...(Platform.OS === 'web'
-                  ? ({
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                    } as any)
-                  : {}),
+                fontWeight: isSelected ? '700' : '600',
+                color: isSelected ? '#2563EB' : '#64748B',
               }}
               numberOfLines={1}
             >
               {option}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         );
       })}
     </View>

@@ -1,15 +1,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Menu } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
 import { NotificationBell } from './NotificationBell';
+import { useDrawerStore } from '../../lib/drawerStore';
 
 export interface AppHeaderProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
+  showMenu?: boolean;
+  onMenu?: () => void;
   showNotificationBell?: boolean;
   unreadCount?: number;
   rightActions?: React.ReactNode;
@@ -21,6 +24,8 @@ export function AppHeader({
   subtitle,
   showBack = false,
   onBack,
+  showMenu = true,
+  onMenu,
   showNotificationBell = true,
   unreadCount,
   rightActions,
@@ -34,6 +39,8 @@ export function AppHeader({
     // Fallback if rendered outside navigation context (e.g. tests or isolated preview)
   }
 
+  const { openDrawer } = useDrawerStore();
+
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -42,6 +49,16 @@ export function AppHeader({
     }
   };
 
+  const handleMenu = () => {
+    if (onMenu) {
+      onMenu();
+    } else {
+      openDrawer();
+    }
+  };
+
+  const hasLeadingIcon = showBack || showMenu !== false;
+
   return (
     <View
       style={{
@@ -49,7 +66,7 @@ export function AppHeader({
         marginTop: 4,
         marginBottom: 6,
         minHeight: 46,
-        paddingHorizontal: showBack ? 8 : 14,
+        paddingHorizontal: hasLeadingIcon ? 8 : 14,
         paddingVertical: 6,
         flexDirection: 'row',
         alignItems: 'center',
@@ -67,7 +84,7 @@ export function AppHeader({
       className={`mx-3 mt-1 mb-1.5 min-h-[46px] flex-row items-center justify-between rounded-full bg-surface border border-border shadow-xs ${className}`}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }} className="flex-row items-center flex-1 mr-2">
-        {showBack && (
+        {showBack ? (
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -88,7 +105,28 @@ export function AppHeader({
           >
             <ArrowLeft size={16} color={colors.ink} />
           </TouchableOpacity>
-        )}
+        ) : showMenu !== false ? (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Open sidebar menu"
+            onPress={handleMenu}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 17,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: colors['surface-subtle'],
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginRight: 8,
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
+          </TouchableOpacity>
+        ) : null}
         <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
           <Text
             style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}

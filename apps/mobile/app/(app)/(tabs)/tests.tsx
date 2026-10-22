@@ -250,87 +250,59 @@ export default function ParentTestsTab() {
             borderColor: "#E2E8F0",
           }}
         >
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.85}
             onPress={() => setActiveTab("all")}
-            style={({ pressed }) => ({
+            style={{
               flex: 1,
               paddingVertical: 8,
               borderRadius: 10,
               alignItems: "center",
-              backgroundColor: activeTab === "all" ? "#FFFFFF" : (pressed ? "#E2E8F0" : "transparent"),
+              backgroundColor: activeTab === "all" ? "#FFFFFF" : "transparent",
               shadowColor: activeTab === "all" ? "#0F172A" : "transparent",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: activeTab === "all" ? 0.06 : 0,
               shadowRadius: 2,
               elevation: activeTab === "all" ? 1 : 0,
-              ...(Platform.OS === 'web'
-                ? ({
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    outline: 'none',
-                  } as any)
-                : {}),
-            })}
+            }}
           >
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: activeTab === "all" ? "700" : "600",
                 color: activeTab === "all" ? "#2563EB" : "#64748B",
-                ...(Platform.OS === 'web'
-                  ? ({
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                    } as any)
-                  : {}),
               }}
             >
               All Tests ({tests.length})
             </Text>
-          </Pressable>
+          </TouchableOpacity>
 
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.85}
             onPress={() => setActiveTab("completed")}
-            style={({ pressed }) => ({
+            style={{
               flex: 1,
               paddingVertical: 8,
               borderRadius: 10,
               alignItems: "center",
-              backgroundColor: activeTab === "completed" ? "#FFFFFF" : (pressed ? "#E2E8F0" : "transparent"),
+              backgroundColor: activeTab === "completed" ? "#FFFFFF" : "transparent",
               shadowColor: activeTab === "completed" ? "#0F172A" : "transparent",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: activeTab === "completed" ? 0.06 : 0,
               shadowRadius: 2,
               elevation: activeTab === "completed" ? 1 : 0,
-              ...(Platform.OS === 'web'
-                ? ({
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    outline: 'none',
-                  } as any)
-                : {}),
-            })}
+            }}
           >
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: activeTab === "completed" ? "700" : "600",
                 color: activeTab === "completed" ? "#2563EB" : "#64748B",
-                ...(Platform.OS === 'web'
-                  ? ({
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                    } as any)
-                  : {}),
               }}
             >
               Evaluated ({completedTests.length})
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Tests List */}

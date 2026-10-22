@@ -327,21 +327,40 @@ export function ChatsManagerSection({
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: '#FFFFFF',
-          padding: 14,
-          borderRadius: 16,
+          padding: 12,
+          borderRadius: 14,
           borderWidth: 1,
           borderColor: '#E2E8F0',
+          gap: 10,
         }}
       >
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <MessageSquare size={16} color="#2563EB" />
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>
-              Institute Chats & Broadcasts
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: '#EFF6FF',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <MessageSquare size={15} color="#2563EB" />
+            </View>
+            <Text
+              style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', flexShrink: 1 }}
+              numberOfLines={1}
+            >
+              Institute Chats
             </Text>
           </View>
-          <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
-            Batch groups, student direct chats & announcements
+          <Text
+            style={{ fontSize: 11, color: '#64748B', marginTop: 2, marginLeft: 35 }}
+            numberOfLines={1}
+          >
+            Batch groups & student messaging
           </Text>
         </View>
 
@@ -351,15 +370,21 @@ export function ChatsManagerSection({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 5,
+            gap: 4,
             backgroundColor: '#2563EB',
-            paddingHorizontal: 12,
-            paddingVertical: 8,
+            paddingHorizontal: 11,
+            paddingVertical: 7.5,
             borderRadius: 10,
+            flexShrink: 0,
+            shadowColor: '#2563EB',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.18,
+            shadowRadius: 3,
+            elevation: 2,
           }}
         >
           <Bell size={14} color="#FFFFFF" />
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Broadcast</Text>
+          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Broadcast</Text>
         </TouchableOpacity>
       </View>
 
@@ -486,12 +511,12 @@ export function ChatsManagerSection({
                   })()}
 
                   <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A', flex: 1, marginRight: 6 }} numberOfLines={1}>
                         {c.title}
                       </Text>
                       {c.lastMessageTime && (
-                        <Text style={{ fontSize: 10.5, color: '#94A3B8' }}>
+                        <Text style={{ fontSize: 10.5, color: '#94A3B8', flexShrink: 0 }}>
                           {formatTime(c.lastMessageTime)}
                         </Text>
                       )}
@@ -509,7 +534,7 @@ export function ChatsManagerSection({
                   </View>
                 </View>
 
-                <ChevronRight size={16} color="#94A3B8" />
+                <ChevronRight size={16} color="#94A3B8" style={{ flexShrink: 0 }} />
               </TouchableOpacity>
             );
           })}

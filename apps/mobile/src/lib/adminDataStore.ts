@@ -116,6 +116,7 @@ export interface AdminLectureItem {
   isPublished: boolean;
   uploadedAt: string;
   batchId?: string;
+  batchTitle?: string;
   folderName?: string;
   faculty?: string;
   tag?: string;
@@ -202,6 +203,8 @@ export interface AdminQuestionItem {
   subject: string;
   classLevel: 9 | 10 | 11 | 12;
   chapter: string;
+  batchId?: string;
+  batchTitle?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   marks: number;
   negativeMarks: number;
@@ -214,6 +217,8 @@ export interface AdminTestItem {
   title: string;
   subject: string;
   classLevel: 9 | 10 | 11 | 12;
+  batchId?: string;
+  batchTitle?: string;
   chapters: string[];
   durationMinutes: number;
   totalMarks: number;
@@ -352,7 +357,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       courseName: 'Class 9 - Tests available',
       classLevel: 9,
       board: 'icse',
-      mode: 'hybrid',
+      mode: 'online',
       status: 'ongoing',
       startDate: '2026-04-22',
       endDate: '2027-02-28',
@@ -397,7 +402,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       subject: 'Mathematics',
       classLevel: 12,
       board: 'cbse',
-      mode: 'offline',
+      mode: 'online',
       status: 'ongoing',
       startDate: '2026-04-10',
       endDate: '2027-02-28',
@@ -416,7 +421,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       subject: 'Mathematics',
       classLevel: 11,
       board: 'cbse',
-      mode: 'hybrid',
+      mode: 'online',
       status: 'ongoing',
       startDate: '2026-04-15',
       endDate: '2027-02-20',
@@ -435,7 +440,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       subject: 'Mathematics',
       classLevel: 10,
       board: 'cbse',
-      mode: 'offline',
+      mode: 'online',
       status: 'ongoing',
       startDate: '2026-04-01',
       endDate: '2027-02-15',
@@ -454,7 +459,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       subject: 'Chemistry',
       classLevel: 12,
       board: 'isc',
-      mode: 'offline',
+      mode: 'online',
       status: 'ongoing',
       startDate: '2026-04-12',
       endDate: '2027-02-25',
@@ -473,7 +478,7 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
       subject: 'Biology',
       classLevel: 10,
       board: 'icse',
-      mode: 'hybrid',
+      mode: 'online',
       status: 'upcoming',
       startDate: '2026-11-01',
       endDate: '2027-02-10',
@@ -1713,6 +1718,129 @@ export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
 
   chats: [
     {
+      id: 'chat-namita-singh-rajput',
+      type: 'direct',
+      title: 'NAMITA SINGH RAJPUT',
+      subtitle: 'Faculty • Chemistry & Biology',
+      facultyName: 'NAMITA SINGH RAJPUT',
+      unreadCount: 0,
+      lastMessage: 'You : hi',
+      lastMessageTime: 'Yesterday',
+      messages: [
+        {
+          id: 'msg-nam-01',
+          senderId: 'stud-01',
+          senderName: 'Arjun Singh Rajput',
+          senderRole: 'student',
+          text: 'hi',
+          createdAt: '2026-10-21T18:00:00Z',
+        },
+        {
+          id: 'msg-nam-02',
+          senderId: 'faculty-namita',
+          senderName: 'NAMITA SINGH RAJPUT (Faculty)',
+          senderRole: 'teacher',
+          text: 'Hello Arjun! How can I assist you today? Feel free to ask any Chemistry or Biology questions.',
+          createdAt: '2026-10-21T18:05:00Z',
+        },
+      ],
+      createdAt: '2026-04-10T10:00:00Z',
+    },
+    {
+      id: 'chat-xii-maths-term2',
+      type: 'batch_group',
+      title: 'XII MATHS (TERM-2)',
+      subtitle: 'Class 12 CBSE & ICSE • 35 Students',
+      batchId: 'batch-xii-maths',
+      facultyName: 'DINESH SINGH RAJPUT',
+      unreadCount: 1,
+      lastMessage: 'Differential equations practice sheet uploaded.',
+      lastMessageTime: 'Today',
+      messages: [
+        {
+          id: 'msg-xii-01',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'Welcome to Term-2 Maths discussion group. Calculus and Vectors worksheets will be shared here.',
+          createdAt: '2026-04-01T10:00:00Z',
+        },
+        {
+          id: 'msg-xii-02',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'Differential equations practice sheet uploaded.',
+          createdAt: '2026-10-22T10:30:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
+      id: 'chat-xi-dummy',
+      type: 'batch_group',
+      title: 'XI DUMMY',
+      subtitle: 'Class 11 Science • 24 Students',
+      batchId: 'batch-xi-dummy',
+      facultyName: 'DINESH SINGH RAJPUT',
+      unreadCount: 0,
+      lastMessage: 'Next revision session on Trigonometry scheduled.',
+      lastMessageTime: 'Yesterday',
+      messages: [
+        {
+          id: 'msg-xi-01',
+          senderId: 'faculty-dinesh',
+          senderName: 'Dinesh Singh Rajput (Faculty)',
+          senderRole: 'teacher',
+          text: 'Next revision session on Trigonometry scheduled.',
+          createdAt: '2026-10-21T11:00:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
+      id: 'chat-9-icse-chemistry',
+      type: 'batch_group',
+      title: '9 ICSE CHEMISTRY (2022-23)',
+      subtitle: 'Class 9 ICSE Chemistry • 18 Students',
+      facultyName: 'NAMITA SINGH RAJPUT',
+      unreadCount: 0,
+      lastMessage: 'Please prepare Chapter 3 Chemical Bonding notes.',
+      lastMessageTime: '3 days ago',
+      messages: [
+        {
+          id: 'msg-9chem-01',
+          senderId: 'faculty-namita',
+          senderName: 'NAMITA SINGH RAJPUT (Faculty)',
+          senderRole: 'teacher',
+          text: 'Please prepare Chapter 3 Chemical Bonding notes.',
+          createdAt: '2026-10-19T10:00:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
+      id: 'chat-9-icse-biology',
+      type: 'batch_group',
+      title: '9 ICSE BIOLOGY (2022-23)',
+      subtitle: 'Class 9 ICSE Biology • 20 Students',
+      facultyName: 'NAMITA SINGH RAJPUT',
+      unreadCount: 0,
+      lastMessage: 'Plant physiology diagrams must be submitted by Friday.',
+      lastMessageTime: '4 days ago',
+      messages: [
+        {
+          id: 'msg-9bio-01',
+          senderId: 'faculty-namita',
+          senderName: 'NAMITA SINGH RAJPUT (Faculty)',
+          senderRole: 'teacher',
+          text: 'Plant physiology diagrams must be submitted by Friday.',
+          createdAt: '2026-10-18T10:00:00Z',
+        },
+      ],
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+    {
       id: 'chat-batch-ix-icse',
       type: 'batch_group',
       title: 'IX ICSE Batch Discussion',
@@ -1958,6 +2086,10 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         set({
           ...INITIAL_ADMIN_DATA,
           ...parsed,
+          batches: (parsed.batches || INITIAL_ADMIN_DATA.batches).map((b: any) => ({
+            ...b,
+            mode: b.id === 'batch-ix-icse-maths-sci' && (b.mode === 'hybrid' || !b.mode) ? 'online' : (b.mode || 'online'),
+          })),
           assignments: parsed.assignments || INITIAL_ADMIN_DATA.assignments,
           liveClasses: parsed.liveClasses || INITIAL_ADMIN_DATA.liveClasses,
           attendanceRecords: parsed.attendanceRecords || INITIAL_ADMIN_DATA.attendanceRecords,
@@ -1997,6 +2129,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const code = `${batchInput.subject.slice(0, 4).toUpperCase()}-${batchInput.classLevel}${Math.floor(10 + Math.random() * 90)}`;
     const newBatch: BatchItem = {
       ...batchInput,
+      mode: batchInput.mode || 'online',
       id: newId,
       enrolledCount: 0,
       joinCode: code,

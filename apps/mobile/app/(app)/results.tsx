@@ -42,30 +42,20 @@ export default function ResultsScreen() {
     >
       {/* Segment Selector */}
       <View className="flex-row p-3 bg-surface border-b border-border">
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={() => setActiveTab("results")}
           accessibilityRole="tab"
           accessibilityLabel="Board Toppers tab"
-          style={({ pressed }) => ({
+          style={{
             flex: 1,
             paddingVertical: 10,
             borderRadius: 12,
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'center',
-            backgroundColor: activeTab === 'results'
-              ? (pressed ? '#1D4ED8' : '#2563EB')
-              : (pressed ? '#E2E8F0' : '#F1F5F9'),
-            ...(Platform.OS === 'web'
-              ? ({
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  outline: 'none',
-                } as any)
-              : {}),
-          })}
+            backgroundColor: activeTab === 'results' ? '#2563EB' : '#F1F5F9',
+          }}
         >
           <Trophy
             size={16}
@@ -77,23 +67,18 @@ export default function ResultsScreen() {
               fontWeight: '700',
               marginLeft: 6,
               color: activeTab === "results" ? "#FFFFFF" : "#475569",
-              ...(Platform.OS === 'web'
-                ? ({
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                  } as any)
-                : {}),
             }}
           >
             Board Toppers
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={() => setActiveTab("testimonials")}
           accessibilityRole="tab"
           accessibilityLabel="Student Reviews tab"
-          style={({ pressed }) => ({
+          style={{
             flex: 1,
             paddingVertical: 10,
             borderRadius: 12,
@@ -101,19 +86,8 @@ export default function ResultsScreen() {
             flexDirection: 'row',
             justifyContent: 'center',
             marginLeft: 8,
-            backgroundColor: activeTab === 'testimonials'
-              ? (pressed ? '#1D4ED8' : '#2563EB')
-              : (pressed ? '#E2E8F0' : '#F1F5F9'),
-            ...(Platform.OS === 'web'
-              ? ({
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  outline: 'none',
-                } as any)
-              : {}),
-          })}
+            backgroundColor: activeTab === 'testimonials' ? '#2563EB' : '#F1F5F9',
+          }}
         >
           <Quote
             size={16}
@@ -125,17 +99,11 @@ export default function ResultsScreen() {
               fontWeight: '700',
               marginLeft: 6,
               color: activeTab === "testimonials" ? "#FFFFFF" : "#475569",
-              ...(Platform.OS === 'web'
-                ? ({
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                  } as any)
-                : {}),
             }}
           >
             Student Reviews
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (

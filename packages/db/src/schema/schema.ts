@@ -241,7 +241,7 @@ export const batches = pgTable(
       onDelete: "set null",
     }),
     coverKey: text("cover_key"),
-    mode: batchModeEnum("mode").default("offline").notNull(),
+    mode: batchModeEnum("mode").default("online").notNull(),
     scheduleText: text("schedule_text").notNull(),
     locationText: text("location_text"),
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),

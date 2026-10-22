@@ -77,7 +77,7 @@ export function BatchEditor({
   const [board, setBoard] = useState<"cbse" | "icse" | "isc">(initialBatch?.board || "cbse");
   const [subjectId, setSubjectId] = useState(initialBatch?.subjectId || subjects[0]?.id || "");
   const [facultyId, setFacultyId] = useState(initialBatch?.facultyId || "");
-  const [mode, setMode] = useState<"offline" | "online" | "hybrid">(initialBatch?.mode || "offline");
+  const [mode, setMode] = useState<"offline" | "online" | "hybrid">(initialBatch?.mode || "online");
   const [scheduleText, setScheduleText] = useState(initialBatch?.scheduleText || "Mon, Wed, Fri · 5:00 PM – 7:00 PM");
   const [locationText, setLocationText] = useState(initialBatch?.locationText || "Mathura Main Campus");
   const [startDate, setStartDate] = useState(

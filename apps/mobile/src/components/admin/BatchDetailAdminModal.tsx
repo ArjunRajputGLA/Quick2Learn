@@ -789,7 +789,7 @@ export function BatchDetailAdminModal({
                     justifyContent: 'space-between',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
                     <View
                       style={{
                         width: 36,
@@ -798,11 +798,12 @@ export function BatchDetailAdminModal({
                         backgroundColor: '#DBEAFE',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
                       <Video size={17} color="#2563EB" />
                     </View>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E3A8A' }}>
                         Schedule or Go Live Now
                       </Text>
@@ -811,7 +812,7 @@ export function BatchDetailAdminModal({
                       </Text>
                     </View>
                   </View>
-                  <ChevronRight size={16} color="#2563EB" />
+                  <ChevronRight size={16} color="#2563EB" style={{ flexShrink: 0 }} />
                 </TouchableOpacity>
               )}
 

@@ -31,12 +31,14 @@ import {
   FileText,
   Volume2,
   ShieldCheck,
+  Menu,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
 import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDrawerStore } from '../../../src/lib/drawerStore';
 import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { NotificationBell } from '../../../src/components/ui/NotificationBell';
@@ -67,6 +69,7 @@ function StudentHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { openDrawer } = useDrawerStore();
   const { data: me } = useMe();
   const { data: home, isLoading, isRefetching, refetch } = useHome();
   const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
@@ -217,15 +220,15 @@ function StudentHomeScreen() {
       {/* Offline banner indicator (shows cached data) */}
       <OfflineBanner />
 
-      {/* 1. Header Island: "Hi, [Name]", class/board chip, notification bell */}
+      {/* 1. Header Island: 3-lined menu icon, "Hi, [Name]", class/board chip, notification bell */}
       <View
         style={{
           marginHorizontal: 12,
           marginTop: 4,
           marginBottom: 6,
-          paddingHorizontal: 14,
-          paddingVertical: 7,
-          minHeight: 48,
+          paddingHorizontal: 8,
+          paddingVertical: 6,
+          minHeight: 46,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -239,36 +242,60 @@ function StudentHomeScreen() {
           shadowRadius: 6,
           elevation: 3,
         }}
-        className="mx-3 mt-1 mb-1.5 px-3.5 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
+        className="mx-3 mt-1 mb-1.5 px-2 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
-        <View style={{ flex: 1, paddingRight: 8, justifyContent: 'center' }} className="flex-1 pr-2 justify-center">
-          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 6 }} className="flex-row items-center">
-            <Text
-              style={{ fontSize: 15, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
-              className="text-body font-bold text-ink mr-1.5"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              Hi, {displayName}
-            </Text>
-            {chipLabel ? (
-              <View
-                style={{
-                  backgroundColor: colors['primary-soft'],
-                  paddingHorizontal: 7,
-                  paddingVertical: 1.5,
-                  borderRadius: radii.full,
-                  borderWidth: 1,
-                  borderColor: 'rgba(37, 99, 235, 0.2)',
-                  flexShrink: 0,
-                }}
-                className="bg-primary-soft px-1.5 py-0.5 rounded-full border border-primary/20"
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+          {/* Hamburger Menu 3-lined Icon */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Open sidebar menu"
+            onPress={() => openDrawer()}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 17,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: colors['surface-subtle'],
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginRight: 8,
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
+          </TouchableOpacity>
+
+          <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 6 }} className="flex-row items-center">
+              <Text
+                style={{ fontSize: 15, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
+                className="text-body font-bold text-ink mr-1.5"
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
-                <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }} className="text-[10px] font-semibold text-primary">
-                  {chipLabel}
-                </Text>
-              </View>
-            ) : null}
+                Hi, {displayName}
+              </Text>
+              {chipLabel ? (
+                <View
+                  style={{
+                    backgroundColor: colors['primary-soft'],
+                    paddingHorizontal: 7,
+                    paddingVertical: 1.5,
+                    borderRadius: radii.full,
+                    borderWidth: 1,
+                    borderColor: 'rgba(37, 99, 235, 0.2)',
+                    flexShrink: 0,
+                  }}
+                  className="bg-primary-soft px-1.5 py-0.5 rounded-full border border-primary/20"
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }} className="text-[10px] font-semibold text-primary">
+                    {chipLabel}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
 

@@ -216,9 +216,10 @@ export default function SettingsScreen() {
           </View>
 
           <View className="flex-row space-x-3 pt-1">
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.85}
               onPress={() => setLanguage("en")}
-              style={({ pressed }) => ({
+              style={{
                 flex: 1,
                 paddingVertical: 12,
                 paddingHorizontal: 16,
@@ -227,43 +228,25 @@ export default function SettingsScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: language === 'en'
-                  ? (pressed ? '#1D4ED8' : '#2563EB')
-                  : (pressed ? '#E2E8F0' : '#F1F5F9'),
-                borderColor: language === 'en'
-                  ? (pressed ? '#1E40AF' : '#1D4ED8')
-                  : (pressed ? '#CBD5E1' : '#E2E8F0'),
-                ...(Platform.OS === 'web'
-                  ? ({
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                      outline: 'none',
-                    } as any)
-                  : {}),
-              })}
+                backgroundColor: language === 'en' ? '#2563EB' : '#F1F5F9',
+                borderColor: language === 'en' ? '#1D4ED8' : '#E2E8F0',
+              }}
             >
               <Text
                 style={{
                   fontSize: 14,
                   fontWeight: '700',
                   color: language === "en" ? "#FFFFFF" : "#1E293B",
-                  ...(Platform.OS === 'web'
-                    ? ({
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                      } as any)
-                    : {}),
                 }}
               >
                 English
               </Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.85}
               onPress={() => setLanguage("hi")}
-              style={({ pressed }) => ({
+              style={{
                 flex: 1,
                 paddingVertical: 12,
                 paddingHorizontal: 16,
@@ -273,39 +256,20 @@ export default function SettingsScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginLeft: 8,
-                backgroundColor: language === 'hi'
-                  ? (pressed ? '#1D4ED8' : '#2563EB')
-                  : (pressed ? '#E2E8F0' : '#F1F5F9'),
-                borderColor: language === 'hi'
-                  ? (pressed ? '#1E40AF' : '#1D4ED8')
-                  : (pressed ? '#CBD5E1' : '#E2E8F0'),
-                ...(Platform.OS === 'web'
-                  ? ({
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                      outline: 'none',
-                    } as any)
-                  : {}),
-              })}
+                backgroundColor: language === 'hi' ? '#2563EB' : '#F1F5F9',
+                borderColor: language === 'hi' ? '#1D4ED8' : '#E2E8F0',
+              }}
             >
               <Text
                 style={{
                   fontSize: 14,
                   fontWeight: '700',
                   color: language === "hi" ? "#FFFFFF" : "#1E293B",
-                  ...(Platform.OS === 'web'
-                    ? ({
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                      } as any)
-                    : {}),
                 }}
               >
                 हिंदी (Hindi)
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
 

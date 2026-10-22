@@ -1657,7 +1657,7 @@ export function useBatchDetail(id: string) {
         description: 'Comprehensive coaching for Class 9 ICSE Mathematics & Science.',
         classLevel: 9,
         board: 'icse',
-        mode: 'hybrid',
+        mode: 'online',
         academicYear: '2026 - 2027',
         joinCode: 'iiwbpg',
         whatsappGroupUrl: 'https://wa.me/919412278910',
@@ -1736,7 +1736,7 @@ export function useBatchTimetable(batchId: string) {
           endTime: '21:00',
           subjectName: t.subject,
           teacherName: t.faculty,
-          mode: batch?.mode || 'offline',
+          mode: batch?.mode || 'online',
           roomOrLinkNote: batch?.mode === 'online' ? 'Online Live Session' : (batch?.room || 'Hall 2'),
         };
       });

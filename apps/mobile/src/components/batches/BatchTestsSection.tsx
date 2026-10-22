@@ -135,45 +135,29 @@ export function BatchTestsSection({
             { key: 'missed', label: `Missed (${missedTests.length})` },
           ] as const
         ).map((tab) => (
-          <Pressable
+          <TouchableOpacity
             key={tab.key}
+            activeOpacity={0.85}
             onPress={() => setActiveTab(tab.key)}
-            style={({ pressed }) => ({
+            style={{
               flex: 1,
               paddingVertical: 8,
               borderRadius: 12,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: activeTab === tab.key
-                ? (pressed ? '#1D4ED8' : '#2563EB')
-                : (pressed ? '#E2E8F0' : 'transparent'),
-              ...(Platform.OS === 'web'
-                ? ({
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    outline: 'none',
-                  } as any)
-                : {}),
-            })}
+              backgroundColor: activeTab === tab.key ? '#2563EB' : 'transparent',
+            }}
           >
             <Text
               style={{
                 fontSize: 11,
                 fontWeight: '700',
                 color: activeTab === tab.key ? '#FFFFFF' : '#64748B',
-                ...(Platform.OS === 'web'
-                  ? ({
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                    } as any)
-                  : {}),
               }}
             >
               {tab.label}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </View>
 

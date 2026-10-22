@@ -6,6 +6,7 @@ import {
   BookOpen,
   GraduationCap,
   HelpCircle,
+  MessageSquare,
   MessageCircle,
   User,
   Calendar,
@@ -59,7 +60,7 @@ export default function TabsLayout() {
         },
       }}
     >
-      {/* 1. Home Tab (Visible for both student and parent) */}
+      {/* 1. Home Tab (Visible for all) */}
       <Tabs.Screen
         name="index"
         options={{
@@ -102,20 +103,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5. Student Learn Tab (Hidden for parents and staff; staff uses Teach/Admin tab) */}
-      <Tabs.Screen
-        name="learn"
-        options={{
-          href: !isParent && !isTeacherOrStaff ? '/learn' : null,
-          title: 'Learn',
-          tabBarLabel: 'Learn',
-          tabBarIcon: ({ color }) => (
-            <BookOpen size={20} color={color} />
-          ),
-        }}
-      />
-
-      {/* 6. Student Batches Tab (Hidden for parents) */}
+      {/* 5. Batches Tab (Student & Staff, matching 3.jpeg order) */}
       <Tabs.Screen
         name="batches"
         options={{
@@ -128,20 +116,40 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 7. Student Chats & Doubts Tab */}
+      {/* 6. Learn / Store Tab (Student only, matching 3.jpeg order) */}
       <Tabs.Screen
-        name="doubts"
+        name="learn"
         options={{
-          href: !isParent && !isTeacherOrStaff ? '/doubts' : null,
-          title: 'Chats',
-          tabBarLabel: 'Chats',
+          href: !isParent && !isTeacherOrStaff ? '/learn' : null,
+          title: 'Learn',
+          tabBarLabel: 'Learn',
           tabBarIcon: ({ color }) => (
-            <MessageCircle size={20} color={color} />
+            <BookOpen size={20} color={color} />
           ),
         }}
       />
 
-      {/* 8. Admin / Teacher Tab */}
+      {/* 7. Chats Tab (Functional and visible for all roles, matching 3.jpeg & 5.jpeg) */}
+      <Tabs.Screen
+        name="chats"
+        options={{
+          title: 'Chats',
+          tabBarLabel: 'Chats',
+          tabBarIcon: ({ color }) => (
+            <MessageSquare size={20} color={color} />
+          ),
+        }}
+      />
+
+      {/* 8. Legacy doubts route (kept for deep-links, hidden from footer) */}
+      <Tabs.Screen
+        name="doubts"
+        options={{
+          href: null,
+        }}
+      />
+
+      {/* 9. Admin / Teacher Tab */}
       <Tabs.Screen
         name="teach"
         options={{
@@ -154,7 +162,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 8. Profile Tab (Visible for both student and parent) */}
+      {/* 10. Profile Tab (Visible for all) */}
       <Tabs.Screen
         name="profile"
         options={{

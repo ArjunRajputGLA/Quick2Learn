@@ -131,33 +131,25 @@ export function BatchTodaySection({
             const hasClasses = slots.some((s: BatchTimetableSlot) => s.weekday === wd.day);
 
             return (
-              <Pressable
+              <TouchableOpacity
                 key={wd.day}
+                activeOpacity={0.85}
                 onPress={() => setActiveWeekday(wd.day)}
                 accessibilityLabel={`${wd.short}${isToday ? ' (Today)' : ''}`}
-                style={({ pressed }) => ({
+                style={{
                   flex: 1,
                   paddingVertical: 8,
                   borderRadius: 12,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: isSelected
-                    ? (pressed ? '#1D4ED8' : '#2563EB')
+                    ? '#2563EB'
                     : isToday
-                    ? (pressed ? '#EFF6FF' : '#FFFFFF')
-                    : (pressed ? '#E2E8F0' : 'transparent'),
+                    ? '#FFFFFF'
+                    : 'transparent',
                   borderWidth: isToday && !isSelected ? 1 : 0,
                   borderColor: isToday && !isSelected ? '#93C5FD' : 'transparent',
-                  ...(Platform.OS === 'web'
-                    ? ({
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                        outline: 'none',
-                      } as any)
-                    : {}),
-                })}
+                }}
               >
                 <Text
                   style={{
@@ -168,12 +160,6 @@ export function BatchTodaySection({
                       : isToday
                       ? '#2563EB'
                       : '#64748B',
-                    ...(Platform.OS === 'web'
-                      ? ({
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                        } as any)
-                      : {}),
                   }}
                 >
                   {wd.short}
@@ -193,7 +179,7 @@ export function BatchTodaySection({
                       : 'transparent',
                   }}
                 />
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
         </View>

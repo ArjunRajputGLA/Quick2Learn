@@ -426,27 +426,27 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: colors.surface,
-            borderRadius: 24,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: '#E2E8F0',
-            marginBottom: 14,
+            marginBottom: 12,
             overflow: 'hidden',
             shadowColor: '#0F172A',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.06,
-            shadowRadius: 12,
-            elevation: 3,
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
           }}
         >
           {/* Decorative Header Banner */}
           <View
             style={{
-              height: 72,
+              height: 48,
               backgroundColor: role === "parent" ? '#EFF6FF' : isAdmin ? '#EEF2FF' : '#F0FDF4',
               borderBottomWidth: 1,
               borderBottomColor: role === "parent" ? '#DBEAFE' : isAdmin ? '#E0E7FF' : '#DCFCE7',
-              paddingHorizontal: 16,
-              paddingTop: 12,
+              paddingHorizontal: 14,
+              paddingTop: 10,
               flexDirection: 'row',
               justifyContent: 'flex-end',
               alignItems: 'flex-start',
@@ -456,11 +456,11 @@ export default function ProfileScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 4,
+                gap: 3.5,
                 backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 14,
+                paddingHorizontal: 8,
+                paddingVertical: 2.5,
+                borderRadius: 10,
                 borderWidth: 1,
                 borderColor: role === "parent" ? '#BFDBFE' : isAdmin ? '#C7D2FE' : '#BBF7D0',
                 shadowColor: '#000',
@@ -469,10 +469,10 @@ export default function ProfileScreen() {
                 shadowRadius: 2,
               }}
             >
-              <ShieldCheck size={13} color={role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A'} />
+              <ShieldCheck size={11} color={role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A'} />
               <Text
                 style={{
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: '700',
                   color: role === "parent" ? '#1E40AF' : isAdmin ? '#3730A3' : '#15803D',
                   letterSpacing: 0.2,
@@ -487,17 +487,17 @@ export default function ProfileScreen() {
           <View
             style={{
               alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingBottom: 20,
+              paddingHorizontal: 14,
+              paddingBottom: 14,
               paddingTop: 0,
             }}
           >
             {/* Elevated Overlapping Avatar with Role Emblem */}
             <View
               style={{
-                marginTop: -38,
+                marginTop: -28,
                 position: 'relative',
-                marginBottom: 10,
+                marginBottom: 6,
               }}
             >
               <View
@@ -549,7 +549,7 @@ export default function ProfileScreen() {
             {/* User Full Name */}
             <Text
               style={{
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: '800',
                 color: '#0F172A',
                 textAlign: 'center',
@@ -567,24 +567,24 @@ export default function ProfileScreen() {
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 justifyContent: 'center',
-                gap: 6,
-                marginBottom: 10,
+                gap: 5,
+                marginBottom: 7,
               }}
             >
               <View
                 style={{
                   backgroundColor: role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A',
-                  paddingHorizontal: 11,
-                  paddingVertical: 3.5,
-                  borderRadius: 12,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2.5,
+                  borderRadius: 8,
                   shadowColor: role === "parent" ? '#2563EB' : isAdmin ? '#4F46E5' : '#16A34A',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.18,
-                  shadowRadius: 4,
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 3,
                   elevation: 1,
                 }}
               >
-                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.7 }}>
+                <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 }}>
                   {isAdmin ? "ADMINISTRATOR" : role.toUpperCase()}
                 </Text>
               </View>
@@ -595,16 +595,16 @@ export default function ProfileScreen() {
                     backgroundColor: '#F1F5F9',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    paddingHorizontal: 10,
-                    paddingVertical: 3.5,
-                    borderRadius: 12,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2.5,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 3.5,
                   }}
                 >
-                  <Briefcase size={12} color="#475569" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                  <Briefcase size={10.5} color="#475569" />
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#334155' }}>
                     Director & Master Faculty
                   </Text>
                 </View>
@@ -616,16 +616,16 @@ export default function ProfileScreen() {
                     backgroundColor: '#F1F5F9',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    paddingHorizontal: 10,
-                    paddingVertical: 3.5,
-                    borderRadius: 12,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2.5,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 3.5,
                   }}
                 >
-                  <GraduationCap size={12} color="#475569" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#334155' }}>
+                  <GraduationCap size={10.5} color="#475569" />
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#334155' }}>
                     Class {profile.classLevel}{profile.board ? ` • ${profile.board.toUpperCase()}` : ''}
                   </Text>
                 </View>
@@ -637,16 +637,16 @@ export default function ProfileScreen() {
                     backgroundColor: '#EFF6FF',
                     borderWidth: 1,
                     borderColor: '#DBEAFE',
-                    paddingHorizontal: 10,
-                    paddingVertical: 3.5,
-                    borderRadius: 12,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2.5,
+                    borderRadius: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 3.5,
                   }}
                 >
-                  <Users size={12} color="#2563EB" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#1E40AF' }}>
+                  <Users size={10.5} color="#2563EB" />
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#1E40AF' }}>
                     {linkedStudents.length} {linkedStudents.length === 1 ? "Child" : "Children"}
                   </Text>
                 </View>
@@ -659,20 +659,20 @@ export default function ProfileScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 5,
+                  gap: 4,
                   backgroundColor: '#F8FAFC',
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
-                  paddingHorizontal: 12,
-                  paddingVertical: 4.5,
-                  borderRadius: 16,
-                  marginBottom: 14,
+                  paddingHorizontal: 9,
+                  paddingVertical: 3,
+                  borderRadius: 12,
+                  marginBottom: 8,
                 }}
               >
-                <School size={12} color="#64748B" />
+                <School size={10.5} color="#64748B" />
                 <Text
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 10.5,
                     color: '#475569',
                     fontWeight: '600',
                   }}
@@ -689,24 +689,24 @@ export default function ProfileScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 6,
+                gap: 5,
                 backgroundColor: '#FFFFFF',
-                paddingVertical: 8,
-                paddingHorizontal: 18,
-                borderRadius: 20,
-                borderWidth: 1.5,
+                paddingVertical: 5.5,
+                paddingHorizontal: 14,
+                borderRadius: 14,
+                borderWidth: 1,
                 borderColor: isAdmin ? '#C7D2FE' : '#BFDBFE',
                 shadowColor: isAdmin ? '#4F46E5' : '#2563EB',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 1.5 },
+                shadowOpacity: 0.06,
+                shadowRadius: 3,
                 elevation: 1,
               }}
             >
-              <Edit3 size={13} color={isAdmin ? "#4F46E5" : "#2563EB"} />
+              <Edit3 size={11.5} color={isAdmin ? "#4F46E5" : "#2563EB"} />
               <Text
                 style={{
-                  fontSize: 12.5,
+                  fontSize: 11,
                   fontWeight: '700',
                   color: isAdmin ? "#4F46E5" : "#2563EB",
                 }}

@@ -546,49 +546,31 @@ export default function EditProfileScreen() {
               </Text>
               <View className="flex-row space-x-2">
                 {[9, 10, 11, 12].map((lvl) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={lvl}
+                    activeOpacity={0.85}
                     onPress={() => setClassLevel(lvl)}
-                    style={({ pressed }) => ({
+                    style={{
                       flex: 1,
                       paddingVertical: 10,
                       borderRadius: 12,
                       borderWidth: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: classLevel === lvl
-                        ? (pressed ? '#1D4ED8' : '#2563EB')
-                        : (pressed ? '#E2E8F0' : '#F1F5F9'),
-                      borderColor: classLevel === lvl
-                        ? (pressed ? '#1E40AF' : '#1D4ED8')
-                        : (pressed ? '#CBD5E1' : '#E2E8F0'),
-                      ...(Platform.OS === 'web'
-                        ? ({
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            WebkitUserSelect: 'none',
-                            WebkitTapHighlightColor: 'transparent',
-                            outline: 'none',
-                          } as any)
-                        : {}),
-                    })}
+                      backgroundColor: classLevel === lvl ? '#2563EB' : '#F1F5F9',
+                      borderColor: classLevel === lvl ? '#1D4ED8' : '#E2E8F0',
+                    }}
                   >
                     <Text
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
                         color: classLevel === lvl ? '#FFFFFF' : '#1E293B',
-                        ...(Platform.OS === 'web'
-                          ? ({
-                              userSelect: 'none',
-                              WebkitUserSelect: 'none',
-                            } as any)
-                          : {}),
                       }}
                     >
                       Class {lvl}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -600,32 +582,20 @@ export default function EditProfileScreen() {
               </Text>
               <View className="flex-row space-x-2">
                 {(["cbse", "icse", "isc"] as const).map((b) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={b}
+                    activeOpacity={0.85}
                     onPress={() => setBoard(b)}
-                    style={({ pressed }) => ({
+                    style={{
                       flex: 1,
                       paddingVertical: 10,
                       borderRadius: 12,
                       borderWidth: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: board === b
-                        ? (pressed ? '#1D4ED8' : '#2563EB')
-                        : (pressed ? '#E2E8F0' : '#F1F5F9'),
-                      borderColor: board === b
-                        ? (pressed ? '#1E40AF' : '#1D4ED8')
-                        : (pressed ? '#CBD5E1' : '#E2E8F0'),
-                      ...(Platform.OS === 'web'
-                        ? ({
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            WebkitUserSelect: 'none',
-                            WebkitTapHighlightColor: 'transparent',
-                            outline: 'none',
-                          } as any)
-                        : {}),
-                    })}
+                      backgroundColor: board === b ? '#2563EB' : '#F1F5F9',
+                      borderColor: board === b ? '#1D4ED8' : '#E2E8F0',
+                    }}
                   >
                     <Text
                       style={{
@@ -633,17 +603,11 @@ export default function EditProfileScreen() {
                         fontWeight: '700',
                         textTransform: 'uppercase',
                         color: board === b ? '#FFFFFF' : '#1E293B',
-                        ...(Platform.OS === 'web'
-                          ? ({
-                              userSelect: 'none',
-                              WebkitUserSelect: 'none',
-                            } as any)
-                          : {}),
                       }}
                     >
                       {b}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>

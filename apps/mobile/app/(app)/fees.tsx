@@ -109,28 +109,18 @@ export default function FeesScreen() {
     >
       {/* Segment Tabs */}
       <View className="flex-row p-3 bg-surface border-b border-border">
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={() => setActiveTab("dues")}
-          style={({ pressed }) => ({
+          style={{
             flex: 1,
             paddingVertical: 10,
             borderRadius: 12,
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'center',
-            backgroundColor: activeTab === 'dues'
-              ? (pressed ? '#1D4ED8' : '#2563EB')
-              : (pressed ? '#E2E8F0' : '#F1F5F9'),
-            ...(Platform.OS === 'web'
-              ? ({
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  outline: 'none',
-                } as any)
-              : {}),
-          })}
+            backgroundColor: activeTab === 'dues' ? '#2563EB' : '#F1F5F9',
+          }}
         >
           <CreditCard
             size={16}
@@ -142,21 +132,16 @@ export default function FeesScreen() {
               fontWeight: '700',
               marginLeft: 6,
               color: activeTab === "dues" ? "#FFFFFF" : "#475569",
-              ...(Platform.OS === 'web'
-                ? ({
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                  } as any)
-                : {}),
             }}
           >
             {t("pendingDues")} {pendingDues.length > 0 ? `(${pendingDues.length})` : ""}
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={() => setActiveTab("history")}
-          style={({ pressed }) => ({
+          style={{
             flex: 1,
             paddingVertical: 10,
             borderRadius: 12,
@@ -164,19 +149,8 @@ export default function FeesScreen() {
             flexDirection: 'row',
             justifyContent: 'center',
             marginLeft: 8,
-            backgroundColor: activeTab === 'history'
-              ? (pressed ? '#1D4ED8' : '#2563EB')
-              : (pressed ? '#E2E8F0' : '#F1F5F9'),
-            ...(Platform.OS === 'web'
-              ? ({
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  outline: 'none',
-                } as any)
-              : {}),
-          })}
+            backgroundColor: activeTab === 'history' ? '#2563EB' : '#F1F5F9',
+          }}
         >
           <Receipt
             size={16}
@@ -188,17 +162,11 @@ export default function FeesScreen() {
               fontWeight: '700',
               marginLeft: 6,
               color: activeTab === "history" ? "#FFFFFF" : "#475569",
-              ...(Platform.OS === 'web'
-                ? ({
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                  } as any)
-                : {}),
             }}
           >
             {t("paymentHistory")} {paymentHistory.length > 0 ? `(${paymentHistory.length})` : ""}
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <ScrollView

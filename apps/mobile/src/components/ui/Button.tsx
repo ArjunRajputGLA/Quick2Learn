@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Pressable,
+  TouchableOpacity,
   Text,
   ActivityIndicator,
   View,
@@ -77,15 +77,13 @@ export function Button({
     lg: { fontSize: 15, fontWeight: '600' },
   };
 
-  const getVariantStyles = (pressed: boolean): { container: ViewStyle; text: TextStyle; spinner: string } => {
+  const getVariantStyles = (): { container: ViewStyle; text: TextStyle; spinner: string } => {
     switch (variant) {
       case 'primary':
         return {
           container: {
             backgroundColor: disabled
               ? 'rgba(59, 130, 246, 0.5)'
-              : pressed
-              ? colors['primary-hover']
               : colors.primary,
           },
           text: { color: '#FFFFFF' },
@@ -96,8 +94,6 @@ export function Button({
           container: {
             backgroundColor: disabled
               ? 'rgba(245, 247, 251, 0.5)'
-              : pressed
-              ? '#E2E8F0'
               : colors['surface-subtle'],
             borderWidth: 1,
             borderColor: colors.border,
@@ -108,7 +104,7 @@ export function Button({
       case 'outline':
         return {
           container: {
-            backgroundColor: pressed ? '#F1F5F9' : 'transparent',
+            backgroundColor: 'transparent',
             borderWidth: 1,
             borderColor: disabled ? colors.border : colors.primary,
           },
@@ -118,7 +114,7 @@ export function Button({
       case 'ghost':
         return {
           container: {
-            backgroundColor: pressed ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+            backgroundColor: 'transparent',
           },
           text: { color: disabled ? colors['ink-muted'] : colors.primary },
           spinner: colors.primary,
@@ -128,8 +124,6 @@ export function Button({
           container: {
             backgroundColor: disabled
               ? 'rgba(185, 28, 28, 0.5)'
-              : pressed
-              ? '#991B1B'
               : colors.danger,
           },
           text: { color: '#FFFFFF' },
@@ -138,75 +132,53 @@ export function Button({
     }
   };
 
+  const { container: variantStyle, text: variantTextStyle, spinner: spinnerColor } = getVariantStyles();
+
   return (
-    <Pressable
+    <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: disabled || loading }}
+      activeOpacity={0.85}
       disabled={disabled || loading}
       onPress={handlePress}
       testID={testID}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      style={({ pressed }) => {
-        const { container } = getVariantStyles(pressed);
-        return [
-          {
-            borderRadius: radii.md,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: fullWidth ? '100%' : undefined,
-            opacity: disabled && variant !== 'primary' && variant !== 'danger' ? 0.6 : 1,
-            ...(Platform.OS === 'web'
-              ? ({
-                  cursor: disabled || loading ? 'default' : 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  outline: 'none',
-                } as any)
-              : {}),
-          },
-          sizeStyles[size],
-          container,
-          style as any,
-        ];
-      }}
+      style={[
+        {
+          borderRadius: radii.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: fullWidth ? '100%' : undefined,
+          opacity: disabled && variant !== 'primary' && variant !== 'danger' ? 0.6 : 1,
+        },
+        sizeStyles[size],
+        variantStyle,
+        style as any,
+      ]}
     >
-      {({ pressed }) => {
-        const { text, spinner } = getVariantStyles(pressed);
-        return (
-          <>
-            {loading ? (
-              <ActivityIndicator size="small" color={spinner} style={{ marginRight: 8 }} />
-            ) : null}
+      {loading ? (
+        <ActivityIndicator size="small" color={spinnerColor} style={{ marginRight: 8 }} />
+      ) : null}
 
-            {!loading && icon && iconPosition === 'left' ? (
-              <View style={{ marginRight: 8 }}>{icon}</View>
-            ) : null}
+      {!loading && icon && iconPosition === 'left' ? (
+        <View style={{ marginRight: 8 }}>{icon}</View>
+      ) : null}
 
-            <Text
-              style={[
-                { textAlign: 'center' },
-                textStyles[size],
-                text,
-                Platform.OS === 'web'
-                  ? ({
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                    } as any)
-                  : {},
-              ]}
-            >
-              {children}
-            </Text>
+      <Text
+        style={[
+          { textAlign: 'center' },
+          textStyles[size],
+          variantTextStyle,
+        ]}
+      >
+        {children}
+      </Text>
 
-            {!loading && icon && iconPosition === 'right' ? (
-              <View style={{ marginLeft: 8 }}>{icon}</View>
-            ) : null}
-          </>
-        );
-      }}
-    </Pressable>
+      {!loading && icon && iconPosition === 'right' ? (
+        <View style={{ marginLeft: 8 }}>{icon}</View>
+      ) : null}
+    </TouchableOpacity>
   );
 }
