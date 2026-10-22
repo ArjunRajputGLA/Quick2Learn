@@ -356,7 +356,7 @@ function StudentHomeScreen() {
                     borderRadius: 10,
                   }}
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>MATHURA CENTER</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>ADMIN PORTAL</Text>
                 </View>
               </View>
 

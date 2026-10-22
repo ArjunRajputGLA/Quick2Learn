@@ -320,7 +320,7 @@ export default function DevUiScreen() {
           <Toast
             type="info"
             title="Notice"
-            message="Mathura center will remain open on Sunday for revision tests."
+            message="Coaching center will remain open on Sunday for revision tests."
           />
           <Toast
             type="success"
@@ -514,7 +514,7 @@ export default function DevUiScreen() {
         <SectionHeader title="19. Composite: AnnouncementCard" className="px-0" />
         <AnnouncementCard
           title="Special Sunday Mathematics Practice Session"
-          message="Offline batch at Mathura center will run from 9:00 AM to 12:00 PM covering calculus previous year board questions."
+          message="Offline batch will run from 9:00 AM to 12:00 PM covering calculus previous year board questions."
           date="Mon, 22 Apr"
           category="Schedule Update"
           onPress={() => {}}

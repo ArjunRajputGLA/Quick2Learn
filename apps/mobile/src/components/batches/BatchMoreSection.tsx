@@ -253,7 +253,7 @@ export function BatchMoreSection({
           <View className="flex-row items-center justify-between py-2">
             <Text className="text-caption text-ink-muted">Mode & Location</Text>
             <Text className="text-caption font-semibold text-ink capitalize">
-              {batchDetail?.mode} ({batchDetail?.locationText || 'Mathura Centre'})
+              {batchDetail?.mode} ({batchDetail?.locationText || 'Coaching Center'})
             </Text>
           </View>
 

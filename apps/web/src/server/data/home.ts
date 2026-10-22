@@ -151,7 +151,7 @@ export async function getHomeData(
         subjectName: item.subjectName,
         timeText,
         mode: item.mode,
-        locationText: item.locationText || "Mathura Centre",
+        locationText: item.locationText || "Coaching Center",
         route: `/batch/${item.batchId}`,
       });
     }

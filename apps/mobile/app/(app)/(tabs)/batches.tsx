@@ -128,7 +128,7 @@ export default function BatchesScreen() {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await Share.share({
         title: `Join ${batch.title} on Quick2Learn`,
-        message: `Join ${batch.title} (${batch.subject}) by ${batch.faculty} at Quick2Learn Mathura Center!\n\nUse Batch Join Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
+        message: `Join ${batch.title} (${batch.subject}) by ${batch.faculty} at Quick2Learn!\n\nUse Batch Join Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
       });
     } catch (err) {
       console.warn('Share error:', err);
@@ -319,7 +319,7 @@ export default function BatchesScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <School size={15} color="#2563EB" />
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#1E40AF' }}>
-                  Mathura Center Active Batches
+                  Active Batches
                 </Text>
               </View>
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>

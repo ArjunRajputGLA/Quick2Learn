@@ -1277,7 +1277,7 @@ export default function ProfileScreen() {
                     Institute Admin Portal
                   </Text>
                   <Text style={{ fontSize: 11, color: '#94A3B8' }}>
-                    Quick2Learn Mathura Center Control
+                    Quick2Learn Institute Control
                   </Text>
                 </View>
               </View>

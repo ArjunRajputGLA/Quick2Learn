@@ -1079,7 +1079,7 @@ export async function getContactPageData(tx?: DatabaseExecutor): Promise<Contact
   const landmark =
     rawLandmark && !rawLandmark.toLowerCase().includes("bsa")
       ? rawLandmark
-      : "Mathura Centre";
+      : "Main Center";
   const cityState = `${city}, ${state} ${pincode}`;
 
   // Default Google Maps embed for Mathura, UP centre

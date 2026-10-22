@@ -109,7 +109,7 @@ export const DEFAULT_SITE_SETTINGS: Record<string, unknown> = {
     city: "Mathura",
     state: "Uttar Pradesh",
     pincode: "281004",
-    landmark: "Mathura Centre",
+    landmark: "Main Center",
   },
   socials: {
     youtube: "https://www.youtube.com/@Quick2Learn",

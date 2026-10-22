@@ -14,6 +14,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as DocumentPicker from 'expo-document-picker';
 import {
@@ -23,6 +24,9 @@ import {
   FileText,
   Video,
   HelpCircle,
+  Layers,
+  Sparkles,
+  Radio,
   Award,
   Users,
   CreditCard,
@@ -3087,6 +3091,7 @@ export function BatchFormModal({
   onSave: (b: Partial<BatchItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('Mathematics');
   const [classLevel, setClassLevel] = useState<9 | 10 | 11 | 12>(12);
@@ -3094,7 +3099,7 @@ export function BatchFormModal({
   const [mode, setMode] = useState<'offline' | 'hybrid' | 'online'>('offline');
   const [fee, setFee] = useState('20000');
   const [capacity, setCapacity] = useState('35');
-  const [room, setRoom] = useState('Hall 1, Quick2Learn Mathura');
+  const [room, setRoom] = useState('Hall 1');
   const [faculty, setFaculty] = useState('Dinesh Singh Rajput');
   const [scheduleTime, setScheduleTime] = useState('5:00 PM - 6:30 PM');
 
@@ -3118,14 +3123,14 @@ export function BatchFormModal({
       setMode('offline');
       setFee('20000');
       setCapacity('35');
-      setRoom('Hall 1, Quick2Learn Mathura');
+      setRoom('Hall 1');
       setFaculty('Dinesh Singh Rajput');
       setScheduleTime('5:00 PM - 6:30 PM');
     }
   }, [batch, visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -3133,69 +3138,152 @@ export function BatchFormModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '90%',
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-              {batch ? 'Edit Batch' : 'Create New Batch'}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                }}
+              >
+                <Layers size={19} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  {batch ? 'Edit Batch' : 'Create New Batch'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  {batch ? `Configure ${batch.title}` : 'Set syllabus, schedule & capacity'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
             <FormField label="Batch Title" value={title} onChangeText={setTitle} placeholder="e.g. Class XII CBSE Target 100" />
             <FormField label="Subject" value={subject} onChangeText={setSubject} placeholder="Mathematics, Chemistry, etc." />
-            
+
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Class Level</Text>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', marginBottom: 4 }}>Class Level</Text>
                 <View style={{ flexDirection: 'row', gap: 6 }}>
-                  {([9, 10, 11, 12] as const).map((lvl) => (
-                    <TouchableOpacity
-                      key={lvl}
-                      onPress={() => setClassLevel(lvl)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: classLevel === lvl ? '#2563EB' : '#F1F5F9',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '800', color: classLevel === lvl ? '#FFFFFF' : '#475569' }}>
-                        {lvl}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {([9, 10, 11, 12] as const).map((lvl) => {
+                    const isSelected = classLevel === lvl;
+                    return (
+                      <TouchableOpacity
+                        key={lvl}
+                        activeOpacity={0.75}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setClassLevel(lvl);
+                        }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          backgroundColor: isSelected ? '#2563EB' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#1D4ED8' : '#E2E8F0',
+                          alignItems: 'center',
+                          elevation: isSelected ? 2 : 0,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {lvl}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Mode</Text>
-                <View style={{ flexDirection: 'row', gap: 4 }}>
-                  {(['offline', 'hybrid', 'online'] as const).map((m) => (
-                    <TouchableOpacity
-                      key={m}
-                      onPress={() => setMode(m)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: mode === m ? '#059669' : '#F1F5F9',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: mode === m ? '#FFFFFF' : '#475569' }}>
-                        {m.slice(0, 3).toUpperCase()}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', marginBottom: 4 }}>Delivery Mode</Text>
+                <View style={{ flexDirection: 'row', gap: 5 }}>
+                  {(['offline', 'hybrid', 'online'] as const).map((m) => {
+                    const isSelected = mode === m;
+                    const label = m === 'offline' ? 'OFF' : m === 'hybrid' ? 'HYB' : 'ONL';
+                    return (
+                      <TouchableOpacity
+                        key={m}
+                        activeOpacity={0.75}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setMode(m);
+                        }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          backgroundColor: isSelected ? '#059669' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#047857' : '#E2E8F0',
+                          alignItems: 'center',
+                          elevation: isSelected ? 2 : 0,
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             </View>
@@ -3210,19 +3298,23 @@ export function BatchFormModal({
             </View>
 
             <FormField label="Schedule Time" value={scheduleTime} onChangeText={setScheduleTime} placeholder="e.g. 5:00 PM - 6:30 PM" />
-            <FormField label="Classroom / Center" value={room} onChangeText={setRoom} placeholder="Room 101, Mathura Center" />
+            <FormField label="Classroom / Room" value={room} onChangeText={setRoom} placeholder="Room 101 or Hall 1" />
             <FormField label="Faculty" value={faculty} onChangeText={setFaculty} />
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {batch && (
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   onPress={() => onDelete(batch.id)}
                   style={{
                     backgroundColor: '#FEE2E2',
-                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    paddingVertical: 14,
                     paddingHorizontal: 16,
-                    borderRadius: 12,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={18} color="#DC2626" />
@@ -3230,11 +3322,13 @@ export function BatchFormModal({
               )}
 
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!title.trim()) {
                     Alert.alert('Required', 'Please enter batch title.');
                     return;
                   }
+                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   onSave({
                     title,
                     subject,
@@ -3255,12 +3349,18 @@ export function BatchFormModal({
                 style={{
                   flex: 1,
                   backgroundColor: '#2563EB',
-                  paddingVertical: 13,
-                  borderRadius: 12,
+                  paddingVertical: 14,
+                  borderRadius: 14,
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  elevation: 3,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
                   {batch ? 'Save Changes' : 'Publish Batch'}
                 </Text>
               </TouchableOpacity>
@@ -3287,6 +3387,7 @@ function ResourceFormModal({
   onSave: (r: Partial<AdminResourceItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [chapter, setChapter] = useState('');
   const [type, setType] = useState<AdminResourceItem['type']>('notes');
@@ -3317,6 +3418,7 @@ function ResourceFormModal({
 
   const handlePickDocument = async () => {
     try {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const res = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         copyToCacheDirectory: true,
@@ -3335,7 +3437,7 @@ function ResourceFormModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -3343,126 +3445,238 @@ function ResourceFormModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '90%',
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-              {resource ? 'Edit Study Material' : 'Upload Study Material'}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#ECFDF5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#A7F3D0',
+                }}
+              >
+                <FileUp size={19} color="#059669" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  {resource ? 'Edit Study Material' : 'Upload Study Material'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  PDF Documents, DPPs & Formula Sheets
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
             {/* Native Document Picker trigger */}
             <TouchableOpacity
+              activeOpacity={0.8}
               onPress={handlePickDocument}
               style={{
                 borderWidth: 1.5,
                 borderColor: '#059669',
                 borderStyle: 'dashed',
-                borderRadius: 14,
+                borderRadius: 16,
                 padding: 16,
                 alignItems: 'center',
                 backgroundColor: '#ECFDF5',
-                gap: 4,
+                gap: 6,
               }}
             >
-              <FileUp size={24} color="#059669" />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#065F46' }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: '#D1FAE5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <FileUp size={22} color="#059669" />
+              </View>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#065F46', textAlign: 'center' }}>
                 {selectedFileName ? selectedFileName : 'Tap to select PDF file from device'}
               </Text>
-              <Text style={{ fontSize: 11, color: '#059669' }}>Accepts .pdf (Formula Sheets, DPPs, Notes)</Text>
+              <Text style={{ fontSize: 11, color: '#059669', fontWeight: '500' }}>
+                Accepts .pdf (Formula Sheets, DPPs, Notes)
+              </Text>
             </TouchableOpacity>
 
             <FormField label="Document Title" value={title} onChangeText={setTitle} placeholder="e.g. Chapter 1 Formula Sheet" />
             <FormField label="Chapter Name" value={chapter} onChangeText={setChapter} placeholder="e.g. Relations and Functions" />
 
             {/* Type selector */}
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Material Type</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-              {(['notes', 'formula_sheet', 'dpp', 'pyq', 'solution'] as const).map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  onPress={() => setType(t)}
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    backgroundColor: type === t ? '#059669' : '#F1F5F9',
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: type === t ? '#FFFFFF' : '#475569' }}>
-                    {t.replace('_', ' ').toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <View style={{ gap: 5 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Material Type</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 2 }}>
+                {(['notes', 'formula_sheet', 'dpp', 'pyq', 'solution'] as const).map((t) => {
+                  const isSelected = type === t;
+                  return (
+                    <TouchableOpacity
+                      key={t}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setType(t);
+                      }}
+                      style={{
+                        paddingHorizontal: 13,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#059669' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#047857' : '#E2E8F0',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                        {t.replace('_', ' ').toUpperCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
             {/* Class and Visibility */}
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Class</Text>
-                <View style={{ flexDirection: 'row', gap: 4 }}>
-                  {([9, 10, 11, 12] as const).map((lvl) => (
-                    <TouchableOpacity
-                      key={lvl}
-                      onPress={() => setClassLevel(lvl)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: classLevel === lvl ? '#2563EB' : '#F1F5F9',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '800', color: classLevel === lvl ? '#FFFFFF' : '#475569' }}>
-                        {lvl}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', marginBottom: 4 }}>Target Class</Text>
+                <View style={{ flexDirection: 'row', gap: 5 }}>
+                  {([9, 10, 11, 12] as const).map((lvl) => {
+                    const isSelected = classLevel === lvl;
+                    return (
+                      <TouchableOpacity
+                        key={lvl}
+                        activeOpacity={0.75}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setClassLevel(lvl);
+                        }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          backgroundColor: isSelected ? '#2563EB' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#1D4ED8' : '#E2E8F0',
+                          alignItems: 'center',
+                          elevation: isSelected ? 2 : 0,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {lvl}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Access</Text>
-                <View style={{ flexDirection: 'row', gap: 4 }}>
-                  {(['public', 'batch_only'] as const).map((v) => (
-                    <TouchableOpacity
-                      key={v}
-                      onPress={() => setVisibility(v)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: visibility === v ? '#0F172A' : '#F1F5F9',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: visibility === v ? '#FFFFFF' : '#475569' }}>
-                        {v === 'public' ? 'Free' : 'Batch'}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', marginBottom: 4 }}>Access Mode</Text>
+                <View style={{ flexDirection: 'row', gap: 5 }}>
+                  {(['public', 'batch_only'] as const).map((v) => {
+                    const isSelected = visibility === v;
+                    return (
+                      <TouchableOpacity
+                        key={v}
+                        activeOpacity={0.75}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setVisibility(v);
+                        }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          backgroundColor: isSelected ? '#0F172A' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#020617' : '#E2E8F0',
+                          alignItems: 'center',
+                          elevation: isSelected ? 2 : 0,
+                        }}
+                      >
+                        <Text style={{ fontSize: 11.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {v === 'public' ? 'Free Material' : 'Batch Only'}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {resource && (
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   onPress={() => onDelete(resource.id)}
                   style={{
                     backgroundColor: '#FEE2E2',
-                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    paddingVertical: 14,
                     paddingHorizontal: 16,
-                    borderRadius: 12,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={18} color="#DC2626" />
@@ -3470,11 +3684,13 @@ function ResourceFormModal({
               )}
 
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!title.trim()) {
                     Alert.alert('Required', 'Please enter resource title.');
                     return;
                   }
+                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   onSave({
                     title,
                     chapter: chapter || 'General',
@@ -3490,12 +3706,21 @@ function ResourceFormModal({
                 style={{
                   flex: 1,
                   backgroundColor: '#059669',
-                  paddingVertical: 13,
-                  borderRadius: 12,
+                  paddingVertical: 14,
+                  borderRadius: 14,
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
+                  elevation: 3,
+                  shadowColor: '#059669',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                <Upload size={17} color="#FFFFFF" />
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
                   {resource ? 'Save Changes' : 'Upload Resource'}
                 </Text>
               </TouchableOpacity>
@@ -3520,6 +3745,7 @@ function LectureFormModal({
   onSave: (l: Partial<AdminLectureItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [youtubeInput, setYoutubeInput] = useState('');
   const [chapter, setChapter] = useState('');
@@ -3558,7 +3784,7 @@ function LectureFormModal({
   }, [youtubeInput]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -3566,22 +3792,84 @@ function LectureFormModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '90%',
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-              {lecture ? 'Edit Lecture' : 'Add Video Lecture'}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#F5F3FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DDD6FE',
+                }}
+              >
+                <Video size={19} color="#7C3AED" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  {lecture ? 'Edit Lecture' : 'Add Video Lecture'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  YouTube video streaming lesson
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
             <FormField
               label="YouTube Video URL or ID"
               value={youtubeInput}
@@ -3589,9 +3877,11 @@ function LectureFormModal({
               placeholder="e.g. https://www.youtube.com/watch?v=... or ID"
             />
             {cleanYoutubeId ? (
-              <Text style={{ fontSize: 11, color: '#059669', fontWeight: '700' }}>
-                Detected Video ID: {cleanYoutubeId}
-              </Text>
+              <View style={{ backgroundColor: '#ECFDF5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' }}>
+                <Text style={{ fontSize: 11.5, color: '#059669', fontWeight: '800' }}>
+                  ✓ Detected Video ID: {cleanYoutubeId}
+                </Text>
+              </View>
             ) : null}
 
             <FormField label="Lecture Title" value={title} onChangeText={setTitle} placeholder="e.g. Relations & Functions - Lec 01" />
@@ -3606,39 +3896,53 @@ function LectureFormModal({
               </View>
             </View>
 
-            <View>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Class Level</Text>
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Class Level</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
-                {([9, 10, 11, 12] as const).map((lvl) => (
-                  <TouchableOpacity
-                    key={lvl}
-                    onPress={() => setClassLevel(lvl)}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 7,
-                      borderRadius: 8,
-                      backgroundColor: classLevel === lvl ? '#7C3AED' : '#F1F5F9',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: classLevel === lvl ? '#FFFFFF' : '#475569' }}>
-                      {lvl}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {([9, 10, 11, 12] as const).map((lvl) => {
+                  const isSelected = classLevel === lvl;
+                  return (
+                    <TouchableOpacity
+                      key={lvl}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setClassLevel(lvl);
+                      }}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#7C3AED' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#6D28D9' : '#E2E8F0',
+                        alignItems: 'center',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                        {lvl}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {lecture && (
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   onPress={() => onDelete(lecture.id)}
                   style={{
                     backgroundColor: '#FEE2E2',
-                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    paddingVertical: 14,
                     paddingHorizontal: 16,
-                    borderRadius: 12,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={18} color="#DC2626" />
@@ -3646,11 +3950,13 @@ function LectureFormModal({
               )}
 
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!title.trim() || !cleanYoutubeId) {
                     Alert.alert('Required', 'Please provide lecture title and valid YouTube link/ID.');
                     return;
                   }
+                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   onSave({
                     title,
                     youtubeId: cleanYoutubeId,
@@ -3667,12 +3973,21 @@ function LectureFormModal({
                 style={{
                   flex: 1,
                   backgroundColor: '#7C3AED',
-                  paddingVertical: 13,
-                  borderRadius: 12,
+                  paddingVertical: 14,
+                  borderRadius: 14,
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
+                  elevation: 3,
+                  shadowColor: '#7C3AED',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                <Video size={17} color="#FFFFFF" />
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
                   {lecture ? 'Save Lecture' : 'Add to Syllabus'}
                 </Text>
               </TouchableOpacity>
@@ -3697,6 +4012,7 @@ function QuestionFormModal({
   onSave: (q: Partial<AdminQuestionItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [statement, setStatement] = useState('');
   const [optA, setOptA] = useState('');
   const [optB, setOptB] = useState('');
@@ -3735,7 +4051,7 @@ function QuestionFormModal({
   }, [question, visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -3743,22 +4059,84 @@ function QuestionFormModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
             maxHeight: '92%',
-            padding: 16,
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-              {question ? 'Edit Question' : 'Add New Question'}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#FEF3C7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                }}
+              >
+                <HelpCircle size={19} color="#D97706" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  {question ? 'Edit Question' : 'Add New Question'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  MCQ with single correct option & solution
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
             <FormField
               label="Question Statement (Supports LaTeX Math)"
               value={statement}
@@ -3768,39 +4146,48 @@ function QuestionFormModal({
               numberOfLines={3}
             />
 
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
-              Options (Select radio for Correct Answer):
-            </Text>
-
-            <OptionRow index={0} label="A" value={optA} onChange={setOptA} isSelected={correctIndex === 0} onSelect={() => setCorrectIndex(0)} />
-            <OptionRow index={1} label="B" value={optB} onChange={setOptB} isSelected={correctIndex === 1} onSelect={() => setCorrectIndex(1)} />
-            <OptionRow index={2} label="C" value={optC} onChange={setOptC} isSelected={correctIndex === 2} onSelect={() => setCorrectIndex(2)} />
-            <OptionRow index={3} label="D" value={optD} onChange={setOptD} isSelected={correctIndex === 3} onSelect={() => setCorrectIndex(3)} />
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>
+                Options (Tap radio for Correct Answer):
+              </Text>
+              <OptionRow index={0} label="A" value={optA} onChange={setOptA} isSelected={correctIndex === 0} onSelect={() => setCorrectIndex(0)} />
+              <OptionRow index={1} label="B" value={optB} onChange={setOptB} isSelected={correctIndex === 1} onSelect={() => setCorrectIndex(1)} />
+              <OptionRow index={2} label="C" value={optC} onChange={setOptC} isSelected={correctIndex === 2} onSelect={() => setCorrectIndex(2)} />
+              <OptionRow index={3} label="D" value={optD} onChange={setOptD} isSelected={correctIndex === 3} onSelect={() => setCorrectIndex(3)} />
+            </View>
 
             <FormField label="Chapter Name" value={chapter} onChangeText={setChapter} placeholder="Relations and Functions" />
 
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Difficulty</Text>
-                <View style={{ flexDirection: 'row', gap: 4 }}>
-                  {(['easy', 'medium', 'hard'] as const).map((d) => (
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Difficulty Level</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {(['easy', 'medium', 'hard'] as const).map((d) => {
+                  const isSelected = difficulty === d;
+                  return (
                     <TouchableOpacity
                       key={d}
-                      onPress={() => setDifficulty(d)}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setDifficulty(d);
+                      }}
                       style={{
                         flex: 1,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: difficulty === d ? '#D97706' : '#F1F5F9',
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#D97706' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#B45309' : '#E2E8F0',
                         alignItems: 'center',
+                        elevation: isSelected ? 2 : 0,
                       }}
                     >
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: difficulty === d ? '#FFFFFF' : '#475569' }}>
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
                         {d.toUpperCase()}
                       </Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                  );
+                })}
               </View>
             </View>
 
@@ -3813,16 +4200,20 @@ function QuestionFormModal({
               numberOfLines={3}
             />
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {question && (
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   onPress={() => onDelete(question.id)}
                   style={{
                     backgroundColor: '#FEE2E2',
-                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    paddingVertical: 14,
                     paddingHorizontal: 16,
-                    borderRadius: 12,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={18} color="#DC2626" />
@@ -3830,11 +4221,13 @@ function QuestionFormModal({
               )}
 
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!statement.trim() || !optA || !optB) {
                     Alert.alert('Required', 'Please enter question text and at least options A & B.');
                     return;
                   }
+                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   onSave({
                     statement,
                     options: [optA, optB, optC || 'None of these', optD || 'All of these'],
@@ -3851,12 +4244,21 @@ function QuestionFormModal({
                 style={{
                   flex: 1,
                   backgroundColor: '#D97706',
-                  paddingVertical: 13,
-                  borderRadius: 12,
+                  paddingVertical: 14,
+                  borderRadius: 14,
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
+                  elevation: 3,
+                  shadowColor: '#D97706',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                <HelpCircle size={17} color="#FFFFFF" />
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
                   {question ? 'Update Question' : 'Save to Question Bank'}
                 </Text>
               </TouchableOpacity>
@@ -3886,17 +4288,24 @@ function OptionRow({
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       <TouchableOpacity
-        onPress={onSelect}
+        activeOpacity={0.75}
+        onPress={() => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onSelect();
+        }}
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 14,
-          backgroundColor: isSelected ? '#16A34A' : '#E2E8F0',
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: isSelected ? '#16A34A' : '#F1F5F9',
+          borderWidth: 1.5,
+          borderColor: isSelected ? '#15803D' : '#CBD5E1',
           alignItems: 'center',
           justifyContent: 'center',
+          elevation: isSelected ? 2 : 0,
         }}
       >
-        <Text style={{ fontSize: 12, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>{label}</Text>
+        <Text style={{ fontSize: 12.5, fontWeight: '900', color: isSelected ? '#FFFFFF' : '#475569' }}>{label}</Text>
       </TouchableOpacity>
       <TextInput
         value={value}
@@ -3906,11 +4315,11 @@ function OptionRow({
         style={{
           flex: 1,
           backgroundColor: isSelected ? '#ECFDF5' : '#F8FAFC',
-          borderWidth: 1,
-          borderColor: isSelected ? '#A7F3D0' : '#E2E8F0',
-          borderRadius: 10,
-          paddingHorizontal: 10,
-          paddingVertical: 7,
+          borderWidth: 1.5,
+          borderColor: isSelected ? '#10B981' : '#E2E8F0',
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          paddingVertical: 9,
           fontSize: 13,
           color: '#0F172A',
         }}
@@ -3918,6 +4327,7 @@ function OptionRow({
     </View>
   );
 }
+
 
 function TestFormModal({
   visible,
@@ -3932,6 +4342,7 @@ function TestFormModal({
   onSave: (t: Partial<AdminTestItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [chapters, setChapters] = useState('');
   const [duration, setDuration] = useState('60');
@@ -3961,7 +4372,7 @@ function TestFormModal({
   }, [test, visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -3969,22 +4380,84 @@ function TestFormModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '90%',
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-              {test ? 'Edit Test' : 'Create & Schedule Test'}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#ECFEFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#A5F3FC',
+                }}
+              >
+                <Award size={19} color="#0891B2" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  {test ? 'Edit Test' : 'Create & Schedule Test'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Set timing, marks & chapter coverage
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
             <FormField label="Test Title" value={title} onChangeText={setTitle} placeholder="e.g. Unit Test 1: Algebra & Calculus" />
             <FormField label="Chapters Included" value={chapters} onChangeText={setChapters} placeholder="Comma separated chapter names" />
 
@@ -4006,16 +4479,53 @@ function TestFormModal({
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Target Class</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {([9, 10, 11, 12] as const).map((lvl) => {
+                  const isSelected = classLevel === lvl;
+                  return (
+                    <TouchableOpacity
+                      key={lvl}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setClassLevel(lvl);
+                      }}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#0891B2' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#0e7490' : '#E2E8F0',
+                        alignItems: 'center',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                        {lvl}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               {test && (
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   onPress={() => onDelete(test.id)}
                   style={{
                     backgroundColor: '#FEE2E2',
-                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    paddingVertical: 14,
                     paddingHorizontal: 16,
-                    borderRadius: 12,
+                    borderRadius: 14,
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={18} color="#DC2626" />
@@ -4023,11 +4533,13 @@ function TestFormModal({
               )}
 
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   if (!title.trim()) {
                     Alert.alert('Required', 'Please enter test title.');
                     return;
                   }
+                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   onSave({
                     title,
                     chapters: chapters.split(',').map((c) => c.trim()).filter(Boolean),
@@ -4046,13 +4558,22 @@ function TestFormModal({
                 style={{
                   flex: 1,
                   backgroundColor: '#0891B2',
-                  paddingVertical: 13,
-                  borderRadius: 12,
+                  paddingVertical: 14,
+                  borderRadius: 14,
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
+                  elevation: 3,
+                  shadowColor: '#0891B2',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
-                  {test ? 'Save Test' : 'Schedule & Publish Test'}
+                <Award size={17} color="#FFFFFF" />
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
+                  {test ? 'Save Test Changes' : 'Schedule & Publish Test'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4076,14 +4597,15 @@ function OfflinePaymentModal({
   onClose: () => void;
   onRecord: (pay: any) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
   const [batchTitle, setBatchTitle] = useState(batches[0]?.title || '');
   const [amount, setAmount] = useState('6000');
   const [method, setMethod] = useState<'cash' | 'upi' | 'cheque' | 'bank_transfer'>('cash');
-  const [notes, setNotes] = useState('Tuition fee instalment received at Mathura center');
+  const [notes, setNotes] = useState('Tuition fee instalment received at center desk');
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -4091,67 +4613,157 @@ function OfflinePaymentModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '90%',
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Record Offline Fee Payment</Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 12,
+            }}
+          />
+
+          {/* Modal Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EEF2FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#C7D2FE',
+                }}
+              >
+                <CreditCard size={19} color="#4F46E5" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  Record Offline Fee Payment
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Generate official tuition receipt & update ledger
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 20 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Select Student</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-              {students.map((s) => (
-                <TouchableOpacity
-                  key={s.id}
-                  onPress={() => setSelectedStudentId(s.id)}
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 7,
-                    borderRadius: 10,
-                    backgroundColor: selectedStudentId === s.id ? '#4F46E5' : '#F1F5F9',
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: selectedStudentId === s.id ? '#FFFFFF' : '#334155' }}>
-                    {s.fullName}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
+            <View style={{ gap: 5 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Select Enrolled Student</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 2 }}>
+                {students.map((s) => {
+                  const isSelected = selectedStudentId === s.id;
+                  return (
+                    <TouchableOpacity
+                      key={s.id}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSelectedStudentId(s.id);
+                      }}
+                      style={{
+                        paddingHorizontal: 13,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#4F46E5' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#4338CA' : '#E2E8F0',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#FFFFFF' : '#334155' }}>
+                        {s.fullName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
             <FormField label="Tuition Amount (₹)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
 
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Payment Mode</Text>
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              {(['cash', 'upi', 'cheque', 'bank_transfer'] as const).map((m) => (
-                <TouchableOpacity
-                  key={m}
-                  onPress={() => setMethod(m)}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    backgroundColor: method === m ? '#4F46E5' : '#F1F5F9',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: method === m ? '#FFFFFF' : '#475569' }}>
-                    {m.toUpperCase().replace('_', ' ')}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={{ gap: 5 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Payment Mode</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {(['cash', 'upi', 'cheque', 'bank_transfer'] as const).map((m) => {
+                  const isSelected = method === m;
+                  return (
+                    <TouchableOpacity
+                      key={m}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setMethod(m);
+                      }}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        backgroundColor: isSelected ? '#4F46E5' : '#FFFFFF',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#4338CA' : '#E2E8F0',
+                        alignItems: 'center',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                        {m === 'bank_transfer' ? 'NEFT' : m.toUpperCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             <FormField label="Notes & Reference" value={notes} onChangeText={setNotes} placeholder="Cash receipt details..." />
 
             <TouchableOpacity
+              activeOpacity={0.8}
               onPress={() => {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 onRecord({
                   studentId: selectedStudentId || students[0]?.id,
                   batchTitle: batchTitle || batches[0]?.title,
@@ -4163,12 +4775,21 @@ function OfflinePaymentModal({
               style={{
                 backgroundColor: '#4F46E5',
                 paddingVertical: 14,
-                borderRadius: 12,
+                borderRadius: 14,
                 alignItems: 'center',
-                marginTop: 10,
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 6,
+                elevation: 3,
+                shadowColor: '#4F46E5',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                marginTop: 8,
               }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Issue Official Receipt</Text>
+              <CreditCard size={17} color="#FFFFFF" />
+              <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Issue Official Receipt</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -4190,63 +4811,135 @@ function EnrollStudentModal({
   onClose: () => void;
   onEnroll: (batchId: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || '');
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
             gap: 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 10,
+            }}
+          />
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>
-              Enroll {student?.fullName}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                }}
+              >
+                <Users size={19} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  Enroll {student?.fullName}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Grant immediate batch attendance and material access
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <Text style={{ fontSize: 12, color: '#64748B' }}>
-            Select the batch to grant immediate access to this student:
+          <Text style={{ fontSize: 12.5, color: '#475569', fontWeight: '500' }}>
+            Select target batch for this student:
           </Text>
 
-          {batches.map((b) => (
-            <TouchableOpacity
-              key={b.id}
-              onPress={() => setSelectedBatchId(b.id)}
-              style={{
-                padding: 12,
-                borderRadius: 12,
-                backgroundColor: selectedBatchId === b.id ? '#EFF6FF' : '#F8FAFC',
-                borderWidth: 1,
-                borderColor: selectedBatchId === b.id ? '#2563EB' : '#E2E8F0',
-              }}
-            >
-              <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A' }}>{b.title}</Text>
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
-                Class {b.classLevel} • {b.room} • ₹{b.fee}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          <ScrollView style={{ maxHeight: 280 }} contentContainerStyle={{ gap: 8 }}>
+            {batches.map((b) => {
+              const isSelected = selectedBatchId === b.id;
+              return (
+                <TouchableOpacity
+                  key={b.id}
+                  activeOpacity={0.75}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedBatchId(b.id);
+                  }}
+                  style={{
+                    padding: 13,
+                    borderRadius: 14,
+                    backgroundColor: isSelected ? '#EFF6FF' : '#F8FAFC',
+                    borderWidth: 1.5,
+                    borderColor: isSelected ? '#2563EB' : '#E2E8F0',
+                    elevation: isSelected ? 2 : 0,
+                  }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{b.title}</Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+                    Class {b.classLevel} • {b.room} • ₹{b.fee.toLocaleString('en-IN')}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           <TouchableOpacity
-            onPress={() => onEnroll(selectedBatchId || batches[0]?.id)}
+            activeOpacity={0.8}
+            onPress={() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              onEnroll(selectedBatchId || batches[0]?.id);
+            }}
             style={{
               backgroundColor: '#2563EB',
-              paddingVertical: 13,
-              borderRadius: 12,
+              paddingVertical: 14,
+              borderRadius: 14,
               alignItems: 'center',
-              marginTop: 6,
+              justifyContent: 'center',
+              elevation: 3,
+              shadowColor: '#2563EB',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              marginTop: 4,
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Confirm Enrollment</Text>
+            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Confirm Enrollment</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -4265,13 +4958,14 @@ function AnnouncementModal({
   onClose: () => void;
   onBroadcast: (ann: any) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [priority, setPriority] = useState<'normal' | 'urgent'>('normal');
   const [target, setTarget] = useState('All Batches (Classes IX–XII)');
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -4279,16 +4973,65 @@ function AnnouncementModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
             gap: 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 10,
+            }}
+          />
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Broadcast Announcement</Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#FFF1F2',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#FECDD3',
+                }}
+              >
+                <Send size={18} color="#E11D48" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Broadcast Announcement</Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>Push instant notification to student mobile apps</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
@@ -4302,37 +5045,61 @@ function AnnouncementModal({
             numberOfLines={3}
           />
 
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4 }}>Priority</Text>
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                {(['normal', 'urgent'] as const).map((p) => (
+          <View style={{ gap: 5 }}>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Priority Level</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {(['normal', 'urgent'] as const).map((p) => {
+                const isSelected = priority === p;
+                return (
                   <TouchableOpacity
                     key={p}
-                    onPress={() => setPriority(p)}
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setPriority(p);
+                    }}
                     style={{
                       flex: 1,
-                      paddingVertical: 7,
-                      borderRadius: 8,
-                      backgroundColor: priority === p ? (p === 'urgent' ? '#DC2626' : '#2563EB') : '#F1F5F9',
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      backgroundColor: isSelected
+                        ? p === 'urgent'
+                          ? '#DC2626'
+                          : '#2563EB'
+                        : '#FFFFFF',
+                      borderWidth: 1.5,
+                      borderColor: isSelected
+                        ? p === 'urgent'
+                          ? '#B91C1C'
+                          : '#1D4ED8'
+                        : '#E2E8F0',
                       alignItems: 'center',
+                      elevation: isSelected ? 2 : 0,
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: priority === p ? '#FFFFFF' : '#475569' }}>
-                      {p.toUpperCase()}
+                    <Text
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: '800',
+                        color: isSelected ? '#FFFFFF' : '#475569',
+                      }}
+                    >
+                      {p === 'urgent' ? '🚨 URGENT' : '📢 NORMAL'}
                     </Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+                );
+              })}
             </View>
           </View>
 
           <TouchableOpacity
+            activeOpacity={0.8}
             onPress={() => {
               if (!title.trim() || !body.trim()) {
                 Alert.alert('Required', 'Please enter title and announcement content.');
                 return;
               }
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               onBroadcast({
                 title,
                 body,
@@ -4343,13 +5110,22 @@ function AnnouncementModal({
             }}
             style={{
               backgroundColor: '#E11D48',
-              paddingVertical: 13,
-              borderRadius: 12,
+              paddingVertical: 14,
+              borderRadius: 14,
               alignItems: 'center',
-              marginTop: 6,
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 6,
+              elevation: 3,
+              shadowColor: '#E11D48',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              marginTop: 4,
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Broadcast to Mobile Devices</Text>
+            <Send size={16} color="#FFFFFF" />
+            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Broadcast to Mobile Devices</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -4368,10 +5144,11 @@ function DoubtReplyModal({
   onClose: () => void;
   onReply: (text: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [replyText, setReplyText] = useState('');
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
@@ -4379,24 +5156,75 @@ function DoubtReplyModal({
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
             gap: 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 10,
+            }}
+          />
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>
-              Reply to {doubt?.studentName}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#F5F3FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DDD6FE',
+                }}
+              >
+                <MessageSquare size={19} color="#7C3AED" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  Reply to {doubt?.studentName}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Send verified faculty step-by-step resolution
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ backgroundColor: '#F8FAFC', padding: 10, borderRadius: 10 }}>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>Doubt Question:</Text>
-            <Text style={{ fontSize: 13, color: '#0F172A', marginTop: 2 }}>{doubt?.questionText}</Text>
+          <View style={{ backgroundColor: '#F8FAFC', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748B', textTransform: 'uppercase' }}>Doubt Question:</Text>
+            <Text style={{ fontSize: 13.5, color: '#0F172A', marginTop: 3, fontWeight: '600' }}>{doubt?.questionText}</Text>
           </View>
 
           <FormField
@@ -4409,22 +5237,34 @@ function DoubtReplyModal({
           />
 
           <TouchableOpacity
+            activeOpacity={0.8}
             onPress={() => {
               if (!replyText.trim()) {
                 Alert.alert('Required', 'Please enter your reply.');
                 return;
               }
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               onReply(replyText);
               setReplyText('');
             }}
             style={{
-              backgroundColor: '#2563EB',
-              paddingVertical: 13,
-              borderRadius: 12,
+              backgroundColor: '#7C3AED',
+              paddingVertical: 14,
+              borderRadius: 14,
               alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 6,
+              elevation: 3,
+              shadowColor: '#7C3AED',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              marginTop: 4,
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Send & Resolve Doubt</Text>
+            <Send size={16} color="#FFFFFF" />
+            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Send & Resolve Doubt</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -4443,6 +5283,7 @@ function EnquiryDetailModal({
   onClose: () => void;
   onUpdateStatus: (status: AdminEnquiryItem['status'], notes?: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -4454,21 +5295,70 @@ function EnquiryDetailModal({
   if (!enquiry) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 16,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingTop: 12,
+            paddingHorizontal: 18,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
             gap: 12,
+            elevation: 10,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
           }}
         >
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 38,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 10,
+            }}
+          />
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Admission Lead Details</Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                }}
+              >
+                <Users size={19} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Admission Lead Details</Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>Inquiry record and follow-up log</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
             </TouchableOpacity>
           </View>
 
@@ -4477,8 +5367,8 @@ function EnquiryDetailModal({
             <Text style={{ fontSize: 12, color: '#64748B' }}>
               Class {enquiry.classLevel} • {enquiry.board.toUpperCase()} • Phone: {enquiry.phone}
             </Text>
-            <View style={{ backgroundColor: '#F8FAFC', padding: 10, borderRadius: 10, marginTop: 4 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>Inquiry Message:</Text>
+            <View style={{ backgroundColor: '#F8FAFC', padding: 10, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748B' }}>Inquiry Message:</Text>
               <Text style={{ fontSize: 12.5, color: '#334155', marginTop: 2 }}>{enquiry.message}</Text>
             </View>
           </View>
@@ -4490,60 +5380,78 @@ function EnquiryDetailModal({
             placeholder="e.g. Called parent, invited for trial class..."
           />
 
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Change Lead Status:</Text>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {(['new', 'contacted', 'enrolled', 'closed'] as const).map((st) => (
-              <TouchableOpacity
-                key={st}
-                onPress={() => onUpdateStatus(st, notes)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  backgroundColor: enquiry.status === st ? '#2563EB' : '#F1F5F9',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 11, fontWeight: '800', color: enquiry.status === st ? '#FFFFFF' : '#475569' }}>
-                  {st.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={{ gap: 5 }}>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Update Lead Status:</Text>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {(['new', 'contacted', 'enrolled', 'closed'] as const).map((st) => {
+                const isSelected = enquiry.status === st;
+                return (
+                  <TouchableOpacity
+                    key={st}
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      onUpdateStatus(st, notes);
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 9,
+                      borderRadius: 10,
+                      backgroundColor: isSelected ? '#2563EB' : '#FFFFFF',
+                      borderWidth: 1.5,
+                      borderColor: isSelected ? '#1D4ED8' : '#E2E8F0',
+                      alignItems: 'center',
+                      elevation: isSelected ? 2 : 0,
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                      {st.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 6 }}>
             <TouchableOpacity
+              activeOpacity={0.8}
               onPress={() => Linking.openURL(`tel:${enquiry.phone}`)}
               style={{
                 flex: 1,
                 backgroundColor: '#EFF6FF',
-                paddingVertical: 12,
-                borderRadius: 12,
+                paddingVertical: 13,
+                borderRadius: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
+                borderWidth: 1,
+                borderColor: '#BFDBFE',
               }}
             >
               <Phone size={16} color="#2563EB" />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#2563EB' }}>Call Lead</Text>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#2563EB' }}>Call Lead</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
+              activeOpacity={0.8}
               onPress={() => Linking.openURL(`https://wa.me/${enquiry.phone.replace(/[^0-9]/g, '')}`)}
               style={{
                 flex: 1,
                 backgroundColor: '#ECFDF5',
-                paddingVertical: 12,
-                borderRadius: 12,
+                paddingVertical: 13,
+                borderRadius: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
+                borderWidth: 1,
+                borderColor: '#A7F3D0',
               }}
             >
               <MessageCircle size={16} color="#059669" />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#059669' }}>WhatsApp</Text>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#059669' }}>WhatsApp</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4570,8 +5478,8 @@ function FormField({
   keyboardType?: 'default' | 'numeric' | 'email-address';
 }) {
   return (
-    <View style={{ gap: 4 }}>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>{label}</Text>
+    <View style={{ gap: 5 }}>
+      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', letterSpacing: 0.2 }}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -4582,13 +5490,15 @@ function FormField({
         keyboardType={keyboardType}
         style={{
           backgroundColor: '#F8FAFC',
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderColor: '#E2E8F0',
-          borderRadius: 10,
-          paddingHorizontal: 12,
-          paddingVertical: multiline ? 8 : 8,
-          fontSize: 13,
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          paddingVertical: multiline ? 10 : 11,
+          fontSize: 13.5,
+          fontWeight: '500',
           color: '#0F172A',
+          minHeight: multiline ? 80 : 46,
           textAlignVertical: multiline ? 'top' : 'center',
         }}
       />

@@ -198,7 +198,7 @@ export default function FeesScreen() {
                     Pay at the Centre or on Our Website
                   </Text>
                   <Text className="text-caption text-ink-muted mt-0.5 leading-relaxed">
-                    Tuition fees can be deposited directly at our Mathura coaching center or online at quick2learn.in.
+                    Tuition fees can be deposited directly at our coaching center or online at quick2learn.in.
                   </Text>
                 </View>
               </View>

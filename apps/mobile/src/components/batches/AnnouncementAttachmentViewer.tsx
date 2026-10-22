@@ -125,7 +125,7 @@ export function AnnouncementAttachmentViewer({
         {/* Footer Bottom Bar */}
         <View className="p-4 pb-8 items-center">
           <Text className="text-white/40 text-caption">
-            Quick2Learn Mathura · Batch Resource
+            Quick2Learn · Batch Resource
           </Text>
         </View>
       </View>

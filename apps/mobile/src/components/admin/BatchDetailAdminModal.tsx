@@ -46,6 +46,8 @@ import {
   Radio,
   Send,
   BookOpen,
+  FileUp,
+  Layers,
 } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -634,7 +636,7 @@ export function BatchDetailAdminModal({
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         void Share.share({
                           title: `Join ${batch.title} on Quick2Learn`,
-                          message: `Join ${batch.title} at Quick2Learn Mathura Center!\nBatch Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
+                          message: `Join ${batch.title} at Quick2Learn!\nBatch Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
                         });
                       }}
                       style={{
@@ -1700,28 +1702,75 @@ export function BatchDetailAdminModal({
 
           {/* 7. LIVE CLASSES TAB */}
           {activeTab === 'live' && (
-            <View style={{ gap: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Live Lectures Console</Text>
-                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                    Zoom, YouTube Live & Google Meet sessions
-                  </Text>
+            <View style={{ gap: 14 }}>
+              {/* Studio Header Card */}
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  elevation: 1,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 2,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: '#EFF6FF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1,
+                      borderColor: '#DBEAFE',
+                    }}
+                  >
+                    <Radio size={20} color="#2563EB" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>Live Lectures Console</Text>
+                      {activeLiveClass && (
+                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' }} />
+                      )}
+                    </View>
+                    <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>
+                      Zoom, YouTube Live & Google Meet sessions
+                    </Text>
+                  </View>
                 </View>
                 <TouchableOpacity
-                  onPress={() => setScheduleLiveModalVisible(true)}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setScheduleLiveModalVisible(true);
+                  }}
                   style={{
                     backgroundColor: '#2563EB',
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 10,
+                    paddingHorizontal: 13,
+                    paddingVertical: 9,
+                    borderRadius: 11,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 5,
+                    elevation: 2,
+                    shadowColor: '#2563EB',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 4,
                   }}
                 >
-                  <Plus size={15} color="#FFFFFF" />
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Schedule Live</Text>
+                  <Plus size={15} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>Schedule Live</Text>
                 </TouchableOpacity>
               </View>
 
@@ -1733,107 +1782,247 @@ export function BatchDetailAdminModal({
                   onAction={() => setScheduleLiveModalVisible(true)}
                 />
               ) : (
-                batchLiveClasses.map((live) => (
-                  <View
-                    key={live.id}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: 14,
-                      padding: 14,
-                      borderWidth: 1,
-                      borderColor: live.isLive ? '#F87171' : '#E2E8F0',
-                      gap: 10,
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Badge
-                        label={live.isLive ? 'LIVE NOW' : 'SCHEDULED'}
-                        variant={live.isLive ? 'danger' : 'primary'}
-                        size="sm"
-                      />
-                      <Badge label={live.platform.toUpperCase()} variant="neutral" size="sm" />
-                    </View>
+                batchLiveClasses.map((live) => {
+                  const isZoom = live.platform.toLowerCase() === 'zoom';
+                  const isYT = live.platform.toLowerCase() === 'youtube';
+                  const isMeet = live.platform.toLowerCase() === 'meet';
+                  const platformColor = isZoom ? '#2563EB' : isYT ? '#DC2626' : '#059669';
+                  const platformBg = isZoom ? '#EFF6FF' : isYT ? '#FEF2F2' : '#ECFDF5';
+                  const platformBorder = isZoom ? '#BFDBFE' : isYT ? '#FECDD3' : '#A7F3D0';
 
-                    <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>{live.title}</Text>
-                    <Text style={{ fontSize: 12, color: '#475569' }}>
-                      Faculty: {live.faculty} • Time: {new Date(live.scheduledAt).toLocaleString('en-IN')} ({live.duration})
-                    </Text>
+                  return (
+                    <View
+                      key={live.id}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 18,
+                        padding: 16,
+                        borderWidth: 1.5,
+                        borderColor: live.isLive ? '#FDA4AF' : '#E2E8F0',
+                        borderLeftWidth: live.isLive ? 5 : 1.5,
+                        borderLeftColor: live.isLive ? '#EF4444' : '#E2E8F0',
+                        gap: 12,
+                        elevation: live.isLive ? 3 : 1,
+                        shadowColor: live.isLive ? '#E11D48' : '#000000',
+                        shadowOffset: { width: 0, height: live.isLive ? 3 : 1 },
+                        shadowOpacity: live.isLive ? 0.12 : 0.04,
+                        shadowRadius: 6,
+                      }}
+                    >
+                      {/* Top Badges */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        {live.isLive ? (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 6,
+                              backgroundColor: '#FEE2E2',
+                              paddingHorizontal: 10,
+                              paddingVertical: 4,
+                              borderRadius: 20,
+                              borderWidth: 1,
+                              borderColor: '#FCA5A5',
+                            }}
+                          >
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' }} />
+                            <Text style={{ fontSize: 11, fontWeight: '900', color: '#B91C1C', letterSpacing: 0.5 }}>
+                              LIVE NOW
+                            </Text>
+                          </View>
+                        ) : (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 5,
+                              backgroundColor: '#F1F5F9',
+                              paddingHorizontal: 10,
+                              paddingVertical: 4,
+                              borderRadius: 20,
+                              borderWidth: 1,
+                              borderColor: '#E2E8F0',
+                            }}
+                          >
+                            <Clock size={11} color="#64748B" />
+                            <Text style={{ fontSize: 11, fontWeight: '800', color: '#475569' }}>
+                              SCHEDULED
+                            </Text>
+                          </View>
+                        )}
 
-                    {live.meetingId && (
-                      <View style={{ backgroundColor: '#F8FAFC', padding: 8, borderRadius: 8, gap: 2 }}>
-                        <Text style={{ fontSize: 11, color: '#64748B' }}>
-                          Meeting ID: <Text style={{ fontWeight: '700', color: '#0F172A' }}>{live.meetingId}</Text>
-                          {live.passcode ? ` • Passcode: ${live.passcode}` : ''}
+                        {/* Platform Badge */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 5,
+                            backgroundColor: platformBg,
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderColor: platformBorder,
+                          }}
+                        >
+                          <Video size={12} color={platformColor} />
+                          <Text style={{ fontSize: 11, fontWeight: '800', color: platformColor }}>
+                            {live.platform.toUpperCase()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Title & Faculty Info */}
+                      <View style={{ gap: 4 }}>
+                        <Text style={{ fontSize: 15.5, fontWeight: '800', color: '#0F172A', lineHeight: 21 }}>
+                          {live.title}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: '#475569', lineHeight: 18 }}>
+                          Faculty: <Text style={{ fontWeight: '700', color: '#1E293B' }}>{live.faculty}</Text> • Time: {new Date(live.scheduledAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} ({live.duration})
                         </Text>
                       </View>
-                    )}
 
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <TouchableOpacity
-                        onPress={() => Linking.openURL(live.meetingUrl)}
-                        style={{
-                          flex: 1,
-                          backgroundColor: live.isLive ? '#EF4444' : '#2563EB',
-                          paddingVertical: 9,
-                          borderRadius: 8,
-                          alignItems: 'center',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        <Radio size={14} color="#FFFFFF" />
-                        <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
-                          {live.isLive ? 'Join Live Now' : 'Launch Meeting Link'}
-                        </Text>
-                      </TouchableOpacity>
+                      {/* Ticket: Meeting ID & Passcode with 1-tap Copy/Share */}
+                      {(live.meetingId || live.passcode) && (
+                        <View
+                          style={{
+                            backgroundColor: '#F8FAFC',
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                            borderWidth: 1,
+                            borderColor: '#E2E8F0',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <View style={{ flex: 1, marginRight: 8 }}>
+                            <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                              CREDENTIALS
+                            </Text>
+                            <Text style={{ fontSize: 12.5, color: '#334155', fontWeight: '600', marginTop: 2 }}>
+                              ID: <Text style={{ fontWeight: '800', color: '#0F172A' }}>{live.meetingId || 'N/A'}</Text>
+                              {live.passcode ? ` • Passcode: ` : ''}
+                              {live.passcode ? <Text style={{ fontWeight: '800', color: '#0F172A' }}>{live.passcode}</Text> : null}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              void Share.share({
+                                title: live.title,
+                                message: `Join Live Class: ${live.title}\nPlatform: ${live.platform.toUpperCase()}\nLink: ${live.meetingUrl}${live.meetingId ? `\nMeeting ID: ${live.meetingId}` : ''}${live.passcode ? `\nPasscode: ${live.passcode}` : ''}`,
+                              });
+                            }}
+                            style={{
+                              paddingHorizontal: 9,
+                              paddingVertical: 5,
+                              borderRadius: 8,
+                              backgroundColor: '#EFF6FF',
+                              borderWidth: 1,
+                              borderColor: '#BFDBFE',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            <Copy size={12} color="#2563EB" />
+                            <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>Share</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
 
-                      <TouchableOpacity
-                        onPress={async () => {
-                          await store.toggleLiveClassState(live.id);
-                          onToast({
-                            type: 'info',
-                            message: `Live class status set to ${live.isLive ? 'ended' : 'LIVE NOW'}.`,
-                          });
-                        }}
-                        style={{
-                          paddingHorizontal: 12,
-                          paddingVertical: 9,
-                          borderRadius: 8,
-                          backgroundColor: '#F1F5F9',
-                        }}
-                      >
-                        <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>
-                          {live.isLive ? 'Mark Ended' : 'Set Live'}
-                        </Text>
-                      </TouchableOpacity>
+                      {/* Actions Row */}
+                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            Linking.openURL(live.meetingUrl);
+                          }}
+                          style={{
+                            flex: 1,
+                            backgroundColor: live.isLive ? '#EF4444' : '#2563EB',
+                            paddingVertical: 10,
+                            borderRadius: 11,
+                            alignItems: 'center',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            gap: 6,
+                            elevation: 2,
+                            shadowColor: live.isLive ? '#EF4444' : '#2563EB',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 4,
+                          }}
+                        >
+                          <Radio size={15} color="#FFFFFF" />
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>
+                            {live.isLive ? 'Join Live Now' : 'Launch Meeting Link'}
+                          </Text>
+                        </TouchableOpacity>
 
-                      <TouchableOpacity
-                        onPress={() => {
-                          Alert.alert('Delete Session', 'Delete this live class record?', [
-                            { text: 'Cancel', style: 'cancel' },
-                            {
-                              text: 'Delete',
-                              style: 'destructive',
-                              onPress: async () => {
-                                await store.deleteLiveClass(live.id);
-                                onToast({ type: 'info', message: 'Live class deleted.' });
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={async () => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            await store.toggleLiveClassState(live.id);
+                            onToast({
+                              type: 'info',
+                              message: `Live class status set to ${live.isLive ? 'ended' : 'LIVE NOW'}.`,
+                            });
+                          }}
+                          style={{
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                            borderRadius: 11,
+                            backgroundColor: '#F1F5F9',
+                            borderWidth: 1,
+                            borderColor: '#E2E8F0',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
+                            {live.isLive ? 'Mark Ended' : 'Set Live'}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            Alert.alert('Delete Session', 'Delete this live class record?', [
+                              { text: 'Cancel', style: 'cancel' },
+                              {
+                                text: 'Delete',
+                                style: 'destructive',
+                                onPress: async () => {
+                                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                                  await store.deleteLiveClass(live.id);
+                                  onToast({ type: 'info', message: 'Live class deleted.' });
+                                },
                               },
-                            },
-                          ]);
-                        }}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 9,
-                          borderRadius: 8,
-                          backgroundColor: '#FEE2E2',
-                        }}
-                      >
-                        <Trash2 size={14} color="#EF4444" />
-                      </TouchableOpacity>
+                            ]);
+                          }}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 11,
+                            backgroundColor: '#FEE2E2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderWidth: 1,
+                            borderColor: '#FECDD3',
+                          }}
+                        >
+                          <Trash2 size={16} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                ))
+                  );
+                })
               )}
             </View>
           )}
@@ -2477,8 +2666,56 @@ function ActionButton({
 }
 
 // -------------------------------------------------------------
-// SUB-MODALS
+// SUB-MODALS & FORM HELPERS
 // -------------------------------------------------------------
+
+function BatchFormField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  multiline,
+  numberOfLines,
+  keyboardType,
+  autoCapitalize,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+}) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', letterSpacing: 0.2 }}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#94A3B8"
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        style={{
+          borderWidth: 1.5,
+          borderColor: '#E2E8F0',
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          paddingVertical: multiline ? 12 : 11,
+          minHeight: multiline ? (numberOfLines ? numberOfLines * 24 : 80) : 46,
+          fontSize: 14,
+          color: '#0F172A',
+          backgroundColor: '#F8FAFC',
+          textAlignVertical: multiline ? 'top' : 'center',
+        }}
+      />
+    </View>
+  );
+}
 
 function AddLectureToBatchModal({
   visible,
@@ -2491,6 +2728,7 @@ function AddLectureToBatchModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [title, setTitle] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -2502,7 +2740,6 @@ function AddLectureToBatchModal({
       Alert.alert('Missing Fields', 'Please enter Title, YouTube URL, and Chapter name.');
       return;
     }
-    // Extract video ID if possible
     let ytId = 'sample-yt-id';
     const match = youtubeUrl.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*).*/);
     if (match && match[1]) {
@@ -2527,63 +2764,144 @@ function AddLectureToBatchModal({
     onSaved();
   };
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18, gap: 12 }}>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '90%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Add Video Lecture</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Video size={20} color="#2563EB" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Add Video Lecture
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  {batch.title}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Lecture Title</Text>
-            <TextInput
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+            <BatchFormField
+              label="Lecture Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. Lec 01: Integration by Substitution"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Chapter Name / Folder</Text>
-            <TextInput
+            <BatchFormField
+              label="Chapter Name / Folder"
               value={chapter}
               onChangeText={setChapter}
               placeholder="e.g. Integrals"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>YouTube Video URL</Text>
-            <TextInput
-              value={youtubeUrl}
-              onChangeText={setYoutubeUrl}
-              placeholder="https://www.youtube.com/watch?v=..."
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-            />
-          </View>
+            <View style={{ gap: 6 }}>
+              <BatchFormField
+                label="YouTube Video URL"
+                value={youtubeUrl}
+                onChangeText={setYoutubeUrl}
+                placeholder="https://www.youtube.com/watch?v=..."
+                autoCapitalize="none"
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 2 }}>
+                <Sparkles size={11} color="#64748B" />
+                <Text style={{ fontSize: 11, color: '#64748B' }}>
+                  Auto-extracts YouTube Video ID and thumbnail
+                </Text>
+              </View>
+            </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Duration (mm:ss)</Text>
-            <TextInput
+            <BatchFormField
+              label="Duration (mm:ss)"
               value={duration}
               onChangeText={setDuration}
               placeholder="48:30"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <Button onPress={handleSubmit} variant="primary" style={{ marginTop: 8 }}>
-            Save Video Lecture
-          </Button>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleSubmit();
+              }}
+              style={{
+                backgroundColor: '#2563EB',
+                borderRadius: 14,
+                paddingVertical: 13,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 6,
+                flexDirection: 'row',
+                gap: 8,
+                elevation: 2,
+                shadowColor: '#2563EB',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+              }}
+            >
+              <Video size={18} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Save Video Lecture</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -2601,6 +2919,7 @@ function AddResourceToBatchModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [title, setTitle] = useState('');
   const [chapter, setChapter] = useState('');
@@ -2634,107 +2953,248 @@ function AddResourceToBatchModal({
     onSaved();
   };
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18, gap: 12 }}>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '90%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Upload Study Material (PDF)</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#ECFDF5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <FileUp size={20} color="#059669" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Upload Study Material
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  PDF document for {batch.title}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Document Title</Text>
-            <TextInput
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+            {/* Dashed PDF Upload Box */}
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert('PDF Picker', 'Sample document attached: Selina_Maths_Notes.pdf');
+              }}
+              style={{
+                borderWidth: 1.5,
+                borderColor: '#10B981',
+                borderStyle: 'dashed',
+                borderRadius: 16,
+                backgroundColor: '#F0FDF4',
+                paddingVertical: 18,
+                paddingHorizontal: 16,
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: '#DCFCE7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <FileUp size={22} color="#059669" />
+              </View>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#065F46' }}>
+                Tap to select PDF file from device
+              </Text>
+              <Text style={{ fontSize: 11, color: '#047857' }}>
+                Accepts .pdf (Formula Sheets, DPPs, Notes)
+              </Text>
+            </TouchableOpacity>
+
+            <BatchFormField
+              label="Document Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. EX 4(A) Solutions - Expansions.pdf"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Folder / Book Category</Text>
-            <TextInput
+            <BatchFormField
+              label="Folder / Book Category"
               value={folderName}
               onChangeText={setFolderName}
               placeholder="e.g. Selina Concise Solutions or NCERT Exemplar"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Chapter Name</Text>
-            <TextInput
+            <BatchFormField
+              label="Chapter Name"
               value={chapter}
               onChangeText={setChapter}
               placeholder="e.g. Expansions"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Pages</Text>
-              <TextInput
-                value={pages}
-                onChangeText={setPages}
-                keyboardType="numeric"
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="Pages"
+                  value={pages}
+                  onChangeText={setPages}
+                  keyboardType="numeric"
+                  placeholder="10"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="File Size"
+                  value={fileSize}
+                  onChangeText={setFileSize}
+                  placeholder="2.4 MB"
+                />
+              </View>
             </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Size</Text>
-              <TextInput
-                value={fileSize}
-                onChangeText={setFileSize}
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
-            </View>
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Visibility</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => setVisibility('batch_only')}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  backgroundColor: visibility === 'batch_only' ? '#2563EB' : '#F1F5F9',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: visibility === 'batch_only' ? '#FFFFFF' : '#475569' }}>
-                  Batch Only
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setVisibility('public')}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  backgroundColor: visibility === 'public' ? '#16A34A' : '#F1F5F9',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: visibility === 'public' ? '#FFFFFF' : '#475569' }}>
-                  Free Material (Public)
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Access & Visibility</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setVisibility('batch_only');
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: visibility === 'batch_only' ? '#2563EB' : '#F1F5F9',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: visibility === 'batch_only' ? '#1D4ED8' : '#E2E8F0',
+                    elevation: visibility === 'batch_only' ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '800',
+                      color: visibility === 'batch_only' ? '#FFFFFF' : '#475569',
+                    }}
+                  >
+                    Batch Only
+                  </Text>
+                </TouchableOpacity>
 
-          <Button onPress={handleSubmit} variant="primary" style={{ marginTop: 8 }}>
-            Upload Study Material
-          </Button>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setVisibility('public');
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: visibility === 'public' ? '#059669' : '#F1F5F9',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: visibility === 'public' ? '#047857' : '#E2E8F0',
+                    elevation: visibility === 'public' ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '800',
+                      color: visibility === 'public' ? '#FFFFFF' : '#475569',
+                    }}
+                  >
+                    Free Material (Public)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleSubmit();
+              }}
+              style={{
+                backgroundColor: '#059669',
+                borderRadius: 14,
+                paddingVertical: 13,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 6,
+                flexDirection: 'row',
+                gap: 8,
+                elevation: 2,
+                shadowColor: '#059669',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+              }}
+            >
+              <FileUp size={18} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Upload Resource</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -2752,6 +3212,7 @@ function AddAssignmentToBatchModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [title, setTitle] = useState('');
   const [chapter, setChapter] = useState('');
@@ -2781,75 +3242,150 @@ function AddAssignmentToBatchModal({
     onSaved();
   };
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18, gap: 12 }}>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '90%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Create Batch Assignment</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Award size={20} color="#2563EB" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Create Batch Assignment
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  Homework & DPP for {batch.title}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Assignment Title</Text>
-            <TextInput
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+            <BatchFormField
+              label="Assignment Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. Chapter 7 Integrals DPP 04"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Chapter Name</Text>
-            <TextInput
+            <BatchFormField
+              label="Chapter Name"
               value={chapter}
               onChangeText={setChapter}
               placeholder="e.g. Integrals"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Due Date (YYYY-MM-DD)</Text>
-              <TextInput
-                value={dueDate}
-                onChangeText={setDueDate}
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="Due Date (YYYY-MM-DD)"
+                  value={dueDate}
+                  onChangeText={setDueDate}
+                  placeholder="2026-10-30"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="Total Marks"
+                  value={totalMarks}
+                  onChangeText={setTotalMarks}
+                  keyboardType="numeric"
+                  placeholder="25"
+                />
+              </View>
             </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Total Marks</Text>
-              <TextInput
-                value={totalMarks}
-                onChangeText={setTotalMarks}
-                keyboardType="numeric"
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
-            </View>
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Instructions</Text>
-            <TextInput
+            <BatchFormField
+              label="Instructions / Guidelines"
               value={instructions}
               onChangeText={setInstructions}
               placeholder="Enter guidelines for submission..."
               multiline
               numberOfLines={3}
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13, height: 70 }}
             />
-          </View>
 
-          <Button onPress={handleSubmit} variant="primary" style={{ marginTop: 8 }}>
-            Assign to Batch
-          </Button>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleSubmit();
+              }}
+              style={{
+                backgroundColor: '#2563EB',
+                borderRadius: 14,
+                paddingVertical: 13,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 6,
+                flexDirection: 'row',
+                gap: 8,
+                elevation: 2,
+                shadowColor: '#2563EB',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+              }}
+            >
+              <Award size={18} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Assign to Batch</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -2867,6 +3403,7 @@ function ScheduleLiveToBatchModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState<'zoom' | 'youtube' | 'meet'>('zoom');
@@ -2898,85 +3435,194 @@ function ScheduleLiveToBatchModal({
     onSaved();
   };
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18, gap: 12 }}>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '90%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Schedule Live Class</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#FEF2F2',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Radio size={20} color="#EF4444" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Schedule Live Class
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  Online lecture for {batch.title}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Live Topic / Title</Text>
-            <TextInput
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+            <BatchFormField
+              label="Live Topic / Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. Live Doubt Clearing & Problem Solving"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Platform</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {(['zoom', 'youtube', 'meet'] as const).map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  onPress={() => setPlatform(p)}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    backgroundColor: platform === p ? '#2563EB' : '#F1F5F9',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: platform === p ? '#FFFFFF' : '#475569' }}>
-                    {p.toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            {/* Platform Selector */}
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Live Platform</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {[
+                  { id: 'zoom' as const, label: 'ZOOM', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
+                  { id: 'youtube' as const, label: 'YOUTUBE', color: '#DC2626', bg: '#FEF2F2', border: '#FECDD3' },
+                  { id: 'meet' as const, label: 'MEET', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' },
+                ].map((item) => {
+                  const isSelected = platform === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setPlatform(item.id);
+                      }}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        backgroundColor: isSelected ? item.color : '#F1F5F9',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: isSelected ? item.color : '#E2E8F0',
+                        elevation: isSelected ? 2 : 0,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '800',
+                          color: isSelected ? '#FFFFFF' : '#475569',
+                          letterSpacing: 0.4,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Meeting / Stream URL</Text>
-            <TextInput
+            <BatchFormField
+              label="Meeting / Stream URL"
               value={meetingUrl}
               onChangeText={setMeetingUrl}
-              placeholder="https://zoom.us/... or YouTube Live"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
+              placeholder="https://zoom.us/... or YouTube Live URL"
+              autoCapitalize="none"
             />
-          </View>
 
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Meeting ID</Text>
-              <TextInput
-                value={meetingId}
-                onChangeText={setMeetingId}
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="Meeting ID"
+                  value={meetingId}
+                  onChangeText={setMeetingId}
+                  placeholder="987 654 3210"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <BatchFormField
+                  label="Passcode"
+                  value={passcode}
+                  onChangeText={setPasscode}
+                  placeholder="MATH100"
+                />
+              </View>
             </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Passcode</Text>
-              <TextInput
-                value={passcode}
-                onChangeText={setPasscode}
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
-              />
-            </View>
-          </View>
 
-          <Button onPress={handleSubmit} variant="primary" style={{ marginTop: 8 }}>
-            Schedule Live Lecture
-          </Button>
+            <BatchFormField
+              label="Duration"
+              value={duration}
+              onChangeText={setDuration}
+              placeholder="60 min"
+            />
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleSubmit();
+              }}
+              style={{
+                backgroundColor: '#2563EB',
+                borderRadius: 14,
+                paddingVertical: 13,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 6,
+                flexDirection: 'row',
+                gap: 8,
+                elevation: 2,
+                shadowColor: '#2563EB',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+              }}
+            >
+              <Radio size={18} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Schedule Live Lecture</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -2994,6 +3640,7 @@ function AddAnnouncementToBatchModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -3016,79 +3663,185 @@ function AddAnnouncementToBatchModal({
     onSaved();
   };
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}
       >
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18, gap: 12 }}>
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '90%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
+          }}
+        >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Post Batch Notice</Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Send size={20} color="#2563EB" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Post Batch Notice
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  Broadcast alert to {batch.title}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Notice Title</Text>
-            <TextInput
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+            <BatchFormField
+              label="Notice Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. Unit Test 02 on Saturday 10:00 AM"
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13 }}
             />
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Priority</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => setPriority('normal')}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  backgroundColor: priority === 'normal' ? '#2563EB' : '#F1F5F9',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: priority === 'normal' ? '#FFFFFF' : '#475569' }}>
-                  Normal Notice
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setPriority('urgent')}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  backgroundColor: priority === 'urgent' ? '#EF4444' : '#F1F5F9',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: priority === 'urgent' ? '#FFFFFF' : '#475569' }}>
-                  Urgent / Alert
-                </Text>
-              </TouchableOpacity>
+            {/* Priority Selector */}
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Priority Level</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setPriority('normal');
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: priority === 'normal' ? '#2563EB' : '#F1F5F9',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: priority === 'normal' ? '#1D4ED8' : '#E2E8F0',
+                    elevation: priority === 'normal' ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '800',
+                      color: priority === 'normal' ? '#FFFFFF' : '#475569',
+                    }}
+                  >
+                    NORMAL
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setPriority('urgent');
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: priority === 'urgent' ? '#EF4444' : '#F1F5F9',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: priority === 'urgent' ? '#DC2626' : '#E2E8F0',
+                    elevation: priority === 'urgent' ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '800',
+                      color: priority === 'urgent' ? '#FFFFFF' : '#475569',
+                    }}
+                  >
+                    URGENT / ALERT
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#475569' }}>Notice Message</Text>
-            <TextInput
+            <BatchFormField
+              label="Notice Message"
               value={body}
               onChangeText={setBody}
               placeholder="Write notice details for students..."
               multiline
               numberOfLines={4}
-              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13, height: 90 }}
             />
-          </View>
 
-          <Button onPress={handleSubmit} variant="primary" style={{ marginTop: 8 }}>
-            Broadcast to Batch
-          </Button>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleSubmit();
+              }}
+              style={{
+                backgroundColor: priority === 'urgent' ? '#EF4444' : '#2563EB',
+                borderRadius: 14,
+                paddingVertical: 13,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 6,
+                flexDirection: 'row',
+                gap: 8,
+                elevation: 2,
+                shadowColor: priority === 'urgent' ? '#EF4444' : '#2563EB',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+              }}
+            >
+              <Send size={18} color="#FFFFFF" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>Broadcast to Batch</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -3108,71 +3861,193 @@ function AddStudentToBatchModal({
   onClose: () => void;
   onSaved: (name: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
-  const availableStudents = store.students.filter((s) => !enrolledStudentIds.includes(s.id));
+  const [search, setSearch] = useState('');
+  const availableStudents = useMemo(() => {
+    return store.students.filter((s) => {
+      const notEnrolled = !enrolledStudentIds.includes(s.id);
+      if (!notEnrolled) return false;
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
+        s.fullName.toLowerCase().includes(q) ||
+        s.school.toLowerCase().includes(q) ||
+        s.phone.includes(q)
+      );
+    });
+  }, [store.students, enrolledStudentIds, search]);
+
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}>
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: 18,
-            maxHeight: '80%',
-            gap: 12,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
+            maxHeight: '85%',
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
           }}
         >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Enroll Student from Directory</Text>
-              <Text style={{ fontSize: 11.5, color: '#64748B' }}>Add student to {batch.title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Users size={20} color="#2563EB" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Enroll Student
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  Select from directory for {batch.title}
+                </Text>
+              </View>
             </View>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
+          {/* Search Bar */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#F8FAFC',
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              borderWidth: 1.5,
+              borderColor: '#E2E8F0',
+            }}
+          >
+            <Search size={16} color="#64748B" />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search student by name or school..."
+              placeholderTextColor="#94A3B8"
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                paddingHorizontal: 8,
+                fontSize: 13,
+                color: '#0F172A',
+              }}
+            />
+          </View>
+
+          {/* Students List */}
           <ScrollView style={{ maxHeight: 350 }} contentContainerStyle={{ gap: 8 }}>
             {availableStudents.length === 0 ? (
-              <Text style={{ fontSize: 12.5, color: '#64748B', textAlign: 'center', paddingVertical: 20 }}>
-                All registered students in the institute are already enrolled in this batch!
-              </Text>
+              <View style={{ paddingVertical: 32, alignItems: 'center', gap: 6 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#475569', textAlign: 'center' }}>
+                  {search ? 'No matching students found' : 'All institute students enrolled!'}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#94A3B8', textAlign: 'center' }}>
+                  {search ? 'Try searching a different name or clear the search' : 'Every student in your registry is already in this batch.'}
+                </Text>
+              </View>
             ) : (
               availableStudents.map((stud) => (
                 <View
                   key={stud.id}
                   style={{
-                    backgroundColor: '#F8FAFC',
-                    borderRadius: 10,
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 14,
                     padding: 12,
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    elevation: 1,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
                   }}
                 >
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}>{stud.fullName}</Text>
-                    <Text style={{ fontSize: 11, color: '#64748B' }}>
-                      Class {stud.classLevel} • {stud.school}
-                    </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+                    <View
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 19,
+                        backgroundColor: '#EFF6FF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: '#DBEAFE',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#2563EB' }}>
+                        {stud.fullName.charAt(0)}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>{stud.fullName}</Text>
+                      <Text style={{ fontSize: 11, color: '#64748B' }}>
+                        Class {stud.classLevel} • {stud.school}
+                      </Text>
+                    </View>
                   </View>
                   <TouchableOpacity
+                    activeOpacity={0.8}
                     onPress={async () => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                       await store.addStudentToBatch(stud.id, batch.id);
                       onSaved(stud.fullName);
                     }}
                     style={{
                       backgroundColor: '#2563EB',
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 8,
+                      paddingHorizontal: 14,
+                      paddingVertical: 8,
+                      borderRadius: 10,
+                      elevation: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Enroll</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Enroll</Text>
                   </TouchableOpacity>
                 </View>
               ))
@@ -3195,76 +4070,134 @@ function ReviewSubmissionsModal({
   onClose: () => void;
   onGraded: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const store = useAdminStore();
   const [gradingMarks, setGradingMarks] = useState<Record<string, string>>({});
   const [gradingRemarks, setGradingRemarks] = useState<Record<string, string>>({});
 
   if (!assignment) return null;
 
+  const sheetBottomPadding = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' }}>
         <View
           style={{
             backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: 18,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: sheetBottomPadding,
             maxHeight: '85%',
-            gap: 12,
+            gap: 16,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 20,
           }}
         >
+          {/* Drag Handle */}
+          <View style={{ alignItems: 'center', marginBottom: 2 }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+          </View>
+
+          {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>Submissions Review</Text>
-              <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
-                {assignment.title} (Max {assignment.totalMarks} Marks)
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Award size={20} color="#2563EB" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                  Submissions Review
+                </Text>
+                <Text style={{ fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                  {assignment.title} (Max {assignment.totalMarks} Marks)
+                </Text>
+              </View>
             </View>
-            <TouchableOpacity onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onClose();
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={18} color="#475569" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={{ gap: 10 }}>
+          <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={{ gap: 12 }}>
             {assignment.submissions.length === 0 ? (
-              <Text style={{ fontSize: 12.5, color: '#64748B', textAlign: 'center', paddingVertical: 24 }}>
-                No student submissions uploaded yet for this assignment.
-              </Text>
+              <View style={{ paddingVertical: 32, alignItems: 'center', gap: 6 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#475569', textAlign: 'center' }}>
+                  No student submissions uploaded yet
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#94A3B8', textAlign: 'center' }}>
+                  When students submit solutions on their mobile app, they will appear here for grading.
+                </Text>
+              </View>
             ) : (
               assignment.submissions.map((sub) => {
-                const currentScore = gradingMarks[sub.id] ?? (sub.marksObtained !== undefined ? sub.marksObtained.toString() : '');
+                const currentScore =
+                  gradingMarks[sub.id] ?? (sub.marksObtained !== undefined ? sub.marksObtained.toString() : '');
                 const currentRemark = gradingRemarks[sub.id] ?? (sub.remarks || '');
 
                 return (
                   <View
                     key={sub.id}
                     style={{
-                      backgroundColor: '#F8FAFC',
-                      borderRadius: 12,
-                      padding: 12,
-                      borderWidth: 1,
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: 14,
+                      padding: 14,
+                      borderWidth: 1.5,
                       borderColor: '#E2E8F0',
-                      gap: 8,
+                      gap: 10,
+                      elevation: 1,
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.04,
+                      shadowRadius: 2,
                     }}
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>{sub.studentName}</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{sub.studentName}</Text>
                       <Badge
                         label={sub.status.toUpperCase()}
                         variant={sub.status === 'evaluated' ? 'success' : 'warning'}
                         size="sm"
                       />
                     </View>
-                    <Text style={{ fontSize: 10.5, color: '#64748B' }}>
+                    <Text style={{ fontSize: 11, color: '#64748B' }}>
                       Submitted at: {new Date(sub.submittedAt).toLocaleString('en-IN')}
                     </Text>
 
                     {/* Marks & Remarks Input */}
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                      <View style={{ width: 100 }}>
-                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#475569' }}>
-                          Marks (/{assignment.totalMarks})
+                    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 2 }}>
+                      <View style={{ width: 110 }}>
+                        <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#475569', marginBottom: 4 }}>
+                          Score (/{assignment.totalMarks})
                         </Text>
                         <TextInput
                           value={currentScore}
@@ -3272,48 +4205,64 @@ function ReviewSubmissionsModal({
                           keyboardType="numeric"
                           placeholder="Marks"
                           style={{
-                            borderWidth: 1,
-                            borderColor: '#CBD5E1',
-                            borderRadius: 6,
-                            padding: 6,
-                            fontSize: 12.5,
-                            backgroundColor: '#FFFFFF',
+                            borderWidth: 1.5,
+                            borderColor: '#E2E8F0',
+                            borderRadius: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 7,
+                            fontSize: 13,
+                            backgroundColor: '#F8FAFC',
+                            color: '#0F172A',
+                            fontWeight: '700',
                           }}
                         />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#475569' }}>Teacher Feedback</Text>
+                        <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#475569', marginBottom: 4 }}>
+                          Teacher Feedback
+                        </Text>
                         <TextInput
                           value={currentRemark}
                           onChangeText={(val) => setGradingRemarks((prev) => ({ ...prev, [sub.id]: val }))}
                           placeholder="Remarks..."
+                          placeholderTextColor="#94A3B8"
                           style={{
-                            borderWidth: 1,
-                            borderColor: '#CBD5E1',
-                            borderRadius: 6,
-                            padding: 6,
-                            fontSize: 12.5,
-                            backgroundColor: '#FFFFFF',
+                            borderWidth: 1.5,
+                            borderColor: '#E2E8F0',
+                            borderRadius: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 7,
+                            fontSize: 13,
+                            backgroundColor: '#F8FAFC',
+                            color: '#0F172A',
                           }}
                         />
                       </View>
                     </View>
 
                     <TouchableOpacity
+                      activeOpacity={0.8}
                       onPress={async () => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         const marksNum = parseInt(currentScore) || 0;
                         await store.gradeAssignmentSubmission(assignment.id, sub.id, marksNum, currentRemark);
                         onGraded();
                       }}
                       style={{
-                        backgroundColor: '#16A34A',
-                        paddingVertical: 7,
-                        borderRadius: 8,
+                        backgroundColor: '#059669',
+                        paddingVertical: 10,
+                        borderRadius: 10,
                         alignItems: 'center',
+                        justifyContent: 'center',
                         marginTop: 4,
+                        flexDirection: 'row',
+                        gap: 6,
                       }}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Save Grade & Feedback</Text>
+                      <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>
+                        Save Grade & Feedback
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 );

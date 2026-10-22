@@ -224,7 +224,7 @@ export default function ParentFeesTab() {
               Please pay classroom tuition at the Quick2Learn centre desk or through our official portal. Serialized tax receipts are issued instantly for all transactions.
             </Text>
             <Text style={{ fontSize: 11, color: "#2563EB", fontWeight: "700", marginTop: 5 }}>
-              Center: Near Goverdhan Crossing, Mathura • 9412277888
+              Helpdesk: Near Goverdhan Crossing • 9412277888
             </Text>
           </View>
         </View>
