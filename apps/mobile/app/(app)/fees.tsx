@@ -1263,7 +1263,7 @@ function AdminFeesDashboard() {
               )}
             </View>
 
-            {/* Pending Students List — same card design with Pay Cash action */}
+            {/* Pending Students List — same card design with Record Payment action */}
             {filteredPending.length === 0 ? (
               <View
                 style={{
@@ -1333,7 +1333,7 @@ function AdminFeesDashboard() {
                           }}
                         >
                           <CreditCard size={12} color="#FFFFFF" />
-                          <Text style={{ fontSize: 11, fontWeight: "700", color: "#FFFFFF" }}>Pay Cash</Text>
+                          <Text style={{ fontSize: 11, fontWeight: "700", color: "#FFFFFF" }}>Record Payment</Text>
                         </TouchableOpacity>
                       </View>
                     </View>

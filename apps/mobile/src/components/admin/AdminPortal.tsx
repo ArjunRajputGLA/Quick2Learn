@@ -2902,7 +2902,7 @@ function FeesManagerSection({
                   borderRadius: 8,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>Pay Cash</Text>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>Record Payment</Text>
               </TouchableOpacity>
             </View>
           </View>
