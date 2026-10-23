@@ -2845,8 +2845,8 @@ function FeesManagerSection({
                   <Text style={{ fontSize: 11, fontWeight: '800', color: '#4F46E5' }}>{p.receiptNo}</Text>
                   <Badge label={p.paymentMethod.toUpperCase()} variant="neutral" size="sm" />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>{p.studentName}</Text>
-                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }} numberOfLines={1}>{p.studentName}</Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
                   {p.batchTitle} • {p.notes || 'Tuition fee'}
                 </Text>
               </View>
@@ -2883,8 +2883,8 @@ function FeesManagerSection({
               <View style={{ marginBottom: 3 }}>
                 <Badge label="OVERDUE" variant="danger" size="sm" />
               </View>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>{d.studentName}</Text>
-              <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }} numberOfLines={1}>{d.studentName}</Text>
+              <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
                 {d.batchTitle} • Due: {d.dueDate}
               </Text>
             </View>

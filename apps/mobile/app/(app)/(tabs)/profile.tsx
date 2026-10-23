@@ -61,6 +61,7 @@ import { Avatar } from "../../../src/components/ui/Avatar";
 import { Badge } from "../../../src/components/ui/Badge";
 import { useConfirmDialog } from "../../../src/components/ui/ConfirmModal";
 import { KeyboardAwareView } from "../../../src/components/ui/KeyboardAwareView";
+import { LegalDocumentModal } from "../../../src/components/ui/LegalDocumentModal";
 import { colors, radii } from "@quick2learn/shared";
 import {
   useMe,
@@ -132,6 +133,7 @@ export default function ProfileScreen() {
   const [editChildSchool, setEditChildSchool] = useState("");
   const [editChildError, setEditChildError] = useState("");
   const [isSavingChild, setIsSavingChild] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<"privacy" | "terms" | null>(null);
 
   const insets = useSafeAreaInsets();
   const claimInputRef = useRef<any>(null);
@@ -243,20 +245,14 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleOpenPrivacyPolicy = async () => {
-    try {
-      await WebBrowser.openBrowserAsync("https://quick2learn.in/privacy");
-    } catch {
-      Alert.alert("Notice", "Visit https://quick2learn.in/privacy to view our Privacy Policy.");
-    }
+  const handleOpenPrivacyPolicy = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLegalModalType("privacy");
   };
 
-  const handleOpenTerms = async () => {
-    try {
-      await WebBrowser.openBrowserAsync("https://quick2learn.in/terms");
-    } catch {
-      Alert.alert("Notice", "Visit https://quick2learn.in/terms to view our Terms of Service.");
-    }
+  const handleOpenTerms = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLegalModalType("terms");
   };
 
   const handleOpenGladStudio = async () => {
@@ -1676,7 +1672,7 @@ export default function ProfileScreen() {
           {/* Fees & Receipts */}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => router.push("/(app)/fees" as any)}
+            onPress={() => router.push("/(app)/fee-receipts" as any)}
             style={{
               paddingVertical: 12,
               paddingHorizontal: 14,
@@ -2080,7 +2076,7 @@ export default function ProfileScreen() {
                 {t("privacyPolicyRow")}
               </Text>
             </View>
-            <ExternalLink size={15} color="#94A3B8" />
+            <ChevronRight size={16} color="#94A3B8" />
           </TouchableOpacity>
 
           {/* Terms & Conditions */}
@@ -2101,7 +2097,7 @@ export default function ProfileScreen() {
                 {t("termsRow")}
               </Text>
             </View>
-            <ExternalLink size={15} color="#94A3B8" />
+            <ChevronRight size={16} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
@@ -3095,6 +3091,13 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Privacy Policy & Terms Modal */}
+      <LegalDocumentModal
+        visible={legalModalType !== null}
+        initialType={legalModalType || "privacy"}
+        onClose={() => setLegalModalType(null)}
+      />
     </Screen>
   );
 }

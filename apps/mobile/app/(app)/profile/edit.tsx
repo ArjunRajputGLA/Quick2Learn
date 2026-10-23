@@ -302,39 +302,39 @@ export default function EditProfileScreen() {
           <View
             style={{
               backgroundColor: "#1E293B",
-              borderRadius: 20,
-              padding: 16,
-              marginBottom: 16,
+              borderRadius: 16,
+              padding: 13,
+              marginBottom: 12,
               borderWidth: 1,
               borderColor: "#334155",
               shadowColor: "#0F172A",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 10,
-              elevation: 4,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.12,
+              shadowRadius: 6,
+              elevation: 3,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 9, flex: 1, marginRight: 8 }}>
                 <View
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
                     backgroundColor: "#4F46E5",
                     alignItems: "center",
                     justifyContent: "center",
-                    borderWidth: 2,
+                    borderWidth: 1.5,
                     borderColor: "#818CF8",
                   }}
                 >
-                  <ShieldCheck size={24} color="#FFFFFF" />
+                  <ShieldCheck size={20} color="#FFFFFF" />
                 </View>
-                <View>
-                  <Text style={{ fontSize: 16, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.2 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.2 }} numberOfLines={1}>
                     Faculty & Admin Profile
                   </Text>
-                  <Text style={{ fontSize: 11.5, color: "#94A3B8", fontWeight: "500" }}>
+                  <Text style={{ fontSize: 10.5, color: "#94A3B8", fontWeight: "500" }} numberOfLines={1}>
                     Quick2Learn Institute Director Control
                   </Text>
                 </View>
@@ -343,176 +343,177 @@ export default function EditProfileScreen() {
               <View
                 style={{
                   backgroundColor: "#4F46E5",
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  borderRadius: 12,
+                  paddingHorizontal: 7,
+                  paddingVertical: 2.5,
+                  borderRadius: 8,
+                  flexShrink: 0,
                 }}
               >
-                <Text style={{ fontSize: 10.5, fontWeight: "800", color: "#FFFFFF", letterSpacing: 0.8 }}>
+                <Text style={{ fontSize: 9.5, fontWeight: "800", color: "#FFFFFF", letterSpacing: 0.5 }}>
                   ADMINISTRATOR
                 </Text>
               </View>
             </View>
 
-            <Text style={{ fontSize: 12.5, color: "#CBD5E1", lineHeight: 18 }}>
+            <Text style={{ fontSize: 11, color: "#CBD5E1", lineHeight: 15 }}>
               Configure your faculty credentials, teaching specialization, student consultation helpline, and classroom details visible to enrolled students & parents.
             </Text>
           </View>
 
           {/* 1. Academic & Faculty Information */}
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-h3 font-semibold text-ink">Academic & Faculty Credentials</Text>
+          <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2.5">
+            <View className="flex-row items-center justify-between pb-0.5">
+              <Text className="text-xs font-bold text-ink">Academic & Faculty Credentials</Text>
               <Badge label="VERIFIED" variant="primary" size="sm" />
             </View>
 
             {/* Faculty Full Name */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Faculty Full Name *
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <User size={18} color="#4F46E5" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <User size={15} color="#4F46E5" />
                 <TextInput
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="e.g. Dinesh Sir (Administrator)"
-                  className="flex-1 text-body text-ink ml-2.5 font-semibold"
+                  className="flex-1 text-xs text-ink ml-2 font-semibold"
                 />
               </View>
             </View>
 
             {/* Designation / Role */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Designation & Role *
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <Briefcase size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <Briefcase size={15} color="#6B7280" />
                 <TextInput
                   value={adminDesignation}
                   onChangeText={setAdminDesignation}
                   placeholder="e.g. Institute Director & Master Faculty"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
 
             {/* Teaching Subjects */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Teaching Subjects & Grades *
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <BookOpen size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <BookOpen size={15} color="#6B7280" />
                 <TextInput
                   value={adminSubjects}
                   onChangeText={setAdminSubjects}
                   placeholder="e.g. Senior Mathematics (Classes IX–XII & JEE Foundation)"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
 
             {/* Qualifications & Experience */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Highest Qualification & Experience
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <GraduationCap size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <GraduationCap size={15} color="#6B7280" />
                 <TextInput
                   value={adminQualifications}
                   onChangeText={setAdminQualifications}
                   placeholder="e.g. M.Sc. Mathematics, B.Ed. • 25+ Yrs Experience"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
 
             {/* Institute Name */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Institute / Coaching Name
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <School size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <School size={15} color="#6B7280" />
                 <TextInput
                   value={adminInstitute}
                   onChangeText={setAdminInstitute}
                   placeholder="Quick2Learn Institute"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
 
             {/* City / Center */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Campus / Center Location
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <MapPin size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <MapPin size={15} color="#6B7280" />
                 <TextInput
                   value={adminCenter}
                   onChangeText={setAdminCenter}
                   placeholder="e.g. Head Office / Center"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
           </View>
 
           {/* 2. Consultation & Parent Helpline */}
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-4">
-            <Text className="text-h3 font-semibold text-ink">Student & Parent Consultation</Text>
+          <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2.5">
+            <Text className="text-xs font-bold text-ink">Student & Parent Consultation</Text>
 
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Official Helpline / WhatsApp Number
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <Phone size={18} color="#16A34A" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <Phone size={15} color="#16A34A" />
                 <TextInput
                   value={adminHelpline}
                   onChangeText={setAdminHelpline}
                   placeholder="+91 94122 77888"
-                  className="flex-1 text-body text-ink ml-2.5 font-medium"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
 
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 Consultation & Doubt Clearing Hours
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <Clock size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <Clock size={15} color="#6B7280" />
                 <TextInput
                   value={adminConsultationHours}
                   onChangeText={setAdminConsultationHours}
                   placeholder="e.g. 4:30 PM – 8:00 PM (Monday – Saturday)"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2"
                 />
               </View>
             </View>
           </View>
 
           {/* 3. Faculty Bio / Welcome Message */}
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-            <Text className="text-h3 font-semibold text-ink">Faculty Philosophy & Welcome Note</Text>
-            <Text className="text-caption text-ink-muted">
+          <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2">
+            <Text className="text-xs font-bold text-ink">Faculty Philosophy & Welcome Note</Text>
+            <Text className="text-[10.5px] text-ink-muted">
               Displayed in student course overviews and batch announcements.
             </Text>
-            <View className="bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
+            <View className="bg-surface-subtle border border-border rounded-lg p-2.5">
               <TextInput
                 value={adminBio}
                 onChangeText={setAdminBio}
                 multiline
                 numberOfLines={3}
                 placeholder="Write a brief introduction for students and parents..."
-                className="text-body text-ink leading-relaxed"
-                style={{ minHeight: 70, textAlignVertical: "top" }}
+                className="text-xs text-ink leading-relaxed"
+                style={{ minHeight: 56, textAlignVertical: "top" }}
               />
             </View>
           </View>
@@ -520,31 +521,31 @@ export default function EditProfileScreen() {
       ) : (
         <>
           {/* Basic Information for Students & Parents */}
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-4">
-            <Text className="text-h3 font-semibold text-ink">Personal Information</Text>
+          <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2.5">
+            <Text className="text-xs font-bold text-ink">Personal Information</Text>
 
             {/* Full Name */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("fullNameLabel")} *
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <User size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <User size={15} color="#6B7280" />
                 <TextInput
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="Student Full Name"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
 
             {/* Class Level Picker */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("classLabel")} *
               </Text>
-              <View className="flex-row space-x-2">
+              <View className="flex-row space-x-1.5">
                 {[9, 10, 11, 12].map((lvl) => (
                   <TouchableOpacity
                     key={lvl}
@@ -552,8 +553,8 @@ export default function EditProfileScreen() {
                     onPress={() => setClassLevel(lvl)}
                     style={{
                       flex: 1,
-                      paddingVertical: 10,
-                      borderRadius: 12,
+                      paddingVertical: 7,
+                      borderRadius: 10,
                       borderWidth: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -563,7 +564,7 @@ export default function EditProfileScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: 12.5,
                         fontWeight: '700',
                         color: classLevel === lvl ? '#FFFFFF' : '#1E293B',
                       }}
@@ -577,10 +578,10 @@ export default function EditProfileScreen() {
 
             {/* Board Picker */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("boardLabel")} *
               </Text>
-              <View className="flex-row space-x-2">
+              <View className="flex-row space-x-1.5">
                 {(["cbse", "icse", "isc"] as const).map((b) => (
                   <TouchableOpacity
                     key={b}
@@ -588,8 +589,8 @@ export default function EditProfileScreen() {
                     onPress={() => setBoard(b)}
                     style={{
                       flex: 1,
-                      paddingVertical: 10,
-                      borderRadius: 12,
+                      paddingVertical: 7,
+                      borderRadius: 10,
                       borderWidth: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -599,7 +600,7 @@ export default function EditProfileScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: 12.5,
                         fontWeight: '700',
                         textTransform: 'uppercase',
                         color: board === b ? '#FFFFFF' : '#1E293B',
@@ -614,69 +615,69 @@ export default function EditProfileScreen() {
 
             {/* School Name */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("schoolLabel")}
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <School size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <School size={15} color="#6B7280" />
                 <TextInput
                   value={school}
                   onChangeText={setSchool}
                   placeholder="School / College Name"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
 
             {/* City */}
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("cityLabel")}
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <MapPin size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <MapPin size={15} color="#6B7280" />
                 <TextInput
                   value={city}
                   onChangeText={setCity}
                   placeholder="e.g. City Name"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
           </View>
 
           {/* Parent / Guardian Contact */}
-          <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-4">
-            <Text className="text-h3 font-semibold text-ink">Parent Information</Text>
+          <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2.5">
+            <Text className="text-xs font-bold text-ink">Parent Information</Text>
 
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("parentNameLabel")}
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <Shield size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <Shield size={15} color="#6B7280" />
                 <TextInput
                   value={parentName}
                   onChangeText={setParentName}
                   placeholder="Mother's or Father's Name"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
 
             <View>
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5">
+              <Text className="text-[11px] font-semibold text-ink-muted mb-1">
                 {t("parentPhoneLabel")}
               </Text>
-              <View className="flex-row items-center bg-surface-subtle border border-border rounded-xl px-3.5 py-2.5">
-                <Phone size={18} color="#6B7280" />
+              <View className="flex-row items-center bg-surface-subtle border border-border rounded-lg px-2.5 py-1.5 min-h-[40px]">
+                <Phone size={15} color="#6B7280" />
                 <TextInput
                   value={parentPhone}
                   onChangeText={setParentPhone}
                   keyboardType="phone-pad"
                   maxLength={10}
                   placeholder="10-digit WhatsApp number"
-                  className="flex-1 text-body text-ink ml-2.5"
+                  className="flex-1 text-xs text-ink ml-2 font-medium"
                 />
               </View>
             </View>
@@ -685,17 +686,17 @@ export default function EditProfileScreen() {
       )}
 
       {/* Registered Phone Section & Change Phone */}
-      <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-        <Text className="text-h3 font-semibold text-ink">{t("phoneSectionTitle")}</Text>
+      <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-2xs space-y-2.5">
+        <Text className="text-xs font-bold text-ink">{t("phoneSectionTitle")}</Text>
 
-        <View className="flex-row items-center justify-between bg-surface-subtle p-3.5 rounded-xl border border-border">
+        <View className="flex-row items-center justify-between bg-surface-subtle p-2.5 rounded-lg border border-border">
           <View className="flex-row items-center flex-1 mr-2">
-            <Phone size={18} color={isStaff ? "#4F46E5" : "#2563EB"} />
-            <View className="ml-2.5">
-              <Text className="text-body font-bold text-ink">
+            <Phone size={15} color={isStaff ? "#4F46E5" : "#2563EB"} />
+            <View className="ml-2">
+              <Text className="text-xs font-bold text-ink">
                 {user?.phoneNumber || profile?.phone || "No phone linked"}
               </Text>
-              <Text className="text-caption text-ink-muted">
+              <Text className="text-[10px] text-ink-muted">
                 Primary login and verification mobile number
               </Text>
             </View>
@@ -704,7 +705,7 @@ export default function EditProfileScreen() {
 
         <Button
           variant="outline"
-          size="md"
+          size="sm"
           onPress={() => {
             setPhoneModalOpen(true);
             setPhoneStep("phone");
@@ -717,17 +718,17 @@ export default function EditProfileScreen() {
       </View>
 
       {/* Linked Accounts */}
-      <View className="bg-surface rounded-2xl p-4 border border-border mb-6 shadow-sm space-y-3">
-        <Text className="text-h3 font-semibold text-ink">{t("linkedAccountsTitle")}</Text>
+      <View className="bg-surface rounded-xl p-3.5 border border-border mb-4 shadow-2xs space-y-2">
+        <Text className="text-xs font-bold text-ink">{t("linkedAccountsTitle")}</Text>
 
-        <View className="flex-row items-center justify-between py-2 border-b border-border/60">
+        <View className="flex-row items-center justify-between py-1.5 border-b border-border/60">
           <View className="flex-row items-center">
-            <Mail size={18} color="#6B7280" />
-            <View className="ml-2.5">
-              <Text className="text-body font-semibold text-ink">
+            <Mail size={15} color="#6B7280" />
+            <View className="ml-2">
+              <Text className="text-xs font-semibold text-ink">
                 Email Account
               </Text>
-              <Text className="text-caption text-ink-muted">
+              <Text className="text-[10px] text-ink-muted">
                 {user?.email || "Not set"}
               </Text>
             </View>
@@ -741,7 +742,7 @@ export default function EditProfileScreen() {
       {/* Save Button */}
       <Button
         variant="primary"
-        size="lg"
+        size="md"
         onPress={handleSaveProfile}
         loading={updateMeMutation.isPending}
       >

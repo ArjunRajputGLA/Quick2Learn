@@ -57,7 +57,7 @@ export default function PaymentResultScreen() {
           <Button
             variant="primary"
             size="lg"
-            onPress={() => router.replace("/(app)/fees" as any)}
+            onPress={() => router.replace("/(app)/fee-receipts" as any)}
             icon={<Receipt size={18} color="#FFFFFF" />}
           >
             View Fees & Receipts

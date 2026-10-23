@@ -25,11 +25,13 @@ export default function AppLayout() {
         <Stack.Screen name="pdf-viewer" options={{ headerShown: false }} />
         <Stack.Screen name="downloads" options={{ headerShown: false }} />
         <Stack.Screen name="fees" options={{ headerShown: false }} />
+        <Stack.Screen name="fee-receipts" options={{ headerShown: false }} />
         <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen name="delete-account" options={{ headerShown: false }} />
         <Stack.Screen name="help" options={{ headerShown: false }} />
         <Stack.Screen name="results" options={{ headerShown: false }} />
+        <Stack.Screen name="free-material" options={{ headerShown: false }} />
         <Stack.Screen name="payments/result" options={{ headerShown: false }} />
         <Stack.Screen name="admin/index" options={{ headerShown: false }} />
       </Stack>

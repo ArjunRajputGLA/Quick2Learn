@@ -1,14 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  Modal,
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Switch,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as DocumentPicker from 'expo-document-picker';
 import {
   Download,
   Trash2,
@@ -17,25 +24,54 @@ import {
   HardDrive,
   FolderOpen,
   ChevronRight,
-  ExternalLink,
+  Plus,
+  X,
+  CheckCircle2,
+  BookOpen,
+  Library,
 } from 'lucide-react-native';
 import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
-import { Badge } from '../../src/components/ui/Badge';
+import { useMe } from '../../src/api/hooks';
+import { useAdminStore, type AdminResourceItem, type AdminStore } from '../../src/lib/adminDataStore';
 import {
   getAllDownloads,
   deleteDownloadedPdf,
   deleteAllBatchDownloads,
   deleteAllDownloads,
+  downloadAndSavePdf,
   formatBytes,
   type DownloadedItem,
 } from '../../src/lib/offline-downloads';
 
 export default function DownloadsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { data: me } = useMe();
+  const isAdmin = me?.role === 'admin' || me?.role === 'teacher';
+
+  const [activeTab, setActiveTab] = useState<'downloaded' | 'library'>('downloaded');
   const [downloads, setDownloads] = useState<DownloadedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  // Admin upload modal state
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadCategory, setUploadCategory] = useState<'notes' | 'formula_sheet' | 'pyq' | 'solution'>('notes');
+  const [uploadClass, setUploadClass] = useState<9 | 10 | 11 | 12>(12);
+  const [uploadSubject, setUploadSubject] = useState('Mathematics');
+  const [uploadChapter, setUploadChapter] = useState('');
+  const [uploadFileUrl, setUploadFileUrl] = useState('');
+  const [pickedFileName, setPickedFileName] = useState<string | null>(null);
+  const [autoSaveLocally, setAutoSaveLocally] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Admin resources store
+  const storeResources = useAdminStore((s: AdminStore) => s.resources);
+  const uploadResource = useAdminStore((s: AdminStore) => s.uploadResource);
+  const deleteResource = useAdminStore((s: AdminStore) => s.deleteResource);
 
   const loadDownloads = useCallback(async () => {
     try {
@@ -55,7 +91,7 @@ export default function DownloadsScreen() {
 
   const totalSizeBytes = downloads.reduce((acc, it) => acc + (it.sizeBytes || 0), 0);
 
-  // Group by batch
+  // Group downloaded files by batch
   const groupedByBatch: Record<string, { batchTitle: string; items: DownloadedItem[]; batchSizeBytes: number }> = {};
   for (const item of downloads) {
     const bId = item.batchId || 'unassigned';
@@ -70,10 +106,22 @@ export default function DownloadsScreen() {
     groupedByBatch[bId].batchSizeBytes += item.sizeBytes || 0;
   }
 
+  const handleOpenLocalPdf = (item: DownloadedItem) => {
+    router.push({
+      pathname: '/(app)/pdf-viewer' as any,
+      params: {
+        contentId: item.id,
+        localUri: item.localPath,
+        title: item.title,
+        isBatch: '1',
+      },
+    });
+  };
+
   const handleDeleteOne = (item: DownloadedItem) => {
     Alert.alert(
-      'Delete Download',
-      `Are you sure you want to delete "${item.title}" from offline storage?`,
+      'Delete Offline Copy',
+      `Are you sure you want to delete "${item.title}" from your device? You can re-download it anytime with an active connection.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -81,6 +129,7 @@ export default function DownloadsScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteDownloadedPdf(item.id);
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             loadDownloads();
           },
         },
@@ -99,6 +148,7 @@ export default function DownloadsScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteAllBatchDownloads(batchId);
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             loadDownloads();
           },
         },
@@ -113,10 +163,11 @@ export default function DownloadsScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Clear All Storage',
+          text: 'Clear All',
           style: 'destructive',
           onPress: async () => {
             await deleteAllDownloads();
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             loadDownloads();
           },
         },
@@ -124,17 +175,144 @@ export default function DownloadsScreen() {
     );
   };
 
-  const handleOpenLocalPdf = (item: DownloadedItem) => {
-    router.push({
-      pathname: '/(app)/pdf-viewer' as any,
-      params: {
-        contentId: item.id,
-        localUri: item.localPath,
+  const handleDownloadFromLibrary = async (item: AdminResourceItem) => {
+    try {
+      setDownloadingId(item.id);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      await downloadAndSavePdf({
+        id: item.id,
+        batchId: item.batchId || 'admin-library',
+        batchTitle: item.batchTitle || 'Institute Library',
+        subjectName: item.subject,
+        chapterTitle: item.chapter,
+        section: item.type.toUpperCase(),
         title: item.title,
-        isBatch: '1',
-        batchId: item.batchId,
-      },
-    });
+        downloadUrl: item.fileUrl,
+        pageCount: item.filePages,
+      });
+
+      await loadDownloads();
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      Alert.alert(
+        'Download Complete',
+        `"${item.title}" is saved to your device. You can open and read it anytime with zero data!`,
+        [
+          { text: 'Done', style: 'cancel' },
+          {
+            text: 'View Saved Files',
+            onPress: () => setActiveTab('downloaded'),
+          },
+        ]
+      );
+    } catch {
+      Alert.alert('Notice', 'Failed to download file. Please check connection and try again.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!res.canceled && res.assets && res.assets[0]) {
+        const asset = res.assets[0];
+        setPickedFileName(asset.name);
+        setUploadFileUrl(asset.uri);
+        if (!uploadTitle.trim()) {
+          setUploadTitle(asset.name.replace(/\.[^/.]+$/, ''));
+        }
+      }
+    } catch {
+      Alert.alert('Notice', 'Could not open file picker. You can enter a PDF link directly.');
+    }
+  };
+
+  const handleCreateOfflineMaterial = async () => {
+    if (!uploadTitle.trim()) {
+      Alert.alert('Required', 'Please enter a title for the material.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const effectiveUrl =
+        uploadFileUrl.trim() ||
+        'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+
+      const createdItem = await uploadResource({
+        title: uploadTitle.trim(),
+        type: uploadCategory,
+        fileUrl: effectiveUrl,
+        fileSize: '1.4 MB',
+        filePages: 12,
+        subject: uploadSubject,
+        classLevel: uploadClass,
+        chapter: uploadChapter.trim() || 'General Study Material',
+        visibility: 'public',
+        subtext: `Uploaded by Quick2Learn for Class ${uploadClass} offline access`,
+      });
+
+      if (autoSaveLocally) {
+        try {
+          await downloadAndSavePdf({
+            id: createdItem.id,
+            batchId: 'admin-library',
+            batchTitle: 'Institute Library',
+            subjectName: uploadSubject,
+            chapterTitle: uploadChapter.trim() || 'General Study Material',
+            section: uploadCategory.toUpperCase(),
+            title: uploadTitle.trim(),
+            downloadUrl: effectiveUrl,
+            pageCount: 12,
+          });
+          await loadDownloads();
+        } catch (downloadErr) {
+          console.warn('[DownloadsScreen] Auto-save offline failed:', downloadErr);
+        }
+      }
+
+      Alert.alert(
+        'Published Successfully',
+        `"${uploadTitle.trim()}" is now available in Institute Library for all students!`,
+        [{ text: 'OK' }]
+      );
+
+      setShowUploadModal(false);
+      setUploadTitle('');
+      setUploadChapter('');
+      setUploadFileUrl('');
+      setPickedFileName(null);
+    } catch {
+      Alert.alert('Error', 'Could not upload study material. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteLibraryItem = (item: AdminResourceItem) => {
+    Alert.alert(
+      'Delete from Institute Library',
+      `Are you sure you want to delete "${item.title}" from the shared library?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteResource(item.id);
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -142,8 +320,111 @@ export default function DownloadsScreen() {
       scrollable={false}
       header={<AppHeader title="Offline Downloads" showBack />}
     >
+      {/* Top Segment Selector */}
+      <View
+        style={{
+          flexDirection: 'row',
+          padding: 12,
+          backgroundColor: '#FFFFFF',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E2E8F0',
+        }}
+      >
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => setActiveTab('downloaded')}
+          style={{
+            flex: 1,
+            paddingVertical: 9,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            backgroundColor: activeTab === 'downloaded' ? '#2563EB' : '#F1F5F9',
+            borderWidth: 1,
+            borderColor: activeTab === 'downloaded' ? '#2563EB' : '#E2E8F0',
+          }}
+        >
+          <HardDrive size={15} color={activeTab === 'downloaded' ? '#FFFFFF' : '#64748B'} />
+          <Text
+            style={{
+              fontSize: 12.5,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === 'downloaded' ? '#FFFFFF' : '#475569',
+            }}
+          >
+            Saved on Device ({downloads.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => setActiveTab('library')}
+          style={{
+            flex: 1,
+            paddingVertical: 9,
+            borderRadius: 12,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            marginLeft: 8,
+            backgroundColor: activeTab === 'library' ? '#2563EB' : '#F1F5F9',
+            borderWidth: 1,
+            borderColor: activeTab === 'library' ? '#2563EB' : '#E2E8F0',
+          }}
+        >
+          <Library size={15} color={activeTab === 'library' ? '#FFFFFF' : '#64748B'} />
+          <Text
+            style={{
+              fontSize: 12.5,
+              fontWeight: '700',
+              marginLeft: 6,
+              color: activeTab === 'library' ? '#FFFFFF' : '#475569',
+            }}
+          >
+            Institute Library ({storeResources.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Admin Upload Action Trigger */}
+      {isAdmin && (
+        <View
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: '#FFFFFF',
+            borderBottomWidth: 1,
+            borderBottomColor: '#F1F5F9',
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setShowUploadModal(true)}
+            style={{
+              backgroundColor: '#2563EB',
+              paddingVertical: 9,
+              paddingHorizontal: 12,
+              borderRadius: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Plus size={15} color="#FFFFFF" strokeWidth={2.5} />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginLeft: 6 }}>
+              Upload Material for Offline Downloads (Admin)
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
+        contentContainerStyle={{
+          padding: 12,
+          paddingBottom: Math.max(insets.bottom, 24) + 60,
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -157,138 +438,806 @@ export default function DownloadsScreen() {
           />
         }
       >
-        {/* Requirement 7: Terms of service notice regarding YouTube videos */}
-        <View className="bg-amber-50 rounded-2xl p-4 border border-amber-200 mb-4 flex-row items-start space-x-3">
-          <AlertCircle size={20} color="#D97706" style={{ marginTop: 2 }} />
-          <View className="flex-1">
-            <Text className="text-caption font-bold text-amber-900 leading-snug">
-              Note on Video Lectures
-            </Text>
-            <Text className="text-[12px] text-amber-800 mt-0.5 leading-relaxed">
-              Videos cannot be downloaded due to YouTube's Terms of Service. All batch notes, solutions, and formula sheets are saved to device storage and open fully offline without internet.
-            </Text>
-          </View>
+        {/* Compact, clean YouTube disclaimer */}
+        <View
+          style={{
+            backgroundColor: '#FFFBEB',
+            borderRadius: 12,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderWidth: 1,
+            borderColor: '#FDE68A',
+            marginBottom: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          <AlertCircle size={15} color="#D97706" />
+          <Text
+            style={{
+              fontSize: 11,
+              color: '#92400E',
+              fontWeight: '500',
+              lineHeight: 16,
+              marginLeft: 8,
+              flex: 1,
+            }}
+          >
+            Notes, formulas & solutions open fully offline. Video lectures stream online per YouTube TOS.
+          </Text>
         </View>
 
-        {/* Storage Summary Card */}
-        <View className="bg-surface rounded-3xl p-5 border border-border mb-5 shadow-xs flex-row items-center justify-between">
-          <View className="flex-row items-center space-x-3 flex-1">
-            <View className="w-12 h-12 rounded-2xl bg-primary-soft items-center justify-center">
-              <HardDrive size={24} color="#2563EB" />
-            </View>
-            <View>
-              <Text className="text-caption text-ink-muted">Device Storage Used</Text>
-              <Text className="text-h2 font-black text-ink">
-                {formatBytes(totalSizeBytes)}
-              </Text>
-              <Text className="text-[11px] text-ink-muted">
-                {downloads.length} {downloads.length === 1 ? 'document' : 'documents'} offline
-              </Text>
-            </View>
-          </View>
-
-          {downloads.length > 0 && (
-            <TouchableOpacity
-              onPress={handleDeleteAll}
-              className="px-3.5 py-2 rounded-xl bg-red-50 border border-red-200 flex-row items-center space-x-1.5 active:bg-red-100"
+        {/* TAB 1: SAVED ON DEVICE */}
+        {activeTab === 'downloaded' ? (
+          <>
+            {/* Storage Summary Strip */}
+            <View
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 14,
+                padding: 12,
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
+                marginBottom: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                shadowColor: '#000',
+                shadowOpacity: 0.03,
+                shadowOffset: { width: 0, height: 1 },
+                shadowRadius: 3,
+                elevation: 1,
+              }}
             >
-              <Trash2 size={14} color="#DC2626" />
-              <Text className="text-caption font-bold text-red-600">
-                Clear All
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Loading state */}
-        {isLoading ? (
-          <View className="py-12 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
-          </View>
-        ) : downloads.length === 0 ? (
-          /* Empty State */
-          <View className="p-8 rounded-3xl bg-surface border border-border items-center justify-center text-center space-y-3 mt-4">
-            <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center">
-              <FolderOpen size={32} color="#94A3B8" />
-            </View>
-            <Text className="text-h3 font-black text-ink text-center">
-              No Offline Downloads Yet
-            </Text>
-            <Text className="text-caption text-ink-muted text-center max-w-[280px] leading-relaxed">
-              Tap the download button next to any batch notes, solutions, or formula sheets to read them anywhere without internet.
-            </Text>
-          </View>
-        ) : (
-          /* Grouped by Batch */
-          <View className="space-y-6">
-            {Object.entries(groupedByBatch).map(([bId, group]) => (
-              <View key={bId} className="space-y-2.5">
-                {/* Batch Group Header */}
-                <View className="flex-row items-center justify-between px-1">
-                  <View className="flex-1 mr-2">
-                    <Text className="text-h3 font-black text-ink" numberOfLines={1}>
-                      {group.batchTitle}
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: '#EFF6FF',
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 10,
+                  }}
+                >
+                  <HardDrive size={16} color="#2563EB" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A' }}>
+                      Storage: {formatBytes(totalSizeBytes)}
                     </Text>
-                    <Text className="text-[11px] text-ink-muted">
-                      {group.items.length} {group.items.length === 1 ? 'file' : 'files'} · {formatBytes(group.batchSizeBytes)}
+                    <Text style={{ fontSize: 11, color: '#64748B' }}>
+                      • {downloads.length} {downloads.length === 1 ? 'file' : 'files'} offline
                     </Text>
                   </View>
-
-                  <TouchableOpacity
-                    onPress={() => handleDeleteBatch(bId, group.batchTitle)}
-                    className="p-1.5 rounded-lg active:bg-surface-subtle"
-                  >
-                    <Text className="text-[11px] font-bold text-red-500">
-                      Delete Batch
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Batch Items List */}
-                <View className="bg-surface rounded-2xl border border-border overflow-hidden divide-y divide-border/60 shadow-xs">
-                  {group.items.map((item) => (
-                    <View
-                      key={item.id}
-                      className="min-h-[58px] py-3 px-4 flex-row items-center justify-between bg-surface"
-                    >
-                      <TouchableOpacity
-                        onPress={() => handleOpenLocalPdf(item)}
-                        className="flex-row items-center flex-1 mr-3"
-                      >
-                        <View className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 items-center justify-center mr-3">
-                          <FileText size={20} color="#B91C1C" />
-                        </View>
-
-                        <View className="flex-1 justify-center">
-                          <Text
-                            className="text-body font-semibold text-ink leading-snug"
-                            numberOfLines={2}
-                          >
-                            {item.title}
-                          </Text>
-                          <Text className="text-caption text-ink-muted mt-0.5">
-                            {item.section || item.chapterTitle || 'Study Note'} · {formatBytes(item.sizeBytes)}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-
-                      {/* Delete item button */}
-                      <TouchableOpacity
-                        onPress={() => handleDeleteOne(item)}
-                        accessibilityRole="button"
-                        accessibilityLabel="Delete offline copy"
-                        className="w-10 h-10 items-center justify-center rounded-full active:bg-surface-subtle"
-                      >
-                        <Trash2 size={16} color="#9CA3AF" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
+                  <Text style={{ fontSize: 10.5, color: '#94A3B8', marginTop: 2 }}>
+                    Saved locally on device for zero-data reading
+                  </Text>
                 </View>
               </View>
-            ))}
+
+              {downloads.length > 0 && (
+                <TouchableOpacity
+                  onPress={handleDeleteAll}
+                  activeOpacity={0.7}
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    backgroundColor: '#FEF2F2',
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Trash2 size={12} color="#DC2626" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#DC2626', marginLeft: 4 }}>
+                    Clear All
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Loading state */}
+            {isLoading ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="small" color="#2563EB" />
+                <Text style={{ fontSize: 12, color: '#64748B', marginTop: 8, fontWeight: '500' }}>
+                  Checking offline files...
+                </Text>
+              </View>
+            ) : downloads.length === 0 ? (
+              /* Compact Refined Empty State */
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 14,
+                  padding: 24,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 6,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: '#F1F5F9',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <FolderOpen size={22} color="#64748B" />
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>
+                  No Offline Downloads Yet
+                </Text>
+                <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center', maxWidth: 260, marginTop: 4, lineHeight: 16 }}>
+                  Switch to the "Institute Library" tab to download notes, formula sheets, and chapter solutions for zero-data reading.
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setActiveTab('library')}
+                  style={{
+                    marginTop: 12,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    backgroundColor: '#2563EB',
+                    borderRadius: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                    Browse Downloadable Notes
+                  </Text>
+                  <ChevronRight size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* Grouped by Batch */
+              <View style={{ gap: 12 }}>
+                {Object.entries(groupedByBatch).map(([bId, group]) => (
+                  <View key={bId} style={{ gap: 6 }}>
+                    {/* Batch Group Header */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+                      <View style={{ flex: 1, marginRight: 8 }}>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A' }} numberOfLines={1}>
+                          {group.batchTitle}
+                        </Text>
+                        <Text style={{ fontSize: 10.5, color: '#64748B' }}>
+                          {group.items.length} {group.items.length === 1 ? 'file' : 'files'} · {formatBytes(group.batchSizeBytes)}
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => handleDeleteBatch(bId, group.batchTitle)}
+                        activeOpacity={0.7}
+                        style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+                      >
+                        <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#DC2626' }}>
+                          Delete Batch
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Batch Items List */}
+                    <View
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {group.items.map((item, idx) => (
+                        <View
+                          key={item.id}
+                          style={{
+                            paddingVertical: 10,
+                            paddingHorizontal: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            borderTopWidth: idx > 0 ? 1 : 0,
+                            borderTopColor: '#F1F5F9',
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() => handleOpenLocalPdf(item)}
+                            activeOpacity={0.7}
+                            style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}
+                          >
+                            <View
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 8,
+                                backgroundColor: '#FEF2F2',
+                                borderWidth: 1,
+                                borderColor: '#FEE2E2',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: 10,
+                              }}
+                            >
+                              <FileText size={16} color="#DC2626" />
+                            </View>
+
+                            <View style={{ flex: 1, justifyContent: 'center' }}>
+                              <Text
+                                style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', lineHeight: 16 }}
+                                numberOfLines={1}
+                              >
+                                {item.title}
+                              </Text>
+                              <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }}>
+                                {item.section || item.chapterTitle || 'Study Note'} · {formatBytes(item.sizeBytes)}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+
+                          {/* Delete item button */}
+                          <TouchableOpacity
+                            onPress={() => handleDeleteOne(item)}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel="Delete offline copy"
+                            style={{
+                              width: 30,
+                              height: 30,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 8,
+                            }}
+                          >
+                            <Trash2 size={14} color="#94A3B8" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        ) : (
+          /* TAB 2: INSTITUTE LIBRARY (AVAILABLE TO DOWNLOAD) */
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 2 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A' }}>
+                All Available Institute Notes & Formula Sheets
+              </Text>
+              <Text style={{ fontSize: 11, color: '#64748B' }}>
+                {storeResources.length} items
+              </Text>
+            </View>
+
+            {storeResources.map((item: AdminResourceItem) => {
+              const isSaved = downloads.some((d) => d.id === item.id);
+              const isDownloading = downloadingId === item.id;
+
+              return (
+                <View
+                  key={item.id}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 14,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    shadowColor: '#000',
+                    shadowOpacity: 0.03,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', flex: 1, marginRight: 8 }}>
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          backgroundColor: '#EFF6FF',
+                          borderWidth: 1,
+                          borderColor: '#BFDBFE',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 10,
+                          marginTop: 2,
+                        }}
+                      >
+                        <FileText size={17} color="#2563EB" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: '700',
+                            color: '#0F172A',
+                            lineHeight: 18,
+                          }}
+                        >
+                          {item.title}
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                          <View
+                            style={{
+                              backgroundColor: '#EFF6FF',
+                              borderWidth: 1,
+                              borderColor: '#BFDBFE',
+                              borderRadius: 6,
+                              paddingHorizontal: 6,
+                              paddingVertical: 2,
+                            }}
+                          >
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#1D4ED8', textTransform: 'uppercase' }}>
+                              {item.type}
+                            </Text>
+                          </View>
+                          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>
+                            Class {item.classLevel} • {item.subject}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {isAdmin && (
+                      <TouchableOpacity
+                        onPress={() => handleDeleteLibraryItem(item)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{ padding: 4, borderRadius: 6 }}
+                        accessibilityLabel="Delete item"
+                      >
+                        <Trash2 size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Chapter info if present and distinct */}
+                  {item.chapter && item.chapter !== item.title ? (
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: '#64748B',
+                        lineHeight: 15,
+                        marginTop: 6,
+                        paddingLeft: 46,
+                      }}
+                    >
+                      {item.chapter}
+                    </Text>
+                  ) : item.subtext && !item.subtext.includes(item.fileSize) ? (
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: '#64748B',
+                        lineHeight: 15,
+                        marginTop: 6,
+                        paddingLeft: 46,
+                      }}
+                    >
+                      {item.subtext}
+                    </Text>
+                  ) : null}
+
+                  {/* Footer: Size/Pages + Buttons */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingTop: 8,
+                      marginTop: 8,
+                      borderTopWidth: 1,
+                      borderTopColor: '#F1F5F9',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10.5,
+                        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+                        color: '#94A3B8',
+                      }}
+                    >
+                      {item.fileSize} • {item.filePages} Pages
+                    </Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      {isSaved ? (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#F0FDF4',
+                            borderWidth: 1,
+                            borderColor: '#BBF7D0',
+                            paddingVertical: 4,
+                            paddingHorizontal: 8,
+                            borderRadius: 8,
+                          }}
+                        >
+                          <CheckCircle2 size={12} color="#15803D" />
+                          <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#15803D', marginLeft: 4 }}>
+                            Saved Offline
+                          </Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => handleDownloadFromLibrary(item)}
+                          disabled={isDownloading}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#F0FDF4',
+                            borderWidth: 1,
+                            borderColor: '#BBF7D0',
+                            paddingVertical: 5,
+                            paddingHorizontal: 9,
+                            borderRadius: 8,
+                          }}
+                        >
+                          {isDownloading ? (
+                            <ActivityIndicator size="small" color="#15803D" />
+                          ) : (
+                            <>
+                              <Download size={12} color="#15803D" />
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#15803D', marginLeft: 4 }}>
+                                Save Offline
+                              </Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      )}
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          router.push({
+                            pathname: '/(app)/pdf-viewer' as any,
+                            params: {
+                              contentId: item.id,
+                              localUri: item.fileUrl,
+                              title: item.title,
+                              isBatch: '0',
+                            },
+                          });
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#2563EB',
+                          paddingVertical: 5,
+                          paddingHorizontal: 11,
+                          borderRadius: 8,
+                        }}
+                      >
+                        <BookOpen size={12} color="#FFFFFF" />
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF', marginLeft: 4 }}>
+                          Preview
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         )}
       </ScrollView>
+
+      {/* Admin Upload Modal */}
+      <Modal
+        visible={showUploadModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowUploadModal(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 16,
+              maxHeight: '85%',
+              borderTopWidth: 1,
+              borderTopColor: '#E2E8F0',
+            }}
+          >
+            {/* Modal Header */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F1F5F9',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Plus size={18} color="#2563EB" strokeWidth={2.5} />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginLeft: 6 }}>
+                  Upload Offline Study Material
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowUploadModal(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ padding: 4 }}
+              >
+                <X size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Title */}
+              <View style={{ marginVertical: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  Material Title *
+                </Text>
+                <TextInput
+                  value={uploadTitle}
+                  onChangeText={setUploadTitle}
+                  placeholder="e.g. Class 12 Calculus Master Formula Sheet"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    fontSize: 12,
+                    color: '#0F172A',
+                  }}
+                />
+              </View>
+
+              {/* Type */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 6 }}>
+                  Category *
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {[
+                    { id: 'notes', label: 'Chapter Notes' },
+                    { id: 'formula_sheet', label: 'Formula Sheet' },
+                    { id: 'pyq', label: 'Sample Paper / PYQ' },
+                    { id: 'solution', label: 'Solutions' },
+                  ].map((ct) => {
+                    const isSelected = uploadCategory === ct.id;
+                    return (
+                      <TouchableOpacity
+                        key={ct.id}
+                        onPress={() => setUploadCategory(ct.id as any)}
+                        style={{
+                          paddingVertical: 6,
+                          paddingHorizontal: 10,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#2563EB' : '#F1F5F9',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#2563EB' : '#E2E8F0',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: isSelected ? '#FFFFFF' : '#475569',
+                          }}
+                        >
+                          {ct.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Class */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 6 }}>
+                  Class Level *
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {([12, 11, 10, 9] as const).map((cl) => {
+                    const isSelected = uploadClass === cl;
+                    return (
+                      <TouchableOpacity
+                        key={cl}
+                        onPress={() => setUploadClass(cl)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 6,
+                          borderRadius: 8,
+                          alignItems: 'center',
+                          backgroundColor: isSelected ? '#2563EB' : '#F1F5F9',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#2563EB' : '#E2E8F0',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11.5,
+                            fontWeight: '700',
+                            color: isSelected ? '#FFFFFF' : '#475569',
+                          }}
+                        >
+                          Class {cl}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Subject */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  Subject *
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {['Mathematics', 'Science', 'Chemistry', 'Physics', 'Biology'].map((sub) => {
+                    const isSelected = uploadSubject === sub;
+                    return (
+                      <TouchableOpacity
+                        key={sub}
+                        onPress={() => setUploadSubject(sub)}
+                        style={{
+                          paddingVertical: 5,
+                          paddingHorizontal: 9,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#1E293B' : '#F1F5F9',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#1E293B' : '#E2E8F0',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: isSelected ? '#FFFFFF' : '#475569',
+                          }}
+                        >
+                          {sub}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Chapter */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  Chapter / Topic (Optional)
+                </Text>
+                <TextInput
+                  value={uploadChapter}
+                  onChangeText={setUploadChapter}
+                  placeholder="e.g. Calculus, Trigonometry"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    fontSize: 12,
+                    color: '#0F172A',
+                  }}
+                />
+              </View>
+
+              {/* Pick Document */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  PDF Document *
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handlePickDocument}
+                  style={{
+                    backgroundColor: '#F0FDF4',
+                    borderWidth: 1,
+                    borderColor: '#BBF7D0',
+                    borderRadius: 8,
+                    padding: 9,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 6,
+                  }}
+                >
+                  <FileText size={15} color="#15803D" />
+                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#15803D', marginLeft: 6 }}>
+                    {pickedFileName ? `Selected: ${pickedFileName}` : 'Choose PDF from Device'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TextInput
+                  value={uploadFileUrl}
+                  onChangeText={setUploadFileUrl}
+                  placeholder="Or enter PDF URL (https://...)"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    fontSize: 12,
+                    color: '#0F172A',
+                  }}
+                />
+              </View>
+
+              {/* Auto Save Locally Checkbox */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingVertical: 8,
+                  marginBottom: 14,
+                }}
+              >
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#1E293B' }}>
+                    Save to this device's offline storage now
+                  </Text>
+                  <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }}>
+                    Pre-download so it is immediately readable offline
+                  </Text>
+                </View>
+                <Switch
+                  value={autoSaveLocally}
+                  onValueChange={setAutoSaveLocally}
+                  trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
+                  thumbColor={autoSaveLocally ? '#2563EB' : '#F3F4F6'}
+                />
+              </View>
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                onPress={handleCreateOfflineMaterial}
+                disabled={isSubmitting}
+                style={{
+                  backgroundColor: '#2563EB',
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: Math.max(insets.bottom, 16) + 16,
+                }}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' }}>
+                    Publish Material for Offline Downloads
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }

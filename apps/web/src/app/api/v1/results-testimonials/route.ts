@@ -1,5 +1,6 @@
 import { getResults, getTestimonials } from "@/server/data/catalog";
 import { resultsAndTestimonialsResponseSchema } from "@quick2learn/shared";
+import { db, schema } from "@quick2learn/db";
 import { apiResponse, checkApiRateLimits, handleApiError } from "../utils";
 
 export async function GET(req: Request) {
@@ -40,6 +41,54 @@ export async function GET(req: Request) {
     });
 
     return apiResponse.success(validated);
+  } catch (err) {
+    return handleApiError(err);
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const rateLimitError = await checkApiRateLimits(req);
+    if (rateLimitError) return rateLimitError;
+
+    const body = await req.json();
+    const { type, studentName, classLevel, year, quote, videoId, exam, scoreText, isFeatured } = body;
+
+    if (!studentName) {
+      return apiResponse.badRequest("Student name is required");
+    }
+
+    if (type === "result") {
+      const [inserted] = await db
+        .insert(schema.results)
+        .values({
+          studentName: String(studentName).trim(),
+          exam: String(exam || "CBSE Class XII Maths").trim(),
+          year: Number(year) || new Date().getFullYear(),
+          scoreText: String(scoreText || "100/100").trim(),
+          isFeatured: Boolean(isFeatured),
+          sortOrder: 0,
+        })
+        .returning();
+
+      return apiResponse.success({ result: inserted });
+    } else {
+      // Default to testimonial
+      const [inserted] = await db
+        .insert(schema.testimonials)
+        .values({
+          studentName: String(studentName).trim(),
+          classLevel: Number(classLevel) || 12,
+          year: Number(year) || new Date().getFullYear(),
+          quote: String(quote || "Great learning experience at Quick2Learn!").trim(),
+          videoId: videoId ? String(videoId).trim() : null,
+          isPublished: true,
+          sortOrder: 0,
+        })
+        .returning();
+
+      return apiResponse.success({ testimonial: inserted });
+    }
   } catch (err) {
     return handleApiError(err);
   }

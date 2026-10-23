@@ -98,7 +98,7 @@ export default function SettingsScreen() {
       header={<AppHeader title={t("settingsTitle")} showBack />}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+        contentContainerStyle={{ padding: 14, paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -110,18 +110,18 @@ export default function SettingsScreen() {
         }
       >
         {/* 1. NOTIFICATION PREFERENCES */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <Bell size={18} color="#2563EB" />
-            <Text className="text-h3 font-semibold text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <Bell size={16} color="#2563EB" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               {t("notificationsHeader")}
             </Text>
           </View>
 
-          <View className="divide-y divide-border/60">
+          <View className="divide-y divide-border/50">
             {/* Live classes */}
-            <View className="flex-row items-center justify-between py-3">
-              <Text className="text-body font-medium text-ink">
+            <View className="flex-row items-center justify-between py-2">
+              <Text className="text-xs font-medium text-ink">
                 {t("liveClassesNotif")}
               </Text>
               <Switch
@@ -129,12 +129,13 @@ export default function SettingsScreen() {
                 onValueChange={toggleLiveClassesNotif}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={liveClassesNotif ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
 
             {/* Announcements */}
-            <View className="flex-row items-center justify-between py-3">
-              <Text className="text-body font-medium text-ink">
+            <View className="flex-row items-center justify-between py-2">
+              <Text className="text-xs font-medium text-ink">
                 {t("announcementsNotif")}
               </Text>
               <Switch
@@ -142,12 +143,13 @@ export default function SettingsScreen() {
                 onValueChange={toggleAnnouncementsNotif}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={announcementsNotif ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
 
             {/* Tests */}
-            <View className="flex-row items-center justify-between py-3">
-              <Text className="text-body font-medium text-ink">
+            <View className="flex-row items-center justify-between py-2">
+              <Text className="text-xs font-medium text-ink">
                 {t("testsNotif")}
               </Text>
               <Switch
@@ -155,12 +157,13 @@ export default function SettingsScreen() {
                 onValueChange={toggleTestsNotif}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={testsNotif ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
 
             {/* Doubts */}
-            <View className="flex-row items-center justify-between py-3">
-              <Text className="text-body font-medium text-ink">
+            <View className="flex-row items-center justify-between py-2">
+              <Text className="text-xs font-medium text-ink">
                 {t("doubtsNotif")}
               </Text>
               <Switch
@@ -168,12 +171,13 @@ export default function SettingsScreen() {
                 onValueChange={toggleDoubtsNotif}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={doubtsNotif ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
 
             {/* Fees */}
-            <View className="flex-row items-center justify-between py-3">
-              <Text className="text-body font-medium text-ink">
+            <View className="flex-row items-center justify-between py-2">
+              <Text className="text-xs font-medium text-ink">
                 {t("feesNotif")}
               </Text>
               <Switch
@@ -181,27 +185,28 @@ export default function SettingsScreen() {
                 onValueChange={toggleFeesNotif}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={feesNotif ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
           </View>
         </View>
 
         {/* 2. DATA SAVER */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <Wifi size={18} color="#2563EB" />
-            <Text className="text-h3 font-semibold text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <Wifi size={16} color="#2563EB" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               {t("dataSaverHeader")}
             </Text>
           </View>
 
-          <View className="divide-y divide-border/60">
-            <View className="flex-row items-center justify-between py-3">
+          <View className="divide-y divide-border/50">
+            <View className="flex-row items-center justify-between py-2">
               <View className="flex-1 mr-3">
-                <Text className="text-body font-medium text-ink">
+                <Text className="text-xs font-medium text-ink">
                   {t("smallerThumbnails")}
                 </Text>
-                <Text className="text-caption text-ink-muted">
+                <Text className="text-[11px] text-ink-muted leading-tight mt-0.5">
                   {t("smallerThumbnailsDesc")}
                 </Text>
               </View>
@@ -210,15 +215,16 @@ export default function SettingsScreen() {
                 onValueChange={toggleSmallerThumbnails}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={smallerThumbnails ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
 
-            <View className="flex-row items-center justify-between py-3">
+            <View className="flex-row items-center justify-between py-2">
               <View className="flex-1 mr-3">
-                <Text className="text-body font-medium text-ink">
+                <Text className="text-xs font-medium text-ink">
                   {t("noAutoplay")}
                 </Text>
-                <Text className="text-caption text-ink-muted">
+                <Text className="text-[11px] text-ink-muted leading-tight mt-0.5">
                   {t("noAutoplayDesc")}
                 </Text>
               </View>
@@ -227,29 +233,30 @@ export default function SettingsScreen() {
                 onValueChange={toggleNoAutoplay}
                 trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
                 thumbColor={noAutoplay ? "#2563EB" : "#F3F4F6"}
+                style={{ transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] }}
               />
             </View>
           </View>
         </View>
 
         {/* 3. APP LANGUAGE */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <Languages size={18} color="#2563EB" />
-            <Text className="text-h3 font-semibold text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <Languages size={16} color="#2563EB" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               {t("appLanguageHeader")}
             </Text>
           </View>
 
-          <View className="flex-row space-x-3 pt-1">
+          <View className="flex-row space-x-2 pt-0.5">
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => setLanguage("en")}
               style={{
                 flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                borderRadius: 12,
+                paddingVertical: 9,
+                paddingHorizontal: 12,
+                borderRadius: 10,
                 borderWidth: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -260,7 +267,7 @@ export default function SettingsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: '700',
                   color: language === "en" ? "#FFFFFF" : "#1E293B",
                 }}
@@ -274,9 +281,9 @@ export default function SettingsScreen() {
               onPress={() => setLanguage("hi")}
               style={{
                 flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                borderRadius: 12,
+                paddingVertical: 9,
+                paddingHorizontal: 12,
+                borderRadius: 10,
                 borderWidth: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -288,7 +295,7 @@ export default function SettingsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: '700',
                   color: language === "hi" ? "#FFFFFF" : "#1E293B",
                 }}
@@ -300,46 +307,48 @@ export default function SettingsScreen() {
         </View>
 
         {/* 4. STORAGE & CACHE */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <Trash2 size={18} color="#6B7280" />
-            <Text className="text-h3 font-semibold text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <Trash2 size={16} color="#6B7280" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               {t("clearCacheHeader")}
             </Text>
           </View>
 
-          <Button variant="outline" size="md" onPress={handleClearCache}>
-            {t("clearCacheButton")}
+          <Button variant="outline" size="sm" onPress={handleClearCache}>
+            <Text className="text-xs font-semibold text-ink">
+              {t("clearCacheButton")}
+            </Text>
           </Button>
         </View>
 
         {/* 5. APP VERSION */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm flex-row items-center justify-between">
-          <View className="flex-row items-center space-x-2">
-            <Info size={18} color="#6B7280" />
-            <Text className="text-body font-medium text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs flex-row items-center justify-between">
+          <View className="flex-row items-center space-x-1.5">
+            <Info size={16} color="#6B7280" />
+            <Text className="text-xs font-medium text-ink ml-1.5">
               {t("appVersionHeader")}
             </Text>
           </View>
-          <Text className="text-body font-mono font-bold text-ink-muted">
+          <Text className="text-xs font-mono font-bold text-ink-muted">
             v{appVersion}
           </Text>
         </View>
 
         {/* 6. CRASH & SENTRY DIAGNOSTICS */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <Bug size={18} color="#D97706" />
-            <Text className="text-h3 font-semibold text-ink ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <Bug size={16} color="#D97706" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               Diagnostics & Sentry Reporting
             </Text>
           </View>
-          <Text className="text-caption text-ink-muted leading-relaxed">
+          <Text className="text-xs text-ink-muted leading-snug">
             Verify Sentry crash capture and source map symbolication before release. Breadcrumbs are strictly scrubbed of personal details.
           </Text>
           <Button
             variant="outline"
-            size="md"
+            size="sm"
             className="border-amber-500/40"
             accessibilityLabel="Trigger Sentry test crash button"
             onPress={() => {
@@ -353,32 +362,32 @@ export default function SettingsScreen() {
               });
             }}
           >
-            <Text className="text-body font-semibold text-amber-700">
+            <Text className="text-xs font-semibold text-amber-700">
               Trigger Sentry Test Crash
             </Text>
           </Button>
         </View>
 
         {/* 7. DANGER ZONE: DELETE ACCOUNT */}
-        <View className="bg-surface rounded-2xl p-4 border border-danger/30 mb-4 shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2">
-            <AlertTriangle size={18} color="#DC2626" />
-            <Text className="text-h3 font-bold text-danger ml-2">
+        <View className="bg-surface rounded-xl p-3.5 border border-danger/30 mb-3 shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5">
+            <AlertTriangle size={16} color="#DC2626" />
+            <Text className="text-sm font-bold text-danger ml-1.5">
               {t("dangerZoneHeader")}
             </Text>
           </View>
 
-          <Text className="text-caption text-ink-muted leading-relaxed">
+          <Text className="text-xs text-ink-muted leading-snug">
             Permanently delete your Quick2Learn account and erase personal student records.
           </Text>
 
           <Button
             variant="outline"
-            size="md"
+            size="sm"
             className="border-danger/40"
             onPress={() => router.push("/(app)/delete-account" as any)}
           >
-            <Text className="text-body font-bold text-danger">
+            <Text className="text-xs font-bold text-danger">
               {t("deleteAccountButton")}
             </Text>
           </Button>

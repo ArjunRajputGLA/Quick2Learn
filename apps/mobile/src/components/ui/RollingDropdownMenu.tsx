@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   StatusBar,
@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import {
   Download,
@@ -24,7 +23,6 @@ import {
   User,
   Settings,
   HelpCircle,
-  Shield,
   CreditCard,
   X,
   ChevronRight,
@@ -49,13 +47,16 @@ export function RollingDropdownMenu() {
   const closeDropdown = useDropdownStore((state) => state.closeDropdown);
   const { data: me } = useMe();
 
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const menuWidth = Math.min(320, Math.round(screenWidth * 0.85));
-  const maxMenuHeight = Math.min(620, Math.round(screenHeight * 0.82));
+  const { width: screenWidth } = useWindowDimensions();
+  const winWidth = screenWidth > 200 ? screenWidth : 375;
+  const drawerWidth = Math.min(320, Math.round(winWidth * 0.82));
 
   const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
   const safeTop = Math.max(insets?.top ?? 0, statusBarHeight);
-  const menuTop = safeTop + 58;
+
+  if (!isOpen) {
+    return null;
+  }
 
   const handleClose = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -63,98 +64,75 @@ export function RollingDropdownMenu() {
   };
 
   const navigateTo = (route: string) => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    closeDropdown();
-    setTimeout(() => {
-      try {
-        router.push(route as any);
-      } catch (err) {
-        console.warn('[RollingDropdownMenu] push error, using navigate:', err);
-        router.navigate(route as any);
-      }
-    }, 120);
+    handleClose();
+    try {
+      router.push(route as any);
+    } catch (err) {
+      console.warn('[RollingDropdownMenu] push error, using navigate:', err);
+      router.navigate(route as any);
+    }
   };
 
-  const handleOpenPrivacyPolicy = async () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    closeDropdown();
-    setTimeout(async () => {
-      try {
-        await WebBrowser.openBrowserAsync('https://quick2learn.in/privacy');
-      } catch {
-        try {
-          await Linking.openURL('https://quick2learn.in/privacy');
-        } catch (e) {
-          console.warn('Cannot open privacy policy:', e);
-        }
-      }
-    }, 120);
-  };
 
   const handleShareOnFacebook = async () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    closeDropdown();
+    handleClose();
     const appUrl = 'https://play.google.com/store/apps/details?id=in.quick2learn.app';
     const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}`;
-    setTimeout(async () => {
-      try {
-        const canOpen = await Linking.canOpenURL(fbShareUrl);
-        if (canOpen) {
-          await Linking.openURL(fbShareUrl);
-        } else {
-          await Share.share({
-            title: 'Quick2Learn App',
-            message: `Master CBSE & ICSE Mathematics with Dinesh Sir on Quick2Learn: ${appUrl} (Organization Code: KFVMT)`,
-          });
-        }
-      } catch (err) {
-        console.warn('Share error:', err);
+    try {
+      const canOpen = await Linking.canOpenURL(fbShareUrl);
+      if (canOpen) {
+        await Linking.openURL(fbShareUrl);
+      } else {
+        await Share.share({
+          title: 'Quick2Learn App',
+          message: `Master CBSE & ICSE Mathematics with Dinesh Sir on Quick2Learn: ${appUrl} (Organization Code: KFVMT)`,
+        });
       }
-    }, 120);
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
-  const rawName = me?.profile?.fullName || me?.user?.name || 'Arjun Singh Rajput';
-  const fullName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || 'Arjun Singh Rajput';
+  const rawName = me?.profile?.fullName || me?.user?.name || 'Dinesh Sir';
+  const fullName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || 'Dinesh Sir';
   const roleName =
-    me?.role === 'teacher'
-      ? 'Faculty'
-      : me?.role === 'admin'
+    me?.role === 'admin'
       ? 'Administrator'
+      : me?.role === 'teacher'
+      ? 'Faculty'
       : me?.profile?.classLevel
       ? `Class ${me.profile.classLevel} • ${(me.profile.board || 'CBSE').toUpperCase()}`
       : 'CBSE Mathematics';
 
   const orgCode = 'KFVMT';
+  const isAdmin = me?.role === 'admin' || me?.role === 'teacher';
 
   const menuItems: MenuItem[] = [
     {
       id: 'downloads',
       label: 'Offline Downloads',
-      subtitle: 'Downloaded lectures & notes',
+      subtitle: isAdmin ? 'Manage & upload offline notes' : 'Downloaded lectures & notes',
       icon: <Download size={18} color="#2563EB" strokeWidth={2.1} />,
       iconBg: '#EFF6FF',
-      badge: 'NEW',
+      badge: isAdmin ? 'UPLOAD' : 'NEW',
       onPress: () => navigateTo('/downloads'),
     },
     {
       id: 'free-material',
       label: 'Free Material',
-      subtitle: 'Sample papers & formula sheets',
+      subtitle: isAdmin ? 'Upload sample papers & formulas' : 'Sample papers & formula sheets',
       icon: <Folder size={18} color="#0D9488" strokeWidth={2.1} />,
       iconBg: '#F0FDFA',
-      onPress: () => navigateTo('/search'),
+      badge: isAdmin ? 'UPLOAD' : 'NEW',
+      onPress: () => navigateTo('/free-material'),
     },
     {
       id: 'testimonials',
       label: 'Students Testimonial',
-      subtitle: 'Past toppers & success stories',
+      subtitle: isAdmin ? 'Upload toppers & student reviews' : 'Past toppers & success stories',
       icon: <MessageSquare size={18} color="#D97706" strokeWidth={2.1} />,
       iconBg: '#FFFBEB',
-      badge: 'NEW',
+      badge: isAdmin ? 'UPLOAD' : 'NEW',
       onPress: () => navigateTo('/results'),
     },
     {
@@ -183,20 +161,12 @@ export function RollingDropdownMenu() {
       onPress: () => navigateTo('/help'),
     },
     {
-      id: 'privacy',
-      label: 'Privacy Policy',
-      subtitle: 'Student privacy & security policy',
-      icon: <Shield size={18} color="#059669" strokeWidth={2.1} />,
-      iconBg: '#ECFDF5',
-      onPress: handleOpenPrivacyPolicy,
-    },
-    {
       id: 'payments',
-      label: 'Payments',
+      label: 'Payments & Fees',
       subtitle: 'Fee invoices & payment history',
       icon: <CreditCard size={18} color="#DB2777" strokeWidth={2.1} />,
       iconBg: '#FDF2F8',
-      onPress: () => navigateTo('/fees'),
+      onPress: () => navigateTo('/fee-receipts'),
     },
   ];
 
@@ -204,63 +174,75 @@ export function RollingDropdownMenu() {
     <Modal
       visible={Boolean(isOpen)}
       transparent
-      animationType="fade"
+      animationType="none"
       statusBarTranslucent
       hardwareAccelerated
       onRequestClose={handleClose}
     >
       <View style={{ flex: 1, width: '100%', height: '100%', position: 'relative' }}>
-        {/* 1. Fullscreen dark backdrop */}
-        <Pressable
+        {/* 1. Backdrop */}
+        <View
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(15, 23, 42, 0.45)', zIndex: 1 },
+            {
+              backgroundColor: 'rgba(15, 23, 42, 0.52)',
+              zIndex: 1,
+            },
           ]}
-          onPress={handleClose}
-          accessibilityLabel="Close menu backdrop"
-          accessibilityRole="button"
-        />
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={handleClose}
+            accessibilityLabel="Close sidebar backdrop"
+            accessibilityRole="button"
+          />
+        </View>
 
-        {/* 2. Menu Card on top directly below floating header */}
+        {/* 2. Direct Left Sidebar Drawer (No animation, instant visibility) */}
         <View
           style={{
             position: 'absolute',
-            top: menuTop,
-            left: 12,
-            width: menuWidth,
-            maxHeight: maxMenuHeight,
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: drawerWidth,
+            height: '100%',
             backgroundColor: '#FFFFFF',
-            borderRadius: 20,
+            borderTopRightRadius: 22,
+            borderBottomRightRadius: 22,
+            borderRightWidth: 1,
+            borderRightColor: '#E2E8F0',
             shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.28,
-            shadowRadius: 22,
-            elevation: 24,
-            borderWidth: 1,
-            borderColor: '#E2E8F0',
-            overflow: 'hidden',
+            shadowOffset: { width: 6, height: 0 },
+            shadowOpacity: 0.24,
+            shadowRadius: 18,
+            elevation: 25,
             zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}
         >
-          {/* Top User Profile Header */}
+          {/* Top User Profile Header with Safe Top Padding */}
           <View
             style={{
-              paddingTop: 16,
-              paddingBottom: 14,
-              paddingHorizontal: 16,
+              paddingTop: safeTop + 14,
+              paddingBottom: 16,
+              paddingHorizontal: 18,
               backgroundColor: '#F8FAFC',
+              borderTopRightRadius: 22,
               borderBottomWidth: 1,
               borderBottomColor: '#F1F5F9',
             }}
           >
             {/* Avatar & Close button row */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               {/* Circular Avatar */}
               <View
                 style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
                   backgroundColor: '#EFF6FF',
                   borderWidth: 2,
                   borderColor: '#BFDBFE',
@@ -269,15 +251,15 @@ export function RollingDropdownMenu() {
                   position: 'relative',
                 }}
               >
-                <User size={26} color="#2563EB" strokeWidth={2} />
+                <User size={28} color="#2563EB" strokeWidth={2} />
                 <View
                   style={{
                     position: 'absolute',
                     bottom: 0,
                     right: 0,
-                    width: 12,
-                    height: 12,
-                    borderRadius: 6,
+                    width: 13,
+                    height: 13,
+                    borderRadius: 6.5,
                     backgroundColor: '#10B981',
                     borderWidth: 2,
                     borderColor: '#FFFFFF',
@@ -289,12 +271,12 @@ export function RollingDropdownMenu() {
               <TouchableOpacity
                 onPress={handleClose}
                 accessibilityRole="button"
-                accessibilityLabel="Close menu"
+                accessibilityLabel="Close sidebar"
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
                   backgroundColor: '#FFFFFF',
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
@@ -307,14 +289,14 @@ export function RollingDropdownMenu() {
                   elevation: 1,
                 }}
               >
-                <X size={15} color="#64748B" strokeWidth={2.2} />
+                <X size={16} color="#64748B" strokeWidth={2.2} />
               </TouchableOpacity>
             </View>
 
             {/* Name */}
             <Text
               style={{
-                fontSize: 16.5,
+                fontSize: 17,
                 fontWeight: '700',
                 color: '#0F172A',
                 letterSpacing: -0.3,
@@ -360,8 +342,8 @@ export function RollingDropdownMenu() {
 
           {/* Navigation Items List */}
           <ScrollView
-            style={{ flexShrink: 1, maxHeight: maxMenuHeight - 170 }}
-            contentContainerStyle={{ paddingVertical: 6, paddingHorizontal: 10 }}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingVertical: 8, paddingHorizontal: 12 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
@@ -375,22 +357,22 @@ export function RollingDropdownMenu() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingVertical: 9,
-                  paddingHorizontal: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 10,
                   borderRadius: 12,
-                  marginBottom: 2,
+                  marginBottom: 3,
                 }}
               >
                 {/* Icon in soft pastel container */}
                 <View
                   style={{
-                    width: 34,
-                    height: 34,
+                    width: 36,
+                    height: 36,
                     borderRadius: 10,
                     backgroundColor: item.iconBg,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: 11,
+                    marginRight: 12,
                   }}
                 >
                   {item.icon}
@@ -401,7 +383,7 @@ export function RollingDropdownMenu() {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text
                       style={{
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: '600',
                         color: '#1E293B',
                       }}
@@ -434,7 +416,7 @@ export function RollingDropdownMenu() {
                   {item.subtitle ? (
                     <Text
                       style={{
-                        fontSize: 10.5,
+                        fontSize: 11,
                         color: '#64748B',
                         marginTop: 1,
                       }}
@@ -446,20 +428,21 @@ export function RollingDropdownMenu() {
                 </View>
 
                 {/* Subtle Right Chevron */}
-                <ChevronRight size={14} color="#CBD5E1" strokeWidth={2.2} />
+                <ChevronRight size={15} color="#CBD5E1" strokeWidth={2.2} />
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          {/* Bottom Facebook Share Button & Footer */}
+          {/* Bottom Facebook Share Button & Footer with Safe Bottom Padding */}
           <View
             style={{
-              paddingHorizontal: 14,
-              paddingTop: 10,
-              paddingBottom: 12,
+              paddingHorizontal: 16,
+              paddingTop: 12,
+              paddingBottom: Math.max(insets.bottom, 16) + 6,
               borderTopWidth: 1,
               borderTopColor: '#F1F5F9',
               backgroundColor: '#FFFFFF',
+              borderBottomRightRadius: 22,
             }}
           >
             <TouchableOpacity
@@ -469,25 +452,25 @@ export function RollingDropdownMenu() {
               accessibilityLabel="Share on facebook"
               style={{
                 backgroundColor: '#1877F2',
-                borderRadius: 11,
-                height: 40,
+                borderRadius: 12,
+                height: 44,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 9,
+                gap: 10,
                 shadowColor: '#1877F2',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.22,
-                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 5,
                 elevation: 3,
               }}
             >
               {/* White circle with blue 'f' */}
               <View
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
                   backgroundColor: '#FFFFFF',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -497,15 +480,15 @@ export function RollingDropdownMenu() {
                   style={{
                     color: '#1877F2',
                     fontWeight: '900',
-                    fontSize: 15,
-                    lineHeight: 17,
+                    fontSize: 16,
+                    lineHeight: 18,
                     fontFamily: Platform.OS === 'ios' ? 'HelveticaNeue-Bold' : 'sans-serif-black',
                   }}
                 >
                   f
                 </Text>
               </View>
-              <Text style={{ color: '#FFFFFF', fontSize: 13.5, fontWeight: '700', letterSpacing: -0.1 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700', letterSpacing: -0.1 }}>
                 Share on facebook
               </Text>
             </TouchableOpacity>
@@ -514,9 +497,9 @@ export function RollingDropdownMenu() {
             <Text
               style={{
                 textAlign: 'center',
-                fontSize: 10,
+                fontSize: 10.5,
                 color: '#94A3B8',
-                marginTop: 8,
+                marginTop: 10,
                 fontWeight: '500',
               }}
             >
@@ -528,6 +511,7 @@ export function RollingDropdownMenu() {
     </Modal>
   );
 }
+
 
 // Export aliases
 export const SidebarDrawer = RollingDropdownMenu;

@@ -24,6 +24,9 @@ import {
   ChevronRight,
   Trash2,
   Sparkles,
+  TrendingUp,
+  Award,
+  Layers,
 } from 'lucide-react-native';
 import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
@@ -33,6 +36,56 @@ import { useLibrarySearch, useLearnClasses } from '../../src/api/hooks';
 
 const RECENT_SEARCHES_KEY = 'quick2learn_recent_searches';
 const MAX_RECENT_SEARCHES = 8;
+
+const POPULAR_SEARCH_TOPICS = [
+  'Trigonometry Formulas',
+  'Class 12 Calculus',
+  'Formula Cheat Sheets',
+  'Chapter-wise PYQs',
+  'Chemical Reactions',
+  'Sample Question Papers',
+  'Matrices & Determinants',
+  'Light & Optics',
+];
+
+const QUICK_EXPLORE_CARDS = [
+  {
+    title: 'Formula Sheets',
+    desc: 'Formulas & theorems',
+    query: 'Formula',
+    icon: Sparkles,
+    color: '#2563EB',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+  },
+  {
+    title: '10-Yr Board PYQs',
+    desc: 'Solved past papers',
+    query: 'PYQ',
+    icon: Award,
+    color: '#D97706',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+  },
+  {
+    title: 'Sample Papers',
+    desc: 'Board blueprint mock tests',
+    query: 'Sample Paper',
+    icon: Layers,
+    color: '#059669',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-200',
+  },
+  {
+    title: 'Revision Notes',
+    desc: 'Chapter high-yield notes',
+    query: 'Notes',
+    icon: BookOpen,
+    color: '#7C3AED',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+  },
+];
 
 const CLASS_OPTIONS = [
   { label: 'All Classes', value: undefined },
@@ -265,62 +318,116 @@ export default function SearchScreen() {
             />
           }
         >
-          {/* Query Empty: Show Recent Searches */}
+          {/* Query Empty: Show Discovery Hub (Recent Searches + Popular Topics + Quick Explore Cards) */}
           {!activeQuery ? (
-            <View>
-              {recentSearches.length > 0 ? (
-                <View className="space-y-3">
-                  <View className="flex-row items-center justify-between pb-1">
-                    <Text className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
-                      Recent Searches
-                    </Text>
+            <View className="space-y-5">
+              {/* 1. Recent Searches (if any) */}
+              {recentSearches.length > 0 && (
+                <View className="space-y-2.5">
+                  <View className="flex-row items-center justify-between px-0.5">
+                    <View className="flex-row items-center space-x-1.5">
+                      <Clock size={13} color="#6B7280" />
+                      <Text className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
+                        Recent Searches
+                      </Text>
+                    </View>
                     <TouchableOpacity
                       activeOpacity={0.7}
                       onPress={clearRecentSearches}
-                      className="min-h-[44px] flex-row items-center px-2"
+                      className="flex-row items-center px-1.5 py-1"
                       accessibilityLabel="Clear recent searches"
                     >
-                      <Trash2 size={14} color="#6B7280" />
+                      <Trash2 size={12} color="#9CA3AF" />
                       <Text className="text-xs text-text-secondary ml-1 font-medium">Clear</Text>
                     </TouchableOpacity>
                   </View>
 
-                  <View className="bg-surface rounded-2xl border border-border overflow-hidden divide-y divide-border">
+                  <View className="bg-surface rounded-2xl border border-border overflow-hidden divide-y divide-border/60 shadow-2xs">
                     {recentSearches.map((term, idx) => (
                       <TouchableOpacity
                         key={idx}
                         activeOpacity={0.7}
                         onPress={() => handleSelectRecent(term)}
-                        className="min-h-[50px] px-4 flex-row items-center justify-between active:bg-surface-subtle"
+                        className="min-h-[46px] px-3.5 py-2 flex-row items-center justify-between active:bg-surface-subtle"
                       >
                         <View className="flex-row items-center flex-1 mr-2">
-                          <Clock size={16} color="#9CA3AF" />
-                          <Text className="text-sm text-text-primary ml-3 font-medium truncate">
+                          <Clock size={14} color="#9CA3AF" />
+                          <Text className="text-xs text-text-primary ml-2.5 font-medium truncate">
                             {term}
                           </Text>
                         </View>
-                        <ChevronRight size={16} color="#D1D5DB" />
+                        <ChevronRight size={14} color="#D1D5DB" />
                       </TouchableOpacity>
                     ))}
                   </View>
                 </View>
-              ) : (
-                <View className="py-12 items-center justify-center">
-                  <View className="w-14 h-14 rounded-full bg-primary/10 items-center justify-center mb-3">
-                    <SearchIcon size={26} color="#15803D" />
-                  </View>
-                  <Text className="text-base font-bold text-text-primary mb-1">
-                    Explore Conceptual Lectures
-                  </Text>
-                  <Text className="text-xs text-text-secondary text-center max-w-[260px]">
-                    Search for any topic, chapter, board PYQ, or downloadable notes.
+              )}
+
+              {/* 2. Popular & Trending Topics */}
+              <View className="space-y-2.5">
+                <View className="flex-row items-center space-x-1.5 px-0.5">
+                  <TrendingUp size={14} color="#2563EB" />
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
+                    Popular Searches
                   </Text>
                 </View>
-              )}
+
+                <View className="flex-row flex-wrap gap-2">
+                  {POPULAR_SEARCH_TOPICS.map((topic) => (
+                    <TouchableOpacity
+                      key={topic}
+                      activeOpacity={0.75}
+                      onPress={() => handleSelectRecent(topic)}
+                      className="px-3 py-1.5 rounded-xl bg-surface border border-border shadow-2xs flex-row items-center active:bg-blue-50 active:border-blue-200"
+                    >
+                      <Text className="text-xs font-medium text-text-primary">
+                        {topic}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* 3. Quick Resource Explorer (2x2 Grid) */}
+              <View className="space-y-2.5">
+                <View className="flex-row items-center space-x-1.5 px-0.5">
+                  <Sparkles size={14} color="#2563EB" />
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
+                    Quick Resource Hub
+                  </Text>
+                </View>
+
+                <View className="flex-row flex-wrap justify-between gap-y-2.5">
+                  {QUICK_EXPLORE_CARDS.map((card) => {
+                    const CardIcon = card.icon;
+                    return (
+                      <TouchableOpacity
+                        key={card.title}
+                        activeOpacity={0.8}
+                        onPress={() => handleSelectRecent(card.query)}
+                        style={{ width: '48.5%' }}
+                        className="bg-surface rounded-2xl p-3 border border-border shadow-2xs active:scale-[0.98]"
+                      >
+                        <View
+                          className={`w-8 h-8 rounded-xl items-center justify-center mb-2 ${card.bgColor}`}
+                        >
+                          <CardIcon size={16} color={card.color} />
+                        </View>
+                        <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+                          {card.title}
+                        </Text>
+                        <Text className="text-[10px] text-text-secondary mt-0.5" numberOfLines={2}>
+                          {card.desc}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
             </View>
           ) : isLoading ? (
             <View className="py-16 items-center justify-center">
-              <ActivityIndicator size="large" color="#15803D" />
+              <ActivityIndicator size="large" color="#2563EB" />
               <Text className="text-sm text-text-secondary mt-3 font-medium">
                 Searching library...
               </Text>
@@ -328,63 +435,63 @@ export default function SearchScreen() {
           ) : totalResults === 0 ? (
             <View className="py-8">
               <EmptyState
-                illustration={<SearchIcon size={36} color="#15803D" />}
+                illustration={<SearchIcon size={36} color="#2563EB" />}
                 title="No results found"
-                description={`We couldn't find anything matching "${activeQuery}". Try searching by chapter name or formula.`}
+                description={`We couldn't find anything matching "${activeQuery}". Try searching with different keywords or explore popular topics.`}
               />
             </View>
           ) : (
-            <View className="space-y-6">
+            <View className="space-y-5">
               {/* Results Count Header */}
               <View className="flex-row items-center justify-between">
                 <Text className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
                   Search Results ({totalResults})
                 </Text>
-                {isFetching && <ActivityIndicator size="small" color="#15803D" />}
+                {isFetching && <ActivityIndicator size="small" color="#2563EB" />}
               </View>
 
               {/* 1. Lectures Section */}
               {lectures.length > 0 && (
                 <View className="space-y-2">
                   <View className="flex-row items-center gap-1.5 pb-1">
-                    <Play size={16} color="#15803D" fill="#15803D" />
-                    <Text className="text-sm font-bold text-text-primary">
+                    <Play size={14} color="#2563EB" fill="#2563EB" />
+                    <Text className="text-xs font-bold text-text-primary">
                       Lectures ({lectures.length})
                     </Text>
                   </View>
 
-                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden">
+                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border/60 overflow-hidden shadow-2xs">
                     {lectures.map((lec) => (
                       <TouchableOpacity
                         key={lec.id}
                         activeOpacity={0.7}
                         onPress={() => handleOpenLecture(lec.id)}
-                        className="p-3.5 flex-row items-center justify-between active:bg-surface-subtle min-h-[58px]"
+                        className="p-3 flex-row items-center justify-between active:bg-surface-subtle min-h-[52px]"
                       >
-                        <View className="flex-1 mr-3">
+                        <View className="flex-1 mr-2.5">
                           <Text
-                            className="text-sm font-bold text-text-primary line-clamp-2 leading-tight"
+                            className="text-xs font-bold text-text-primary line-clamp-2 leading-tight"
                             numberOfLines={2}
                           >
                             {lec.title}
                           </Text>
-                          <View className="flex-row items-center gap-2 mt-1">
+                          <View className="flex-row items-center gap-1.5 mt-1">
                             {lec.chapterTitle && (
                               <Text
-                                className="text-xs text-text-secondary truncate max-w-[160px]"
+                                className="text-[11px] text-text-secondary truncate max-w-[160px]"
                                 numberOfLines={1}
                               >
                                 {lec.chapterTitle}
                               </Text>
                             )}
-                            <Text className="text-xs text-text-tertiary">
+                            <Text className="text-[11px] text-text-tertiary">
                               • {lec.durationFormatted}
                             </Text>
                           </View>
                         </View>
 
-                        <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center shrink-0">
-                          <Play size={16} color="#15803D" fill="#15803D" />
+                        <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center shrink-0">
+                          <Play size={14} color="#2563EB" fill="#2563EB" />
                         </View>
                       </TouchableOpacity>
                     ))}
@@ -396,35 +503,35 @@ export default function SearchScreen() {
               {chapters.length > 0 && (
                 <View className="space-y-2">
                   <View className="flex-row items-center gap-1.5 pb-1">
-                    <BookOpen size={16} color="#15803D" />
-                    <Text className="text-sm font-bold text-text-primary">
+                    <BookOpen size={14} color="#2563EB" />
+                    <Text className="text-xs font-bold text-text-primary">
                       Chapters ({chapters.length})
                     </Text>
                   </View>
 
-                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden">
+                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border/60 overflow-hidden shadow-2xs">
                     {chapters.map((ch) => (
                       <TouchableOpacity
                         key={ch.id}
                         activeOpacity={0.7}
                         onPress={() => handleOpenChapter(ch.id)}
-                        className="p-3.5 flex-row items-center justify-between active:bg-surface-subtle min-h-[58px]"
+                        className="p-3 flex-row items-center justify-between active:bg-surface-subtle min-h-[52px]"
                       >
-                        <View className="flex-1 mr-3">
+                        <View className="flex-1 mr-2.5">
                           <Text
-                            className="text-sm font-bold text-text-primary line-clamp-1"
+                            className="text-xs font-bold text-text-primary line-clamp-1"
                             numberOfLines={1}
                           >
                             {ch.number ? `Ch ${ch.number}: ` : ''}
                             {ch.title}
                           </Text>
-                          <Text className="text-xs text-text-secondary mt-0.5">
+                          <Text className="text-[11px] text-text-secondary mt-0.5">
                             Class {ch.classLevel} {ch.subjectName ? `• ${ch.subjectName}` : ''}{' '}
                             • {ch.lectureCount} lectures
                           </Text>
                         </View>
 
-                        <ChevronRight size={18} color="#9CA3AF" />
+                        <ChevronRight size={16} color="#9CA3AF" />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -435,35 +542,35 @@ export default function SearchScreen() {
               {notes.length > 0 && (
                 <View className="space-y-2">
                   <View className="flex-row items-center gap-1.5 pb-1">
-                    <FileText size={16} color="#15803D" />
-                    <Text className="text-sm font-bold text-text-primary">
-                      Notes & Resources ({notes.length})
+                    <FileText size={14} color="#DC2626" />
+                    <Text className="text-xs font-bold text-text-primary">
+                      Notes & Formula PDFs ({notes.length})
                     </Text>
                   </View>
 
-                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden">
+                  <View className="bg-surface rounded-2xl border border-border divide-y divide-border/60 overflow-hidden shadow-2xs">
                     {notes.map((note) => (
                       <TouchableOpacity
                         key={note.id}
                         activeOpacity={0.7}
                         onPress={() => handleOpenNote(note.fileUrl)}
-                        className="p-3.5 flex-row items-center justify-between active:bg-surface-subtle min-h-[58px]"
+                        className="p-3 flex-row items-center justify-between active:bg-surface-subtle min-h-[52px]"
                       >
-                        <View className="flex-1 mr-3">
+                        <View className="flex-1 mr-2.5">
                           <Text
-                            className="text-sm font-bold text-text-primary line-clamp-1"
+                            className="text-xs font-bold text-text-primary line-clamp-1"
                             numberOfLines={1}
                           >
                             {note.title}
                           </Text>
-                          <Text className="text-xs text-text-secondary mt-0.5">
+                          <Text className="text-[11px] text-text-secondary mt-0.5">
                             PDF • {note.chapterTitle || 'Chapter Resource'}{' '}
                             {note.subjectName ? `• ${note.subjectName}` : ''}
                           </Text>
                         </View>
 
-                        <View className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
-                          <Text className="text-[11px] font-bold text-slate-700">Open</Text>
+                        <View className="px-2.5 py-1 rounded-lg bg-red-50 border border-red-100">
+                          <Text className="text-[10px] font-bold text-red-600">Open</Text>
                         </View>
                       </TouchableOpacity>
                     ))}

@@ -57,28 +57,28 @@ export default function HelpScreen() {
       title: "1. Interactive Live Classes",
       subtitle:
         "Join scheduled live lectures directly from your home screen. View attendance and live session replays anytime.",
-      icon: <Video size={28} color="#2563EB" />,
+      icon: <Video size={18} color="#2563EB" />,
       accent: "bg-blue-50",
     },
     {
       title: "2. Practice Tests & Analytics",
       subtitle:
         "Take chapter-wise timed tests with instant scoring, percentiles, ranking, and step-by-step mathematical solutions.",
-      icon: <Award size={28} color="#059669" />,
+      icon: <Award size={18} color="#059669" />,
       accent: "bg-emerald-50",
     },
     {
       title: "3. 1-on-1 Doubts with Faculty",
       subtitle:
         "Stuck on a problem? Snap a photo of your notebook or test question to get personal answers from Dinesh Sir & Namita Ma'am.",
-      icon: <MessageSquare size={28} color="#8B5CF6" />,
+      icon: <MessageSquare size={18} color="#8B5CF6" />,
       accent: "bg-purple-50",
     },
     {
       title: "4. Offline Notes & Study Library",
       subtitle:
         "Download NCERT solutions, chapter formula sheets, and study materials for revision even when you have no internet.",
-      icon: <Download size={28} color="#D97706" />,
+      icon: <Download size={18} color="#D97706" />,
       accent: "bg-amber-50",
     },
   ];
@@ -134,7 +134,7 @@ export default function HelpScreen() {
       header={<AppHeader title={t("helpTitle")} showBack />}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+        contentContainerStyle={{ padding: 14, paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -146,91 +146,93 @@ export default function HelpScreen() {
         }
       >
         {/* Top Support Banner (WhatsApp) */}
-        <View className="bg-emerald-600 rounded-2xl p-5 mb-5 shadow-sm text-white">
-          <View className="flex-row items-center space-x-2 mb-2">
-            <MessageSquare size={22} color="#FFFFFF" />
-            <Text className="text-h3 font-extrabold text-white ml-2">
+        <View className="bg-emerald-600 rounded-xl p-3.5 mb-3 shadow-xs text-white">
+          <View className="flex-row items-center space-x-2 mb-1.5">
+            <MessageSquare size={18} color="#FFFFFF" />
+            <Text className="text-sm font-bold text-white ml-1.5">
               Institute WhatsApp Support
             </Text>
           </View>
-          <Text className="text-caption text-emerald-100 leading-relaxed mb-4">
+          <Text className="text-xs text-emerald-100 leading-snug mb-2.5">
             Have questions about your batch, admissions, or app features? Chat directly with Dinesh Sir and the academic team.
           </Text>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleOpenWhatsApp}
-            className="bg-white py-3 px-4 rounded-xl flex-row items-center justify-center min-h-[44px]"
+            className="bg-white py-2 px-3 rounded-lg flex-row items-center justify-center min-h-[38px] active:bg-emerald-50"
           >
-            <Text className="text-body font-bold text-emerald-800 mr-2">
+            <Text className="text-xs font-bold text-emerald-800 mr-1.5">
               Chat on WhatsApp (+91 94122 78888)
             </Text>
-            <ExternalLink size={16} color="#065F46" />
+            <ExternalLink size={14} color="#065F46" />
           </TouchableOpacity>
         </View>
 
         {/* 4-Screen "How to Use the App" Walkthrough Carousel */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-5 shadow-sm space-y-3">
+        <View className="bg-surface rounded-xl p-3.5 border border-border mb-3 shadow-xs space-y-2.5">
           <View className="flex-row items-center justify-between">
-            <Text className="text-h3 font-semibold text-ink">
+            <Text className="text-sm font-bold text-ink">
               {t("walkthroughHeader")}
             </Text>
-            <Text className="text-caption font-bold text-primary">
-              Step {activeSlide + 1} of 4
-            </Text>
+            <View className="bg-primary/10 px-2 py-0.5 rounded-full">
+              <Text className="text-[11px] font-bold text-primary">
+                Step {activeSlide + 1} of 4
+              </Text>
+            </View>
           </View>
 
           {/* Active Card */}
-          <View className="p-4 rounded-xl bg-surface-subtle border border-border/80">
+          <View className="p-3 rounded-lg bg-surface-subtle border border-border/70">
             <View
-              className={`w-12 h-12 rounded-xl items-center justify-center mb-3 ${walkthroughSlides[activeSlide]?.accent}`}
+              className={`w-9 h-9 rounded-lg items-center justify-center mb-2 ${walkthroughSlides[activeSlide]?.accent}`}
             >
               {walkthroughSlides[activeSlide]?.icon}
             </View>
-            <Text className="text-body-lg font-bold text-ink mb-1">
+            <Text className="text-xs font-bold text-ink mb-0.5">
               {walkthroughSlides[activeSlide]?.title}
             </Text>
-            <Text className="text-caption text-ink-muted leading-relaxed">
+            <Text className="text-[11.5px] text-ink-muted leading-relaxed">
               {walkthroughSlides[activeSlide]?.subtitle}
             </Text>
           </View>
 
           {/* Carousel Navigation Buttons & Dots */}
-          <View className="flex-row items-center justify-between pt-2">
-            <View className="flex-row space-x-1.5">
+          <View className="flex-row items-center justify-between pt-1">
+            <View className="flex-row items-center">
               {[0, 1, 2, 3].map((idx) => (
                 <View
                   key={idx}
-                  className={`h-2 rounded-full mr-1.5 ${
-                    activeSlide === idx ? "w-6 bg-primary" : "w-2 bg-border"
+                  className={`h-1.5 rounded-full mr-1 ${
+                    activeSlide === idx ? "w-4 bg-primary" : "w-1.5 bg-border"
                   }`}
                 />
               ))}
             </View>
 
-            <View className="flex-row space-x-2">
+            <View className="flex-row items-center">
               <TouchableOpacity
                 disabled={activeSlide === 0}
                 onPress={() => setActiveSlide((prev) => Math.max(0, prev - 1))}
-                className={`py-1.5 px-3 rounded-lg border ${
+                className={`py-1 px-2.5 rounded-md border ${
                   activeSlide === 0
                     ? "border-border/40 opacity-40"
                     : "border-border bg-surface"
                 }`}
               >
-                <Text className="text-caption font-semibold text-ink">Prev</Text>
+                <Text className="text-xs font-semibold text-ink">Prev</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 disabled={activeSlide === 3}
                 onPress={() => setActiveSlide((prev) => Math.min(3, prev + 1))}
-                className={`py-1.5 px-3 rounded-lg border ml-2 ${
+                className={`py-1 px-2.5 rounded-md border ml-2 ${
                   activeSlide === 3
                     ? "border-border/40 opacity-40"
                     : "border-primary bg-primary"
                 }`}
               >
                 <Text
-                  className={`text-caption font-semibold ${
+                  className={`text-xs font-semibold ${
                     activeSlide === 3 ? "text-ink-muted" : "text-white"
                   }`}
                 >
@@ -242,36 +244,36 @@ export default function HelpScreen() {
         </View>
 
         {/* FAQ Accordion Section */}
-        <View className="bg-surface rounded-2xl p-4 border border-border shadow-sm space-y-3">
-          <View className="flex-row items-center space-x-2 mb-1">
-            <HelpCircle size={18} color="#2563EB" />
-            <Text className="text-h3 font-semibold text-ink ml-1.5">
+        <View className="bg-surface rounded-xl p-3.5 border border-border shadow-xs space-y-2">
+          <View className="flex-row items-center space-x-1.5 mb-0.5">
+            <HelpCircle size={16} color="#2563EB" />
+            <Text className="text-sm font-bold text-ink ml-1.5">
               {t("faqHeader")}
             </Text>
           </View>
 
-          <View className="divide-y divide-border/60">
+          <View className="divide-y divide-border/50">
             {faqs.map((faq, index) => {
               const isOpen = expandedFaq === index;
               return (
-                <View key={index} className="py-3">
+                <View key={index} className="py-2.5">
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => setExpandedFaq(isOpen ? null : index)}
                     className="flex-row items-center justify-between"
                   >
-                    <Text className="text-body font-semibold text-ink flex-1 mr-2">
+                    <Text className="text-xs font-semibold text-ink flex-1 mr-2 leading-snug">
                       {faq.q}
                     </Text>
                     {isOpen ? (
-                      <ChevronUp size={18} color="#2563EB" />
+                      <ChevronUp size={16} color="#2563EB" />
                     ) : (
-                      <ChevronDown size={18} color="#9CA3AF" />
+                      <ChevronDown size={16} color="#9CA3AF" />
                     )}
                   </TouchableOpacity>
 
                   {isOpen && (
-                    <Text className="text-caption text-ink-muted mt-2 leading-relaxed bg-surface-subtle p-3 rounded-xl">
+                    <Text className="text-xs text-ink-muted mt-2 leading-relaxed bg-surface-subtle p-2.5 rounded-lg border border-border/50">
                       {faq.a}
                     </Text>
                   )}
