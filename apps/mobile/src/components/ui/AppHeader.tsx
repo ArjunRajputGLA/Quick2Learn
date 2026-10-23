@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Menu } from 'lucide-react-native';
 import { colors } from '@quick2learn/shared';
 import { NotificationBell } from './NotificationBell';
 import * as Haptics from 'expo-haptics';
@@ -47,12 +47,7 @@ export function AppHeader({
     }
   };
 
-  const lastToggleRef = React.useRef(0);
-
   const handleToggle = () => {
-    const now = Date.now();
-    if (now - lastToggleRef.current < 400) return;
-    lastToggleRef.current = now;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleDropdown();
   };
@@ -109,7 +104,7 @@ export function AppHeader({
           <TouchableOpacity
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Open menu dropdown"
+            accessibilityLabel="Open sidebar menu"
             onPress={handleToggle}
             style={{
               width: 34,
@@ -124,7 +119,7 @@ export function AppHeader({
             }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <ChevronDown size={19} color={colors.ink} strokeWidth={2.3} />
+            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
           </TouchableOpacity>
         )}
         <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
@@ -157,4 +152,4 @@ export function AppHeader({
       ) : null}
     </View>
   );
-}
+} 

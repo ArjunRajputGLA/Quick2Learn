@@ -121,7 +121,7 @@ export function MegaMenu({ data, className, onOpenEnquiry }: MegaMenuProps) {
         <div
           role="region"
           aria-label="Explore Mega Menu"
-          className="absolute left-0 top-full mt-2.5 z-50 w-[880px] max-w-[95vw] rounded-xl border border-border bg-surface shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150 before:content-[''] before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
+          className="absolute left-0 top-full mt-2.5 z-[1000] w-[880px] max-w-[95vw] rounded-xl border border-border bg-surface shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150 before:content-[''] before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
         >
           <div className="grid grid-cols-12 divide-x divide-border">
             {/* Left 8 Columns: Class IX, X, XI, XII */}

@@ -114,7 +114,7 @@ export function Header({ megaMenuData }: HeaderProps) {
         ref={headerRef}
         onFocusCapture={() => setIsVisible(true)}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 w-full transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform",
+          "fixed top-0 left-0 right-0 z-[999] w-full transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform",
           isScrolled
             ? "border-b border-border/80 bg-surface/95 backdrop-blur-md shadow-md"
             : "border-b border-border/60 bg-surface/98 backdrop-blur-md shadow-none",

@@ -1,4 +1,4 @@
-import { RollingDropdownMenu } from './RollingDropdownMenu';
+import { RollingDropdownMenu, SidebarDrawer } from './RollingDropdownMenu';
 
-export { RollingDropdownMenu };
-export const SidebarDrawer = RollingDropdownMenu;
+export { RollingDropdownMenu, SidebarDrawer };
+export default SidebarDrawer;

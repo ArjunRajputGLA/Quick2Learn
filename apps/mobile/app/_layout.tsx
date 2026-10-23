@@ -43,7 +43,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 import { ConfirmDialogProvider } from '../src/components/ui/ConfirmModal';
-import { RollingDropdownMenu } from '../src/components/ui/RollingDropdownMenu';
+import { SidebarDrawer } from '../src/components/ui/SidebarDrawer';
 
 function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -107,7 +107,7 @@ function RootLayout() {
               <ConfirmDialogProvider>
                 <View style={{ flex: 1, position: 'relative' }}>
                   <Slot />
-                  <RollingDropdownMenu />
+                  <SidebarDrawer />
                 </View>
               </ConfirmDialogProvider>
             </GlobalAppStatusGuard>

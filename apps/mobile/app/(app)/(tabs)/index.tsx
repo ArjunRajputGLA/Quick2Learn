@@ -32,7 +32,7 @@ import {
   FileText,
   Volume2,
   ShieldCheck,
-  ChevronDown,
+  Menu,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
@@ -246,15 +246,12 @@ function StudentHomeScreen() {
         className="mx-3 mt-1 mb-1.5 px-2 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-          {/* Down arrow dropdown trigger */}
+          {/* Sidebar drawer trigger */}
           <TouchableOpacity
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Open menu dropdown"
+            accessibilityLabel="Open sidebar menu"
             onPress={() => {
-              const now = Date.now();
-              if (now - lastToggleRef.current < 400) return;
-              lastToggleRef.current = now;
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               toggleDropdown();
             }}
@@ -271,7 +268,7 @@ function StudentHomeScreen() {
             }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <ChevronDown size={19} color={colors.ink} strokeWidth={2.3} />
+            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
           </TouchableOpacity>
 
           <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
