@@ -43,36 +43,33 @@ export default function RootIndex() {
       className="flex-1 bg-surface items-center justify-center p-6"
     >
       <StatusBar style="dark" />
-      <View style={{ alignItems: 'center' }} className="items-center">
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <View
           style={{
-            width: 72,
-            height: 72,
+            width: 76,
+            height: 76,
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 16,
+            marginBottom: 14,
           }}
-          className="w-18 h-18 items-center justify-center mb-4"
         >
           <Image
             source={require('../assets/logo.png')}
-            style={{ width: 72, height: 72 }}
+            style={{ width: 76, height: 76 }}
             resizeMode="contain"
           />
         </View>
         <Text
-          style={{ fontSize: 20, fontWeight: '700', color: colors.ink, marginBottom: 4 }}
-          className="text-h3 font-bold text-ink mb-1"
+          style={{ fontSize: 22, fontWeight: '800', color: colors.ink, marginBottom: 4 }}
         >
           Quick2Learn
         </Text>
         <Text
-          style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 16 }}
-          className="text-caption text-ink-muted mb-4"
+          style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 20 }}
         >
           Learn Maths the quick and easy way
         </Text>
-        <BookLoader text="Loading your study space..." size="sm" />
+        <BookLoader text="Loading your study space..." size="lg" />
       </View>
     </SafeAreaView>
   );

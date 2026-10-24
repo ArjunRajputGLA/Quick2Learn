@@ -40,6 +40,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { Chip } from '../../../src/components/ui/Chip';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
 import { useMe, useStudentBatches } from '../../../src/api/hooks';
@@ -705,11 +706,10 @@ export default function BatchesScreen() {
               />
             }
           >
-            {/* Loading Skeletons */}
+            {/* Loading State */}
             {isStudentLoading && !studentData && (
-              <View className="space-y-4">
-                <Skeleton width="100%" height={160} borderRadius={16} />
-                <Skeleton width="100%" height={160} borderRadius={16} />
+              <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                <BookLoader text="Loading your batches..." size="lg" />
               </View>
             )}
 

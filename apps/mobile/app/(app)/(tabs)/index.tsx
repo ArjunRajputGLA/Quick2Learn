@@ -45,6 +45,7 @@ import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { NotificationBell } from '../../../src/components/ui/NotificationBell';
 import { Button } from '../../../src/components/ui/Button';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { Badge } from '../../../src/components/ui/Badge';
 import { TextField } from '../../../src/components/ui/TextField';
 import { ProgressBar } from '../../../src/components/ui/ProgressBar';
@@ -58,8 +59,16 @@ import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quic
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const { data: me } = useMe();
+  const { data: me, isLoading: isMeLoading } = useMe();
   const isParent = me?.role === 'parent';
+
+  if (isMeLoading && !me) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <BookLoader text="Loading your study space..." size="lg" />
+      </View>
+    );
+  }
 
   if (isParent) {
     return <ParentHomeScreen />;
@@ -148,42 +157,11 @@ function StudentHomeScreen() {
     }
   };
 
-  // 1. Loading Skeleton State (< 1.5s target)
+  // 1. Loading State (< 1.5s target)
   if (isLoading && !home) {
     return (
-      <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
-        <View
-          style={{
-            marginHorizontal: 12,
-            marginTop: 4,
-            marginBottom: 6,
-            paddingHorizontal: 14,
-            paddingVertical: 7,
-            borderRadius: 24,
-            backgroundColor: colors.surface,
-            borderWidth: 1,
-            borderColor: 'rgba(226, 232, 240, 0.9)',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-          className="mx-3 mt-1 mb-1.5 px-3.5 py-1.5 flex-row items-center justify-between rounded-full bg-surface border border-border shadow-xs"
-        >
-          <View className="flex-row items-center space-x-2">
-            <Skeleton width={110} height={20} borderRadius={6} />
-            <Skeleton width={70} height={18} borderRadius={10} className="ml-2" />
-          </View>
-          <Skeleton width={34} height={34} borderRadius={17} />
-        </View>
-
-        <ScrollView className="p-4 space-y-4">
-          <Skeleton width="100%" height={90} borderRadius={16} className="mb-4" />
-          <Skeleton width="100%" height={160} borderRadius={16} className="mb-4" />
-          <Skeleton width={180} height={20} borderRadius={4} className="mb-2" />
-          <Skeleton width="100%" height={74} borderRadius={12} className="mb-2" />
-          <Skeleton width="100%" height={74} borderRadius={12} className="mb-4" />
-          <Skeleton width="100%" height={140} borderRadius={16} />
-        </ScrollView>
+      <View style={{ flex: 1, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
+        <BookLoader text="Loading your classroom..." size="lg" />
       </View>
     );
   }

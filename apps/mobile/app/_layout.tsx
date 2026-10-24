@@ -42,8 +42,25 @@ SplashScreen.preventAutoHideAsync().catch(() => {
   // Splash screen might already be hidden or not available in dev client
 });
 
+import { BookLoader } from '../src/components/ui/BookLoader';
+import { useIsRestoring } from '@tanstack/react-query';
 import { ConfirmDialogProvider } from '../src/components/ui/ConfirmModal';
 import { SidebarDrawer } from '../src/components/ui/SidebarDrawer';
+
+function AppStartupGate({ children }: { children: React.ReactNode }) {
+  const isRestoring = useIsRestoring();
+
+  if (isRestoring) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+        <StatusBar style="dark" />
+        <BookLoader text="Starting Quick2Learn..." size="lg" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -87,7 +104,12 @@ function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+        <StatusBar style="dark" />
+        <BookLoader text="Starting Quick2Learn..." size="lg" />
+      </View>
+    );
   }
 
   return (
@@ -104,12 +126,14 @@ function RootLayout() {
         >
           <ErrorBoundary>
             <GlobalAppStatusGuard>
-              <ConfirmDialogProvider>
-                <View style={{ flex: 1, position: 'relative' }}>
-                  <Slot />
-                  <SidebarDrawer />
-                </View>
-              </ConfirmDialogProvider>
+              <AppStartupGate>
+                <ConfirmDialogProvider>
+                  <View style={{ flex: 1, position: 'relative' }}>
+                    <Slot />
+                    <SidebarDrawer />
+                  </View>
+                </ConfirmDialogProvider>
+              </AppStartupGate>
             </GlobalAppStatusGuard>
           </ErrorBoundary>
         </PersistQueryClientProvider>
