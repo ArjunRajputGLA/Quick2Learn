@@ -42,6 +42,7 @@ import {
   Clock,
   Calendar,
   AlertTriangle,
+  AlertCircle,
   ArrowRight,
   ArrowLeft,
   ChevronDown,
@@ -3609,10 +3610,26 @@ function SearchableBatchDropdown({
   }, [batches, searchQuery]);
 
   const showAllBatchesOption =
-    allowAllBatches &&
+    (allowAllBatches || batches.length === 0) &&
     (!searchQuery.trim() ||
       allBatchesLabel.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-      'all general public'.includes(searchQuery.trim().toLowerCase()));
+      'all general public direct institute'.includes(searchQuery.trim().toLowerCase()));
+
+  const triggerTitle = selectedBatch
+    ? selectedBatch.title
+    : (batches.length === 0
+        ? 'Direct Institute Admission'
+        : (allowAllBatches ? `🌐 ${allBatchesLabel}` : 'Tap to select target batch'));
+
+  const triggerSubtitle = selectedBatch
+    ? `${selectedBatch.subject || 'All Subjects'} • ${selectedBatch.enrolledCount} Students Enrolled`
+    : (batches.length === 0
+        ? 'No batches created yet • Student added to institute'
+        : (allowAllBatches ? 'Public / applicable across all enrolled batches' : `Choose from ${batches.length} available batch(es)`));
+
+  const triggerBadge = selectedBatch
+    ? `Class ${selectedBatch.classLevel} • ${selectedBatch.board.toUpperCase()}`
+    : (batches.length === 0 ? 'Direct Admission' : (allowAllBatches ? 'Applicable to all' : 'Required'));
 
   return (
     <View style={{ gap: 6 }}>
@@ -3621,8 +3638,8 @@ function SearchableBatchDropdown({
           <GraduationCap size={15} color={accentColor} />
           <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B' }}>{label}</Text>
         </View>
-        <Text style={{ fontSize: 11, color: '#64748B' }}>
-          {selectedBatch ? `Class ${selectedBatch.classLevel} • ${selectedBatch.board.toUpperCase()}` : 'Applicable to all'}
+        <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
+          {triggerBadge}
         </Text>
       </View>
 
@@ -3640,7 +3657,7 @@ function SearchableBatchDropdown({
           borderColor: isOpen ? accentColor : '#E2E8F0',
           borderRadius: 12,
           paddingHorizontal: 14,
-          paddingVertical: 12,
+          paddingVertical: 11,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -3650,8 +3667,8 @@ function SearchableBatchDropdown({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
           <View
             style={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               borderRadius: 10,
               backgroundColor: selectedBatch ? `${accentColor}15` : '#F1F5F9',
               alignItems: 'center',
@@ -3660,16 +3677,14 @@ function SearchableBatchDropdown({
               borderColor: selectedBatch ? `${accentColor}30` : '#E2E8F0',
             }}
           >
-            <GraduationCap size={17} color={selectedBatch ? accentColor : '#64748B'} />
+            <GraduationCap size={18} color={selectedBatch ? accentColor : '#64748B'} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
-              {selectedBatch ? selectedBatch.title : `🌐 ${allBatchesLabel}`}
+              {triggerTitle}
             </Text>
-            <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>
-              {selectedBatch
-                ? `${selectedBatch.subject || 'All Subjects'} • ${selectedBatch.enrolledCount} Students Enrolled`
-                : 'Tap to select a specific target batch'}
+            <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
+              {triggerSubtitle}
             </Text>
           </View>
         </View>
@@ -3703,24 +3718,28 @@ function SearchableBatchDropdown({
             <View style={{ width: 38, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center' }} />
 
             {/* Modal Header */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 4 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
                     backgroundColor: `${accentColor}15`,
                     alignItems: 'center',
                     justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: `${accentColor}30`,
                   }}
                 >
-                  <GraduationCap size={18} color={accentColor} />
+                  <GraduationCap size={19} color={accentColor} />
                 </View>
                 <View>
-                  <Text style={{ fontSize: 16.5, fontWeight: '800', color: '#0F172A' }}>Select Batch</Text>
-                  <Text style={{ fontSize: 11, color: '#64748B' }}>
-                    {filteredBatches.length} batch{filteredBatches.length === 1 ? '' : 'es'} available
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Select Batch</Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                    {batches.length === 0
+                      ? 'No batches in institute'
+                      : `${filteredBatches.length} batch${filteredBatches.length === 1 ? '' : 'es'} available`}
                   </Text>
                 </View>
               </View>
@@ -3740,39 +3759,42 @@ function SearchableBatchDropdown({
               </TouchableOpacity>
             </View>
 
-            {/* Search Bar */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1.5,
-                borderColor: '#CBD5E1',
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                height: 44,
-                gap: 8,
-              }}
-            >
-              <Search size={16} color="#64748B" />
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Search batches by name, class, subject..."
-                placeholderTextColor="#94A3B8"
-                style={{ flex: 1, fontSize: 13.5, color: '#0F172A', paddingVertical: 0 }}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity activeOpacity={0.7} onPress={() => setSearchQuery('')}>
-                  <X size={15} color="#94A3B8" />
-                </TouchableOpacity>
-              )}
-            </View>
+            {/* Search Bar - only show when batches exist */}
+            {batches.length > 0 && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1.5,
+                  borderColor: searchQuery.length > 0 ? accentColor : '#CBD5E1',
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  height: 44,
+                  gap: 8,
+                }}
+              >
+                <Search size={16} color="#64748B" />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder="Search batches by name, class, subject..."
+                  placeholderTextColor="#94A3B8"
+                  style={{ flex: 1, fontSize: 13.5, color: '#0F172A', paddingVertical: 0 }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity activeOpacity={0.7} onPress={() => setSearchQuery('')}>
+                    <X size={15} color="#94A3B8" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
 
             {/* Results List */}
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 12 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 16 }}>
+              {/* Option for Direct Admission / All Batches */}
               {showAllBatchesOption && (
                 <TouchableOpacity
                   activeOpacity={0.75}
@@ -3782,7 +3804,7 @@ function SearchableBatchDropdown({
                     setIsOpen(false);
                   }}
                   style={{
-                    padding: 12,
+                    padding: 13,
                     borderRadius: 12,
                     backgroundColor: !selectedBatchId ? `${accentColor}12` : '#F8FAFC',
                     borderWidth: 1.5,
@@ -3794,10 +3816,12 @@ function SearchableBatchDropdown({
                 >
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={{ fontSize: 13.5, fontWeight: '800', color: !selectedBatchId ? accentColor : '#0F172A' }}>
-                      🌐 {allBatchesLabel}
+                      {batches.length === 0 ? '🏢 Direct Institute Admission' : `🌐 ${allBatchesLabel}`}
                     </Text>
                     <Text style={{ fontSize: 11, color: '#64748B' }}>
-                      Public / applicable across all enrolled batches & students
+                      {batches.length === 0
+                        ? 'Enroll student directly into institute without an active batch'
+                        : 'Public / applicable across all enrolled batches & students'}
                     </Text>
                   </View>
                   {!selectedBatchId && <CheckCircle2 size={18} color={accentColor} />}
@@ -3816,7 +3840,7 @@ function SearchableBatchDropdown({
                       setIsOpen(false);
                     }}
                     style={{
-                      padding: 12,
+                      padding: 13,
                       borderRadius: 12,
                       backgroundColor: isSelected ? `${accentColor}12` : '#F8FAFC',
                       borderWidth: 1.5,
@@ -3835,8 +3859,8 @@ function SearchableBatchDropdown({
                         <View
                           style={{
                             backgroundColor: isSelected ? accentColor : '#E2E8F0',
-                            paddingHorizontal: 6,
-                            paddingVertical: 1.5,
+                            paddingHorizontal: 7,
+                            paddingVertical: 2,
                             borderRadius: 6,
                           }}
                         >
@@ -3847,7 +3871,7 @@ function SearchableBatchDropdown({
                               color: isSelected ? '#FFFFFF' : '#475569',
                             }}
                           >
-                            Cl {b.classLevel}
+                            Class {b.classLevel}
                           </Text>
                         </View>
                       </View>
@@ -3860,15 +3884,49 @@ function SearchableBatchDropdown({
                 );
               })}
 
-              {filteredBatches.length === 0 && !showAllBatchesOption && (
-                <View style={{ paddingVertical: 32, alignItems: 'center', gap: 8 }}>
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#64748B' }}>
-                    No batches match "{searchQuery}"
+              {/* Helpful empty state when 0 batches created in institute */}
+              {batches.length === 0 && (
+                <View style={{ paddingVertical: 24, alignItems: 'center', paddingHorizontal: 16, gap: 8 }}>
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: '#EFF6FF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1,
+                      borderColor: '#BFDBFE',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <School size={22} color="#2563EB" />
+                  </View>
+                  <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A', textAlign: 'center' }}>
+                    No Classroom Batches Yet
+                  </Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748B', textAlign: 'center', lineHeight: 17, maxWidth: 280 }}>
+                    You haven't set up classroom batches yet. You can admit students under Direct Institute Admission now and assign them to batches later.
+                  </Text>
+                </View>
+              )}
+
+              {/* Empty state when search query yields no match */}
+              {batches.length > 0 && filteredBatches.length === 0 && (
+                <View style={{ paddingVertical: 28, alignItems: 'center', paddingHorizontal: 16, gap: 8 }}>
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+                    <Search size={20} color="#94A3B8" />
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>
+                    No batches matching "{searchQuery}"
+                  </Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748B', textAlign: 'center' }}>
+                    Try searching by class level (e.g. 10), subject, or board.
                   </Text>
                   <TouchableOpacity
                     activeOpacity={0.75}
                     onPress={() => setSearchQuery('')}
-                    style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F1F5F9' }}
+                    style={{ marginTop: 4, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE' }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: accentColor }}>Clear Search</Text>
                   </TouchableOpacity>
@@ -6645,200 +6703,299 @@ function NewStudentEnrollModal({
           )}
 
           {activeTab === 'new' ? (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 12 }}
-            >
-              <FormField
-                label="Student Full Name *"
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="e.g. Arjun Singh Rajput"
-              />
+            <>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 24, gap: 14 }}
+              >
+                <FormField
+                  label="Student Full Name *"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="e.g. Arjun Singh Rajput"
+                />
 
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <FormField
-                    label="Mobile Number *"
-                    value={phone}
-                    onChangeText={setPhone}
-                    placeholder="e.g. 9412278910"
-                    keyboardType="phone-pad"
-                  />
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <FormField
+                      label="Mobile Number *"
+                      value={phone}
+                      onChangeText={setPhone}
+                      placeholder="e.g. 9412278910"
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <FormField
+                      label="Email (Optional)"
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="e.g. student@gmail.com"
+                      keyboardType="email-address"
+                    />
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <FormField
-                    label="Email (Optional)"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="e.g. student@gmail.com"
-                    keyboardType="email-address"
-                  />
+
+                {/* Target Batch Dropdown */}
+                <SearchableBatchDropdown
+                  batches={batches}
+                  selectedBatchId={selectedBatchId}
+                  onSelectBatch={handleSelectBatch}
+                  accentColor="#2563EB"
+                  allowAllBatches={false}
+                  label="Select Enrolling Batch *"
+                />
+
+                {/* Class Level Selector */}
+                <View style={{ gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Class Level</Text>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Grade {classLevel}</Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: '#F1F5F9',
+                      padding: 3,
+                      borderRadius: 12,
+                      gap: 4,
+                    }}
+                  >
+                    {([9, 10, 11, 12] as const).map((lvl) => {
+                      const isSelected = classLevel === lvl;
+                      return (
+                        <TouchableOpacity
+                          key={lvl}
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setClassLevel(lvl);
+                          }}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 8,
+                            borderRadius: 9,
+                            backgroundColor: isSelected ? '#2563EB' : 'transparent',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            shadowColor: isSelected ? '#2563EB' : 'transparent',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: isSelected ? 0.2 : 0,
+                            shadowRadius: 2,
+                            elevation: isSelected ? 2 : 0,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12.5,
+                              fontWeight: isSelected ? '800' : '600',
+                              color: isSelected ? '#FFFFFF' : '#475569',
+                            }}
+                          >
+                            Class {lvl}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
 
-              {/* Target Batch Dropdown */}
-              <SearchableBatchDropdown
-                batches={batches}
-                selectedBatchId={selectedBatchId}
-                onSelectBatch={handleSelectBatch}
-                accentColor="#2563EB"
-                allowAllBatches={false}
-                label="Select Enrolling Batch *"
-              />
-
-              {/* Class Level Selector */}
-              <View style={{ gap: 4 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Class Level</Text>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
-                  {([9, 10, 11, 12] as const).map((lvl) => {
-                    const isSelected = classLevel === lvl;
-                    return (
-                      <TouchableOpacity
-                        key={lvl}
-                        onPress={() => {
-                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          setClassLevel(lvl);
-                        }}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 8,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? '#2563EB' : '#FFFFFF',
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? '#1D4ED8' : '#CBD5E1',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
-                          Class {lvl}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                {/* Educational Board */}
+                <View style={{ gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Educational Board</Text>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>{board.toUpperCase()} Syllabus</Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: '#F1F5F9',
+                      padding: 3,
+                      borderRadius: 12,
+                      gap: 4,
+                    }}
+                  >
+                    {(['cbse', 'icse'] as const).map((b) => {
+                      const isSelected = board === b;
+                      return (
+                        <TouchableOpacity
+                          key={b}
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setBoard(b);
+                          }}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 8,
+                            borderRadius: 9,
+                            backgroundColor: isSelected ? '#2563EB' : 'transparent',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            shadowColor: isSelected ? '#2563EB' : 'transparent',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: isSelected ? 0.2 : 0,
+                            shadowRadius: 2,
+                            elevation: isSelected ? 2 : 0,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12.5,
+                              fontWeight: isSelected ? '800' : '600',
+                              color: isSelected ? '#FFFFFF' : '#475569',
+                            }}
+                          >
+                            {b.toUpperCase()}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
 
-              {/* Educational Board */}
-              <View style={{ gap: 4 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Educational Board</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {(['cbse', 'icse'] as const).map((b) => {
-                    const isSelected = board === b;
-                    return (
-                      <TouchableOpacity
-                        key={b}
-                        onPress={() => setBoard(b)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 8,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? '#059669' : '#FFFFFF',
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? '#047857' : '#CBD5E1',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
-                          {b.toUpperCase()}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                <FormField
+                  label="School / College Name"
+                  value={school}
+                  onChangeText={setSchool}
+                  placeholder="e.g. St. Dominic Convent School, Mathura"
+                />
+
+                {/* Parent / Guardian Details Card */}
+                <View
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 14,
+                    padding: 12,
+                    gap: 10,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Users size={15} color="#2563EB" />
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B' }}>
+                      Parent / Guardian Details
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#94A3B8' }}>(Optional)</Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flex: 1 }}>
+                      <FormField
+                        label="Parent Name"
+                        value={parentName}
+                        onChangeText={setParentName}
+                        placeholder="e.g. Rajesh Rajput"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <FormField
+                        label="Parent Phone"
+                        value={parentPhone}
+                        onChangeText={setParentPhone}
+                        placeholder="e.g. 9837123456"
+                        keyboardType="phone-pad"
+                      />
+                    </View>
+                  </View>
                 </View>
-              </View>
 
-              <FormField
-                label="School / College Name"
-                value={school}
-                onChangeText={setSchool}
-                placeholder="e.g. St. Dominic Convent School, Mathura"
-              />
+                {/* Fee Status */}
+                <View style={{ gap: 6 }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Initial Fee Status</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {(['paid', 'due', 'overdue'] as const).map((status) => {
+                      const isSelected = feeStatus === status;
+                      const cfg = {
+                        paid: { label: 'PAID', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0', icon: CheckCircle2 },
+                        due: { label: 'DUE', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', icon: Clock },
+                        overdue: { label: 'OVERDUE', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA', icon: AlertCircle },
+                      }[status];
+                      const IconComp = cfg.icon;
 
-              {/* Parent Info */}
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <FormField
-                    label="Parent Name (Optional)"
-                    value={parentName}
-                    onChangeText={setParentName}
-                    placeholder="e.g. Rajesh Rajput"
-                  />
+                      return (
+                        <TouchableOpacity
+                          key={status}
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setFeeStatus(status);
+                          }}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 9,
+                            borderRadius: 10,
+                            backgroundColor: isSelected ? cfg.bg : '#F8FAFC',
+                            borderWidth: 1.5,
+                            borderColor: isSelected ? cfg.border : '#E2E8F0',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 5,
+                          }}
+                        >
+                          <IconComp size={14} color={isSelected ? cfg.color : '#94A3B8'} />
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: isSelected ? '800' : '600',
+                              color: isSelected ? cfg.color : '#64748B',
+                            }}
+                          >
+                            {cfg.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <FormField
-                    label="Parent Phone (Optional)"
-                    value={parentPhone}
-                    onChangeText={setParentPhone}
-                    placeholder="e.g. 9837123456"
-                    keyboardType="phone-pad"
-                  />
-                </View>
-              </View>
+              </ScrollView>
 
-              {/* Fee Status */}
-              <View style={{ gap: 4 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Initial Fee Status</Text>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
-                  {(['paid', 'due', 'overdue'] as const).map((status) => {
-                    const isSelected = feeStatus === status;
-                    const color = status === 'paid' ? '#059669' : status === 'due' ? '#D97706' : '#DC2626';
-                    return (
-                      <TouchableOpacity
-                        key={status}
-                        onPress={() => setFeeStatus(status)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 8,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? color : '#FFFFFF',
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? color : '#CBD5E1',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
-                          {status.toUpperCase()}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={handleEnrollSubmit}
-                disabled={isSubmitting}
+              {/* Sticky Action Footer */}
+              <View
                 style={{
-                  backgroundColor: '#2563EB',
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  gap: 8,
-                  marginTop: 6,
-                  shadowColor: '#2563EB',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 4,
-                  elevation: 3,
+                  paddingHorizontal: 18,
+                  paddingTop: 10,
+                  paddingBottom: Math.max(insets.bottom, 12) + 4,
+                  borderTopWidth: 1,
+                  borderTopColor: '#F1F5F9',
+                  backgroundColor: '#FFFFFF',
                 }}
               >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <>
-                    <UserPlus size={17} color="#FFFFFF" />
-                    <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
-                      Complete Student Enrollment
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleEnrollSubmit}
+                  disabled={isSubmitting}
+                  style={{
+                    backgroundColor: '#2563EB',
+                    height: 48,
+                    borderRadius: 14,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    gap: 8,
+                    shadowColor: '#2563EB',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <>
+                      <UserPlus size={18} color="#FFFFFF" />
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>
+                        Complete Student Enrollment
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
           ) : (
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -7412,9 +7569,13 @@ function FormField({
   numberOfLines?: number;
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
 }) {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
-    <View style={{ gap: 5 }}>
-      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155', letterSpacing: 0.2 }}>{label}</Text>
+    <View style={{ gap: 4 }}>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: isFocused ? '#2563EB' : '#334155', letterSpacing: 0.2 }}>
+        {label}
+      </Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -7423,17 +7584,19 @@ function FormField({
         multiline={multiline}
         numberOfLines={numberOfLines}
         keyboardType={keyboardType}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         style={{
-          backgroundColor: '#F8FAFC',
+          backgroundColor: isFocused ? '#FFFFFF' : '#F8FAFC',
           borderWidth: 1.5,
-          borderColor: '#E2E8F0',
+          borderColor: isFocused ? '#2563EB' : '#E2E8F0',
           borderRadius: 12,
           paddingHorizontal: 14,
-          paddingVertical: multiline ? 10 : 11,
+          paddingVertical: multiline ? 10 : 10.5,
           fontSize: 13.5,
           fontWeight: '500',
           color: '#0F172A',
-          minHeight: multiline ? 80 : 46,
+          minHeight: multiline ? 80 : 44,
           textAlignVertical: multiline ? 'top' : 'center',
         }}
       />
