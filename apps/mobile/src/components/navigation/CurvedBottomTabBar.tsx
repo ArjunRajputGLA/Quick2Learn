@@ -81,9 +81,10 @@ export function CurvedBottomTabBar({
   const tabWidth = windowWidth / numTabs;
 
   // Bar dimensions
-  const barContentHeight = 58;
-  const bottomInset = Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 6);
-  const totalBarHeight = barContentHeight + bottomInset;
+  const barContentHeight = 56;
+  const bottomShiftOffset = Platform.OS === 'ios' ? 8 : 10;
+  const bottomInset = Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom - 2, 4);
+  const totalBarHeight = barContentHeight + bottomInset + bottomShiftOffset;
 
   // Active tab center target
   const targetCenterX = (activeVisibleIndex + 0.5) * tabWidth;
@@ -96,7 +97,7 @@ export function CurvedBottomTabBar({
   // Real-time track animated X for dynamic SVG notch rendering
   const [currentX, setCurrentX] = useState(targetCenterX);
 
-  // Subscribe to visibility store for hide-on-scroll
+  // Subscribe to visibility store
   const isTabBarVisible = useTabBarVisibilityStore((s) => s.isVisible);
 
   useEffect(() => {
@@ -133,15 +134,14 @@ export function CurvedBottomTabBar({
     ]).start();
   }, [activeVisibleIndex, targetCenterX, animatedX, scaleAnim]);
 
-  // Animate hide-on-scroll (translate down when scrolling down, up when scrolling up)
+  // Tab bar visibility animation
   useEffect(() => {
-    Animated.spring(tabBarTranslateY, {
-      toValue: isTabBarVisible ? 0 : totalBarHeight + 20,
-      friction: 8,
-      tension: 50,
+    Animated.timing(tabBarTranslateY, {
+      toValue: isTabBarVisible ? 0 : totalBarHeight + 60,
+      duration: 180,
       useNativeDriver: true,
     }).start();
-  }, [isTabBarVisible, totalBarHeight, tabBarTranslateY]);
+  }, [isTabBarVisible, tabBarTranslateY, totalBarHeight]);
 
   // SVG Curve Math
   // Notch parameters: half width ~34-36px, dip depth ~28px, corner radius 20px
@@ -185,9 +185,12 @@ export function CurvedBottomTabBar({
   const activeDescriptor = activeRoute ? descriptors[activeRoute.key] : null;
   const activeLabel = activeDescriptor
     ? (activeDescriptor.options.tabBarLabel as string) ||
-      (activeDescriptor.options.title as string) ||
       activeRoute.name
     : '';
+
+  if (!isTabBarVisible) {
+    return null;
+  }
 
   return (
     <Animated.View
@@ -355,7 +358,7 @@ export function CurvedBottomTabBar({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: Platform.OS === 'ios' ? -8 : -10,
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
@@ -368,11 +371,11 @@ const styles = StyleSheet.create({
   },
   tabsRow: {
     flexDirection: 'row',
-    height: 58,
+    height: 56,
     alignItems: 'center',
   },
   tabButton: {
-    height: 58,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -380,17 +383,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
-    paddingTop: 4,
+    paddingTop: 6,
   },
   inactiveLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '600',
     color: '#64748B',
     letterSpacing: -0.1,
   },
   floatingCircleWrapper: {
     position: 'absolute',
-    top: -14,
+    top: -9,
     width: 52,
     height: 52,
     alignItems: 'center',
@@ -424,14 +427,14 @@ const styles = StyleSheet.create({
   },
   activeLabelContainer: {
     position: 'absolute',
-    top: 34,
+    top: 37,
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 104,
   },
   activeLabel: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: '800',
     color: '#0F172A',
     letterSpacing: -0.1,

@@ -435,7 +435,7 @@ export default function ProfileScreen() {
       <ScrollView
         style={{ flex: 1 }}
         className="flex-1"
-        contentContainerStyle={{ padding: 12, paddingBottom: 48 }}
+        contentContainerStyle={{ padding: 12, paddingBottom: Math.max(insets.bottom, 24) + 130 }}
         showsVerticalScrollIndicator={false}
         onScroll={onTabBarScroll}
         scrollEventThrottle={16}

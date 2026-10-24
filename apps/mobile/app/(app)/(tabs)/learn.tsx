@@ -330,7 +330,7 @@ export default function LearnScreen() {
             onScroll={handleTabBarScroll}
             scrollEventThrottle={scrollEventThrottle}
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
+            contentContainerStyle={{ padding: 12, paddingBottom: 130 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl

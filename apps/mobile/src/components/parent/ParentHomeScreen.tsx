@@ -104,7 +104,7 @@ export function ParentHomeScreen() {
             tintColor="#2563EB"
           />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
       >
         {/* Child greeting info / Student Overview Card */}
         {child && (

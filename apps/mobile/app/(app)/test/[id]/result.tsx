@@ -76,21 +76,6 @@ export default function TestResultScreen() {
     } catch {}
   };
 
-  const handleAskDoubt = (q: TestQuestionResult) => {
-    router.push({
-      pathname: '/(app)/doubt/new',
-      params: {
-        sourceType: 'test_question',
-        sourceId: q.questionId,
-        questionId: q.questionId,
-        testId: result?.testId,
-        testTitle: result?.title,
-        questionPosition: String(q.position),
-        chapterId: (q as any).chapterId || '',
-        subjectId: (result as any)?.subjectId || '',
-      },
-    } as any);
-  };
 
   const handlePracticeChapter = (chapterId: string | null) => {
     if (chapterId) {
@@ -483,17 +468,6 @@ export default function TestResultScreen() {
                     </View>
                   ) : null}
 
-                  {/* Ask a Doubt Button on any question (Prompt 11) */}
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleAskDoubt(q)}
-                    className="flex-row items-center justify-center py-2 px-3 bg-surface-subtle border border-primary/20 rounded-xl"
-                  >
-                    <MessageSquarePlus size={15} color="#2563EB" />
-                    <Text className="text-small font-bold text-primary ml-1.5">
-                      Ask Dinesh Sir a Doubt on Q{q.position}
-                    </Text>
-                  </TouchableOpacity>
                 </View>
               );
             })}

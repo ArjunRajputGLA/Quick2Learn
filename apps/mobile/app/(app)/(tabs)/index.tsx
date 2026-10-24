@@ -313,7 +313,7 @@ function StudentHomeScreen() {
       <ScrollView
         onScroll={handleTabBarScroll}
         scrollEventThrottle={scrollEventThrottle}
-        contentContainerStyle={{ paddingBottom: 90 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 12) + 66 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing || isRefetching}

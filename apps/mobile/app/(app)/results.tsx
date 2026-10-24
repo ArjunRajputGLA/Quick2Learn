@@ -699,103 +699,145 @@ export default function ResultsScreen() {
         transparent
         onRequestClose={() => setShowUploadModal(false)}
       >
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15, 23, 42, 0.55)' }}>
           <View
             style={{
               backgroundColor: '#FFFFFF',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              padding: 16,
-              maxHeight: '85%',
-              borderTopWidth: 1,
-              borderTopColor: '#E2E8F0',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              maxHeight: '90%',
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.12,
+              shadowRadius: 16,
+              elevation: 20,
             }}
           >
+            {/* Grab Handle */}
+            <View style={{ paddingTop: 10, paddingBottom: 6, alignItems: 'center' }}>
+              <View style={{ width: 38, height: 4.5, borderRadius: 3, backgroundColor: '#CBD5E1' }} />
+            </View>
+
             {/* Modal Header */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingBottom: 12,
+                paddingHorizontal: 18,
+                paddingBottom: 14,
                 borderBottomWidth: 1,
                 borderBottomColor: '#F1F5F9',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Plus size={18} color="#D97706" strokeWidth={2.5} />
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginLeft: 6 }}>
-                  {uploadMode === 'result' ? 'Add Board Topper Result' : 'Add Student Testimonial'}
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <View
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    backgroundColor: '#FEF3C7',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 10,
+                  }}
+                >
+                  <Trophy size={18} color="#D97706" strokeWidth={2.2} />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0F172A' }}>
+                    {uploadMode === 'result' ? 'Add Board Topper Result' : 'Add Student Review'}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>
+                    {uploadMode === 'result'
+                      ? 'Recognize top performers and board achievers'
+                      : 'Share inspiring student reviews & ratings'}
+                  </Text>
+                </View>
               </View>
               <TouchableOpacity
                 onPress={() => setShowUploadModal(false)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={{ padding: 4 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: '#F1F5F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <X size={18} color="#64748B" />
+                <X size={16} color="#64748B" strokeWidth={2.2} />
               </TouchableOpacity>
             </View>
 
             {/* Toggle Mode */}
-            <View
-              style={{
-                flexDirection: 'row',
-                padding: 3,
-                backgroundColor: '#F1F5F9',
-                borderRadius: 10,
-                marginVertical: 12,
-                borderWidth: 1,
-                borderColor: '#E2E8F0',
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => setUploadMode('result')}
+            <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 2 }}>
+              <View
                 style={{
-                  flex: 1,
-                  paddingVertical: 7,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                  backgroundColor: uploadMode === 'result' ? '#D97706' : 'transparent',
+                  flexDirection: 'row',
+                  padding: 3,
+                  backgroundColor: '#F1F5F9',
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
                 }}
               >
-                <Text
+                <TouchableOpacity
+                  onPress={() => setUploadMode('result')}
+                  activeOpacity={0.8}
                   style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: uploadMode === 'result' ? '#FFFFFF' : '#475569',
+                    flex: 1,
+                    paddingVertical: 7,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                    backgroundColor: uploadMode === 'result' ? '#D97706' : 'transparent',
                   }}
                 >
-                  Board Topper
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: uploadMode === 'result' ? '#FFFFFF' : '#64748B',
+                    }}
+                  >
+                    Board Topper
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setUploadMode('testimonial')}
-                style={{
-                  flex: 1,
-                  paddingVertical: 7,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                  backgroundColor: uploadMode === 'testimonial' ? '#D97706' : 'transparent',
-                }}
-              >
-                <Text
+                <TouchableOpacity
+                  onPress={() => setUploadMode('testimonial')}
+                  activeOpacity={0.8}
                   style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: uploadMode === 'testimonial' ? '#FFFFFF' : '#475569',
+                    flex: 1,
+                    paddingVertical: 7,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                    backgroundColor: uploadMode === 'testimonial' ? '#D97706' : 'transparent',
                   }}
                 >
-                  Student Review
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: uploadMode === 'testimonial' ? '#FFFFFF' : '#64748B',
+                    }}
+                  >
+                    Student Review
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {/* Student Name */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Student Full Name *
                 </Text>
                 <TextInput
@@ -807,10 +849,10 @@ export default function ResultsScreen() {
                     backgroundColor: '#F8FAFC',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 7,
-                    fontSize: 12,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 9,
+                    fontSize: 12.5,
                     color: '#0F172A',
                   }}
                 />
@@ -819,8 +861,8 @@ export default function ResultsScreen() {
               {uploadMode === 'result' ? (
                 <>
                   {/* Exam Name */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                       Exam / Course *
                     </Text>
                     <TextInput
@@ -832,110 +874,121 @@ export default function ResultsScreen() {
                         backgroundColor: '#F8FAFC',
                         borderWidth: 1,
                         borderColor: '#E2E8F0',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        paddingVertical: 7,
-                        fontSize: 12,
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 9,
+                        fontSize: 12.5,
                         color: '#0F172A',
                       }}
                     />
                   </View>
 
-                  {/* Score */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
-                      Score / Percentile *
-                    </Text>
-                    <TextInput
-                      value={scoreText}
-                      onChangeText={setScoreText}
-                      placeholder="e.g. 100/100 or 99.4%"
-                      placeholderTextColor="#94A3B8"
-                      style={{
-                        backgroundColor: '#F8FAFC',
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        paddingVertical: 7,
-                        fontSize: 12,
-                        color: '#0F172A',
-                      }}
-                    />
+                  {/* 2-Column: Score & Academic Year */}
+                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+                    <View style={{ flex: 1.2 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                        Score / % *
+                      </Text>
+                      <TextInput
+                        value={scoreText}
+                        onChangeText={setScoreText}
+                        placeholder="e.g. 100/100 or 99.4%"
+                        placeholderTextColor="#94A3B8"
+                        style={{
+                          backgroundColor: '#F8FAFC',
+                          borderWidth: 1,
+                          borderColor: '#E2E8F0',
+                          borderRadius: 10,
+                          paddingHorizontal: 12,
+                          paddingVertical: 9,
+                          fontSize: 12.5,
+                          color: '#0F172A',
+                        }}
+                      />
+                    </View>
+
+                    <View style={{ flex: 0.8 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                        Year
+                      </Text>
+                      <TextInput
+                        value={year}
+                        onChangeText={setYear}
+                        keyboardType="number-pad"
+                        placeholder="2026"
+                        placeholderTextColor="#94A3B8"
+                        style={{
+                          backgroundColor: '#F8FAFC',
+                          borderWidth: 1,
+                          borderColor: '#E2E8F0',
+                          borderRadius: 10,
+                          paddingHorizontal: 12,
+                          paddingVertical: 9,
+                          fontSize: 12.5,
+                          color: '#0F172A',
+                        }}
+                      />
+                    </View>
                   </View>
 
-                  {/* Year */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
-                      Academic Year
-                    </Text>
-                    <TextInput
-                      value={year}
-                      onChangeText={setYear}
-                      keyboardType="number-pad"
-                      placeholder="2026"
-                      placeholderTextColor="#94A3B8"
-                      style={{
-                        backgroundColor: '#F8FAFC',
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        paddingVertical: 7,
-                        fontSize: 12,
-                        color: '#0F172A',
-                      }}
-                    />
-                  </View>
-
-                  {/* Featured */}
+                  {/* Featured Card */}
                   <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      paddingVertical: 8,
-                      marginBottom: 14,
+                      backgroundColor: '#F8FAFC',
+                      borderWidth: 1,
+                      borderColor: '#E2E8F0',
+                      borderRadius: 12,
+                      padding: 12,
+                      marginBottom: 6,
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#1E293B' }}>
-                      Feature with TOPPER Badge
-                    </Text>
+                    <View style={{ flex: 1, marginRight: 10 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E293B' }}>
+                        Feature with TOPPER Badge
+                      </Text>
+                      <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }}>
+                        Highlights this student with gold topper banner
+                      </Text>
+                    </View>
                     <Switch
                       value={isFeatured}
                       onValueChange={setIsFeatured}
                       trackColor={{ false: '#D1D5DB', true: '#FDE68A' }}
-                      thumbColor={isFeatured ? '#D97706' : '#F3F4F6'}
+                      thumbColor={isFeatured ? '#D97706' : '#F8FAFC'}
                     />
                   </View>
                 </>
               ) : (
                 <>
                   {/* Class Level */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                       Class Level
                     </Text>
-                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <View style={{ flexDirection: 'row', gap: 7 }}>
                       {[12, 11, 10, 9].map((cl) => {
                         const isSelected = classLevel === cl;
                         return (
                           <TouchableOpacity
                             key={cl}
                             onPress={() => setClassLevel(cl)}
+                            activeOpacity={0.75}
                             style={{
                               flex: 1,
-                              paddingVertical: 7,
-                              borderRadius: 8,
+                              paddingVertical: 8,
+                              borderRadius: 9,
                               alignItems: 'center',
-                              backgroundColor: isSelected ? '#D97706' : '#F1F5F9',
+                              backgroundColor: isSelected ? '#D97706' : '#F8FAFC',
                               borderWidth: 1,
                               borderColor: isSelected ? '#D97706' : '#E2E8F0',
                             }}
                           >
                             <Text
                               style={{
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 fontWeight: '700',
                                 color: isSelected ? '#FFFFFF' : '#475569',
                               }}
@@ -949,8 +1002,8 @@ export default function ResultsScreen() {
                   </View>
 
                   {/* Review Quote */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                       Student Review / Quote *
                     </Text>
                     <TextInput
@@ -964,20 +1017,20 @@ export default function ResultsScreen() {
                         backgroundColor: '#F8FAFC',
                         borderWidth: 1,
                         borderColor: '#E2E8F0',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        paddingVertical: 8,
-                        fontSize: 12,
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 9,
+                        fontSize: 12.5,
                         color: '#0F172A',
-                        minHeight: 64,
+                        minHeight: 70,
                         textAlignVertical: 'top',
                       }}
                     />
                   </View>
 
                   {/* YouTube Video ID */}
-                  <View style={{ marginBottom: 14 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                       YouTube Video ID / URL (Optional)
                     </Text>
                     <TextInput
@@ -989,9 +1042,9 @@ export default function ResultsScreen() {
                         backgroundColor: '#F8FAFC',
                         borderWidth: 1,
                         borderColor: '#E2E8F0',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        paddingVertical: 7,
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 9,
                         fontSize: 12,
                         color: '#0F172A',
                       }}
@@ -999,29 +1052,45 @@ export default function ResultsScreen() {
                   </View>
                 </>
               )}
+            </ScrollView>
 
-              {/* Submit */}
+            {/* Sticky Action Footer */}
+            <View
+              style={{
+                paddingTop: 12,
+                paddingBottom: Math.max(insets.bottom, 14),
+                paddingHorizontal: 18,
+                borderTopWidth: 1,
+                borderTopColor: '#F1F5F9',
+                backgroundColor: '#FFFFFF',
+              }}
+            >
               <TouchableOpacity
                 onPress={handleUploadSubmit}
                 disabled={isSubmitting}
+                activeOpacity={0.85}
                 style={{
                   backgroundColor: '#D97706',
-                  paddingVertical: 10,
-                  borderRadius: 10,
+                  paddingVertical: 12,
+                  borderRadius: 12,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: Math.max(insets.bottom, 16) + 16,
+                  shadowColor: '#D97706',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 6,
+                  elevation: 3,
                 }}
               >
                 {isSubmitting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.2 }}>
                     {uploadMode === 'result' ? 'Publish Board Topper Result' : 'Publish Student Testimonial'}
                   </Text>
                 )}
               </TouchableOpacity>
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>

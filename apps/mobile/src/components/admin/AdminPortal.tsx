@@ -88,7 +88,6 @@ import {
   type AdminTestItem,
   type AdminStudentItem,
   type AdminPaymentItem,
-  type AdminDoubtItem,
   type AdminAnnouncementItem,
   type AdminEnquiryItem,
   type AdminCourseItem,
@@ -108,7 +107,6 @@ type AdminSection =
   | 'tests'
   | 'students'
   | 'fees'
-  | 'doubts'
   | 'announcements'
   | 'enquiries';
 
@@ -143,7 +141,6 @@ export function AdminPortal() {
   // Section Tab Badges count
   const badgesCount = useMemo(() => {
     const pendingReqs = store.joinRequests.filter((r) => r.status === 'pending').length;
-    const openDoubts = store.doubts.filter((d) => d.status === 'open').length;
     const newEnqs = store.enquiries.filter((e) => e.status === 'new').length;
     const overdueDues = store.feeDues.filter((d) => d.status === 'overdue').length;
     const totalUnreadChats = store.chats.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
@@ -151,11 +148,10 @@ export function AdminPortal() {
       requests: pendingReqs > 0 ? pendingReqs : undefined,
       batches: undefined,
       chats: totalUnreadChats > 0 ? totalUnreadChats : undefined,
-      doubts: openDoubts > 0 ? openDoubts : undefined,
       enquiries: newEnqs > 0 ? newEnqs : undefined,
       fees: overdueDues > 0 ? overdueDues : undefined,
     };
-  }, [store.joinRequests, store.doubts, store.enquiries, store.feeDues, store.chats]);
+  }, [store.joinRequests, store.enquiries, store.feeDues, store.chats]);
 
   // Modals visibility
   const [courseModalVisible, setCourseModalVisible] = useState(false);
@@ -182,8 +178,6 @@ export function AdminPortal() {
   const [selectedStudentForEnroll, setSelectedStudentForEnroll] = useState<AdminStudentItem | null>(null);
 
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
-  const [doubtReplyModalVisible, setDoubtReplyModalVisible] = useState(false);
-  const [selectedDoubt, setSelectedDoubt] = useState<AdminDoubtItem | null>(null);
 
   const [enquiryModalVisible, setEnquiryModalVisible] = useState(false);
   const [selectedEnquiry, setSelectedEnquiry] = useState<AdminEnquiryItem | null>(null);
@@ -351,16 +345,6 @@ export function AdminPortal() {
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setActiveSection('fees');
-            }}
-          />
-          <SectionPill
-            label="Doubts"
-            icon={<HelpCircle size={14} color={activeSection === 'doubts' ? '#FFFFFF' : '#4B5563'} />}
-            isActive={activeSection === 'doubts'}
-            badge={badgesCount.doubts}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setActiveSection('doubts');
             }}
           />
           <SectionPill
@@ -609,17 +593,6 @@ export function AdminPortal() {
           />
         )}
 
-        {/* DOUBTS INBOX */}
-        {activeSection === 'doubts' && (
-          <DoubtsInboxSection
-            store={store}
-            onReplyDoubt={(d) => {
-              setSelectedDoubt(d);
-              setDoubtReplyModalVisible(true);
-            }}
-            onToast={(t) => setToastMessage(t)}
-          />
-        )}
 
         {/* ANNOUNCEMENTS SECTION */}
         {activeSection === 'announcements' && (
@@ -805,19 +778,6 @@ export function AdminPortal() {
         }}
       />
 
-      {/* I. Reply Doubt Modal */}
-      <DoubtReplyModal
-        visible={doubtReplyModalVisible}
-        doubt={selectedDoubt}
-        onClose={() => setDoubtReplyModalVisible(false)}
-        onReply={async (replyText) => {
-          if (selectedDoubt) {
-            await store.replyDoubt(selectedDoubt.id, replyText);
-            setToastMessage({ type: 'success', message: 'Reply sent to student!' });
-          }
-          setDoubtReplyModalVisible(false);
-        }}
-      />
 
       {/* J. Enquiry Detail Modal */}
       <EnquiryDetailModal
@@ -2912,99 +2872,6 @@ function FeesManagerSection({
   );
 }
 
-// -------------------------------------------------------------
-// DOUBTS INBOX SECTION
-// -------------------------------------------------------------
-
-function DoubtsInboxSection({
-  store,
-  onReplyDoubt,
-  onToast,
-}: {
-  store: any;
-  onReplyDoubt: (d: AdminDoubtItem) => void;
-  onToast: (t: any) => void;
-}) {
-  return (
-    <View style={{ gap: 12 }}>
-      {store.doubts.length === 0 ? (
-        <EmptyState title="No Student Doubts" description="All doubts have been answered by faculty!" />
-      ) : (
-        store.doubts.map((d: AdminDoubtItem) => (
-          <View
-            key={d.id}
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 16,
-              padding: 14,
-              borderWidth: 1,
-              borderColor: d.status === 'open' ? '#FED7AA' : '#E2E8F0',
-              gap: 8,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Badge
-                  label={d.status.toUpperCase()}
-                  variant={d.status === 'open' ? 'warning' : 'success'}
-                  size="sm"
-                />
-                <Badge label={d.subject} variant="neutral" size="sm" />
-              </View>
-              <Text style={{ fontSize: 11, color: '#94A3B8' }}>{d.batchTitle}</Text>
-            </View>
-
-            <View>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B' }}>
-                Student: {d.studentName}
-              </Text>
-              <Text style={{ fontSize: 13.5, fontWeight: '600', color: '#0F172A', marginTop: 2, lineHeight: 19 }}>
-                {d.questionText}
-              </Text>
-            </View>
-
-            {/* Replies */}
-            {d.replies.length > 0 && (
-              <View style={{ backgroundColor: '#F8FAFC', padding: 8, borderRadius: 8, gap: 4 }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
-                  {d.replies[0].authorName}:
-                </Text>
-                <Text style={{ fontSize: 12, color: '#334155' }}>{d.replies[0].text}</Text>
-              </View>
-            )}
-
-            {/* Action */}
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 6 }}>
-              <TouchableOpacity
-                onPress={() => onReplyDoubt(d)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: d.status === 'open' ? '#2563EB' : '#F1F5F9',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  gap: 4,
-                }}
-              >
-                <Send size={13} color={d.status === 'open' ? '#FFFFFF' : '#475569'} />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: d.status === 'open' ? '#FFFFFF' : '#475569',
-                  }}
-                >
-                  {d.status === 'open' ? 'Reply to Student' : 'View Thread'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
-      )}
-    </View>
-  );
-}
 
 // -------------------------------------------------------------
 // ANNOUNCEMENTS SECTION
@@ -6754,144 +6621,6 @@ function AnnouncementModal({
   );
 }
 
-function DoubtReplyModal({
-  visible,
-  doubt,
-  onClose,
-  onReply,
-}: {
-  visible: boolean;
-  doubt: AdminDoubtItem | null;
-  onClose: () => void;
-  onReply: (text: string) => void;
-}) {
-  const insets = useSafeAreaInsets();
-  const [replyText, setReplyText] = useState('');
-
-  return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
-      >
-        <View
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            paddingTop: 12,
-            paddingHorizontal: 18,
-            paddingBottom: Math.max(insets.bottom, 16) + 12,
-            gap: 12,
-            elevation: 10,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: -3 },
-            shadowOpacity: 0.15,
-            shadowRadius: 10,
-          }}
-        >
-          {/* Top Grab Handle */}
-          <View
-            style={{
-              width: 38,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: '#CBD5E1',
-              alignSelf: 'center',
-              marginBottom: 10,
-            }}
-          />
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 12,
-                  backgroundColor: '#F5F3FF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: '#DDD6FE',
-                }}
-              >
-                <MessageSquare size={19} color="#7C3AED" />
-              </View>
-              <View>
-                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
-                  Reply to {doubt?.studentName}
-                </Text>
-                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                  Send verified faculty step-by-step resolution
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={onClose}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: '#F1F5F9',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <X size={16} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ backgroundColor: '#F8FAFC', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
-            <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748B', textTransform: 'uppercase' }}>Doubt Question:</Text>
-            <Text style={{ fontSize: 13.5, color: '#0F172A', marginTop: 3, fontWeight: '600' }}>{doubt?.questionText}</Text>
-          </View>
-
-          <FormField
-            label="Your Solution & Explanation"
-            value={replyText}
-            onChangeText={setReplyText}
-            placeholder="Type mathematical solution steps..."
-            multiline
-            numberOfLines={4}
-          />
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              if (!replyText.trim()) {
-                Alert.alert('Required', 'Please enter your reply.');
-                return;
-              }
-              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              onReply(replyText);
-              setReplyText('');
-            }}
-            style={{
-              backgroundColor: '#7C3AED',
-              paddingVertical: 14,
-              borderRadius: 14,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 6,
-              elevation: 3,
-              shadowColor: '#7C3AED',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              marginTop: 4,
-            }}
-          >
-            <Send size={16} color="#FFFFFF" />
-            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Send & Resolve Doubt</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
 
 function EnquiryDetailModal({
   visible,

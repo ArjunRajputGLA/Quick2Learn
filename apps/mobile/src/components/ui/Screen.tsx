@@ -24,6 +24,8 @@ export interface ScreenProps {
   subtle?: boolean;
   safeAreaBottom?: boolean;
   keyboardAware?: boolean;
+  onScroll?: (event: any) => void;
+  scrollEventThrottle?: number;
 }
 
 export function Screen({
@@ -38,6 +40,8 @@ export function Screen({
   subtle = true,
   safeAreaBottom,
   keyboardAware = false,
+  onScroll,
+  scrollEventThrottle,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   let queryClient: ReturnType<typeof useQueryClient> | null = null;
@@ -92,6 +96,8 @@ export function Screen({
       ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={scrollEventThrottle ?? 16}
       refreshControl={
         hasRefresh ? (
           <RefreshControl

@@ -944,48 +944,85 @@ export default function DownloadsScreen() {
         transparent
         onRequestClose={() => setShowUploadModal(false)}
       >
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15, 23, 42, 0.55)' }}>
           <View
             style={{
               backgroundColor: '#FFFFFF',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              padding: 16,
-              maxHeight: '85%',
-              borderTopWidth: 1,
-              borderTopColor: '#E2E8F0',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              maxHeight: '90%',
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.12,
+              shadowRadius: 16,
+              elevation: 20,
             }}
           >
+            {/* Grab Handle */}
+            <View style={{ paddingTop: 10, paddingBottom: 6, alignItems: 'center' }}>
+              <View style={{ width: 38, height: 4.5, borderRadius: 3, backgroundColor: '#CBD5E1' }} />
+            </View>
+
             {/* Modal Header */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingBottom: 12,
+                paddingHorizontal: 18,
+                paddingBottom: 14,
                 borderBottomWidth: 1,
                 borderBottomColor: '#F1F5F9',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Plus size={18} color="#2563EB" strokeWidth={2.5} />
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginLeft: 6 }}>
-                  Upload Offline Study Material
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <View
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    backgroundColor: '#EFF6FF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 10,
+                  }}
+                >
+                  <Plus size={18} color="#2563EB" strokeWidth={2.5} />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0F172A' }}>
+                    Upload Offline Study Material
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>
+                    Notes, formula sheets & solutions for students
+                  </Text>
+                </View>
               </View>
               <TouchableOpacity
                 onPress={() => setShowUploadModal(false)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={{ padding: 4 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: '#F1F5F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <X size={18} color="#64748B" />
+                <X size={16} color="#64748B" strokeWidth={2.2} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 16 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {/* Title */}
-              <View style={{ marginVertical: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Material Title *
                 </Text>
                 <TextInput
@@ -997,21 +1034,21 @@ export default function DownloadsScreen() {
                     backgroundColor: '#F8FAFC',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 7,
-                    fontSize: 12,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 9,
+                    fontSize: 12.5,
                     color: '#0F172A',
                   }}
                 />
               </View>
 
               {/* Type */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 6 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Category *
                 </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
                   {[
                     { id: 'notes', label: 'Chapter Notes' },
                     { id: 'formula_sheet', label: 'Formula Sheet' },
@@ -1023,19 +1060,20 @@ export default function DownloadsScreen() {
                       <TouchableOpacity
                         key={ct.id}
                         onPress={() => setUploadCategory(ct.id as any)}
+                        activeOpacity={0.75}
                         style={{
-                          paddingVertical: 6,
-                          paddingHorizontal: 10,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? '#2563EB' : '#F1F5F9',
+                          paddingVertical: 7,
+                          paddingHorizontal: 12,
+                          borderRadius: 9,
+                          backgroundColor: isSelected ? '#2563EB' : '#F8FAFC',
                           borderWidth: 1,
                           borderColor: isSelected ? '#2563EB' : '#E2E8F0',
                         }}
                       >
                         <Text
                           style={{
-                            fontSize: 11,
-                            fontWeight: '600',
+                            fontSize: 11.5,
+                            fontWeight: isSelected ? '700' : '600',
                             color: isSelected ? '#FFFFFF' : '#475569',
                           }}
                         >
@@ -1048,30 +1086,31 @@ export default function DownloadsScreen() {
               </View>
 
               {/* Class */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 6 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Class Level *
                 </Text>
-                <View style={{ flexDirection: 'row', gap: 6 }}>
+                <View style={{ flexDirection: 'row', gap: 7 }}>
                   {([12, 11, 10, 9] as const).map((cl) => {
                     const isSelected = uploadClass === cl;
                     return (
                       <TouchableOpacity
                         key={cl}
                         onPress={() => setUploadClass(cl)}
+                        activeOpacity={0.75}
                         style={{
                           flex: 1,
-                          paddingVertical: 6,
-                          borderRadius: 8,
+                          paddingVertical: 8,
+                          borderRadius: 9,
                           alignItems: 'center',
-                          backgroundColor: isSelected ? '#2563EB' : '#F1F5F9',
+                          backgroundColor: isSelected ? '#2563EB' : '#F8FAFC',
                           borderWidth: 1,
                           borderColor: isSelected ? '#2563EB' : '#E2E8F0',
                         }}
                       >
                         <Text
                           style={{
-                            fontSize: 11.5,
+                            fontSize: 12,
                             fontWeight: '700',
                             color: isSelected ? '#FFFFFF' : '#475569',
                           }}
@@ -1085,30 +1124,31 @@ export default function DownloadsScreen() {
               </View>
 
               {/* Subject */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Subject *
                 </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
                   {['Mathematics', 'Science', 'Chemistry', 'Physics', 'Biology'].map((sub) => {
                     const isSelected = uploadSubject === sub;
                     return (
                       <TouchableOpacity
                         key={sub}
                         onPress={() => setUploadSubject(sub)}
+                        activeOpacity={0.75}
                         style={{
-                          paddingVertical: 5,
-                          paddingHorizontal: 9,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? '#1E293B' : '#F1F5F9',
+                          paddingVertical: 6,
+                          paddingHorizontal: 11,
+                          borderRadius: 9,
+                          backgroundColor: isSelected ? '#2563EB' : '#F8FAFC',
                           borderWidth: 1,
-                          borderColor: isSelected ? '#1E293B' : '#E2E8F0',
+                          borderColor: isSelected ? '#2563EB' : '#E2E8F0',
                         }}
                       >
                         <Text
                           style={{
-                            fontSize: 11,
-                            fontWeight: '600',
+                            fontSize: 11.5,
+                            fontWeight: isSelected ? '700' : '600',
                             color: isSelected ? '#FFFFFF' : '#475569',
                           }}
                         >
@@ -1121,8 +1161,8 @@ export default function DownloadsScreen() {
               </View>
 
               {/* Chapter */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   Chapter / Topic (Optional)
                 </Text>
                 <TextInput
@@ -1134,37 +1174,48 @@ export default function DownloadsScreen() {
                     backgroundColor: '#F8FAFC',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 7,
-                    fontSize: 12,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 9,
+                    fontSize: 12.5,
                     color: '#0F172A',
                   }}
                 />
               </View>
 
               {/* Pick Document */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#1E293B', marginBottom: 4 }}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                   PDF Document *
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handlePickDocument}
                   style={{
-                    backgroundColor: '#F0FDF4',
-                    borderWidth: 1,
-                    borderColor: '#BBF7D0',
-                    borderRadius: 8,
-                    padding: 9,
+                    backgroundColor: pickedFileName ? '#EFF6FF' : '#F8FAFC',
+                    borderWidth: 1.5,
+                    borderStyle: pickedFileName ? 'solid' : 'dashed',
+                    borderColor: pickedFileName ? '#3B82F6' : '#CBD5E1',
+                    borderRadius: 10,
+                    paddingVertical: 11,
+                    paddingHorizontal: 12,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 6,
+                    marginBottom: 8,
                   }}
                 >
-                  <FileText size={15} color="#15803D" />
-                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#15803D', marginLeft: 6 }}>
+                  <FileText size={16} color={pickedFileName ? '#2563EB' : '#64748B'} />
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: pickedFileName ? '#1D4ED8' : '#475569',
+                      marginLeft: 7,
+                      flexShrink: 1,
+                    }}
+                  >
                     {pickedFileName ? `Selected: ${pickedFileName}` : 'Choose PDF from Device'}
                   </Text>
                 </TouchableOpacity>
@@ -1178,28 +1229,32 @@ export default function DownloadsScreen() {
                     backgroundColor: '#F8FAFC',
                     borderWidth: 1,
                     borderColor: '#E2E8F0',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 7,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 9,
                     fontSize: 12,
                     color: '#0F172A',
                   }}
                 />
               </View>
 
-              {/* Auto Save Locally Checkbox */}
+              {/* Auto Save Locally Card */}
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  paddingVertical: 8,
-                  marginBottom: 14,
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 6,
                 }}
               >
-                <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#1E293B' }}>
-                    Save to this device's offline storage now
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E293B' }}>
+                    Save to offline storage now
                   </Text>
                   <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }}>
                     Pre-download so it is immediately readable offline
@@ -1209,32 +1264,48 @@ export default function DownloadsScreen() {
                   value={autoSaveLocally}
                   onValueChange={setAutoSaveLocally}
                   trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-                  thumbColor={autoSaveLocally ? '#2563EB' : '#F3F4F6'}
+                  thumbColor={autoSaveLocally ? '#2563EB' : '#F8FAFC'}
                 />
               </View>
+            </ScrollView>
 
-              {/* Submit Button */}
+            {/* Sticky Action Footer */}
+            <View
+              style={{
+                paddingTop: 12,
+                paddingBottom: Math.max(insets.bottom, 14),
+                paddingHorizontal: 18,
+                borderTopWidth: 1,
+                borderTopColor: '#F1F5F9',
+                backgroundColor: '#FFFFFF',
+              }}
+            >
               <TouchableOpacity
                 onPress={handleCreateOfflineMaterial}
                 disabled={isSubmitting}
+                activeOpacity={0.85}
                 style={{
                   backgroundColor: '#2563EB',
-                  paddingVertical: 10,
-                  borderRadius: 10,
+                  paddingVertical: 12,
+                  borderRadius: 12,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: Math.max(insets.bottom, 16) + 16,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 6,
+                  elevation: 3,
                 }}
               >
                 {isSubmitting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.2 }}>
                     Publish Material for Offline Downloads
                   </Text>
                 )}
               </TouchableOpacity>
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>

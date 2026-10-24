@@ -22,9 +22,11 @@ import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
 import { useParentStore } from "../../../src/lib/parentStore";
 import { useStudentPerformance, useChildTests, useMe, useParentStudents } from "../../../src/api/hooks";
+import { useTabBarScroll } from "../../../src/lib/tabBarVisibilityStore";
 
 export default function ParentTestsTab() {
   const router = useRouter();
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { selectedChildId } = useParentStore();
   const { data: me } = useMe();
   const { data: parentStudentsData } = useParentStudents();
@@ -78,6 +80,8 @@ export default function ParentTestsTab() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={Boolean(isRefreshing)}
@@ -86,7 +90,7 @@ export default function ParentTestsTab() {
             tintColor="#2563EB"
           />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
       >
         {/* Performance Highlights Banner */}
         {perf && (

@@ -10,6 +10,8 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -30,6 +32,7 @@ import {
   Radio,
   ArrowLeft,
   Check,
+  CheckCheck,
   ShieldCheck,
   Search,
 } from 'lucide-react-native';
@@ -40,28 +43,28 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { Chip } from '../../../src/components/ui/Chip';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { Skeleton } from '../../../src/components/ui/Skeleton';
-import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
-import { useStudentDoubts, useMe } from '../../../src/api/hooks';
 import {
   useAdminStore,
   type AdminChatChannelItem,
   type ChatMessageItem,
 } from '../../../src/lib/adminDataStore';
 import { colors, radii } from '@quick2learn/shared';
-import type { DoubtItem } from '@quick2learn/shared';
-import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
+import { useTabBarScroll, useTabBarVisibilityStore } from '../../../src/lib/tabBarVisibilityStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMe } from '../../../src/api/hooks';
 
 export default function ChatsTabScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { data: me } = useMe();
+  const role = me?.role || 'student';
+  const isAdminOrTeacher = role === 'admin' || role === 'teacher';
   const adminStore = useAdminStore();
 
-  const [mainTab, setMainTab] = useState<0 | 1>(0); // 0 = Batch & Faculty Chats, 1 = Doubt Tickets
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [chatMessageText, setChatMessageText] = useState('');
   const [chatSearch, setChatSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'answered' | 'closed'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const chatScrollRef = useRef<any>(null);
 
@@ -69,20 +72,31 @@ export default function ChatsTabScreen() {
     adminStore.init();
   }, []);
 
-  const {
-    data: doubtsData,
-    isLoading: isDoubtsLoading,
-    isRefetching: isDoubtsRefetching,
-    refetch: refetchDoubts,
-  } = useStudentDoubts(statusFilter === 'all' ? undefined : statusFilter);
+  // Hide footer navbar inside active chat, restore on exit or unmount
+  useEffect(() => {
+    if (selectedChannelId) {
+      useTabBarVisibilityStore.getState().setVisible(false);
+    } else {
+      useTabBarVisibilityStore.getState().setVisible(true);
+    }
+    return () => {
+      useTabBarVisibilityStore.getState().setVisible(true);
+    };
+  }, [selectedChannelId]);
 
-  const doubts = doubtsData?.doubts || [];
-  const openCount = doubtsData?.openCount || 0;
+  // Handle hardware back press on Android when inside a chat
+  useEffect(() => {
+    if (!selectedChannelId) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedChannelId(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [selectedChannelId]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await adminStore.init();
-    await refetchDoubts();
     setIsRefreshing(false);
   };
 
@@ -90,14 +104,6 @@ export default function ChatsTabScreen() {
     Linking.openURL(
       'https://wa.me/919412278910?text=Hi%20Dinesh%20Sir%2C%20regarding%20the%20batch%20WhatsApp%20group...'
     );
-  };
-
-  const handleAskDoubt = () => {
-    router.push('/(app)/doubt/new' as any);
-  };
-
-  const handleOpenThread = (doubtId: string) => {
-    router.push(`/(app)/doubt/${doubtId}` as any);
   };
 
   const formatActivityTime = (dateStr: string | Date) => {
@@ -113,6 +119,13 @@ export default function ChatsTabScreen() {
       minute: '2-digit',
       hour12: true,
     });
+  };
+
+  const formatBubbleTime = (dateStr: string | Date | undefined) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return String(dateStr);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   // Chats data from admin store
@@ -133,14 +146,19 @@ export default function ChatsTabScreen() {
     if (!chatMessageText.trim() || !selectedChannelId) return;
     const text = chatMessageText.trim();
     setChatMessageText('');
-    const senderName = me?.profile?.fullName || me?.user?.name || 'Arjun Singh Rajput';
+    const senderName =
+      me?.profile?.fullName ||
+      me?.user?.name ||
+      (isAdminOrTeacher ? 'Dinesh Singh Rajput' : 'Arjun Singh Rajput');
     const senderRole = me?.role === 'admin' ? 'admin' : me?.role === 'teacher' ? 'teacher' : 'student';
 
     await adminStore.sendChatMessage(
       selectedChannelId,
       text,
       senderRole,
-      senderName
+      senderName,
+      undefined,
+      true
     );
 
     setTimeout(() => {
@@ -155,7 +173,9 @@ export default function ChatsTabScreen() {
           selectedChannelId,
           `Received your message! I will review this concept and reply shortly.`,
           'teacher',
-          `${facultyName} (Faculty)`
+          `${facultyName} (Faculty)`,
+          undefined,
+          false
         );
         chatScrollRef.current?.scrollToEnd({ animated: true });
       }, 1500);
@@ -167,13 +187,7 @@ export default function ChatsTabScreen() {
       scrollable={false}
       header={
         <AppHeader
-          title={
-            selectedChannel
-              ? selectedChannel.title
-              : mainTab === 0
-              ? 'Chats'
-              : 'Doubt Solver'
-          }
+          title={selectedChannel ? selectedChannel.title : 'Chats'}
           subtitle={selectedChannel ? selectedChannel.subtitle : undefined}
           showBack={Boolean(selectedChannel)}
           onBack={selectedChannel ? () => setSelectedChannelId(null) : undefined}
@@ -182,15 +196,15 @@ export default function ChatsTabScreen() {
               <TouchableOpacity
                 onPress={() => setSelectedChannelId(null)}
                 style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
+                  paddingHorizontal: 9,
+                  paddingVertical: 4,
                   borderRadius: radii.full,
                   backgroundColor: '#EFF6FF',
                   borderWidth: 1,
                   borderColor: '#BFDBFE',
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563EB' }}>
                   All Chats
                 </Text>
               </TouchableOpacity>
@@ -203,14 +217,14 @@ export default function ChatsTabScreen() {
                   alignItems: 'center',
                   backgroundColor: '#ECFDF5',
                   paddingHorizontal: 8,
-                  paddingVertical: 4,
+                  paddingVertical: 3.5,
                   borderRadius: radii.full,
                   borderWidth: 1,
                   borderColor: '#A7F3D0',
                 }}
               >
-                <MessageCircle size={13} color="#059669" />
-                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#065F46', marginLeft: 3 }}>
+                <MessageCircle size={12} color="#059669" />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#065F46', marginLeft: 3 }}>
                   WhatsApp
                 </Text>
               </TouchableOpacity>
@@ -220,65 +234,40 @@ export default function ChatsTabScreen() {
       }
     >
       <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }}>
-        {/* Top Segmented Control (Hidden when inside a specific active conversation) */}
-        {!selectedChannel && (
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-            }}
-          >
-            <SegmentedControl
-              options={['Batch & Faculty Chats', 'Doubt Tickets']}
-              selectedIndex={mainTab}
-              onChange={(idx) => {
-                setMainTab(idx as 0 | 1);
-                setSelectedChannelId(null);
-              }}
-            />
-          </View>
-        )}
-
-        {/* 1. BATCH & FACULTY CHATS TAB */}
-        {mainTab === 0 && (
-          <View style={{ flex: 1 }}>
-            {!selectedChannel ? (
+        {!selectedChannel ? (
               // Channels List View (Matching 5.jpeg)
               <ScrollView
                 style={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: 32 }}
+                contentContainerStyle={{ paddingBottom: 130 }}
                 onScroll={onTabBarScroll}
                 scrollEventThrottle={16}
                 refreshControl={
                   <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
                 }
               >
-                {/* Search Bar matching 5.jpeg */}
-                <View style={{ paddingHorizontal: 12, paddingTop: 10, paddingBottom: 6 }}>
+                {/* Search Bar matching modern messaging UI */}
+                <View style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: 4 }}>
                   <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       backgroundColor: '#FFFFFF',
-                      borderRadius: 12,
-                      paddingHorizontal: 12,
-                      paddingVertical: Platform.OS === 'ios' ? 9 : 6,
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: Platform.OS === 'ios' ? 7 : 4.5,
                       borderWidth: 1,
                       borderColor: '#E2E8F0',
                     }}
                   >
-                    <Search size={16} color="#94A3B8" style={{ marginRight: 8 }} />
+                    <Search size={14} color="#94A3B8" style={{ marginRight: 8 }} />
                     <TextInput
                       value={chatSearch}
                       onChangeText={setChatSearch}
-                      placeholder="Search by name or number"
+                      placeholder={isAdminOrTeacher ? 'Search batch or student...' : 'Search by name or number'}
                       placeholderTextColor="#94A3B8"
                       style={{
                         flex: 1,
-                        fontSize: 14,
+                        fontSize: 13,
                         color: colors.ink,
                         padding: 0,
                       }}
@@ -286,14 +275,14 @@ export default function ChatsTabScreen() {
                   </View>
                 </View>
 
-                {/* Section Title matching 5.jpeg */}
-                <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
+                {/* Section Title */}
+                <View style={{ paddingHorizontal: 14, paddingTop: 8, paddingBottom: 3 }}>
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: 10.5,
                       fontWeight: '700',
-                      color: '#64748B',
-                      letterSpacing: 0.6,
+                      color: '#94A3B8',
+                      letterSpacing: 0.8,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -304,8 +293,8 @@ export default function ChatsTabScreen() {
                 {/* Channels List */}
                 <View style={{ backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
                   {filteredChannels.length === 0 ? (
-                    <View style={{ padding: 32, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 14, color: '#94A3B8' }}>No chats found</Text>
+                    <View style={{ padding: 28, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 13, color: '#94A3B8' }}>No chats found</Text>
                     </View>
                   ) : (
                     filteredChannels.map((channel) => {
@@ -318,39 +307,41 @@ export default function ChatsTabScreen() {
                           style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            paddingHorizontal: 16,
-                            paddingVertical: 13,
+                            paddingHorizontal: 14,
+                            paddingVertical: 10,
                             borderBottomWidth: 1,
                             borderBottomColor: '#F1F5F9',
                           }}
                         >
-                          {/* Channel Avatar (matching 5.jpeg) */}
+                          {/* Channel Avatar */}
                           <View
                             style={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 24,
-                              backgroundColor: isDirect ? '#E2E8F0' : '#E0F2FE',
+                              width: 42,
+                              height: 42,
+                              borderRadius: 21,
+                              backgroundColor: isDirect ? '#F1F5F9' : '#E0F2FE',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              marginRight: 14,
+                              marginRight: 11,
+                              borderWidth: 1,
+                              borderColor: isDirect ? '#E2E8F0' : '#BAE6FD',
                             }}
                           >
                             {isDirect ? (
-                              <User size={24} color="#334155" strokeWidth={1.8} />
+                              <User size={20} color="#334155" strokeWidth={1.8} />
                             ) : (
-                              <Users size={24} color="#0284C7" strokeWidth={1.8} />
+                              <Users size={20} color="#0284C7" strokeWidth={1.8} />
                             )}
                           </View>
 
                           {/* Channel Details */}
-                          <View style={{ flex: 1, marginRight: 8 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                          <View style={{ flex: 1, marginRight: 6 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                               <Text
                                 style={{
-                                  fontSize: 15,
-                                  fontWeight: '700',
-                                  color: '#1E293B',
+                                  fontSize: 14,
+                                  fontWeight: '600',
+                                  color: '#0F172A',
                                   flexShrink: 1,
                                 }}
                                 numberOfLines={1}
@@ -359,8 +350,8 @@ export default function ChatsTabScreen() {
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: 12,
-                                  color: '#64748B',
+                                  fontSize: 11,
+                                  color: '#94A3B8',
                                   marginLeft: 6,
                                 }}
                               >
@@ -371,11 +362,12 @@ export default function ChatsTabScreen() {
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                               <Text
                                 style={{
-                                  fontSize: 13.5,
+                                  fontSize: 12.5,
                                   color: channel.unreadCount ? '#0F172A' : '#64748B',
                                   fontWeight: channel.unreadCount ? '600' : '400',
                                   flex: 1,
                                   marginRight: 6,
+                                  lineHeight: 16,
                                 }}
                                 numberOfLines={1}
                               >
@@ -385,12 +377,12 @@ export default function ChatsTabScreen() {
                                 <View
                                   style={{
                                     backgroundColor: '#2563EB',
-                                    borderRadius: 10,
+                                    borderRadius: 9,
                                     minWidth: 18,
                                     height: 18,
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    paddingHorizontal: 5,
+                                    paddingHorizontal: 4,
                                   }}
                                 >
                                   <Text style={{ fontSize: 10, color: '#FFFFFF', fontWeight: '700' }}>
@@ -407,89 +399,109 @@ export default function ChatsTabScreen() {
                 </View>
               </ScrollView>
             ) : (
-              // Active Conversation Screen
+              // Active Conversation Screen (WhatsApp Styled)
               <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={{ flex: 1, backgroundColor: '#EFEAE2' }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
               >
                 {/* Messages List */}
                 <ScrollView
                   ref={chatScrollRef}
-                  style={{ flex: 1, paddingHorizontal: 12, paddingTop: 10 }}
-                  contentContainerStyle={{ paddingBottom: 16 }}
+                  style={{ flex: 1, backgroundColor: '#EFEAE2' }}
+                  contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 10, paddingBottom: 16 }}
                   onContentSizeChange={() => chatScrollRef.current?.scrollToEnd({ animated: false })}
                 >
-                  {/* Channel banner notice */}
-                  <View
-                    style={{
-                      alignItems: 'center',
-                      marginVertical: 10,
-                      paddingHorizontal: 16,
-                    }}
-                  >
+                  {/* WhatsApp style encryption banner notice */}
+                  <View style={{ alignItems: 'center', marginVertical: 8, paddingHorizontal: 16 }}>
                     <View
                       style={{
-                        backgroundColor: '#F1F5F9',
-                        paddingHorizontal: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6,
+                        backgroundColor: '#FFEECD',
+                        paddingHorizontal: 10,
                         paddingVertical: 5,
-                        borderRadius: radii.full,
+                        borderRadius: 8,
+                        maxWidth: '92%',
                       }}
                     >
-                      <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center' }}>
+                      <ShieldCheck size={13} color="#856404" />
+                      <Text style={{ fontSize: 10.5, color: '#543B00', textAlign: 'center', flexShrink: 1, lineHeight: 14 }}>
                         Messages are end-to-end encrypted & synced with Dinesh Sir
                       </Text>
                     </View>
                   </View>
 
-                  {/* Messages list */}
+                  {/* Messages list - WhatsApp layout */}
                   {(selectedChannel.messages || []).map((msg) => {
-                    const isMe =
-                      msg.senderRole === 'student' ||
-                      msg.senderName?.includes('Arjun') ||
-                      msg.senderName?.includes('Aarav');
+                    const isMe = Boolean(
+                      msg.isOutgoing ||
+                      (me?.user?.id && msg.senderId === me.user.id) ||
+                      (isAdminOrTeacher
+                        ? (msg.senderRole === 'admin' || msg.senderRole === 'teacher' || msg.senderName?.includes('Dinesh')) &&
+                          !msg.senderName?.includes('Namita')
+                        : msg.senderRole === 'student' ||
+                          msg.senderName?.includes('Arjun') ||
+                          msg.senderName?.includes('Aarav'))
+                    );
 
                     return (
                       <View
                         key={msg.id}
                         style={{
-                          marginVertical: 4,
+                          marginVertical: 3,
                           alignItems: isMe ? 'flex-end' : 'flex-start',
+                          paddingLeft: isMe ? 40 : 0,
+                          paddingRight: isMe ? 0 : 40,
                         }}
                       >
                         <View
                           style={{
-                            maxWidth: '82%',
-                            borderRadius: 16,
-                            borderBottomRightRadius: isMe ? 4 : 16,
-                            borderBottomLeftRadius: isMe ? 16 : 4,
-                            paddingHorizontal: 14,
-                            paddingVertical: 9,
-                            backgroundColor: isMe ? '#2563EB' : '#FFFFFF',
-                            borderWidth: isMe ? 0 : 1,
+                            maxWidth: '85%',
+                            borderRadius: 10,
+                            borderTopRightRadius: isMe ? 2 : 10,
+                            borderTopLeftRadius: isMe ? 10 : 2,
+                            paddingHorizontal: 11,
+                            paddingTop: 6,
+                            paddingBottom: 6,
+                            backgroundColor: isMe ? '#D9FDD3' : '#FFFFFF',
+                            borderWidth: isMe ? 0 : 0.5,
                             borderColor: '#E2E8F0',
-                            shadowColor: '#000',
+                            shadowColor: '#0F172A',
                             shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 2,
+                            shadowOpacity: 0.08,
+                            shadowRadius: 1.5,
                             elevation: 1,
                           }}
                         >
+                          {/* Incoming message sender name header */}
                           {!isMe && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2, gap: 4 }}>
-                              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#1E40AF' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2.5, gap: 5 }}>
+                              <Text
+                                style={{
+                                  fontSize: 11.5,
+                                  fontWeight: '700',
+                                  color:
+                                    msg.senderRole === 'teacher' || msg.senderRole === 'admin'
+                                      ? '#0D9488'
+                                      : '#D97706',
+                                }}
+                              >
                                 {msg.senderName}
                               </Text>
                               {msg.senderRole === 'teacher' || msg.senderRole === 'admin' ? (
                                 <View
                                   style={{
-                                    backgroundColor: '#EFF6FF',
+                                    backgroundColor: '#ECFDF5',
                                     paddingHorizontal: 4,
                                     paddingVertical: 1,
                                     borderRadius: 4,
+                                    borderWidth: 0.5,
+                                    borderColor: '#A7F3D0',
                                   }}
                                 >
-                                  <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#2563EB' }}>
+                                  <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#065F46' }}>
                                     FACULTY
                                   </Text>
                                 </View>
@@ -499,9 +511,9 @@ export default function ChatsTabScreen() {
 
                           <Text
                             style={{
-                              fontSize: 14.5,
-                              lineHeight: 20,
-                              color: isMe ? '#FFFFFF' : '#1E293B',
+                              fontSize: 14,
+                              lineHeight: 19.5,
+                              color: '#111B21',
                             }}
                           >
                             {msg.text}
@@ -512,19 +524,20 @@ export default function ChatsTabScreen() {
                               flexDirection: 'row',
                               alignItems: 'center',
                               justifyContent: 'flex-end',
-                              marginTop: 3,
+                              alignSelf: 'flex-end',
+                              marginTop: 2.5,
                               gap: 3,
                             }}
                           >
                             <Text
                               style={{
                                 fontSize: 10,
-                                color: isMe ? 'rgba(255, 255, 255, 0.75)' : '#94A3B8',
+                                color: '#667781',
                               }}
                             >
-                              {formatActivityTime(msg.createdAt)}
+                              {formatBubbleTime(msg.createdAt)}
                             </Text>
-                            {isMe && <Check size={11} color="rgba(255, 255, 255, 0.8)" />}
+                            {isMe && <CheckCheck size={14} color="#53BDEB" />}
                           </View>
                         </View>
                       </View>
@@ -532,36 +545,55 @@ export default function ChatsTabScreen() {
                   })}
                 </ScrollView>
 
-                {/* Input Bar */}
+                {/* Input Bar - WhatsApp style directly at the bottom with NO footer */}
                 <View
                   style={{
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: '#F0F2F5',
                     borderTopWidth: 1,
                     borderTopColor: '#E2E8F0',
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    paddingHorizontal: 10,
+                    paddingTop: 8,
+                    paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 12) : Math.max(insets.bottom, 10),
+                    marginBottom: 0,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 8,
                   }}
                 >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => Alert.alert('Attach File', 'Attach photos of questions or solutions.')}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 19,
+                      backgroundColor: '#FFFFFF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1,
+                      borderColor: '#E2E8F0',
+                    }}
+                  >
+                    <Paperclip size={18} color="#54656F" />
+                  </TouchableOpacity>
+
                   <TextInput
                     value={chatMessageText}
                     onChangeText={setChatMessageText}
-                    placeholder="Type a message..."
-                    placeholderTextColor="#94A3B8"
+                    placeholder="Message"
+                    placeholderTextColor="#667781"
                     multiline
                     style={{
                       flex: 1,
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#FFFFFF',
                       borderWidth: 1,
                       borderColor: '#E2E8F0',
-                      borderRadius: 20,
+                      borderRadius: 22,
                       paddingHorizontal: 14,
                       paddingVertical: Platform.OS === 'ios' ? 8 : 6,
                       fontSize: 14,
-                      maxHeight: 100,
-                      color: colors.ink,
+                      maxHeight: 96,
+                      color: '#111B21',
                     }}
                   />
 
@@ -573,157 +605,18 @@ export default function ChatsTabScreen() {
                       width: 40,
                       height: 40,
                       borderRadius: 20,
-                      backgroundColor: chatMessageText.trim() ? '#2563EB' : '#94A3B8',
+                      backgroundColor: chatMessageText.trim() ? '#00A884' : '#CBD5E1',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Send size={18} color="#FFFFFF" style={{ marginLeft: 2 }} />
+                    <Send size={17} color="#FFFFFF" style={{ marginLeft: 2 }} />
                   </TouchableOpacity>
                 </View>
               </KeyboardAvoidingView>
             )}
-          </View>
-        )}
-
-        {/* 2. DOUBT TICKETS TAB */}
-        {mainTab === 1 && (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
-            onScroll={onTabBarScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                refreshing={isDoubtsRefetching}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
-            {/* Header Action Banner */}
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: radii.xl,
-                padding: 16,
-                marginBottom: 14,
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <HelpCircle size={18} color={colors.primary} />
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.ink }}>
-                    Have a Question?
-                  </Text>
-                </View>
-                {openCount > 0 && (
-                  <Badge label={`${openCount} Open`} variant="warning" size="sm" />
-                )}
-              </View>
-
-              <Text style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 12, lineHeight: 18 }}>
-                Submit question photos or textbook doubts directly to Dinesh Sir.
-              </Text>
-
-              <Button
-                variant="primary"
-                size="md"
-                onPress={handleAskDoubt}
-                icon={<Plus size={16} color="#FFFFFF" />}
-              >
-                Ask a Doubt
-              </Button>
-            </View>
-
-            {/* Status Filter Chips */}
-            <View style={{ flexDirection: 'row', gap: 6, marginBottom: 14 }}>
-              {(['all', 'open', 'answered', 'closed'] as const).map((st) => (
-                <Chip
-                  key={st}
-                  label={st.toUpperCase()}
-                  selected={statusFilter === st}
-                  onPress={() => setStatusFilter(st)}
-                />
-              ))}
-            </View>
-
-            {/* Doubts List */}
-            {isDoubtsLoading ? (
-              <View style={{ gap: 10 }}>
-                <Skeleton width="100%" height={90} borderRadius={16} />
-                <Skeleton width="100%" height={90} borderRadius={16} />
-              </View>
-            ) : doubts.length === 0 ? (
-              <EmptyState
-                title="No Doubts Found"
-                description="You haven't submitted any doubts under this filter."
-                illustration={<MessageCircle size={32} color={colors['ink-muted']} />}
-                actionLabel="Ask a Doubt"
-                onAction={handleAskDoubt}
-              />
-            ) : (
-              doubts.map((item: DoubtItem) => (
-                <TouchableOpacity
-                  key={item.id}
-                  activeOpacity={0.7}
-                  onPress={() => handleOpenThread(item.id)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: radii.xl,
-                    padding: 14,
-                    marginBottom: 10,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <Badge
-                      label={item.status.toUpperCase()}
-                      variant={
-                        item.status === 'answered'
-                          ? 'success'
-                          : item.status === 'open'
-                          ? 'warning'
-                          : 'neutral'
-                      }
-                      size="sm"
-                    />
-                    <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
-                      {formatActivityTime(item.createdAt)}
-                    </Text>
-                  </View>
-
-                  <Text
-                    style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }}
-                    numberOfLines={2}
-                  >
-                    {item.title}
-                  </Text>
-
-                  {item.firstMessageSnippet ? (
-                    <View
-                      style={{
-                        backgroundColor: '#EFF6FF',
-                        borderRadius: 8,
-                        padding: 8,
-                        marginTop: 6,
-                        borderLeftWidth: 3,
-                        borderLeftColor: '#2563EB',
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, color: '#1E40AF', fontWeight: '600' }} numberOfLines={2}>
-                        {item.firstMessageSnippet}
-                      </Text>
-                    </View>
-                  ) : null}
-                </TouchableOpacity>
-              ))
-            )}
-          </ScrollView>
-        )}
       </View>
     </Screen>
   );
 }
+

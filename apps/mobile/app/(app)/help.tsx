@@ -68,9 +68,9 @@ export default function HelpScreen() {
       accent: "bg-emerald-50",
     },
     {
-      title: "3. 1-on-1 Doubts with Faculty",
+      title: "3. Batch & Faculty Group Chats",
       subtitle:
-        "Stuck on a problem? Snap a photo of your notebook or test question to get personal answers from Dinesh Sir & Namita Ma'am.",
+        "Discuss concepts directly with your classmates and ask questions in dedicated batch channels with Dinesh Sir & faculty.",
       icon: <MessageSquare size={18} color="#8B5CF6" />,
       accent: "bg-purple-50",
     },
@@ -89,8 +89,8 @@ export default function HelpScreen() {
       a: "When a class is active, an orange banner appears on your Home screen. Tap 'Join Live' to enter the live classroom stream.",
     },
     {
-      q: "How do I ask a doubt with a photo?",
-      a: "Go to the Doubts tab and tap 'Ask a doubt'. Select your subject and chapter, take a picture of your notebook, and send it to our teachers.",
+      q: "How do I message my faculty or batch?",
+      a: "Go to the Chats tab to view your active batch discussions, ask questions in real-time, and get guidance directly from Dinesh Sir.",
     },
     {
       q: "How can my parents view my progress?",

@@ -54,8 +54,6 @@ import {
   useTeacherBatchStudents,
   useTeacherSaveAttendance,
   useTeacherPostAnnouncement,
-  useTeacherDoubts,
-  useTeacherReplyDoubt,
   useTeacherBatchChapters,
   useTeacherQuickUpload,
   useTeacherPresignedUrl,
@@ -71,7 +69,7 @@ import {
 import { analytics } from '../../../src/lib/analytics';
 import type { TeacherBatchStudent } from '@quick2learn/shared';
 
-type TeachTabSection = 'today' | 'attendance' | 'announcement' | 'doubts' | 'upload';
+type TeachTabSection = 'today' | 'attendance' | 'announcement' | 'upload';
 
 export default function TeachScreen() {
   const { data: me } = useMe();
@@ -122,7 +120,7 @@ export default function TeachScreen() {
   };
 
   // Section options
-  const sectionOptions = ['Today', 'Attendance', 'Announce', 'Doubts', 'Notes PDF'];
+  const sectionOptions = ['Today', 'Attendance', 'Announce', 'Notes PDF'];
 
   return (
     <Screen
@@ -162,16 +160,13 @@ export default function TeachScreen() {
               ? 1
               : activeSection === 'announcement'
               ? 2
-              : activeSection === 'doubts'
-              ? 3
-              : 4
+              : 3
           }
           onChange={(index) => {
             const mapped: TeachTabSection[] = [
               'today',
               'attendance',
               'announcement',
-              'doubts',
               'upload',
             ];
             setActiveSection(mapped[index]);
@@ -214,9 +209,6 @@ export default function TeachScreen() {
           <PostAnnouncementSection setToast={setToastMessage} />
         )}
 
-        {activeSection === 'doubts' && (
-          <DoubtsInboxSection setToast={setToastMessage} />
-        )}
 
         {activeSection === 'upload' && (
           <QuickNotesUploadSection setToast={setToastMessage} />
@@ -1065,317 +1057,7 @@ function PostAnnouncementSection({
   );
 }
 
-// =========================================================================
-// 4. DOUBTS INBOX (REPLY WITH TEXT, CAMERA PHOTO OF SOLUTION, OR LECTURE)
-// =========================================================================
 
-function DoubtsInboxSection({
-  setToast,
-}: {
-  setToast: (toast: { type: 'success' | 'error' | 'info'; message: string }) => void;
-}) {
-  const [filterStatus, setFilterStatus] = useState<'open' | 'answered'>('open');
-  const { data, isLoading, refetch, isRefetching } = useTeacherDoubts(filterStatus);
-
-  const doubts = data?.doubts || [];
-
-  // Active doubt reply modal state
-  const [selectedDoubt, setSelectedDoubt] = useState<any | null>(null);
-  const [replyText, setReplyText] = useState('');
-  const [solutionPhoto, setSolutionPhoto] = useState<string | null>(null);
-  const [lectureUrl, setLectureUrl] = useState('');
-  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
-
-  const replyMutation = useTeacherReplyDoubt();
-  const presignedUrlMutation = useTeacherPresignedUrl();
-
-  const handleCaptureSolutionPhoto = async () => {
-    try {
-      const res = await ImagePicker.launchCameraAsync({
-        quality: 0.8,
-      });
-
-      if (!res.canceled && res.assets[0]) {
-        setSolutionPhoto(res.assets[0].uri);
-      }
-    } catch {
-      setToast({ type: 'error', message: 'Camera permission denied' });
-    }
-  };
-
-  const handleSendReply = async () => {
-    if (!selectedDoubt) return;
-    if (!replyText.trim() && !solutionPhoto) {
-      setToast({
-        type: 'error',
-        message: 'Please enter a reply or photograph your handwritten solution.',
-      });
-      return;
-    }
-
-    setIsSubmittingReply(true);
-    try {
-      let attachmentKeys: string[] = [];
-
-      // Upload photographed handwritten solution if present
-      if (solutionPhoto) {
-        const { key, uploadUrl } = await presignedUrlMutation.mutateAsync({
-          filename: `solution_${Date.now()}.jpg`,
-          contentType: 'image/jpeg',
-          folder: 'solutions',
-        });
-
-        await FileSystem.uploadAsync(uploadUrl, solutionPhoto, {
-          httpMethod: 'PUT',
-          headers: { 'Content-Type': 'image/jpeg' },
-          uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-        });
-
-        attachmentKeys = [key];
-      }
-
-      await replyMutation.mutateAsync({
-        doubtId: selectedDoubt.id,
-        input: {
-          body: replyText.trim() || 'Here is the step-by-step solution attached.',
-          attachmentKeys,
-        },
-      });
-
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setToast({
-        type: 'success',
-        message: 'Reply sent to student successfully!',
-      });
-
-      // Close modal
-      setSelectedDoubt(null);
-      setReplyText('');
-      setSolutionPhoto(null);
-      setLectureUrl('');
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err?.message || 'Failed to send doubt reply',
-      });
-    } finally {
-      setIsSubmittingReply(false);
-    }
-  };
-
-  return (
-    <View className="flex-1 bg-surface-subtle">
-      {/* Filter Tabs */}
-      <View className="bg-surface px-4 py-2 border-b border-border flex-row items-center justify-between">
-        <View className="flex-row items-center space-x-2">
-          <Chip
-            label={`Unanswered (${data?.openCount || 0})`}
-            selected={filterStatus === 'open'}
-            onPress={() => setFilterStatus('open')}
-          />
-          <Chip
-            label="Answered"
-            selected={filterStatus === 'answered'}
-            onPress={() => setFilterStatus('answered')}
-          />
-        </View>
-
-        <TouchableOpacity onPress={() => refetch()} className="p-2">
-          <RefreshCw size={16} color="#6B7280" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Doubts List */}
-      {isLoading ? (
-        <View className="flex-1 items-center justify-center p-6">
-          <ActivityIndicator size="large" color="#2563EB" />
-        </View>
-      ) : doubts.length === 0 ? (
-        <EmptyState
-          title={
-            filterStatus === 'open'
-              ? 'No unanswered doubts 🎉'
-              : 'No answered doubts found'
-          }
-          description={
-            filterStatus === 'open'
-              ? 'All student doubts have been answered.'
-              : 'Answered doubts will appear here.'
-          }
-        />
-      ) : (
-        <ScrollView
-          className="flex-1 px-4 py-3"
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => {
-                void refetch();
-              }}
-              tintColor="#2563EB"
-            />
-          }
-        >
-          {doubts.map((doubt: any) => (
-            <Card key={doubt.id} className="p-4 mb-3 bg-surface border border-border">
-              <View className="flex-row items-center justify-between mb-1.5">
-                <Text className="text-body font-bold text-ink">
-                  {doubt.studentName || 'Student'}
-                </Text>
-                <Text className="text-caption text-ink-muted">
-                  {doubt.subjectName}
-                </Text>
-              </View>
-
-              <Text className="text-body text-ink mb-3 font-normal" numberOfLines={3}>
-                {doubt.title}
-              </Text>
-
-              {doubt.attachments && doubt.attachments.length > 0 ? (
-                <View className="flex-row items-center space-x-2 mb-3">
-                  {doubt.attachments.map((attUrl: string, idx: number) => (
-                    <Image
-                      key={idx}
-                      source={{ uri: attUrl }}
-                      className="w-16 h-16 rounded-lg bg-surface-subtle border border-border mr-2"
-                      resizeMode="cover"
-                    />
-                  ))}
-                </View>
-              ) : null}
-
-              <Button
-                size="sm"
-                variant={filterStatus === 'open' ? 'primary' : 'outline'}
-                icon={<Send size={14} color={filterStatus === 'open' ? '#FFF' : '#2563EB'} />}
-                onPress={() => {
-                  setSelectedDoubt(doubt);
-                  setReplyText('');
-                  setSolutionPhoto(null);
-                }}
-              >
-                {filterStatus === 'open' ? 'Reply to Doubt' : 'View Thread'}
-              </Button>
-            </Card>
-          ))}
-        </ScrollView>
-      )}
-
-      {/* Reply Modal */}
-      {selectedDoubt ? (
-        <Modal
-          visible={!!selectedDoubt}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setSelectedDoubt(null)}
-        >
-          <View className="flex-1 bg-surface p-4">
-            <View className="flex-row items-center justify-between pb-3 border-b border-border mb-3">
-              <Text className="text-h3 font-bold text-ink">
-                Reply to {selectedDoubt.studentName}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setSelectedDoubt(null)}
-                className="p-2 -mr-2"
-              >
-                <Text className="text-body font-bold text-ink-muted">Close</Text>
-              </TouchableOpacity>
-            </View>
-
-            <KeyboardAwareScrollView className="flex-1">
-              {/* Question summary */}
-              <View className="p-3 bg-surface-subtle rounded-xl border border-border mb-3">
-                <Text className="text-caption font-semibold text-ink-muted uppercase mb-1">
-                  Student's Question ({selectedDoubt.subjectName})
-                </Text>
-                <Text className="text-body text-ink">{selectedDoubt.title}</Text>
-              </View>
-
-              {/* Reply text */}
-              <Text className="text-small font-semibold text-ink mb-1">
-                Your Explanation
-              </Text>
-              <TextInput
-                placeholder="Type explanation or guidance for the student..."
-                value={replyText}
-                onChangeText={setReplyText}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                className="w-full p-3 bg-surface border border-border rounded-xl text-body text-ink mb-3 min-h-[90px]"
-              />
-
-              {/* Quick Canned Presets */}
-              <Text className="text-caption font-semibold text-ink-muted mb-1.5 uppercase">
-                Quick Preset Answers
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5 mb-3">
-                {[
-                  'Review formula in step 2.',
-                  'Watch lecture derivation for this step.',
-                  'Sign error when moving across equals.',
-                  'Great attempt! Your working is completely correct.',
-                ].map((preset) => (
-                  <TouchableOpacity
-                    key={preset}
-                    onPress={() => setReplyText((prev) => (prev ? `${prev} ${preset}` : preset))}
-                    className="px-2.5 py-1 rounded-full bg-surface-subtle border border-border"
-                  >
-                    <Text className="text-caption font-medium text-ink">
-                      + {preset.slice(0, 24)}...
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Photograph handwritten solution paper */}
-              <Text className="text-small font-semibold text-ink mb-1.5">
-                Handwritten Solution Photo
-              </Text>
-              {solutionPhoto ? (
-                <View className="relative mb-4">
-                  <Image
-                    source={{ uri: solutionPhoto }}
-                    className="w-full h-48 rounded-xl border border-border"
-                    resizeMode="contain"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setSolutionPhoto(null)}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-black/60"
-                  >
-                    <Trash2 size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <Button
-                  size="md"
-                  variant="outline"
-                  icon={<Camera size={18} color="#2563EB" />}
-                  onPress={handleCaptureSolutionPhoto}
-                  className="mb-4"
-                >
-                  Photograph Handwritten Solution
-                </Button>
-              )}
-
-              {/* Submit */}
-              <Button
-                size="lg"
-                variant="primary"
-                fullWidth
-                loading={isSubmittingReply}
-                icon={<Send size={18} color="#FFFFFF" />}
-                onPress={handleSendReply}
-              >
-                Send Solution to Student
-              </Button>
-            </KeyboardAwareScrollView>
-          </View>
-        </Modal>
-      ) : null}
-    </View>
-  );
-}
 
 // =========================================================================
 // 5. QUICK UPLOAD (HANDWRITTEN NOTES TO COMPILED PDF WITH EXPO-PRINT)

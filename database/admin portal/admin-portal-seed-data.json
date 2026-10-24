@@ -1,0 +1,229 @@
+{
+  "batches": [
+    {
+      "id": "batch-ix-icse-maths-sci",
+      "title": "IX ICSE ( 2026 - 2027 )",
+      "subject": "Maths, Science",
+      "courseName": "Class 9 - Tests available",
+      "classLevel": 9,
+      "board": "icse",
+      "mode": "online",
+      "status": "ongoing",
+      "startDate": "2026-04-22",
+      "endDate": "2027-02-28",
+      "fee": 16000,
+      "capacity": 40,
+      "enrolledCount": 28,
+      "joinCode": "iiwbpg",
+      "room": "Hall 2",
+      "faculty": "DINESH SINGH RAJPUT",
+      "scheduleDays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      "scheduleTime": "08:00 PM - 09:00 PM"
+    },
+    {
+      "id": "batch-xii-cbse-maths",
+      "title": "Class XII CBSE Maths Target 100",
+      "subject": "Mathematics",
+      "classLevel": 12,
+      "board": "cbse",
+      "mode": "online",
+      "status": "ongoing",
+      "startDate": "2026-04-10",
+      "endDate": "2027-02-28",
+      "fee": 22000,
+      "capacity": 35,
+      "enrolledCount": 29,
+      "joinCode": "MATH-12A",
+      "room": "Hall 1",
+      "faculty": "Dinesh Singh Rajput",
+      "scheduleDays": ["Mon", "Wed", "Fri"],
+      "scheduleTime": "5:00 PM - 6:30 PM"
+    },
+    {
+      "id": "batch-xi-cbse-maths",
+      "title": "Class XI CBSE Foundation & Calculus",
+      "subject": "Mathematics",
+      "classLevel": 11,
+      "board": "cbse",
+      "mode": "online",
+      "status": "ongoing",
+      "startDate": "2026-04-15",
+      "endDate": "2027-02-20",
+      "fee": 18000,
+      "capacity": 30,
+      "enrolledCount": 24,
+      "joinCode": "M11CBSE",
+      "room": "Hall 3",
+      "faculty": "Dinesh Singh Rajput",
+      "scheduleDays": ["Mon", "Wed", "Fri"],
+      "scheduleTime": "4:00 PM - 5:30 PM"
+    },
+    {
+      "id": "batch-x-cbse-board",
+      "title": "Class X CBSE Board Excellence",
+      "subject": "Mathematics, Science",
+      "classLevel": 10,
+      "board": "cbse",
+      "mode": "online",
+      "status": "ongoing",
+      "startDate": "2026-04-01",
+      "endDate": "2027-02-28",
+      "fee": 18000,
+      "capacity": 35,
+      "enrolledCount": 32,
+      "joinCode": "M10CBSE",
+      "room": "Hall 1",
+      "faculty": "Dinesh Singh Rajput",
+      "scheduleDays": ["Tue", "Thu", "Sat"],
+      "scheduleTime": "6:30 PM - 8:00 PM"
+    }
+  ],
+  "lectures": [
+    {
+      "id": "lec-ix-che-07",
+      "title": "LECTURE-7: EX 2(C)",
+      "youtubeId": "W3s-p-c5q2Q",
+      "youtubeUrl": "https://www.youtube.com/watch?v=W3s-p-c5q2Q",
+      "subject": "CHEMISTRY",
+      "classLevel": 9,
+      "board": "icse",
+      "chapter": "CH-2 (CHEMICAL CHANGES & REACTIONS)",
+      "duration": "00:21:37",
+      "viewsCount": 1420,
+      "orderNo": 7,
+      "isPublished": true,
+      "uploadedAt": "2026-05-24",
+      "batchId": "batch-ix-icse-maths-sci",
+      "faculty": "DINESH SINGH RAJPUT"
+    },
+    {
+      "id": "lec-ix-mat-01",
+      "title": "LECTURE-1: EX 4(A)",
+      "youtubeId": "b8i_6c1J2e0",
+      "youtubeUrl": "https://www.youtube.com/watch?v=b8i_6c1J2e0",
+      "subject": "MATHEMATICS",
+      "classLevel": 9,
+      "board": "icse",
+      "chapter": "CHAPTER 4-(EXPANSIONS)",
+      "duration": "00:34:10",
+      "viewsCount": 980,
+      "orderNo": 1,
+      "isPublished": true,
+      "uploadedAt": "2026-05-15",
+      "batchId": "batch-ix-icse-maths-sci",
+      "faculty": "DINESH SINGH RAJPUT"
+    }
+  ],
+  "resources": [
+    {
+      "id": "res-ix-che-sel-01",
+      "title": "EX 2(C) SOLUTIONS.pdf",
+      "type": "solution",
+      "fileUrl": "https://cdn.quick2learn.in/resources/icse-9-che-ex2.pdf",
+      "fileSize": "1.2 MB",
+      "filePages": 14,
+      "subject": "CHEMISTRY SELINA SOLUTIONS",
+      "classLevel": 9,
+      "chapter": "CHAPTER 2-(CHEMICAL CHANGES & REACTIONS)",
+      "visibility": "batch_only",
+      "batchTitle": "IX ICSE ( 2026 - 2027 )",
+      "batchId": "batch-ix-icse-maths-sci",
+      "folderName": "CHEMISTRY SELINA SOLUTIONS",
+      "uploadedAt": "2026-05-28",
+      "downloadCount": 156
+    },
+    {
+      "id": "res-203",
+      "title": "Calculus & Algebra Master Formula Sheet (Dinesh Sir Exclusive)",
+      "type": "formula_sheet",
+      "fileUrl": "https://cdn.quick2learn.in/resources/maths-12-formula-sheet.pdf",
+      "fileSize": "2.1 MB",
+      "filePages": 12,
+      "subject": "Mathematics",
+      "classLevel": 12,
+      "chapter": "Entire Syllabus",
+      "visibility": "public",
+      "uploadedAt": "2026-09-10",
+      "downloadCount": 940
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-10-quad-01",
+      "statement": "If the quadratic equation 2x^2 - kx + 8 = 0 has equal real roots, find the value of k.",
+      "options": ["±4", "±8", "±6", "±12"],
+      "correctOptionIndex": 1,
+      "subject": "Mathematics",
+      "classLevel": 10,
+      "chapter": "Quadratic Equations",
+      "difficulty": "medium",
+      "marks": 1,
+      "negativeMarks": 0,
+      "explanation": "For equal roots, D = b^2 - 4ac = 0. (-k)^2 - 4(2)(8) = 0 => k^2 = 64 => k = ±8.",
+      "createdAt": "2026-09-01T10:00:00Z"
+    }
+  ],
+  "tests": [
+    {
+      "id": "test-10-quad",
+      "title": "Quadratic Equations & Polynomials Test",
+      "subject": "Mathematics",
+      "classLevel": 10,
+      "batchId": "batch-x-cbse-board",
+      "batchTitle": "Class X CBSE Board Excellence",
+      "chapters": ["Polynomials", "Quadratic Equations"],
+      "durationMinutes": 60,
+      "totalMarks": 40,
+      "passingMarks": 16,
+      "questionsCount": 25,
+      "scheduledStart": "Tomorrow, 6:00 PM",
+      "scheduledEnd": "Tomorrow, 7:00 PM",
+      "status": "upcoming",
+      "isPublished": true,
+      "submissionsCount": 0,
+      "averageScore": 0
+    }
+  ],
+  "liveClasses": [
+    {
+      "id": "live-01",
+      "batchId": "batch-xii-cbse-maths",
+      "batchTitle": "Class XII CBSE Maths Target 100",
+      "title": "Dinesh Sir Special: Definite Integrals Properties Masterclass",
+      "subject": "Mathematics",
+      "classLevel": 12,
+      "faculty": "Dinesh Singh Rajput",
+      "platform": "zoom",
+      "meetingUrl": "https://zoom.us/j/9876543210?pwd=quick2learnmaths",
+      "meetingId": "987 654 3210",
+      "passcode": "DINESH12",
+      "scheduledAt": "2026-10-22T17:00:00",
+      "duration": "75 min",
+      "isLive": true,
+      "createdAt": "2026-10-21T12:00:00Z"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-01",
+      "title": "Welcome to Quick2Learn Mobile!",
+      "body": "Explore video lectures, live classes, chapter notes, and chapter tests.",
+      "priority": "normal",
+      "targetAudience": "All Students",
+      "createdAt": "Today",
+      "authorName": "Dinesh Singh Rajput"
+    }
+  ],
+  "enquiries": [
+    {
+      "id": "enq-01",
+      "studentName": "Vikram Patel",
+      "phone": "+91 98765 43222",
+      "classLevel": 10,
+      "board": "cbse",
+      "message": "Interested in Class 10 Board Excellence batch",
+      "status": "new",
+      "createdAt": "2026-10-22T09:00:00Z"
+    }
+  ]
+}

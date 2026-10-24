@@ -161,10 +161,10 @@ export default function SettingsScreen() {
               />
             </View>
 
-            {/* Doubts */}
+            {/* Chat & Discussions */}
             <View className="flex-row items-center justify-between py-2">
               <Text className="text-xs font-medium text-ink">
-                {t("doubtsNotif")}
+                Batch & Faculty Chat Notifications
               </Text>
               <Switch
                 value={doubtsNotif}

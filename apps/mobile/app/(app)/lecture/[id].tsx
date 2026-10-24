@@ -21,6 +21,7 @@ import {
   Play,
   Share2,
   HelpCircle,
+  MessageCircle,
   Clock,
   Calendar,
   BookOpen,
@@ -192,31 +193,8 @@ export default function LecturePlayerScreen() {
     }
   };
 
-  const handleAskDoubt = async () => {
-    if (!lecture) return;
-    let sec = currentTimeSec;
-    if (playerRef.current) {
-      try {
-        const liveTime = await playerRef.current.getCurrentTime();
-        if (liveTime !== undefined && liveTime >= 0) {
-          sec = Math.floor(liveTime);
-        }
-      } catch (err) {
-        console.warn('Could not get live time:', err);
-      }
-    }
-
-    router.push({
-      pathname: '/(app)/doubt/new',
-      params: {
-        sourceType: 'lecture',
-        sourceId: lecture.id,
-        timestampSeconds: sec,
-        subjectId: (lecture as any).subjectId || '',
-        chapterId: lecture.chapterId || '',
-        lectureTitle: lecture.title,
-      },
-    } as any);
+  const handleOpenChat = () => {
+    router.push('/(app)/(tabs)/chats');
   };
 
   if (isLoading && !lecture) {
@@ -343,16 +321,16 @@ export default function LecturePlayerScreen() {
               ) : null}
             </View>
 
-            {/* Quick Actions: Ask Doubt & Share */}
+            {/* Quick Actions: Discuss in Chat & Share */}
             <View className="flex-row space-x-3 pt-1 border-t border-border/70">
               <View className="flex-1 mr-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onPress={handleAskDoubt}
-                  icon={<HelpCircle size={15} color="#2563EB" />}
+                  onPress={handleOpenChat}
+                  icon={<MessageCircle size={15} color="#2563EB" />}
                 >
-                  Ask a doubt
+                  Discuss in Chat
                 </Button>
               </View>
               <View className="flex-1 ml-2">

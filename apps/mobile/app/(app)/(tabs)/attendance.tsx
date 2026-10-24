@@ -21,8 +21,10 @@ import { AppHeader } from "../../../src/components/ui/AppHeader";
 import { useAttendance, useMe, useParentStudents } from "../../../src/api/hooks";
 import { useParentStore } from "../../../src/lib/parentStore";
 import type { AttendanceRecordItem } from "@quick2learn/shared";
+import { useTabBarScroll } from "../../../src/lib/tabBarVisibilityStore";
 
 export default function ParentAttendanceTab() {
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { selectedChildId } = useParentStore();
   const { data: me } = useMe();
   const { data: parentStudentsData } = useParentStudents();
@@ -107,6 +109,8 @@ export default function ParentAttendanceTab() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={Boolean(isRefetching)}
@@ -117,7 +121,7 @@ export default function ParentAttendanceTab() {
             tintColor="#2563EB"
           />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
       >
         {/* Month Selector */}
         <View

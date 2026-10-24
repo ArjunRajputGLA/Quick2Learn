@@ -40,6 +40,7 @@ export interface ChatMessageItem {
   time?: string;
   imageUrl?: string;
   createdAt: string;
+  isOutgoing?: boolean;
 }
 
 export interface AdminChatChannelItem {
@@ -2055,7 +2056,8 @@ interface AdminStoreActions {
     text: string,
     senderRole?: 'admin' | 'teacher' | 'student',
     senderName?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    isOutgoing?: boolean
   ) => Promise<ChatMessageItem>;
   createChatChannel: (channel: Omit<AdminChatChannelItem, 'id' | 'createdAt' | 'messages' | 'unreadCount'>) => Promise<AdminChatChannelItem>;
 
@@ -2718,7 +2720,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   },
 
   // Chats Actions
-  sendChatMessage: async (channelId, text, senderRole = 'admin', senderName, imageUrl) => {
+  sendChatMessage: async (channelId, text, senderRole = 'admin', senderName, imageUrl, isOutgoing = true) => {
     const role = senderRole || 'admin';
     const name =
       senderName ||
@@ -2737,6 +2739,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       imageUrl,
       createdAt: new Date().toISOString(),
+      isOutgoing: isOutgoing !== undefined ? isOutgoing : true,
     };
     const updated = get().chats.map((c) =>
       c.id === channelId
