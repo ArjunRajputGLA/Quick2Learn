@@ -33,9 +33,12 @@ import {
   Volume2,
   ShieldCheck,
   Menu,
+  School,
+  Plus,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
+import { useAdminStore } from '../../../src/lib/adminDataStore';
 import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDropdownStore } from '../../../src/lib/drawerStore';
@@ -79,6 +82,8 @@ function StudentHomeScreen() {
   const [showBatchCodeModal, setShowBatchCodeModal] = useState(false);
   const [batchCodeInput, setBatchCodeInput] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+  const isStaff = me?.role === 'admin' || me?.role === 'teacher';
+  const adminBatchesCount = useAdminStore((s) => s.batches.length);
   const lastToggleRef = React.useRef(0);
   const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
@@ -770,8 +775,8 @@ function StudentHomeScreen() {
           </View>
         ) : null}
 
-        {/* 7. With no batches: Friendly "Join your batch" card */}
-        {enrolledBatchesCount === 0 ? (
+        {/* 7. With no batches: Friendly "Join your batch" card for students only */}
+        {!isStaff && enrolledBatchesCount === 0 ? (
           <View className="px-4 pt-5">
             <View className="bg-surface rounded-2xl p-5 border border-primary/20 shadow-sm">
               <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
@@ -807,6 +812,34 @@ function StudentHomeScreen() {
                   </Button>
                 </View>
               </View>
+            </View>
+          </View>
+        ) : null}
+
+        {/* 7b. For Admin/Faculty with no batches created yet */}
+        {isStaff && adminBatchesCount === 0 ? (
+          <View className="px-4 pt-5">
+            <View className="bg-surface rounded-2xl p-5 border border-blue-200/80 shadow-sm">
+              <View className="w-12 h-12 rounded-xl bg-blue-50 items-center justify-center mb-3 border border-blue-200">
+                <School size={24} color="#2563EB" />
+              </View>
+
+              <Text className="text-h3 font-bold text-ink mb-1.5">
+                Create Your First Batch
+              </Text>
+
+              <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+                Set up your Class 9–12 CBSE or ICSE classroom batches to start admitting students, generating join codes, and scheduling live classes.
+              </Text>
+
+              <Button
+                variant="primary"
+                size="md"
+                onPress={() => router.push('/(app)/(tabs)/batches' as any)}
+                icon={<Plus size={16} color="#FFFFFF" />}
+              >
+                Go to Batches & Create
+              </Button>
             </View>
           </View>
         ) : null}
