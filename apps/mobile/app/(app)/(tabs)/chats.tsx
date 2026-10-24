@@ -293,9 +293,12 @@ export default function ChatsTabScreen() {
                 {/* Channels List */}
                 <View style={{ backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
                   {filteredChannels.length === 0 ? (
-                    <View style={{ padding: 28, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, color: '#94A3B8' }}>No chats found</Text>
-                    </View>
+                    <EmptyState
+                      imageSource={require('../../../assets/empty chats.png')}
+                      imageSize={140}
+                      title="No Chats Found"
+                      description="Batch groups and conversations will appear here."
+                    />
                   ) : (
                     filteredChannels.map((channel) => {
                       const isDirect = channel.type === 'direct';

@@ -361,6 +361,8 @@ export default function BatchesScreen() {
             {filteredAdminBatches.length === 0 ? (
               <View style={{ backgroundColor: '#FFFFFF', borderRadius: radii.lg, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center' }}>
                 <EmptyState
+                  imageSource={require('../../../assets/empty batch.png')}
+                  imageSize={140}
                   title="No Batches Found"
                   description="No institute batches match your active search and class filter."
                   actionLabel="Create Batch"

@@ -12,6 +12,7 @@ import {
   Platform,
   StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -462,7 +463,7 @@ export default function FreeMaterialScreen() {
           <View
             style={{
               backgroundColor: '#FFFFFF',
-              borderRadius: 14,
+              borderRadius: 16,
               padding: 24,
               borderWidth: 1,
               borderColor: '#E2E8F0',
@@ -471,11 +472,15 @@ export default function FreeMaterialScreen() {
               marginTop: 6,
             }}
           >
-            <Folder size={32} color="#94A3B8" />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A', marginTop: 8 }}>
+            <Image
+              source={require('../../assets/empty material.png')}
+              style={{ width: 140, height: 140, marginBottom: 10 }}
+              contentFit="contain"
+            />
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0F172A', marginTop: 4 }}>
               No Free Materials Found
             </Text>
-            <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center', marginTop: 4, maxWidth: 220 }}>
+            <Text style={{ fontSize: 12.5, color: '#64748B', textAlign: 'center', marginTop: 4, maxWidth: 260, lineHeight: 18 }}>
               Try adjusting your class or category filters.
             </Text>
           </View>

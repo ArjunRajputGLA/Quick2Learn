@@ -1,11 +1,18 @@
 import React from 'react';
 import { View, Text, StyleProp, ViewStyle } from 'react-native';
+import { Image, ImageSource } from 'expo-image';
 import { Button } from './Button';
 import { FolderOpen } from 'lucide-react-native';
 import { colors, radii } from '@quick2learn/shared';
 
+const EMPTY_BATCH_IMG = require('../../../assets/empty batch.png');
+const EMPTY_MATERIAL_IMG = require('../../../assets/empty material.png');
+const EMPTY_CHATS_IMG = require('../../../assets/empty chats.png');
+
 export interface EmptyStateProps {
   illustration?: React.ReactNode;
+  imageSource?: ImageSource | number | string;
+  imageSize?: number;
   title: string;
   description: string;
   actionLabel?: string;
@@ -18,6 +25,8 @@ export interface EmptyStateProps {
 
 export function EmptyState({
   illustration,
+  imageSource,
+  imageSize = 130,
   title,
   description,
   actionLabel,
@@ -27,6 +36,17 @@ export function EmptyState({
   className = '',
   style,
 }: EmptyStateProps) {
+  // Determine if a contextual illustration should be used
+  const resolvedImage =
+    imageSource ||
+    (!illustration && title.toLowerCase().includes('batch')
+      ? EMPTY_BATCH_IMG
+      : !illustration && (title.toLowerCase().includes('material') || title.toLowerCase().includes('resource'))
+      ? EMPTY_MATERIAL_IMG
+      : !illustration && (title.toLowerCase().includes('chat') || title.toLowerCase().includes('message'))
+      ? EMPTY_CHATS_IMG
+      : null);
+
   return (
     <View
       style={[
@@ -40,22 +60,31 @@ export function EmptyState({
       ]}
       className={`items-center justify-center p-4 my-2 ${className}`}
     >
-      <View
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: radii.md,
-          backgroundColor: colors['surface-subtle'],
-          borderWidth: 1,
-          borderColor: colors.border,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 12,
-        }}
-        className="w-13 h-13 rounded-xl bg-surface-subtle border border-border items-center justify-center mb-3"
-      >
-        {illustration || <FolderOpen size={24} color={colors.primary} />}
-      </View>
+      {resolvedImage ? (
+        <Image
+          source={resolvedImage}
+          style={{ width: imageSize, height: imageSize, marginBottom: 12 }}
+          contentFit="contain"
+          transition={200}
+        />
+      ) : (
+        <View
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: radii.md,
+            backgroundColor: colors['surface-subtle'],
+            borderWidth: 1,
+            borderColor: colors.border,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 12,
+          }}
+          className="w-13 h-13 rounded-xl bg-surface-subtle border border-border items-center justify-center mb-3"
+        >
+          {illustration || <FolderOpen size={24} color={colors.primary} />}
+        </View>
+      )}
 
       <Text
         style={{
