@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { View, Image, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -7,7 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useMe, DEMO_MODE_STORAGE_KEY, ACTIVE_USER_STORAGE_KEY } from '../src/api/hooks';
 import { BookLoader } from '../src/components/ui/BookLoader';
 
-import { colors, radii } from '@quick2learn/shared';
+import { colors } from '@quick2learn/shared';
 
 export default function RootIndex() {
   const router = useRouter();
@@ -86,34 +85,7 @@ export default function RootIndex() {
       className="flex-1 bg-surface items-center justify-center p-6"
     >
       <StatusBar style="dark" />
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <View
-          style={{
-            width: 76,
-            height: 76,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 14,
-          }}
-        >
-          <Image
-            source={require('../assets/logo.png')}
-            style={{ width: 76, height: 76 }}
-            resizeMode="contain"
-          />
-        </View>
-        <Text
-          style={{ fontSize: 22, fontWeight: '800', color: colors.ink, marginBottom: 4 }}
-        >
-          Quick2Learn
-        </Text>
-        <Text
-          style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 20 }}
-        >
-          Learn Maths the quick and easy way
-        </Text>
-        <BookLoader text="Loading your study space..." size="lg" />
-      </View>
+      <BookLoader text="Loading" size="lg" />
     </SafeAreaView>
   );
 }

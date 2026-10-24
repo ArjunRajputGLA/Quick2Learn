@@ -51,6 +51,7 @@ import {
   Copy,
   Edit3,
   Trash2,
+  Share2,
   ExternalLink,
   ChevronRight,
   BookOpen,
@@ -399,6 +400,7 @@ export function AdminPortal() {
               setEditingBatch(null);
               setBatchModalVisible(true);
             }}
+            onEnrollStudent={() => setNewStudentModalVisible(true)}
             onUploadResource={() => {
               setEditingResource(null);
               setResourceModalVisible(true);
@@ -944,6 +946,7 @@ function OverviewSection({
   ongoingBatches,
   onNavigate,
   onCreateBatch,
+  onEnrollStudent,
   onUploadResource,
   onAddLecture,
   onAddQuestion,
@@ -958,6 +961,7 @@ function OverviewSection({
   ongoingBatches: number;
   onNavigate: (sec: AdminSection) => void;
   onCreateBatch: () => void;
+  onEnrollStudent: () => void;
   onUploadResource: () => void;
   onAddLecture: () => void;
   onAddQuestion: () => void;
@@ -1025,6 +1029,12 @@ function OverviewSection({
           Quick Creation & Upload Center
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          <QuickActionBtn
+            label="+ Enroll Student"
+            icon={<UserPlus size={16} color="#FFFFFF" />}
+            bg="#0284C7"
+            onPress={onEnrollStudent}
+          />
           <QuickActionBtn
             label="+ New Batch"
             icon={<GraduationCap size={16} color="#FFFFFF" />}
@@ -2556,12 +2566,12 @@ function StudentsDirectorySection({
   return (
     <View style={{ gap: 12 }}>
       {/* Top Header Row with Enroll Student Button */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
             Enrolled Students ({store.students.length})
           </Text>
-          <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+          <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
             Academic admissions & student roster
           </Text>
         </View>
@@ -2582,6 +2592,7 @@ function StudentsDirectorySection({
             shadowOffset: { width: 0, height: 1.5 },
             shadowOpacity: 0.2,
             shadowRadius: 3,
+            flexShrink: 0,
           }}
         >
           <UserPlus size={14} color="#FFFFFF" strokeWidth={2.3} />
@@ -2639,12 +2650,18 @@ function StudentsDirectorySection({
               padding: 14,
               borderWidth: 1,
               borderColor: '#E2E8F0',
-              gap: 8,
+              gap: 10,
+              elevation: 1,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            {/* Header: Student Info & Badges */}
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginBottom: 5 }}>
                   <Badge label={`CLASS ${s.classLevel}`} variant="primary" size="sm" />
                   <Badge label={s.board.toUpperCase()} variant="neutral" size="sm" />
                   <Badge
@@ -2653,124 +2670,52 @@ function StudentsDirectorySection({
                     size="sm"
                   />
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }}>{s.fullName}</Text>
-                <Text style={{ fontSize: 11.5, color: '#64748B' }}>{s.school}</Text>
+                <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1} ellipsizeMode="tail">
+                  {s.fullName}
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
+                  {s.school}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }} numberOfLines={1}>
+                  📞 {s.phone}
+                </Text>
               </View>
 
-              {/* Attendance badge */}
-              <View
-                style={{
-                  backgroundColor: '#ECFDF5',
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#059669' }}>{s.attendanceRate}%</Text>
-                <Text style={{ fontSize: 9, fontWeight: '700', color: '#059669' }}>ATTENDANCE</Text>
-              </View>
-            </View>
-
-            {/* Enrolled Batches */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-              {s.enrolledBatchNames.map((name, i) => (
+              {/* Attendance badge + Delete Action */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <View
-                  key={i}
                   style={{
-                    backgroundColor: '#F1F5F9',
+                    backgroundColor: s.attendanceRate >= 90 ? '#ECFDF5' : s.attendanceRate >= 75 ? '#EFF6FF' : '#FEF2F2',
                     paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 6,
-                  }}
-                >
-                  <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }}>{name}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Actions Bar */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingTop: 8,
-                borderTopWidth: 1,
-                borderTopColor: '#F1F5F9',
-              }}
-            >
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                <TouchableOpacity
-                  onPress={() => Linking.openURL(`tel:${s.phone}`)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: '#EFF6FF',
-                    paddingHorizontal: 8,
-                    paddingVertical: 5,
+                    paddingVertical: 4,
                     borderRadius: 8,
-                    gap: 4,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: s.attendanceRate >= 90 ? '#A7F3D0' : s.attendanceRate >= 75 ? '#BFDBFE' : '#FECACA',
                   }}
                 >
-                  <Phone size={13} color="#2563EB" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>Call</Text>
-                </TouchableOpacity>
-
-                {s.parentPhone && (
-                  <TouchableOpacity
-                    onPress={() => Linking.openURL(`tel:${s.parentPhone}`)}
+                  <Text
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#F8FAFC',
-                      paddingHorizontal: 8,
-                      paddingVertical: 5,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: '#E2E8F0',
-                      gap: 4,
+                      fontSize: 12.5,
+                      fontWeight: '800',
+                      color: s.attendanceRate >= 90 ? '#059669' : s.attendanceRate >= 75 ? '#2563EB' : '#DC2626',
                     }}
                   >
-                    <Users size={13} color="#64748B" />
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Parent</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                <TouchableOpacity
-                  onPress={async () => {
-                    const code = await store.generateParentCode(s.id);
-                    Share.share({
-                      message: `Parent code for ${s.fullName} on Quick2Learn app: ${code}`,
-                    });
-                  }}
-                  style={{
-                    backgroundColor: '#F3E8FF',
-                    paddingHorizontal: 8,
-                    paddingVertical: 5,
-                    borderRadius: 8,
-                  }}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#7C3AED' }}>
-                    Invite Code: {s.parentInviteCode}
+                    {s.attendanceRate}%
                   </Text>
-                </TouchableOpacity>
+                  <Text
+                    style={{
+                      fontSize: 8.5,
+                      fontWeight: '700',
+                      color: s.attendanceRate >= 90 ? '#059669' : s.attendanceRate >= 75 ? '#2563EB' : '#DC2626',
+                    }}
+                  >
+                    ATTENDANCE
+                  </Text>
+                </View>
 
                 <TouchableOpacity
-                  onPress={() => onEnrollStudent(s)}
-                  style={{
-                    backgroundColor: '#2563EB',
-                    paddingHorizontal: 9,
-                    paddingVertical: 5,
-                    borderRadius: 8,
-                  }}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>+ Batch</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
+                  activeOpacity={0.7}
                   onPress={() => {
                     Alert.alert(
                       'Remove Student',
@@ -2788,16 +2733,205 @@ function StudentsDirectorySection({
                       ]
                     );
                   }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   style={{
-                    backgroundColor: '#FEE2E2',
-                    paddingHorizontal: 7,
-                    paddingVertical: 5,
+                    width: 32,
+                    height: 32,
                     borderRadius: 8,
+                    backgroundColor: '#FEE2E2',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Trash2 size={13} color="#DC2626" />
                 </TouchableOpacity>
               </View>
+            </View>
+
+            {/* Enrolled Batches */}
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Enrolled Batches ({s.enrolledBatchNames.length})
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                {s.enrolledBatchNames.length > 0 ? (
+                  s.enrolledBatchNames.map((name, i) => (
+                    <View
+                      key={i}
+                      style={{
+                        backgroundColor: '#F1F5F9',
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        maxWidth: '100%',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }} numberOfLines={1}>
+                        {name}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={{ fontSize: 11, fontStyle: 'italic', color: '#94A3B8' }}>
+                    No batches enrolled
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Parent Link Code Banner */}
+            <View
+              style={{
+                backgroundColor: '#F8FAFC',
+                borderRadius: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 7,
+                borderWidth: 1,
+                borderColor: '#F1F5F9',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+                <Share2 size={12} color="#7C3AED" />
+                <Text style={{ fontSize: 11, color: '#64748B', flex: 1 }} numberOfLines={1}>
+                  Parent Code: <Text style={{ fontWeight: '800', color: '#7C3AED' }}>{s.parentInviteCode || 'Pending'}</Text>
+                </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={async () => {
+                  const code = s.parentInviteCode || (await store.generateParentCode(s.id));
+                  Share.share({
+                    message: `Parent code for ${s.fullName} on Quick2Learn app: ${code}`,
+                  });
+                }}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                style={{
+                  backgroundColor: '#F3E8FF',
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 6,
+                  flexShrink: 0,
+                }}
+              >
+                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#7C3AED' }}>Share Code</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Actions Bar */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 6,
+                paddingTop: 8,
+                borderTopWidth: 1,
+                borderTopColor: '#F1F5F9',
+              }}
+            >
+              {/* Call */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => Linking.openURL(`tel:${s.phone}`)}
+                style={{
+                  flex: 1,
+                  minWidth: 64,
+                  height: 34,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#EFF6FF',
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  gap: 4,
+                }}
+              >
+                <Phone size={12} color="#2563EB" />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }} numberOfLines={1}>
+                  Call
+                </Text>
+              </TouchableOpacity>
+
+              {/* WhatsApp */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() =>
+                  Linking.openURL(
+                    `whatsapp://send?phone=${s.phone}&text=Hello ${encodeURIComponent(s.fullName)}, Quick2Learn Admin update:`
+                  )
+                }
+                style={{
+                  flex: 1,
+                  minWidth: 78,
+                  height: 34,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#DCFCE7',
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  gap: 4,
+                }}
+              >
+                <MessageCircle size={12} color="#16A34A" />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#16A34A' }} numberOfLines={1}>
+                  WhatsApp
+                </Text>
+              </TouchableOpacity>
+
+              {/* Parent Phone */}
+              {s.parentPhone ? (
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={() => Linking.openURL(`tel:${s.parentPhone}`)}
+                  style={{
+                    flex: 1,
+                    minWidth: 68,
+                    height: 34,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#F8FAFC',
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    gap: 4,
+                  }}
+                >
+                  <Users size={12} color="#64748B" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }} numberOfLines={1}>
+                    Parent
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {/* + Batch */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => onEnrollStudent(s)}
+                style={{
+                  flex: 1,
+                  minWidth: 70,
+                  height: 34,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#2563EB',
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  gap: 4,
+                }}
+              >
+                <Plus size={12} color="#FFFFFF" strokeWidth={2.5} />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }} numberOfLines={1}>
+                  Batch
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))
@@ -4873,16 +5007,16 @@ function SearchableStudentDropdown({
                             .toUpperCase()}
                         </Text>
                       </View>
-                      <View style={{ flex: 1, gap: 2 }}>
+                      <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A' }}>
+                          <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
                             {s.fullName}
                           </Text>
-                          <View style={{ backgroundColor: '#E2E8F0', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
+                          <View style={{ backgroundColor: '#E2E8F0', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1, flexShrink: 0 }}>
                             <Text style={{ fontSize: 10, fontWeight: '700', color: '#475569' }}>Cl {s.classLevel}</Text>
                           </View>
                         </View>
-                        <Text style={{ fontSize: 11, color: '#64748B' }}>
+                        <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
                           Phone: {s.phone} • {s.enrolledBatchNames.join(', ') || 'No batches'}
                         </Text>
                       </View>
@@ -6594,9 +6728,9 @@ function NewStudentEnrollModal({
             backgroundColor: '#FFFFFF',
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
-            maxHeight: '92%',
+            height: '90%',
+            maxHeight: '94%',
             paddingTop: 12,
-            paddingBottom: Math.max(insets.bottom, 16) + 12,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.15,
@@ -6703,9 +6837,10 @@ function NewStudentEnrollModal({
           )}
 
           {activeTab === 'new' ? (
-            <>
+            <View style={{ flex: 1 }}>
               <ScrollView
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
                 style={{ flex: 1 }}
                 contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 24, gap: 14 }}
               >
@@ -6958,7 +7093,7 @@ function NewStudentEnrollModal({
                 style={{
                   paddingHorizontal: 18,
                   paddingTop: 10,
-                  paddingBottom: Math.max(insets.bottom, 12) + 4,
+                  paddingBottom: Math.max(insets.bottom, 16) + 8,
                   borderTopWidth: 1,
                   borderTopColor: '#F1F5F9',
                   backgroundColor: '#FFFFFF',
@@ -6995,56 +7130,60 @@ function NewStudentEnrollModal({
                   )}
                 </TouchableOpacity>
               </View>
-            </>
+            </View>
           ) : (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 10 }}
-            >
-              {pendingRequests.map((req) => (
-                <View
-                  key={req.id}
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                    borderRadius: 14,
-                    padding: 14,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
-                      {req.studentName}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: '#475569', marginTop: 1 }}>
-                      {req.batchTitle} • Class {req.classLevel}
-                    </Text>
-                    <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-                      {req.studentPhone}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={async () => {
-                      await onApproveRequest(req.id);
-                      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    }}
+            <View style={{ flex: 1 }}>
+              <ScrollView
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: Math.max(insets.bottom, 16) + 16, gap: 10 }}
+              >
+                {pendingRequests.map((req) => (
+                  <View
+                    key={req.id}
                     style={{
-                      backgroundColor: '#059669',
-                      paddingHorizontal: 12,
-                      paddingVertical: 7,
-                      borderRadius: 8,
+                      backgroundColor: '#F8FAFC',
+                      borderWidth: 1,
+                      borderColor: '#E2E8F0',
+                      borderRadius: 14,
+                      padding: 14,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
-                      Approve & Enroll
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
+                        {req.studentName}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: '#475569', marginTop: 1 }}>
+                        {req.batchTitle} • Class {req.classLevel}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+                        {req.studentPhone}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={async () => {
+                        await onApproveRequest(req.id);
+                        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      }}
+                      style={{
+                        backgroundColor: '#059669',
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
+                        Approve & Enroll
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -7067,6 +7206,12 @@ function EnrollStudentModal({
 }) {
   const insets = useSafeAreaInsets();
   const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || '');
+
+  useEffect(() => {
+    if (visible && batches.length > 0) {
+      setSelectedBatchId(batches[0].id);
+    }
+  }, [visible, batches]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -7099,8 +7244,8 @@ function EnrollStudentModal({
             }}
           />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
               <View
                 style={{
                   width: 38,
@@ -7111,15 +7256,16 @@ function EnrollStudentModal({
                   justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: '#DBEAFE',
+                  flexShrink: 0,
                 }}
               >
                 <Users size={19} color="#2563EB" />
               </View>
-              <View>
-                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
                   Enroll {student?.fullName}
                 </Text>
-                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }} numberOfLines={1}>
                   Grant immediate batch attendance and material access
                 </Text>
               </View>

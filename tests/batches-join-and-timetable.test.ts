@@ -140,6 +140,29 @@ describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
       onlineJoinCode = "ONL101";
     }
 
+    // Ensure online batch has an active fee plan
+    const [existingPlan] = await testDb
+      .select({ id: schema.batchFeePlans.id })
+      .from(schema.batchFeePlans)
+      .where(
+        and(
+          eq(schema.batchFeePlans.batchId, onlineBatchId),
+          eq(schema.batchFeePlans.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (!existingPlan) {
+      await testDb.insert(schema.batchFeePlans).values({
+        batchId: onlineBatchId,
+        name: "Test Online Fee",
+        totalPaise: 500000,
+        originalPaise: 600000,
+        instalments: [{ label: "Full Fee", amount_paise: 500000, due_date: "2026-04-15" }],
+        isActive: true,
+      });
+    }
+
     // Clean up any existing join requests or enrollments for this test student
     await testDb
       .delete(schema.batchJoinRequests)
