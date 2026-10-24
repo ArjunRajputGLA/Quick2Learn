@@ -66,6 +66,7 @@ import {
   Square,
   Play,
   UserCheck,
+  UserPlus,
 } from 'lucide-react-native';
 import { Screen } from '../ui/Screen';
 import { AppHeader } from '../ui/AppHeader';
@@ -176,6 +177,7 @@ export function AdminPortal() {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [enrollModalVisible, setEnrollModalVisible] = useState(false);
   const [selectedStudentForEnroll, setSelectedStudentForEnroll] = useState<AdminStudentItem | null>(null);
+  const [newStudentModalVisible, setNewStudentModalVisible] = useState(false);
 
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
 
@@ -580,6 +582,7 @@ export function AdminPortal() {
               setSelectedStudentForEnroll(stud);
               setEnrollModalVisible(true);
             }}
+            onOpenEnrollNewStudent={() => setNewStudentModalVisible(true)}
             onToast={(t) => setToastMessage(t)}
           />
         )}
@@ -748,7 +751,7 @@ export function AdminPortal() {
         }}
       />
 
-      {/* G. Enroll Student Modal */}
+      {/* G. Enroll Student Modal (Assign existing student to batch) */}
       <EnrollStudentModal
         visible={enrollModalVisible}
         student={selectedStudentForEnroll}
@@ -763,6 +766,28 @@ export function AdminPortal() {
             });
           }
           setEnrollModalVisible(false);
+        }}
+      />
+
+      {/* G2. New Student Enrollment Modal (Admit new student to institute & batch) */}
+      <NewStudentEnrollModal
+        visible={newStudentModalVisible}
+        batches={store.batches}
+        joinRequests={store.joinRequests}
+        onClose={() => setNewStudentModalVisible(false)}
+        onEnroll={async (studentData) => {
+          const newStud = await store.enrollNewStudent(studentData);
+          setToastMessage({
+            type: 'success',
+            message: `${newStud.fullName} enrolled successfully into ${newStud.enrolledBatchNames[0] || 'institute'}!`,
+          });
+        }}
+        onApproveRequest={async (reqId) => {
+          await store.approveJoinRequest(reqId);
+          setToastMessage({
+            type: 'success',
+            message: 'Join request approved and student enrolled!',
+          });
         }}
       />
 
@@ -2504,6 +2529,7 @@ function StudentsDirectorySection({
   classFilter,
   setClassFilter,
   onEnrollStudent,
+  onOpenEnrollNewStudent,
   onToast,
 }: {
   store: any;
@@ -2512,6 +2538,7 @@ function StudentsDirectorySection({
   classFilter: 'all' | '9' | '10' | '11' | '12';
   setClassFilter: (c: any) => void;
   onEnrollStudent: (s: AdminStudentItem) => void;
+  onOpenEnrollNewStudent: () => void;
   onToast: (t: any) => void;
 }) {
   const filteredStudents = useMemo(() => {
@@ -2527,6 +2554,40 @@ function StudentsDirectorySection({
 
   return (
     <View style={{ gap: 12 }}>
+      {/* Top Header Row with Enroll Student Button */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>
+            Enrolled Students ({store.students.length})
+          </Text>
+          <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+            Academic admissions & student roster
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onOpenEnrollNewStudent}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#2563EB',
+            paddingHorizontal: 12,
+            paddingVertical: 7.5,
+            borderRadius: 10,
+            gap: 5,
+            elevation: 2,
+            shadowColor: '#2563EB',
+            shadowOffset: { width: 0, height: 1.5 },
+            shadowOpacity: 0.2,
+            shadowRadius: 3,
+          }}
+        >
+          <UserPlus size={14} color="#FFFFFF" strokeWidth={2.3} />
+          <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Enroll Student</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Search */}
       <View
         style={{
@@ -2548,13 +2609,25 @@ function StudentsDirectorySection({
           placeholderTextColor="#94A3B8"
           style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#0F172A' }}
         />
+        {searchQuery ? (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <X size={14} color="#94A3B8" />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <ClassFilterRow selected={classFilter} onSelect={setClassFilter} />
 
       {/* List */}
       {filteredStudents.length === 0 ? (
-        <EmptyState title="No students found" description="Try adjusting your search criteria." />
+        <EmptyState
+          imageSource={require('../../../assets/empty students.png')}
+          imageSize={160}
+          title="No students found"
+          description="Enroll students directly or approve incoming batch join requests."
+          actionLabel="Enroll Student"
+          onAction={onOpenEnrollNewStudent}
+        />
       ) : (
         filteredStudents.map((s: AdminStudentItem) => (
           <View
@@ -2695,6 +2768,34 @@ function StudentsDirectorySection({
                 >
                   <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>+ Batch</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert(
+                      'Remove Student',
+                      `Remove ${s.fullName} from institute directory?`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Remove',
+                          style: 'destructive',
+                          onPress: async () => {
+                            await store.deleteStudent(s.id);
+                            onToast({ type: 'info', message: `${s.fullName} removed from directory.` });
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                  style={{
+                    backgroundColor: '#FEE2E2',
+                    paddingHorizontal: 7,
+                    paddingVertical: 5,
+                    borderRadius: 8,
+                  }}
+                >
+                  <Trash2 size={13} color="#DC2626" />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -2784,7 +2885,14 @@ function FeesManagerSection({
       {/* Content based on tab */}
       {feeTab === 'receipts' ? (
         store.payments.length === 0 ? (
-          <EmptyState title="No transactions yet" description="Record offline or view online fee payments." />
+          <EmptyState
+            imageSource={require('../../../assets/missing fees.png')}
+            imageSize={160}
+            title="No transactions yet"
+            description="Record offline or view online fee payments."
+            actionLabel="Record Fee"
+            onAction={onRecordFee}
+          />
         ) : (
           store.payments.map((p: AdminPaymentItem) => (
             <View
@@ -2823,7 +2931,14 @@ function FeesManagerSection({
           ))
         )
       ) : store.feeDues.length === 0 ? (
-        <EmptyState title="No Overdue Dues" description="All student tuition fee dues are clear!" />
+        <EmptyState
+          imageSource={require('../../../assets/missing fees.png')}
+          imageSize={160}
+          title="No Overdue Dues"
+          description="All student tuition fee dues are clear!"
+          actionLabel="Record Fee"
+          onAction={onRecordFee}
+        />
       ) : (
         store.feeDues.map((d: any) => (
           <View
@@ -6310,6 +6425,476 @@ function OfflinePaymentModal({
   );
 }
 
+function NewStudentEnrollModal({
+  visible,
+  batches,
+  joinRequests,
+  onClose,
+  onEnroll,
+  onApproveRequest,
+}: {
+  visible: boolean;
+  batches: BatchItem[];
+  joinRequests: any[];
+  onClose: () => void;
+  onEnroll: (student: Omit<AdminStudentItem, 'id' | 'joinedAt'>) => Promise<void>;
+  onApproveRequest: (reqId: string) => Promise<void>;
+}) {
+  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<'new' | 'pending'>('new');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || '');
+  const [classLevel, setClassLevel] = useState<9 | 10 | 11 | 12>(10);
+  const [board, setBoard] = useState<'cbse' | 'icse'>('cbse');
+  const [school, setSchool] = useState('');
+  const [parentName, setParentName] = useState('');
+  const [parentPhone, setParentPhone] = useState('');
+  const [feeStatus, setFeeStatus] = useState<'paid' | 'due' | 'overdue'>('paid');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const pendingRequests = useMemo(() => {
+    return (joinRequests || []).filter((r) => r.status === 'pending');
+  }, [joinRequests]);
+
+  useEffect(() => {
+    if (visible) {
+      setFullName('');
+      setPhone('');
+      setEmail('');
+      setSchool('');
+      setParentName('');
+      setParentPhone('');
+      setFeeStatus('paid');
+      setIsSubmitting(false);
+      if (batches.length > 0) {
+        setSelectedBatchId(batches[0].id);
+        setClassLevel(batches[0].classLevel || 10);
+      }
+    }
+  }, [visible, batches]);
+
+  const handleSelectBatch = (bId: string) => {
+    setSelectedBatchId(bId);
+    const b = batches.find((item) => item.id === bId);
+    if (b) {
+      setClassLevel(b.classLevel);
+      if (b.board === 'icse') setBoard('icse');
+      else setBoard('cbse');
+    }
+  };
+
+  const handleEnrollSubmit = async () => {
+    if (!fullName.trim()) {
+      Alert.alert('Required', 'Please enter student full name.');
+      return;
+    }
+    if (!phone.trim()) {
+      Alert.alert('Required', 'Please enter student contact number.');
+      return;
+    }
+    const targetBatch = batches.find((b) => b.id === selectedBatchId);
+    const prefix = fullName.slice(0, 3).toUpperCase();
+    const parentInviteCode = `${prefix}${Math.floor(100 + Math.random() * 900)}`;
+
+    setIsSubmitting(true);
+    try {
+      await onEnroll({
+        userId: `usr-${Date.now()}`,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() || `${phone.trim()}@quick2learn.in`,
+        classLevel,
+        board,
+        school: school.trim() || 'Quick2Learn Coaching Institute, Mathura',
+        parentName: parentName.trim() || null,
+        parentPhone: parentPhone.trim() || null,
+        parentInviteCode,
+        attendanceRate: 100,
+        enrolledBatchIds: targetBatch ? [targetBatch.id] : [],
+        enrolledBatchNames: targetBatch ? [targetBatch.title] : [],
+        feeStatus,
+      });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onClose();
+    } catch {
+      Alert.alert('Error', 'Failed to enroll student.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}
+      >
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            maxHeight: '92%',
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
+            elevation: 10,
+          }}
+        >
+          {/* Top Grab Handle */}
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#CBD5E1',
+              alignSelf: 'center',
+              marginBottom: 10,
+            }}
+          />
+
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 18,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: '#F1F5F9',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#BFDBFE',
+                }}
+              >
+                <UserPlus size={19} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>
+                  Enroll New Student
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Admit student to Quick2Learn and assign batch
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Tabs: Direct Admission | Pending Requests */}
+          {pendingRequests.length > 0 && (
+            <View style={{ flexDirection: 'row', paddingHorizontal: 18, paddingTop: 10, gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => setActiveTab('new')}
+                style={{
+                  flex: 1,
+                  paddingVertical: 7,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'new' ? '#2563EB' : '#F1F5F9',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: activeTab === 'new' ? '#FFFFFF' : '#64748B' }}>
+                  Direct Admission
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('pending')}
+                style={{
+                  flex: 1,
+                  paddingVertical: 7,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'pending' ? '#2563EB' : '#F1F5F9',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: activeTab === 'pending' ? '#FFFFFF' : '#64748B' }}>
+                  Pending Requests ({pendingRequests.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {activeTab === 'new' ? (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 12 }}
+            >
+              <FormField
+                label="Student Full Name *"
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="e.g. Arjun Singh Rajput"
+              />
+
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="Mobile Number *"
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="e.g. 9412278910"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="Email (Optional)"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="e.g. student@gmail.com"
+                    keyboardType="email-address"
+                  />
+                </View>
+              </View>
+
+              {/* Target Batch Dropdown */}
+              <SearchableBatchDropdown
+                batches={batches}
+                selectedBatchId={selectedBatchId}
+                onSelectBatch={handleSelectBatch}
+                accentColor="#2563EB"
+                allowAllBatches={false}
+                label="Select Enrolling Batch *"
+              />
+
+              {/* Class Level Selector */}
+              <View style={{ gap: 4 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Class Level</Text>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {([9, 10, 11, 12] as const).map((lvl) => {
+                    const isSelected = classLevel === lvl;
+                    return (
+                      <TouchableOpacity
+                        key={lvl}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setClassLevel(lvl);
+                        }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 8,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#2563EB' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#1D4ED8' : '#CBD5E1',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          Class {lvl}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Educational Board */}
+              <View style={{ gap: 4 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Educational Board</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {(['cbse', 'icse'] as const).map((b) => {
+                    const isSelected = board === b;
+                    return (
+                      <TouchableOpacity
+                        key={b}
+                        onPress={() => setBoard(b)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 8,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#059669' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#047857' : '#CBD5E1',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {b.toUpperCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <FormField
+                label="School / College Name"
+                value={school}
+                onChangeText={setSchool}
+                placeholder="e.g. St. Dominic Convent School, Mathura"
+              />
+
+              {/* Parent Info */}
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="Parent Name (Optional)"
+                    value={parentName}
+                    onChangeText={setParentName}
+                    placeholder="e.g. Rajesh Rajput"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="Parent Phone (Optional)"
+                    value={parentPhone}
+                    onChangeText={setParentPhone}
+                    placeholder="e.g. 9837123456"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+              </View>
+
+              {/* Fee Status */}
+              <View style={{ gap: 4 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Initial Fee Status</Text>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {(['paid', 'due', 'overdue'] as const).map((status) => {
+                    const isSelected = feeStatus === status;
+                    const color = status === 'paid' ? '#059669' : status === 'due' ? '#D97706' : '#DC2626';
+                    return (
+                      <TouchableOpacity
+                        key={status}
+                        onPress={() => setFeeStatus(status)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 8,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? color : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? color : '#CBD5E1',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#475569' }}>
+                          {status.toUpperCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handleEnrollSubmit}
+                disabled={isSubmitting}
+                style={{
+                  backgroundColor: '#2563EB',
+                  paddingVertical: 14,
+                  borderRadius: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                  marginTop: 6,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <UserPlus size={17} color="#FFFFFF" />
+                    <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>
+                      Complete Student Enrollment
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          ) : (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 10 }}
+            >
+              {pendingRequests.map((req) => (
+                <View
+                  key={req.id}
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 14,
+                    padding: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>
+                      {req.studentName}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#475569', marginTop: 1 }}>
+                      {req.batchTitle} • Class {req.classLevel}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+                      {req.studentPhone}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      await onApproveRequest(req.id);
+                      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }}
+                    style={{
+                      backgroundColor: '#059669',
+                      paddingHorizontal: 12,
+                      paddingVertical: 7,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
+                      Approve & Enroll
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 function EnrollStudentModal({
   visible,
   student,
@@ -6825,7 +7410,7 @@ function FormField({
   placeholder?: string;
   multiline?: boolean;
   numberOfLines?: number;
-  keyboardType?: 'default' | 'numeric' | 'email-address';
+  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
 }) {
   return (
     <View style={{ gap: 5 }}>

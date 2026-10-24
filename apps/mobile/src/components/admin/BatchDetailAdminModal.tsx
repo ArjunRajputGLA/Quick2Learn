@@ -3495,6 +3495,8 @@ export function BatchDetailAdminModal({
                     return (
                       <View style={{ flex: 1, minHeight: Math.max(availableTabHeight - 120, 360), justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
                         <EmptyState
+                          imageSource={require('../../../assets/empty students.png')}
+                          imageSize={160}
                           title="No students found"
                           description={`No student matches "${studentSearch}". Try a different name or school.`}
                           actionLabel="Clear Search"

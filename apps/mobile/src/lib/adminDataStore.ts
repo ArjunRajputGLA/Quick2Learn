@@ -436,6 +436,8 @@ interface AdminStoreActions {
   publishTestResults: (id: string) => Promise<void>;
 
   // Students
+  enrollNewStudent: (student: Omit<AdminStudentItem, 'id' | 'joinedAt'>) => Promise<AdminStudentItem>;
+  deleteStudent: (id: string) => Promise<void>;
   enrollStudentInBatch: (studentId: string, batchId: string) => Promise<void>;
   removeStudentFromBatch: (studentId: string, batchId: string) => Promise<void>;
   addStudentToBatch: (studentId: string, batchId: string) => Promise<void>;
@@ -823,6 +825,42 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
       t.id === id ? { ...t, isPublished: true, status: 'completed' as const } : t
     );
     set({ tests: updated });
+    await persistState(get());
+  },
+
+  enrollNewStudent: async (studentInput) => {
+    const newId = `stud-${Date.now()}`;
+    const newStudent: AdminStudentItem = {
+      ...studentInput,
+      id: newId,
+      joinedAt: new Date().toISOString(),
+    };
+    let updatedBatches = get().batches;
+    if (newStudent.enrolledBatchIds && newStudent.enrolledBatchIds.length > 0) {
+      updatedBatches = updatedBatches.map((b) =>
+        newStudent.enrolledBatchIds.includes(b.id)
+          ? { ...b, enrolledCount: b.enrolledCount + 1 }
+          : b
+      );
+    }
+    const updatedStudents = [newStudent, ...get().students];
+    set({ students: updatedStudents, batches: updatedBatches });
+    await persistState(get());
+    return newStudent;
+  },
+
+  deleteStudent: async (id) => {
+    const target = get().students.find((s) => s.id === id);
+    let updatedBatches = get().batches;
+    if (target?.enrolledBatchIds?.length) {
+      updatedBatches = updatedBatches.map((b) =>
+        target.enrolledBatchIds.includes(b.id)
+          ? { ...b, enrolledCount: Math.max(0, b.enrolledCount - 1) }
+          : b
+      );
+    }
+    const updated = get().students.filter((s) => s.id !== id);
+    set({ students: updated, batches: updatedBatches });
     await persistState(get());
   },
 
