@@ -303,49 +303,18 @@ export const DEMO_HOME_DATA: HomeResponse = {
     classLevel: 10,
     board: "cbse",
     chipLabel: "Class 10 • CBSE",
-    unreadNotificationsCount: 1,
+    unreadNotificationsCount: 0,
   },
   liveClass: null,
   continueWatching: [],
-  todayClasses: [
-    {
-      batchId: "demo-batch-1",
-      batchTitle: "Class 10 Board Excellence 2026",
-      subjectName: "Mathematics",
-      facultyName: "Dinesh Sir",
-      timeText: "5:00 PM - 6:30 PM",
-      mode: "online",
-      locationText: "Live Interactive Session",
-      route: "/(app)/(tabs)/batches",
-    },
-  ],
-  upcomingTests: [
-    {
-      id: "demo-test-1",
-      title: "Quadratic Equations & Polynomials Test",
-      batchTitle: "Class 10 Board Excellence",
-      subjectName: "Mathematics",
-      dateText: "Tomorrow, 6:00 PM",
-      totalMarks: 40,
-      route: "/(app)/(tabs)/tests",
-    },
-  ],
+  todayClasses: [],
+  upcomingTests: [],
   recentResults: [],
   feeAlert: null,
-  announcements: [
-    {
-      id: "demo-ann-1",
-      title: "Welcome to Quick2Learn Mobile!",
-      body: "Explore video lectures, live classes, chapter notes, and chapter tests.",
-      isPinned: true,
-      publishedAt: "2026-01-01T00:00:00.000Z",
-      dateFormatted: "Today",
-      route: "/(app)/notifications",
-    },
-  ],
+  announcements: [],
   banners: [],
   freeLectures: [],
-  enrolledBatchesCount: 1,
+  enrolledBatchesCount: 0,
   shareApp: {
     title: "Quick2Learn - Learn Maths with Dinesh Sir",
     message: "Join Quick2Learn for Class 9-12 CBSE/ICSE Maths coaching!",
@@ -354,37 +323,13 @@ export const DEMO_HOME_DATA: HomeResponse = {
 };
 
 export const DEMO_STUDENT_STATS: StudentQuickStats = {
-  attendancePercentage: 92,
-  testsTaken: 8,
-  lecturesCompleted: 14,
+  attendancePercentage: 0,
+  testsTaken: 0,
+  lecturesCompleted: 0,
 };
 
 export const DEMO_BATCHES_DATA: BatchesMineResponse = {
-  enrolled: [
-    {
-      id: "demo-batch-1",
-      slug: "class-10-board-excellence",
-      title: "Class 10 Board Excellence 2026",
-      subtitle: "Comprehensive CBSE Mathematics Course",
-      classLevel: 10,
-      board: "cbse",
-      mode: "online",
-      teacherName: "Dinesh Sir",
-      teacherAvatarUrl: getFacultyAvatarUri("Dinesh Sir"),
-      subjectName: "Mathematics",
-      progressPercentage: 45,
-      nextClass: {
-        title: "Quadratic Equations - Part 2",
-        timeFormatted: "Today, 5:00 PM",
-        weekday: new Date().getDay(),
-        roomOrLinkNote: "Zoom Live Classroom",
-        isToday: true,
-        isLive: false,
-        startsInMinutes: 120,
-      },
-      enrolledAt: "2026-01-01T00:00:00.000Z",
-    },
-  ],
+  enrolled: [],
   pendingRequests: [],
 };
 
@@ -1095,42 +1040,7 @@ export function useChildTests(studentId?: string | null, batchId?: string) {
         const boardStr = (student?.board || "cbse").toUpperCase();
 
         return {
-          tests: [
-            {
-              id: "test-001",
-              title: `Class ${classLvl} ${boardStr} Real Numbers & Polynomials Evaluation`,
-              batchId: `batch-class${classLvl}-math`,
-              batchTitle: `Class ${classLvl} ${boardStr} Maths`,
-              subjectName: "Mathematics",
-              durationMinutes: 45,
-              totalMarks: 50,
-              startsAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-              endsAt: new Date(Date.now() + 86400000 * 4).toISOString(),
-              status: "completed",
-              latestAttemptStatus: "submitted",
-              latestScore: 46,
-              latestPercentage: 92,
-              myBestScore: 46,
-              questionCount: 25,
-            },
-            {
-              id: "test-002",
-              title: `Class ${classLvl} Quadratic Equations & Algebra Mastery`,
-              batchId: `batch-class${classLvl}-math`,
-              batchTitle: `Class ${classLvl} ${boardStr} Maths`,
-              subjectName: "Mathematics",
-              durationMinutes: 60,
-              totalMarks: 50,
-              startsAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-              endsAt: new Date(Date.now() - 86400000 * 9).toISOString(),
-              status: "completed",
-              latestAttemptStatus: "submitted",
-              latestScore: 42,
-              latestPercentage: 84,
-              myBestScore: 42,
-              questionCount: 20,
-            },
-          ] as any,
+          tests: [],
         };
       }
     },
@@ -1564,7 +1474,7 @@ export function useStudentBatches() {
       }
 
       return {
-        enrolled: mappedAdminBatches.length ? (mappedAdminBatches as any) : DEMO_BATCHES_DATA.enrolled,
+        enrolled: mappedAdminBatches.length ? (mappedAdminBatches as any) : [],
         pendingRequests: [],
       };
     },
@@ -2403,64 +2313,17 @@ export function useStudentPerformance(studentId?: string) {
         });
       } catch {
         return {
-          studentId: studentId || "demo-student-user-id",
-          studentName: "Student Demo",
-          totalTestsAttempted: 12,
+          studentId: studentId || "student-user",
+          studentName: "Student",
+          totalTestsAttempted: 0,
           totalTestsMissed: 0,
-          averageScorePercentage: 88,
-          totalTimeSpentMinutes: 360,
-          recentAttempts: [
-            {
-              attemptId: "11111111-1111-4111-a111-111111111111",
-              testId: "22222222-2222-4222-a222-222222222222",
-              testTitle: "Class 10 Real Numbers & Polynomials",
-              score: 46,
-              totalMarks: 50,
-              percentage: 92,
-              rank: 2,
-              submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-            },
-            {
-              attemptId: "33333333-3333-4333-a333-333333333333",
-              testId: "44444444-4444-4444-a444-444444444444",
-              testTitle: "Quadratic Equations Mastery Assessment",
-              score: 42,
-              totalMarks: 50,
-              percentage: 84,
-              rank: 5,
-              submittedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-            },
-          ],
-          subjectBreakdown: [
-            {
-              subjectId: "55555555-5555-4555-a555-555555555555",
-              subjectName: "Mathematics",
-              testsCount: 8,
-              averageScorePercentage: 92,
-            },
-            {
-              subjectId: "66666666-6666-4666-a666-666666666666",
-              subjectName: "Science",
-              testsCount: 4,
-              averageScorePercentage: 84,
-            },
-          ],
-          chapterBreakdown: [
-            {
-              chapterId: "77777777-7777-4777-a777-777777777777",
-              chapterTitle: "Real Numbers",
-              averageAccuracyPercentage: 94,
-              totalQuestions: 25,
-            },
-            {
-              chapterId: "88888888-8888-4888-a888-888888888888",
-              chapterTitle: "Polynomials",
-              averageAccuracyPercentage: 90,
-              totalQuestions: 25,
-            },
-          ],
-          strongestChapters: ["Real Numbers", "Polynomials"],
-          weakestChapters: ["Triangles Trigonometry"],
+          averageScorePercentage: 0,
+          totalTimeSpentMinutes: 0,
+          recentAttempts: [],
+          subjectBreakdown: [],
+          chapterBreakdown: [],
+          strongestChapters: [],
+          weakestChapters: [],
         };
       }
     },

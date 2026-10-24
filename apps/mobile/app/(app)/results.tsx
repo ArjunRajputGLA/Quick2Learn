@@ -36,143 +36,9 @@ import type { ResultsAndTestimonialsResponse } from '@quick2learn/shared';
 type ResultItem = ResultsAndTestimonialsResponse['results'][number];
 type TestimonialItem = ResultsAndTestimonialsResponse['testimonials'][number];
 
-const FALLBACK_RESULTS: ResultItem[] = [
-  {
-    id: 'res-1',
-    studentName: 'Aarav Sharma',
-    exam: 'CBSE Class XII Maths',
-    year: 2025,
-    scoreText: '100/100',
-    photoKey: null,
-    isFeatured: true,
-  },
-  {
-    id: 'res-2',
-    studentName: 'Priya Agrawal',
-    exam: 'CBSE Class XII Maths',
-    year: 2025,
-    scoreText: '99/100',
-    photoKey: null,
-    isFeatured: true,
-  },
-  {
-    id: 'res-3',
-    studentName: 'Rohan Verma',
-    exam: 'ICSE Class X Science',
-    year: 2025,
-    scoreText: '98/100',
-    photoKey: null,
-    isFeatured: true,
-  },
-  {
-    id: 'res-4',
-    studentName: 'Sneha Gupta',
-    exam: 'CBSE Class X Maths',
-    year: 2025,
-    scoreText: '99/100',
-    photoKey: null,
-    isFeatured: true,
-  },
-  {
-    id: 'res-5',
-    studentName: 'Devendra Singh',
-    exam: 'CBSE Class XII Maths',
-    year: 2024,
-    scoreText: '98/100',
-    photoKey: null,
-    isFeatured: true,
-  },
-  {
-    id: 'res-6',
-    studentName: 'Megha Bansal',
-    exam: 'CBSE Class XII Maths',
-    year: 2024,
-    scoreText: '97/100',
-    photoKey: null,
-    isFeatured: false,
-  },
-  {
-    id: 'res-7',
-    studentName: 'Kartik Soni',
-    exam: 'ICSE Class X Science',
-    year: 2024,
-    scoreText: '96/100',
-    photoKey: null,
-    isFeatured: false,
-  },
-  {
-    id: 'res-8',
-    studentName: 'Ananya Saxena',
-    exam: 'CBSE Class X Maths',
-    year: 2024,
-    scoreText: '98/100',
-    photoKey: null,
-    isFeatured: false,
-  },
-];
+const FALLBACK_RESULTS: ResultItem[] = [];
 
-const FALLBACK_TESTIMONIALS: TestimonialItem[] = [
-  {
-    id: 'test-1',
-    studentName: 'Aarav Sharma',
-    classLevel: 12,
-    year: 2025,
-    quote:
-      'Dinesh Sir simplified calculus and 3D vectors to a degree where board questions felt almost routine. Scored 100/100 in CBSE Mathematics thanks to continuous classroom testing.',
-    photoKey: null,
-    videoId: 'yt-math-12-matrices-oneshot',
-  },
-  {
-    id: 'test-2',
-    studentName: 'Priya Agrawal',
-    classLevel: 10,
-    year: 2025,
-    quote:
-      "Namita Ma'am's chemistry balancing shortcuts and biology anatomical diagram guidelines were exactly what appeared in our ICSE board examinations. Scored 98% in ICSE Sciences.",
-    photoKey: null,
-    videoId: 'yt-chem-10-periodic-properties',
-  },
-  {
-    id: 'test-3',
-    studentName: 'Shubham Verma',
-    classLevel: 12,
-    year: 2025,
-    quote:
-      "Watch how Dinesh Sir's calculus PYQ marathon and Sunday test series helped me secure district rank in Class 12 CBSE Mathematics.",
-    photoKey: null,
-    videoId: 'yt-math-12-definite-integrals',
-  },
-  {
-    id: 'test-4',
-    studentName: 'Rohan Khandelwal',
-    classLevel: 12,
-    year: 2024,
-    quote:
-      'The discipline and regular doubt clearing sessions at Quick2Learn Mathura made all the difference. Dinesh Sir personally reviews every student’s answer presentation.',
-    photoKey: null,
-    videoId: null,
-  },
-  {
-    id: 'test-5',
-    studentName: 'Devendra Singh',
-    classLevel: 12,
-    year: 2024,
-    quote:
-      "Every difficult concept in Definite Integrals and Matrices became crystal clear with Dinesh Sir's daily practice problem sheets. Scored 98/100 in CBSE Maths!",
-    photoKey: null,
-    videoId: null,
-  },
-  {
-    id: 'test-6',
-    studentName: 'Sneha Gupta',
-    classLevel: 10,
-    year: 2025,
-    quote:
-      'The weekly practice sheets for geometry and trigonometry built immense speed and accuracy for Class 10 CBSE Board Exams.',
-    photoKey: null,
-    videoId: null,
-  },
-];
+const FALLBACK_TESTIMONIALS: TestimonialItem[] = [];
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -229,6 +95,23 @@ export default function ResultsScreen() {
     const base = data?.testimonials && data.testimonials.length > 0 ? data.testimonials : FALLBACK_TESTIMONIALS;
     return [...customTestimonials, ...base];
   }, [data?.testimonials, customTestimonials]);
+
+  const topScoreText = useMemo(() => {
+    if (allResults.length === 0) return '—';
+    const top = allResults.find((r) => r.scoreText.includes('100'));
+    return top ? top.scoreText : allResults[0]?.scoreText || '—';
+  }, [allResults]);
+
+  const topPercentText = useMemo(() => {
+    if (allResults.length === 0) return '—';
+    const found = allResults.find((r) => r.scoreText.includes('%'));
+    return found ? found.scoreText : '—';
+  }, [allResults]);
+
+  const highScorersCount = useMemo(() => {
+    if (allResults.length === 0) return '0';
+    return String(allResults.length);
+  }, [allResults]);
 
   // Filtered toppers
   const filteredResults = useMemo(() => {
@@ -481,7 +364,7 @@ export default function ResultsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Trophy size={13} color="#1D4ED8" />
             <Text style={{ fontSize: 12, fontWeight: '800', color: '#1E3A8A', marginLeft: 4 }}>
-              100/100
+              {topScoreText}
             </Text>
           </View>
           <Text style={{ fontSize: 9.5, fontWeight: '600', color: '#3B82F6', marginTop: 2 }}>
@@ -506,7 +389,7 @@ export default function ResultsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Star size={13} color="#B45309" fill="#B45309" />
             <Text style={{ fontSize: 12, fontWeight: '800', color: '#92400E', marginLeft: 4 }}>
-              99.2%
+              {topPercentText}
             </Text>
           </View>
           <Text style={{ fontSize: 9.5, fontWeight: '600', color: '#D97706', marginTop: 2 }}>
@@ -531,7 +414,7 @@ export default function ResultsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Award size={13} color="#047857" />
             <Text style={{ fontSize: 12, fontWeight: '800', color: '#065F46', marginLeft: 4 }}>
-              500+
+              {highScorersCount}
             </Text>
           </View>
           <Text style={{ fontSize: 9.5, fontWeight: '600', color: '#059669', marginTop: 2 }}>

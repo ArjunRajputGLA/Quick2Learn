@@ -88,6 +88,7 @@ import {
 } from "../../../src/lib/studentInviteDirectory";
 import { useI18n } from "../../../src/lib/i18n";
 import { useTabBarScroll } from "../../../src/lib/tabBarVisibilityStore";
+import { useAdminStore } from "../../../src/lib/adminDataStore";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -100,6 +101,8 @@ export default function ProfileScreen() {
   const { data: inviteCodeData, isLoading: isInviteLoading } = useStudentInviteCode();
   const { data: parentStudentsData } = useParentStudents();
   const generateCodeMutation = useGenerateStudentInviteCode();
+  const adminBatchesCount = useAdminStore((s) => s.batches.length);
+  const adminStudentsCount = useAdminStore((s) => s.students.length);
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -788,7 +791,7 @@ export default function ProfileScreen() {
                   marginBottom: 2,
                 }}
               >
-                4 Batches
+                {`${adminBatchesCount} Batches`}
               </Text>
               <Text
                 style={{
@@ -844,7 +847,7 @@ export default function ProfileScreen() {
                   marginBottom: 2,
                 }}
               >
-                128 Enrolled
+                {`${adminStudentsCount} Enrolled`}
               </Text>
               <Text
                 style={{
