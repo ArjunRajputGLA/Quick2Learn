@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/server/auth/session";
 import { getAdminBatchEditorData } from "@/server/data/admin";
 import { getBatchTimetable, getBatchJoinRequests } from "@/server/data/batches";
+import { getAvailableTests } from "@/server/data/tests";
 import { BatchAdminTabs } from "@/components/admin/batch-admin-tabs";
 import { ArrowLeft } from "lucide-react";
 
@@ -35,6 +36,7 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
     },
     batch.id
   );
+  const batchTests = await getAvailableTests(current.user.id, current.role, { batchId: batch.id });
 
   const formattedInitialBatch = {
     id: batch.id,
@@ -117,6 +119,7 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
         availableChapters={chapters}
         timetableSlots={timetableSlots}
         joinRequests={joinRequests as any}
+        batchTests={batchTests as any}
       />
     </div>
   );

@@ -48,6 +48,7 @@ import { TextField } from '../../../src/components/ui/TextField';
 import { ProgressBar } from '../../../src/components/ui/ProgressBar';
 import { LiveBanner } from '../../../src/components/composite/LiveBanner';
 import { analytics } from '../../../src/lib/analytics';
+import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import { colors, radii } from '@quick2learn/shared';
 import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
@@ -79,6 +80,7 @@ function StudentHomeScreen() {
   const [batchCodeInput, setBatchCodeInput] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
   const lastToggleRef = React.useRef(0);
+  const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
   // Refresh home data on screen focus
   useFocusEffect(
@@ -309,7 +311,9 @@ function StudentHomeScreen() {
 
       {/* Main Home Scroll Area */}
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
+        onScroll={handleTabBarScroll}
+        scrollEventThrottle={scrollEventThrottle}
+        contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing || isRefetching}

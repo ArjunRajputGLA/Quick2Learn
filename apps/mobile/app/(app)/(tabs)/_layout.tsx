@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useMe } from '../../../src/api/hooks';
+import { CurvedBottomTabBar } from '../../../src/components/navigation/CurvedBottomTabBar';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -32,34 +33,11 @@ export default function TabsLayout() {
     <>
       <StatusBar style="dark" />
       <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#2563EB', // Primary
-        tabBarInactiveTintColor: '#6B7280', // Ink Muted
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 52 + (Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 4)),
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 4),
-          paddingTop: 4,
-          elevation: 6,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 3,
-        },
-        tabBarItemStyle: {
-          minHeight: 44,
-          paddingVertical: 1,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-          marginTop: 1,
-        },
-      }}
-    >
+        tabBar={(props) => <CurvedBottomTabBar {...props} />}
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
       {/* 1. Home Tab (Visible for all) */}
       <Tabs.Screen
         name="index"

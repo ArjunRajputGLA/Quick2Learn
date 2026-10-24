@@ -1,0 +1,165 @@
+export const SYLLABUS_CHAPTERS: Record<number, string[]> = {
+  12: [
+    'Relations & Functions',
+    'Inverse Trigonometric Functions',
+    'Matrices',
+    'Determinants',
+    'Continuity & Differentiability',
+    'Application of Derivatives',
+    'Integrals',
+    'Differential Equations',
+    'Vector Algebra',
+    'Three Dimensional Geometry',
+    'Linear Programming',
+    'Probability',
+  ],
+  11: [
+    'Sets & Relations',
+    'Trigonometric Functions',
+    'Complex Numbers',
+    'Linear Inequalities',
+    'Permutations & Combinations',
+    'Binomial Theorem',
+    'Sequences & Series',
+    'Straight Lines',
+    'Conic Sections',
+    'Limits & Derivatives',
+    'Statistics & Probability',
+  ],
+  10: [
+    'Real Numbers',
+    'Polynomials',
+    'Linear Equations',
+    'Quadratic Equations',
+    'Arithmetic Progressions',
+    'Triangles',
+    'Coordinate Geometry',
+    'Trigonometry',
+    'Circles',
+    'Surface Areas & Volumes',
+    'Statistics & Probability',
+  ],
+  9: [
+    'Number Systems',
+    'Polynomials',
+    'Coordinate Geometry',
+    'Linear Equations in Two Variables',
+    'Lines and Angles',
+    'Triangles',
+    'Quadrilaterals',
+    'Circles',
+    'Heron’s Formula',
+    'Surface Areas & Volumes',
+    'Statistics',
+  ],
+};
+
+export const SUBJECT_CHAPTERS: Record<string, Record<number, string[]>> = {
+  science: {
+    10: [
+      'Chemical Reactions and Equations',
+      'Acids, Bases and Salts',
+      'Metals and Non-metals',
+      'Carbon and its Compounds',
+      'Life Processes',
+      'Control and Coordination',
+      'How do Organisms Reproduce?',
+      'Heredity',
+      'Light - Reflection and Refraction',
+      'The Human Eye and Colourful World',
+      'Electricity',
+      'Magnetic Effects of Electric Current',
+      'Our Environment',
+    ],
+    9: [
+      'Matter in Our Surroundings',
+      'Is Matter Around Us Pure',
+      'Atoms and Molecules',
+      'Structure of the Atom',
+      'The Fundamental Unit of Life',
+      'Tissues',
+      'Motion',
+      'Force and Laws of Motion',
+      'Gravitation',
+      'Work and Energy',
+      'Sound',
+      'Improvement in Food Resources',
+    ],
+  },
+  chemistry: {
+    12: [
+      'Solutions',
+      'Electrochemistry',
+      'Chemical Kinetics',
+      'd- and f-Block Elements',
+      'Coordination Compounds',
+      'Haloalkanes and Haloarenes',
+      'Alcohols, Phenols and Ethers',
+      'Aldehydes, Ketones and Carboxylic Acids',
+      'Amines',
+      'Biomolecules',
+    ],
+    11: [
+      'Some Basic Concepts of Chemistry',
+      'Structure of Atom',
+      'Classification of Elements and Periodicity in Properties',
+      'Chemical Bonding and Molecular Structure',
+      'Chemical Thermodynamics',
+      'Equilibrium',
+      'Redox Reactions',
+      'Organic Chemistry: Some Basic Principles & Techniques',
+      'Hydrocarbons',
+    ],
+  },
+  biology: {
+    12: [
+      'Sexual Reproduction in Flowering Plants',
+      'Human Reproduction',
+      'Reproductive Health',
+      'Principles of Inheritance and Variation',
+      'Molecular Basis of Inheritance',
+      'Evolution',
+      'Human Health and Disease',
+      'Microbes in Human Welfare',
+      'Biotechnology: Principles and Processes',
+      'Biotechnology and its Applications',
+      'Organisms and Populations',
+      'Ecosystem',
+      'Biodiversity and Conservation',
+    ],
+    11: [
+      'The Living World',
+      'Biological Classification',
+      'Plant Kingdom',
+      'Animal Kingdom',
+      'Morphology of Flowering Plants',
+      'Anatomy of Flowering Plants',
+      'Cell: The Unit of Life',
+      'Biomolecules',
+      'Cell Cycle and Cell Division',
+      'Photosynthesis in Higher Plants',
+      'Respiration in Plants',
+      'Plant Growth and Development',
+      'Breathing and Exchange of Gases',
+      'Body Fluids and Circulation',
+      'Excretory Products and their Elimination',
+      'Locomotion and Movement',
+      'Neural Control and Coordination',
+      'Chemical Coordination and Integration',
+    ],
+  },
+};
+
+export function getSuggestedChapters(classLevel: number, subjectName?: string): string[] {
+  const normSubject = (subjectName || '').toLowerCase();
+  if (normSubject.includes('chem') && SUBJECT_CHAPTERS.chemistry[classLevel]) {
+    return SUBJECT_CHAPTERS.chemistry[classLevel];
+  }
+  if (normSubject.includes('bio') && SUBJECT_CHAPTERS.biology[classLevel]) {
+    return SUBJECT_CHAPTERS.biology[classLevel];
+  }
+  if (normSubject.includes('sci') && SUBJECT_CHAPTERS.science[classLevel]) {
+    return SUBJECT_CHAPTERS.science[classLevel];
+  }
+  return SYLLABUS_CHAPTERS[classLevel] || SYLLABUS_CHAPTERS[12] || [];
+}

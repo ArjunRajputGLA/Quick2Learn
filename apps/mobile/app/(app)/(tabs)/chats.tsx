@@ -49,9 +49,11 @@ import {
 } from '../../../src/lib/adminDataStore';
 import { colors, radii } from '@quick2learn/shared';
 import type { DoubtItem } from '@quick2learn/shared';
+import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 
 export default function ChatsTabScreen() {
   const router = useRouter();
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { data: me } = useMe();
   const adminStore = useAdminStore();
 
@@ -248,6 +250,8 @@ export default function ChatsTabScreen() {
               <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{ paddingBottom: 32 }}
+                onScroll={onTabBarScroll}
+                scrollEventThrottle={16}
                 refreshControl={
                   <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
                 }
@@ -587,6 +591,8 @@ export default function ChatsTabScreen() {
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
+            onScroll={onTabBarScroll}
+            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
                 refreshing={isDoubtsRefetching}

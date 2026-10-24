@@ -95,6 +95,7 @@ interface TestBuilderClientProps {
   chapters: ChapterOption[];
   batches: BatchOption[];
   questionBank: QuestionBankItem[];
+  initialBatchId?: string;
 }
 
 export function TestBuilderClient({
@@ -103,13 +104,14 @@ export function TestBuilderClient({
   chapters,
   batches,
   questionBank,
+  initialBatchId,
 }: TestBuilderClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   // Test Details Form State
   const [title, setTitle] = useState(initialTest?.title || "");
-  const [batchId, setBatchId] = useState(initialTest?.batchId || "");
+  const [batchId, setBatchId] = useState(initialTest?.batchId || initialBatchId || "");
   const [subjectId, setSubjectId] = useState(initialTest?.subjectId || subjects[0]?.id || "");
   const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>(initialTest?.chapterIds || []);
   const [kind, setKind] = useState<string>(initialTest?.kind || "chapter_test");

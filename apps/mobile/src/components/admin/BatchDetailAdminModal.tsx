@@ -70,6 +70,7 @@ import {
   type AdminStudentItem,
   type AdminAnnouncementItem,
 } from '../../lib/adminDataStore';
+import { ScheduleTestToBatchModal } from './ScheduleTestToBatchModal';
 
 export type BatchDetailTab =
   | 'overview'
@@ -139,6 +140,8 @@ export function BatchDetailAdminModal({
   const [addStudentModalVisible, setAddStudentModalVisible] = useState(false);
   const [submissionsModalVisible, setSubmissionsModalVisible] = useState(false);
   const [selectedAssignmentForReview, setSelectedAssignmentForReview] = useState<AdminAssignmentItem | null>(null);
+  const [scheduleTestModalVisible, setScheduleTestModalVisible] = useState(false);
+  const [editingTestForBatch, setEditingTestForBatch] = useState<AdminTestItem | null>(null);
 
   // Student search
   const [studentSearch, setStudentSearch] = useState('');
@@ -178,9 +181,20 @@ export function BatchDetailAdminModal({
 
   const batchTests = useMemo(() => {
     if (!batch) return [];
-    return store.tests.filter(
-      (t) => t.subject.toLowerCase() === batch.subject.toLowerCase() && t.classLevel === batch.classLevel
-    );
+    return store.tests.filter((t) => {
+      // Direct batch assignment
+      if (t.batchId === batch.id || t.batchTitle === batch.title) return true;
+      // Or class & subject match if unassigned to a specific batch
+      if (!t.batchId) {
+        const batchSubjectLower = (batch.subject || '').toLowerCase();
+        const testSubjectLower = (t.subject || '').toLowerCase();
+        const subjectMatches =
+          batchSubjectLower.includes(testSubjectLower) ||
+          testSubjectLower.includes(batchSubjectLower);
+        return subjectMatches && t.classLevel === batch.classLevel;
+      }
+      return false;
+    });
   }, [store.tests, batch]);
 
   const batchAnnouncements = useMemo(() => {
@@ -815,6 +829,53 @@ export function BatchDetailAdminModal({
                   <ChevronRight size={16} color="#2563EB" style={{ flexShrink: 0 }} />
                 </TouchableOpacity>
               )}
+
+              {/* Quick Action: Schedule Test or Quiz */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setEditingTestForBatch(null);
+                  setScheduleTestModalVisible(true);
+                }}
+                style={{
+                  backgroundColor: '#ECFEFF',
+                  borderRadius: 14,
+                  padding: 13,
+                  borderWidth: 1,
+                  borderColor: '#A5F3FC',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: '#CFFAFE',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Award size={17} color="#0891B2" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#155E75' }}>
+                      Schedule Test or Quiz
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#0891B2', marginTop: 1 }}>
+                      {batchTests.length > 0
+                        ? `${batchTests.length} tests assigned • Tap to schedule next assessment`
+                        : 'Set up chapter assessments, quizzes & mock exams'}
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#0891B2" style={{ flexShrink: 0 }} />
+              </TouchableOpacity>
 
               {/* 3. BATCH TIMINGS SECTION (Matching Screenshot 2) */}
               <View style={{ gap: 8 }}>
@@ -2502,86 +2563,293 @@ export function BatchDetailAdminModal({
                 <View style={{ flex: 1, marginRight: 10 }}>
                   <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Batch Tests & Quizzes</Text>
                   <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
-                    Scheduled assessments and results
+                    {batchTests.length} assessments scheduled for {batch.title}
                   </Text>
                 </View>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setEditingTestForBatch(null);
+                    setScheduleTestModalVisible(true);
+                  }}
+                  style={{
+                    backgroundColor: '#0891B2',
+                    paddingHorizontal: 12,
+                    paddingVertical: 7,
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 5,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Schedule Test</Text>
+                </TouchableOpacity>
               </View>
 
               {batchTests.length === 0 ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: Math.max(availableTabHeight - 70, 480), paddingVertical: 20 }}>
                   <EmptyState
                     title="No tests assigned"
-                    description="Create assessments and assign them to this batch."
+                    description={`Create and schedule assessments specifically for ${batch.title}.`}
+                    actionLabel="Schedule First Test"
+                    onAction={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setEditingTestForBatch(null);
+                      setScheduleTestModalVisible(true);
+                    }}
                   />
                 </View>
               ) : (
-                batchTests.map((t) => (
-                  <View
-                    key={t.id}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: 14,
-                      padding: 14,
-                      borderWidth: 1,
-                      borderColor: '#E2E8F0',
-                      gap: 8,
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Badge
-                        label={t.status.toUpperCase()}
-                        variant={t.status === 'live' ? 'danger' : t.status === 'completed' ? 'success' : 'primary'}
-                        size="sm"
-                      />
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
-                        {t.durationMinutes} Mins • {t.totalMarks} Marks
-                      </Text>
-                    </View>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{t.title}</Text>
-                    <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                      Chapters: {t.chapters.join(', ')} • {t.questionsCount} Questions
-                    </Text>
+                batchTests.map((t) => {
+                  const startDateFormatted = t.scheduledStart
+                    ? new Date(t.scheduledStart).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : null;
 
-                    {/* Score stats */}
+                  return (
                     <View
+                      key={t.id}
                       style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: '#F8FAFC',
-                        padding: 8,
-                        borderRadius: 8,
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 14,
+                        padding: 14,
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                        gap: 10,
+                        elevation: 1,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 2,
                       }}
                     >
-                      <Text style={{ fontSize: 11.5, color: '#475569' }}>
-                        Submissions: <Text style={{ fontWeight: '800' }}>{t.submissionsCount}</Text>
-                      </Text>
-                      <Text style={{ fontSize: 11.5, color: '#475569' }}>
-                        Average: <Text style={{ fontWeight: '800', color: '#16A34A' }}>{t.averageScore} / {t.totalMarks}</Text>
-                      </Text>
-                    </View>
+                      {/* Top Bar with Status and Timing */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Badge
+                            label={t.status.toUpperCase()}
+                            variant={t.status === 'live' ? 'danger' : t.status === 'completed' ? 'success' : 'primary'}
+                            size="sm"
+                          />
+                          {t.status === 'live' && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' }} />
+                              <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#EF4444' }}>ACCEPTING RESPONSES</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
+                          ⏱️ {t.durationMinutes} Mins • 🎯 {t.totalMarks} Marks
+                        </Text>
+                      </View>
 
-                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                      {!t.isPublished && (
+                      {/* Title & Subject */}
+                      <View>
+                        <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }}>{t.title}</Text>
+                        <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+                          {t.subject} • Class {t.classLevel} • {t.questionsCount} Questions • Passing: {t.passingMarks} Marks
+                        </Text>
+                      </View>
+
+                      {/* Chapters Tags */}
+                      {t.chapters && t.chapters.length > 0 && (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                          {t.chapters.map((ch, idx) => (
+                            <View
+                              key={idx}
+                              style={{
+                                backgroundColor: '#F1F5F9',
+                                paddingHorizontal: 7,
+                                paddingVertical: 3,
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Text style={{ fontSize: 10.5, color: '#475569', fontWeight: '600' }} numberOfLines={1}>
+                                {ch}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+
+                      {/* Schedule info */}
+                      {startDateFormatted && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                          <Calendar size={12} color="#64748B" />
+                          <Text style={{ fontSize: 11, color: '#64748B' }}>
+                            Scheduled: <Text style={{ fontWeight: '700', color: '#334155' }}>{startDateFormatted}</Text>
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Score stats */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          backgroundColor: '#F8FAFC',
+                          padding: 10,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: '#F1F5F9',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11.5, color: '#475569' }}>
+                          Submissions: <Text style={{ fontWeight: '800', color: '#0F172A' }}>{t.submissionsCount}</Text>
+                        </Text>
+                        <Text style={{ fontSize: 11.5, color: '#475569' }}>
+                          Average Score: <Text style={{ fontWeight: '800', color: '#16A34A' }}>{t.averageScore} / {t.totalMarks}</Text>
+                        </Text>
+                      </View>
+
+                      {/* Action buttons */}
+                      <View style={{ flexDirection: 'row', gap: 6, marginTop: 2 }}>
+                        {/* Edit / Reschedule */}
                         <TouchableOpacity
-                          onPress={async () => {
-                            await store.publishTestResults(t.id);
-                            onToast({ type: 'success', message: 'Test results published to students.' });
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setEditingTestForBatch(t);
+                            setScheduleTestModalVisible(true);
                           }}
                           style={{
                             flex: 1,
-                            backgroundColor: '#2563EB',
-                            paddingVertical: 7,
+                            backgroundColor: '#ECFEFF',
+                            borderWidth: 1,
+                            borderColor: '#A5F3FC',
+                            paddingVertical: 8,
                             borderRadius: 8,
                             alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: 4,
                           }}
                         >
-                          <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Publish Results</Text>
+                          <Edit3 size={13} color="#0891B2" />
+                          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#0891B2' }}>Edit / Reschedule</Text>
                         </TouchableOpacity>
-                      )}
+
+                        {/* Quick Status toggle: Go Live or End */}
+                        {t.status === 'upcoming' && (
+                          <TouchableOpacity
+                            activeOpacity={0.75}
+                            onPress={async () => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                              await store.updateTest(t.id, { status: 'live' });
+                              onToast({ type: 'success', message: `"${t.title}" is now LIVE for students!` });
+                            }}
+                            style={{
+                              flex: 1,
+                              backgroundColor: '#DCFCE7',
+                              borderWidth: 1,
+                              borderColor: '#86EFAC',
+                              paddingVertical: 8,
+                              borderRadius: 8,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexDirection: 'row',
+                              gap: 4,
+                            }}
+                          >
+                            <Play size={13} color="#16A34A" />
+                            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#16A34A' }}>Go Live Now</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {t.status === 'live' && (
+                          <TouchableOpacity
+                            activeOpacity={0.75}
+                            onPress={async () => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                              await store.updateTest(t.id, { status: 'completed' });
+                              onToast({ type: 'info', message: `"${t.title}" ended and marked completed.` });
+                            }}
+                            style={{
+                              flex: 1,
+                              backgroundColor: '#FFE4E6',
+                              borderWidth: 1,
+                              borderColor: '#FECDD3',
+                              paddingVertical: 8,
+                              borderRadius: 8,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexDirection: 'row',
+                              gap: 4,
+                            }}
+                          >
+                            <CheckCircle2 size={13} color="#E11D48" />
+                            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#E11D48' }}>End Test</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {/* Publish results button if not published */}
+                        {!t.isPublished && (
+                          <TouchableOpacity
+                            activeOpacity={0.75}
+                            onPress={async () => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                              await store.publishTestResults(t.id);
+                              onToast({ type: 'success', message: 'Test results published to students.' });
+                            }}
+                            style={{
+                              flex: 1,
+                              backgroundColor: '#2563EB',
+                              paddingVertical: 8,
+                              borderRadius: 8,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Publish Results</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {/* Delete test button */}
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            Alert.alert(
+                              'Cancel Test',
+                              `Are you sure you want to remove "${t.title}" from this batch?`,
+                              [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                  text: 'Delete',
+                                  style: 'destructive',
+                                  onPress: async () => {
+                                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                                    await store.deleteTest(t.id);
+                                    onToast({ type: 'info', message: 'Test removed.' });
+                                  },
+                                },
+                              ]
+                            );
+                          }}
+                          style={{
+                            backgroundColor: '#FEE2E2',
+                            borderWidth: 1,
+                            borderColor: '#FECACA',
+                            paddingHorizontal: 10,
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Trash2 size={13} color="#DC2626" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                ))
+                  );
+                })
               )}
             </View>
           )}
@@ -3455,6 +3723,33 @@ export function BatchDetailAdminModal({
         }}
         onGraded={() => {
           onToast({ type: 'success', message: 'Submission evaluated successfully.' });
+        }}
+      />
+
+      {/* MODAL 8: SCHEDULE TEST FOR THIS BATCH */}
+      <ScheduleTestToBatchModal
+        visible={scheduleTestModalVisible}
+        batch={batch}
+        test={editingTestForBatch}
+        onClose={() => {
+          setScheduleTestModalVisible(false);
+          setEditingTestForBatch(null);
+        }}
+        onSaved={(isEdit) => {
+          setScheduleTestModalVisible(false);
+          setEditingTestForBatch(null);
+          onToast({
+            type: 'success',
+            message: isEdit
+              ? 'Test schedule and parameters updated!'
+              : `New assessment scheduled and published for ${batch?.title}!`,
+          });
+        }}
+        onDelete={async (id) => {
+          await store.deleteTest(id);
+          setScheduleTestModalVisible(false);
+          setEditingTestForBatch(null);
+          onToast({ type: 'info', message: 'Test cancelled and removed.' });
         }}
       />
     </Modal>

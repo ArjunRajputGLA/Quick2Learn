@@ -43,6 +43,7 @@ import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
 import { useMe, useStudentBatches } from '../../../src/api/hooks';
+import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import { BatchCard } from '../../../src/components/batches/BatchCard';
 import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
 import { cleanupOrphanedBatchDownloads } from '../../../src/lib/offline-downloads';
@@ -99,6 +100,7 @@ export default function BatchesScreen() {
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
   const [selectedViewIndex, setSelectedViewIndex] = useState(0); // 0 = Institute Batches, 1 = Student View
   const [refreshingAdmin, setRefreshingAdmin] = useState(false);
+  const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
   // Admin Batch Modals
   const [selectedBatchForConsole, setSelectedBatchForConsole] = useState<BatchItem | null>(null);
@@ -260,6 +262,8 @@ export default function BatchesScreen() {
         {/* ---------------- ADMIN VIEW (INSTITUTE BATCHES) ---------------- */}
         {isAdmin && selectedViewIndex === 0 ? (
           <ScrollView
+            onScroll={handleTabBarScroll}
+            scrollEventThrottle={scrollEventThrottle}
             style={{ flex: 1 }}
             contentContainerStyle={{ padding: 12, paddingBottom: 96 }}
             showsVerticalScrollIndicator={false}
@@ -682,9 +686,11 @@ export default function BatchesScreen() {
         ) : (
           /* ---------------- STUDENT VIEW (ENROLLED BATCHES) ---------------- */
           <ScrollView
+            onScroll={handleTabBarScroll}
+            scrollEventThrottle={scrollEventThrottle}
             style={{ flex: 1 }}
             className="flex-1"
-            contentContainerStyle={{ padding: 12, paddingBottom: 36 }}
+            contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl

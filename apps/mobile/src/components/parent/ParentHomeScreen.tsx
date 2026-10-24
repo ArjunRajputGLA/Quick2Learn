@@ -28,9 +28,11 @@ import { Screen } from "../ui/Screen";
 import { AppHeader } from "../ui/AppHeader";
 import { useParentHome, useMe, useParentStudents } from "../../api/hooks";
 import { useParentStore } from "../../lib/parentStore";
+import { useTabBarScroll } from "../../lib/tabBarVisibilityStore";
 
 export function ParentHomeScreen() {
   const router = useRouter();
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { selectedChildId } = useParentStore();
   const { data: me } = useMe();
   const { data: parentStudentsData } = useParentStudents();
@@ -90,6 +92,8 @@ export function ParentHomeScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={Boolean(isRefetching)}

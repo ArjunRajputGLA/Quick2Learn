@@ -8,7 +8,8 @@ import { BatchJoinRequestsInbox, type JoinRequestItem, type BatchFeePlanOption }
 import { BatchContentManager } from "./batch-content-manager";
 import { BatchLiveManager } from "./batch-live-manager";
 import { BatchAttendanceManager } from "./batch-attendance-manager";
-import { Sliders, Calendar, QrCode, Users, BookOpen, Video, CheckCircle2 } from "lucide-react";
+import { BatchTestsManager, type BatchTestItem } from "./batch-tests-manager";
+import { Sliders, Calendar, QrCode, Users, BookOpen, Video, CheckCircle2, Award } from "lucide-react";
 
 interface BatchAdminTabsProps {
   batch: NonNullable<BatchEditorProps["initialBatch"]> & {
@@ -20,6 +21,7 @@ interface BatchAdminTabsProps {
   availableChapters: Array<{ id: string; title: string; classLevel: number; subjectId: string }>;
   timetableSlots: TimetableSlotItem[];
   joinRequests: JoinRequestItem[];
+  batchTests?: BatchTestItem[];
 }
 
 export function BatchAdminTabs({
@@ -29,9 +31,10 @@ export function BatchAdminTabs({
   availableChapters,
   timetableSlots,
   joinRequests,
+  batchTests = [],
 }: BatchAdminTabsProps) {
   const [activeTab, setActiveTab] = useState<
-    "details" | "content" | "timetable" | "live" | "attendance" | "code" | "requests"
+    "details" | "content" | "timetable" | "live" | "attendance" | "tests" | "code" | "requests"
   >("details");
 
 
@@ -125,6 +128,28 @@ export function BatchAdminTabs({
 
         <button
           type="button"
+          onClick={() => setActiveTab("tests")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-body-sm font-bold transition-all ${
+            activeTab === "tests"
+              ? "bg-primary text-white shadow-xs"
+              : "bg-white text-ink-muted hover:text-ink border border-border"
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          <span>Tests & Quizzes</span>
+          {batchTests.length > 0 && (
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                activeTab === "tests" ? "bg-white/20 text-white" : "bg-neutral-100 text-ink"
+              }`}
+            >
+              {batchTests.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("code")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-body-sm font-bold transition-all ${
             activeTab === "code"
@@ -195,6 +220,14 @@ export function BatchAdminTabs({
         <BatchAttendanceManager
           batchId={batch.id}
           batchTitle={batch.title}
+        />
+      )}
+
+      {activeTab === "tests" && (
+        <BatchTestsManager
+          batchId={batch.id}
+          batchTitle={batch.title}
+          initialTests={batchTests}
         />
       )}
 

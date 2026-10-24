@@ -7,8 +7,14 @@ export const metadata = {
   title: "Create Test | Quick2Learn Admin",
 };
 
-export default async function NewTestPage() {
+interface NewTestPageProps {
+  searchParams?: Promise<{ batchId?: string }>;
+}
+
+export default async function NewTestPage({ searchParams }: NewTestPageProps) {
   await requireRole(["admin", "teacher"]);
+  const sp = searchParams ? await searchParams : {};
+  const initialBatchId = sp.batchId;
 
   const [subjects, chapters, batches, questions] = await Promise.all([
     db.select({ id: schema.subjects.id, name: schema.subjects.name }).from(schema.subjects).orderBy(asc(schema.subjects.sortOrder)),
@@ -28,6 +34,7 @@ export default async function NewTestPage() {
 
   return (
     <TestBuilderClient
+      initialBatchId={initialBatchId}
       subjects={subjects}
       chapters={chapters}
       batches={batches}

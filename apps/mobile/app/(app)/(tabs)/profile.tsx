@@ -87,11 +87,13 @@ import {
   sanitizeLinkedStudents,
 } from "../../../src/lib/studentInviteDirectory";
 import { useI18n } from "../../../src/lib/i18n";
+import { useTabBarScroll } from "../../../src/lib/tabBarVisibilityStore";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { t } = useI18n();
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
 
   const { data: me, isLoading } = useMe();
   const { data: quickStats, isLoading: isStatsLoading } = useStudentQuickStats();
@@ -435,6 +437,8 @@ export default function ProfileScreen() {
         className="flex-1"
         contentContainerStyle={{ padding: 12, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

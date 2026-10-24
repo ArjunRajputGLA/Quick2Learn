@@ -40,6 +40,7 @@ import {
   useLearnClasses,
   useLearnChapters,
 } from '../../../src/api/hooks';
+import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import {
   useAdminStore,
   type AdminCourseItem,
@@ -152,6 +153,7 @@ export default function LearnScreen() {
   const [courseSearch, setCourseSearch] = useState('');
   const [courseClassFilter, setCourseClassFilter] = useState<'all' | '9' | '10' | '11' | '12'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
   useEffect(() => {
     adminStore.init();
@@ -325,8 +327,10 @@ export default function LearnScreen() {
         {/* 1. COURSES & TEST PACKS TAB (LOADED LIVE FROM ADMIN DATA STORE) */}
         {activeMainTab === 0 && (
           <ScrollView
+            onScroll={handleTabBarScroll}
+            scrollEventThrottle={scrollEventThrottle}
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
+            contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -664,8 +668,10 @@ export default function LearnScreen() {
             ) : (
               <View style={{ flex: 1 }}>
                 <FlatList
+                  onScroll={handleTabBarScroll}
+                  scrollEventThrottle={scrollEventThrottle}
                   data={chapters}
-                  contentContainerStyle={{ padding: 12, paddingBottom: 32 }}
+                  contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
                   showsVerticalScrollIndicator={false}
                   refreshControl={
                     <RefreshControl
