@@ -24,3 +24,4 @@ export * from './GoogleIcon';
 export * from './KeyboardAwareContext';
 export * from './KeyboardAwareScrollView';
 export * from './KeyboardAwareView';
+export * from './BookLoader';

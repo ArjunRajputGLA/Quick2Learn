@@ -26,6 +26,7 @@ import {
 } from "lucide-react-native";
 import { Screen } from "../ui/Screen";
 import { AppHeader } from "../ui/AppHeader";
+import { BookLoader } from "../ui/BookLoader";
 import { useParentHome, useMe, useParentStudents } from "../../api/hooks";
 import { useParentStore } from "../../lib/parentStore";
 import { useTabBarScroll } from "../../lib/tabBarVisibilityStore";
@@ -63,10 +64,7 @@ export function ParentHomeScreen() {
     return (
       <Screen header={<AppHeader title="Parent Portal" />}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={{ fontSize: 14, color: "#64748B", marginTop: 12 }}>
-            Loading child records...
-          </Text>
+          <BookLoader text="Loading child records..." size="lg" />
         </View>
       </Screen>
     );

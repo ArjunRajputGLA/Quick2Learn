@@ -32,6 +32,7 @@ import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
 import { Chip } from '../../src/components/ui/Chip';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { BookLoader } from '../../src/components/ui/BookLoader';
 import { useLibrarySearch, useLearnClasses } from '../../src/api/hooks';
 
 const RECENT_SEARCHES_KEY = 'quick2learn_recent_searches';
@@ -426,11 +427,8 @@ export default function SearchScreen() {
               </View>
             </View>
           ) : isLoading ? (
-            <View className="py-16 items-center justify-center">
-              <ActivityIndicator size="large" color="#2563EB" />
-              <Text className="text-sm text-text-secondary mt-3 font-medium">
-                Searching library...
-              </Text>
+            <View className="py-12 items-center justify-center">
+              <BookLoader text="Searching library..." size="lg" />
             </View>
           ) : totalResults === 0 ? (
             <View className="py-8">

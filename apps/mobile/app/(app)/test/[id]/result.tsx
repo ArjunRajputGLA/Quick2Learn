@@ -33,6 +33,7 @@ import { Badge } from '../../../../src/components/ui/Badge';
 import { Chip } from '../../../../src/components/ui/Chip';
 import { ProgressRing } from '../../../../src/components/ui/ProgressRing';
 import { ProgressBar } from '../../../../src/components/ui/ProgressBar';
+import { BookLoader } from '../../../../src/components/ui/BookLoader';
 import { MathView } from '../../../../src/components/composite/MathView';
 import { useTestResult } from '../../../../src/api/hooks';
 import type { TestQuestionResult } from '@quick2learn/shared';
@@ -89,8 +90,7 @@ export default function TestResultScreen() {
     return (
       <Screen header={<AppHeader title="Test Result" showBack />}>
         <View className="flex-1 items-center justify-center p-6">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-body text-ink-muted mt-3">Evaluating results & ranking...</Text>
+          <BookLoader text="Evaluating results & ranking..." size="lg" />
         </View>
       </Screen>
     );

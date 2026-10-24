@@ -46,6 +46,7 @@ import { KeyboardAwareScrollView } from '../../../src/components/ui/KeyboardAwar
 import { Toast } from '../../../src/components/ui/Toast';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import {
   useTeacherTodaySessions,
   useTeacherStartSession,
@@ -288,10 +289,7 @@ function TodaySessionsSection({
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center p-6">
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text className="text-body font-medium text-ink-muted mt-3">
-          Loading today's schedule...
-        </Text>
+        <BookLoader text="Loading today's schedule..." size="lg" />
       </View>
     );
   }
@@ -649,8 +647,7 @@ function FastAttendanceSection({
       {/* Student List */}
       {isLoadingStudents ? (
         <View className="flex-1 items-center justify-center p-6">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-small text-ink-muted mt-2">Loading roster...</Text>
+          <BookLoader text="Loading roster..." size="md" />
         </View>
       ) : students.length === 0 ? (
         <EmptyState

@@ -43,6 +43,7 @@ import {
 import { QuestionContentView } from '../../../../src/components/tests/QuestionContentView';
 import { AnswerControl } from '../../../../src/components/tests/AnswerControl';
 import { QuestionPaletteBottomSheet } from '../../../../src/components/tests/QuestionPaletteBottomSheet';
+import { BookLoader } from '../../../../src/components/ui/BookLoader';
 import { SubmitSummaryModal } from '../../../../src/components/tests/SubmitSummaryModal';
 import { analytics } from '../../../../src/lib/analytics';
 import type { StudentTestQuestion } from '@quick2learn/shared';
@@ -497,10 +498,7 @@ export default function TestAttemptScreen() {
   if (questions.length === 0) {
     return (
       <View className="flex-1 bg-surface-subtle items-center justify-center p-6">
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text className="text-body text-ink-muted mt-3 font-medium">
-          Setting up test environment...
-        </Text>
+        <BookLoader text="Setting up test environment..." size="lg" />
       </View>
     );
   }

@@ -33,6 +33,7 @@ import {
 } from 'lucide-react-native';
 import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
+import { BookLoader } from '../../src/components/ui/BookLoader';
 import { useMe } from '../../src/api/hooks';
 import { useAdminStore, type AdminResourceItem, type AdminStore } from '../../src/lib/adminDataStore';
 import {
@@ -546,11 +547,8 @@ export default function DownloadsScreen() {
 
             {/* Loading state */}
             {isLoading ? (
-              <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="small" color="#2563EB" />
-                <Text style={{ fontSize: 12, color: '#64748B', marginTop: 8, fontWeight: '500' }}>
-                  Checking offline files...
-                </Text>
+              <View style={{ paddingVertical: 28, alignItems: 'center', justifyContent: 'center' }}>
+                <BookLoader text="Checking offline files..." size="md" />
               </View>
             ) : downloads.length === 0 ? (
               /* Compact Refined Empty State */

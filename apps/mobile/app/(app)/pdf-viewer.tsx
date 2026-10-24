@@ -25,6 +25,7 @@ import {
 import * as ScreenCapture from 'expo-screen-capture';
 import Pdf, { type PdfRef } from 'react-native-pdf';
 import { WebView } from 'react-native-webview';
+import { BookLoader } from '../../src/components/ui/BookLoader';
 import {
   getLastReadPage,
   saveLastReadPage,
@@ -215,11 +216,8 @@ export default function PdfViewerScreen() {
 
         {/* Loading Indicator */}
         {isLoading && (
-          <View className="absolute inset-0 bg-slate-950/80 items-center justify-center space-y-3">
-            <ActivityIndicator size="large" color="#3B82F6" />
-            <Text className="text-slate-300 font-medium text-caption">
-              Loading document...
-            </Text>
+          <View className="absolute inset-0 bg-slate-950/80 items-center justify-center p-4">
+            <BookLoader text="Opening study document..." size="lg" />
           </View>
         )}
       </View>

@@ -17,6 +17,7 @@ import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { useTestDetail, useStartTestAttempt } from '../../../src/api/hooks';
 import { saveLocalAttempt } from '../../../src/lib/offline-tests';
 
@@ -80,8 +81,7 @@ export default function TestIntroScreen() {
     >
       {isLoading && !test ? (
         <View className="flex-1 items-center justify-center p-6">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-body text-ink-muted mt-3">Loading assessment details...</Text>
+          <BookLoader text="Loading assessment details..." size="lg" />
         </View>
       ) : !test ? (
         <View className="flex-1 justify-center p-6">

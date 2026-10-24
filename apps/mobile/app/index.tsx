@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, Image, Text } from 'react-native';
+import { View, Image, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import { useMe, DEMO_MODE_STORAGE_KEY } from '../src/api/hooks';
+import { BookLoader } from '../src/components/ui/BookLoader';
 
 import { colors, radii } from '@quick2learn/shared';
 
@@ -66,12 +67,12 @@ export default function RootIndex() {
           Quick2Learn
         </Text>
         <Text
-          style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 24 }}
-          className="text-caption text-ink-muted mb-6"
+          style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 16 }}
+          className="text-caption text-ink-muted mb-4"
         >
           Learn Maths the quick and easy way
         </Text>
-        <ActivityIndicator size="small" color={colors.primary} />
+        <BookLoader text="Loading your study space..." size="sm" />
       </View>
     </SafeAreaView>
   );

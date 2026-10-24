@@ -24,6 +24,7 @@ import { Badge } from '../../../src/components/ui/Badge';
 import { LectureRow } from '../../../src/components/composite/LectureRow';
 import { PdfRow } from '../../../src/components/composite/PdfRow';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { useChapterDetail, useAvailableTests } from '../../../src/api/hooks';
 import { HelpCircle, Award, CheckCircle2 } from 'lucide-react-native';
 
@@ -129,6 +130,16 @@ export default function ChapterDetailScreen() {
       console.warn('Could not open PDF note:', err);
     });
   };
+
+  if (isLoading && !chapterData) {
+    return (
+      <Screen scrollable={false} header={<AppHeader title="Chapter Details" showBack />}>
+        <View className="flex-1 items-center justify-center p-6">
+          <BookLoader text="Loading chapter resources..." size="lg" />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen

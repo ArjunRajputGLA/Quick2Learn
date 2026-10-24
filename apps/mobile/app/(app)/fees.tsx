@@ -48,6 +48,7 @@ import {
 } from "lucide-react-native";
 import { Screen } from "../../src/components/ui/Screen";
 import { AppHeader } from "../../src/components/ui/AppHeader";
+import { BookLoader } from "../../src/components/ui/BookLoader";
 import { Button } from "../../src/components/ui/Button";
 import { Card } from "../../src/components/ui/Card";
 import { Badge } from "../../src/components/ui/Badge";
@@ -1569,11 +1570,8 @@ function StudentFeesView() {
 
         {/* Loading State */}
         {isLoading && (
-          <View className="py-12 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
-            <Text className="text-caption text-ink-muted mt-3">
-              {t("loading")}
-            </Text>
+          <View className="py-8 items-center justify-center">
+            <BookLoader text={t("loading")} size="lg" />
           </View>
         )}
 

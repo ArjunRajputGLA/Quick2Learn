@@ -28,6 +28,7 @@ import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
 import { Badge } from '../../src/components/ui/Badge';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
+import { BookLoader } from '../../src/components/ui/BookLoader';
 import { Button } from '../../src/components/ui/Button';
 import { useStudentPerformance } from '../../src/api/hooks';
 
@@ -59,8 +60,7 @@ export default function PerformanceScreen() {
     return (
       <Screen header={<AppHeader title="Academic Performance" showBack />}>
         <View className="flex-1 items-center justify-center p-6">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-body text-ink-muted mt-3">Loading performance insights...</Text>
+          <BookLoader text="Loading performance insights..." size="lg" />
         </View>
       </Screen>
     );

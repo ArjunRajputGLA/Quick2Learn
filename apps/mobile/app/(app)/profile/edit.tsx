@@ -41,6 +41,7 @@ import {
 import { Screen } from "../../../src/components/ui/Screen";
 import { AppHeader } from "../../../src/components/ui/AppHeader";
 import { Button } from "../../../src/components/ui/Button";
+import { BookLoader } from "../../../src/components/ui/BookLoader";
 import { KeyboardAwareView } from "../../../src/components/ui/KeyboardAwareView";
 import { Card } from "../../../src/components/ui/Card";
 import { Badge } from "../../../src/components/ui/Badge";
@@ -284,7 +285,7 @@ export default function EditProfileScreen() {
     return (
       <Screen scrollable={false} header={<AppHeader title={isStaff ? "Faculty Profile" : t("editProfileTitle")} showBack />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
+          <BookLoader text="Loading profile..." size="lg" />
         </View>
       </Screen>
     );

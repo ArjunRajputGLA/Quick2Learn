@@ -12,6 +12,7 @@ import { Bell, CheckCheck, Clock, ChevronRight, Inbox } from 'lucide-react-nativ
 import { Screen } from '../../src/components/ui/Screen';
 import { AppHeader } from '../../src/components/ui/AppHeader';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { BookLoader } from '../../src/components/ui/BookLoader';
 import { Button } from '../../src/components/ui/Button';
 import {
   useNotifications,
@@ -129,8 +130,8 @@ export default function NotificationsScreen() {
       }
     >
       {isLoading && allNotifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
+        <View className="flex-1 items-center justify-center p-6">
+          <BookLoader text="Loading notifications..." size="lg" />
         </View>
       ) : allNotifications.length === 0 ? (
         <EmptyState

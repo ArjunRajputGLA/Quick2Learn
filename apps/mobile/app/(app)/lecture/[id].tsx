@@ -37,6 +37,7 @@ import { Button } from '../../../src/components/ui/Button';
 import { Badge } from '../../../src/components/ui/Badge';
 import { PdfRow } from '../../../src/components/composite/PdfRow';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
+import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { useLectureDetail, useSaveProgress } from '../../../src/api/hooks';
 import { analytics } from '../../../src/lib/analytics';
 import { saveProgressLocally } from '../../../src/lib/offline-progress';
@@ -201,7 +202,7 @@ export default function LecturePlayerScreen() {
     return (
       <Screen scrollable={false} header={<AppHeader title="Lecture" showBack />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
+          <BookLoader text="Loading video masterclass..." size="lg" />
         </View>
       </Screen>
     );
