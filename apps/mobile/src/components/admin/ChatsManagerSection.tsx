@@ -95,17 +95,6 @@ export function ChatsManagerSection({
         add(r.studentId || r.id, r.studentName, r.studentPhone, r.batchTitle, r.classLevel);
       });
 
-    // Default Quick2Learn cohort
-    [
-      { id: 'st-arjun', name: 'Arjun Singh Rajput', phone: '+91 94122 78910', batch: 'Class 10 CBSE - Mathematics', class: 10 },
-      { id: 'st-aarav', name: 'Aarav Sharma', phone: '+91 98371 23456', batch: 'Class 10 CBSE - Science', class: 10 },
-      { id: 'st-ananya', name: 'Ananya Verma', phone: '+91 98970 45678', batch: 'Class 12 CBSE - Physics & Math', class: 12 },
-      { id: 'st-priya', name: 'Priya Patel', phone: '+91 97580 67890', batch: 'Class 11 CBSE - Chemistry & Math', class: 11 },
-      { id: 'st-rohan', name: 'Rohan Mehta', phone: '+91 94120 12345', batch: 'Class 10 ICSE - Mathematics', class: 10 },
-      { id: 'st-sneha', name: 'Sneha Gupta', phone: '+91 98370 98765', batch: 'Class 9 CBSE - Foundation', class: 9 },
-      { id: 'st-vikram', name: 'Vikram Malhotra', phone: '+91 94560 34567', batch: 'Class 12 CBSE - Mathematics', class: 12 },
-    ].forEach((s) => add(s.id, s.name, s.phone, s.batch, s.class));
-
     return list;
   }, [store.students, store.joinRequests]);
 
@@ -921,60 +910,79 @@ export function ChatsManagerSection({
                 </View>
 
                 <ScrollView style={{ maxHeight: 320 }} contentContainerStyle={{ gap: 8 }}>
-                  {filteredStudents.map((st) => (
-                    <TouchableOpacity
-                      key={st.id}
-                      activeOpacity={0.7}
-                      onPress={() => handleStartChatWithStudent(st)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: 12,
-                        padding: 10,
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                      }}
-                    >
-                      <View
+                  {filteredStudents.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingVertical: 24 }}>
+                      <User size={30} color="#94A3B8" style={{ marginBottom: 6 }} />
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748B' }}>
+                        {studentSearchQuery.trim()
+                          ? 'No enrolled students matching search'
+                          : 'No enrolled students in database yet'}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setModalTab('custom')}
+                        style={{ marginTop: 8, backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 6 }}
+                      >
+                        <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563EB' }}>
+                          + Enter student details directly
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    filteredStudents.map((st) => (
+                      <TouchableOpacity
+                        key={st.id}
+                        activeOpacity={0.7}
+                        onPress={() => handleStartChatWithStudent(st)}
                         style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                          backgroundColor: '#2563EB',
+                          flexDirection: 'row',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 10,
-                        }}
-                      >
-                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
-                          {st.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                        </Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A' }}>
-                          {st.name}
-                        </Text>
-                        <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                          {st.batchName} {st.phone ? `• ${st.phone}` : ''}
-                        </Text>
-                      </View>
-                      <View
-                        style={{
-                          backgroundColor: '#EFF6FF',
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 6,
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: 12,
+                          padding: 10,
                           borderWidth: 1,
-                          borderColor: '#BFDBFE',
+                          borderColor: '#E2E8F0',
                         }}
                       >
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
-                          Message
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                        <View
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            backgroundColor: '#2563EB',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 10,
+                          }}
+                        >
+                          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
+                            {st.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A' }}>
+                            {st.name}
+                          </Text>
+                          <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                            {st.batchName} {st.phone ? `• ${st.phone}` : ''}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            backgroundColor: '#EFF6FF',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 6,
+                            borderWidth: 1,
+                            borderColor: '#BFDBFE',
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                            Message
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  )}
                 </ScrollView>
               </View>
             ) : (

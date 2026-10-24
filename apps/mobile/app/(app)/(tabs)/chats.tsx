@@ -72,72 +72,6 @@ interface EnrolledStudentOption {
   avatarColor?: string;
 }
 
-const DEFAULT_ENROLLED_STUDENTS: EnrolledStudentOption[] = [
-  {
-    id: 'student-arjun-rajput',
-    name: 'Arjun Singh Rajput',
-    phone: '+91 94122 78910',
-    batchName: 'Class 10 CBSE - Mathematics & Science',
-    classLevel: 10,
-    school: 'St. Dominic Convent, Mathura',
-    avatarColor: '#2563EB',
-  },
-  {
-    id: 'student-aarav-sharma',
-    name: 'Aarav Sharma',
-    phone: '+91 98371 23456',
-    batchName: 'Class 10 CBSE - Mathematics',
-    classLevel: 10,
-    school: 'DPS Mathura',
-    avatarColor: '#7C3AED',
-  },
-  {
-    id: 'student-ananya-verma',
-    name: 'Ananya Verma',
-    phone: '+91 98970 45678',
-    batchName: 'Class 12 CBSE - Physics & Math',
-    classLevel: 12,
-    school: 'Kendriya Vidyalaya Mathura',
-    avatarColor: '#059669',
-  },
-  {
-    id: 'student-priya-patel',
-    name: 'Priya Patel',
-    phone: '+91 97580 67890',
-    batchName: 'Class 11 CBSE - Chemistry & Math',
-    classLevel: 11,
-    school: 'Sacred Heart Convent, Mathura',
-    avatarColor: '#D97706',
-  },
-  {
-    id: 'student-rohan-mehta',
-    name: 'Rohan Mehta',
-    phone: '+91 94120 12345',
-    batchName: 'Class 10 ICSE - Mathematics',
-    classLevel: 10,
-    school: 'St. Paul School, Mathura',
-    avatarColor: '#0891B2',
-  },
-  {
-    id: 'student-sneha-gupta',
-    name: 'Sneha Gupta',
-    phone: '+91 98370 98765',
-    batchName: 'Class 9 CBSE - Science & Math Foundation',
-    classLevel: 9,
-    school: 'Army Public School Mathura Cantt',
-    avatarColor: '#DB2777',
-  },
-  {
-    id: 'student-vikram-malhotra',
-    name: 'Vikram Malhotra',
-    phone: '+91 94560 34567',
-    batchName: 'Class 12 CBSE - Mathematics Intensive',
-    classLevel: 12,
-    school: 'Birla School Mathura',
-    avatarColor: '#4F46E5',
-  },
-];
-
 export default function ChatsTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -280,9 +214,6 @@ export default function ChatsTabScreen() {
         });
       });
 
-    // 3. Defaults for Quick2Learn enrolled student cohort
-    DEFAULT_ENROLLED_STUDENTS.forEach(addStudent);
-
     return list;
   }, [adminStore.students, adminStore.joinRequests]);
 
@@ -310,53 +241,9 @@ export default function ChatsTabScreen() {
     return result;
   }, [enrolledStudents, selectedClassFilter, studentSearchQuery]);
 
-  // Available batches
+  // Available batches from database
   const availableBatches = useMemo(() => {
-    if (adminStore.batches && adminStore.batches.length > 0) {
-      return adminStore.batches;
-    }
-    return [
-      {
-        id: 'batch-c10-math',
-        title: 'Class 10 CBSE - Mathematics (Target 2026)',
-        subject: 'Mathematics',
-        classLevel: 10,
-        enrolledCount: 28,
-        faculty: 'Dinesh Sir',
-      },
-      {
-        id: 'batch-c10-sci',
-        title: 'Class 10 CBSE - Science (Physics, Chem, Bio)',
-        subject: 'Science',
-        classLevel: 10,
-        enrolledCount: 25,
-        faculty: 'Dinesh Sir & Namita Mam',
-      },
-      {
-        id: 'batch-c12-math',
-        title: 'Class 12 CBSE - Mathematics Intensive',
-        subject: 'Mathematics',
-        classLevel: 12,
-        enrolledCount: 22,
-        faculty: 'Dinesh Sir',
-      },
-      {
-        id: 'batch-c11-pcm',
-        title: 'Class 11 CBSE - Physics & Mathematics Foundation',
-        subject: 'Physics & Math',
-        classLevel: 11,
-        enrolledCount: 19,
-        faculty: 'Dinesh Sir',
-      },
-      {
-        id: 'batch-c9-found',
-        title: 'Class 9 CBSE - Science & Mathematics Foundation',
-        subject: 'Math & Science',
-        classLevel: 9,
-        enrolledCount: 18,
-        faculty: 'Dinesh Sir',
-      },
-    ];
+    return adminStore.batches || [];
   }, [adminStore.batches]);
 
   const filteredBatches = useMemo(() => {
@@ -519,7 +406,7 @@ export default function ChatsTabScreen() {
     const senderName =
       me?.profile?.fullName ||
       me?.user?.name ||
-      (isAdminOrTeacher ? 'Dinesh Singh Rajput' : 'Arjun Singh Rajput');
+      (isAdminOrTeacher ? 'Dinesh Singh Rajput' : 'Student');
     const senderRole = me?.role === 'admin' ? 'admin' : me?.role === 'teacher' ? 'teacher' : 'student';
 
     await adminStore.sendChatMessage(
@@ -723,81 +610,83 @@ export default function ChatsTabScreen() {
                       style={{ paddingVertical: 36, flex: 1, justifyContent: 'center' }}
                     />
 
-                    {/* Quick Start Suggestions with Enrolled Students */}
-                    <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '700',
-                          color: '#64748B',
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.6,
-                          marginBottom: 10,
-                        }}
-                      >
-                        Start With Enrolled Students
-                      </Text>
-                      <View style={{ gap: 8 }}>
-                        {enrolledStudents.slice(0, 3).map((student) => (
-                          <TouchableOpacity
-                            key={student.id}
-                            activeOpacity={0.7}
-                            onPress={() => handleStartStudentChat(student)}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              backgroundColor: '#F8FAFC',
-                              borderRadius: 12,
-                              padding: 10,
-                              borderWidth: 1,
-                              borderColor: '#E2E8F0',
-                            }}
-                          >
-                            <View
-                              style={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: 19,
-                                backgroundColor: student.avatarColor || '#2563EB',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginRight: 10,
-                              }}
-                            >
-                              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
-                                {student.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                              </Text>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ fontSize: 13.5, fontWeight: '600', color: '#0F172A' }}>
-                                {student.name}
-                              </Text>
-                              <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
-                                {student.batchName}
-                              </Text>
-                            </View>
-                            <View
+                    {/* Quick Start Suggestions with Enrolled Students (only if students exist in DB) */}
+                    {enrolledStudents.length > 0 && (
+                      <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '700',
+                            color: '#64748B',
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.6,
+                            marginBottom: 10,
+                          }}
+                        >
+                          Start With Enrolled Students
+                        </Text>
+                        <View style={{ gap: 8 }}>
+                          {enrolledStudents.slice(0, 3).map((student) => (
+                            <TouchableOpacity
+                              key={student.id}
+                              activeOpacity={0.7}
+                              onPress={() => handleStartStudentChat(student)}
                               style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                backgroundColor: '#EFF6FF',
-                                paddingHorizontal: 9,
-                                paddingVertical: 4.5,
-                                borderRadius: 6,
+                                backgroundColor: '#F8FAFC',
+                                borderRadius: 12,
+                                padding: 10,
                                 borderWidth: 1,
-                                borderColor: '#BFDBFE',
-                                gap: 4,
+                                borderColor: '#E2E8F0',
                               }}
                             >
-                              <MessageSquare size={11} color="#2563EB" />
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
-                                Message
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
+                              <View
+                                style={{
+                                  width: 38,
+                                  height: 38,
+                                  borderRadius: 19,
+                                  backgroundColor: student.avatarColor || '#2563EB',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginRight: 10,
+                                }}
+                              >
+                                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
+                                  {student.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                                </Text>
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13.5, fontWeight: '600', color: '#0F172A' }}>
+                                  {student.name}
+                                </Text>
+                                <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
+                                  {student.batchName}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  backgroundColor: '#EFF6FF',
+                                  paddingHorizontal: 9,
+                                  paddingVertical: 4.5,
+                                  borderRadius: 6,
+                                  borderWidth: 1,
+                                  borderColor: '#BFDBFE',
+                                  gap: 4,
+                                }}
+                              >
+                                <MessageSquare size={11} color="#2563EB" />
+                                <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                                  Message
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
                       </View>
-                    </View>
+                    )}
                   </View>
                 ) : (
                   filteredChannels.map((channel) => {
@@ -1395,13 +1284,19 @@ export default function ChatsTabScreen() {
                   contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
                 >
                   {filteredEnrolledStudents.length === 0 ? (
-                    <View style={{ alignItems: 'center', paddingVertical: 28 }}>
+                    <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                      <User size={32} color="#94A3B8" style={{ marginBottom: 8 }} />
                       <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748B' }}>
-                        No enrolled students found matching search.
+                        {studentSearchQuery.trim()
+                          ? 'No enrolled students found matching search.'
+                          : 'No enrolled students in database yet.'}
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 4, textAlign: 'center', paddingHorizontal: 20 }}>
+                        Admitted students will appear here automatically.
                       </Text>
                       <TouchableOpacity
                         onPress={() => setModalTab('custom')}
-                        style={{ marginTop: 8 }}
+                        style={{ marginTop: 12, backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
                       >
                         <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#2563EB' }}>
                           + Enter student name directly
@@ -1566,93 +1461,107 @@ export default function ChatsTabScreen() {
                   style={{ maxHeight: 380, marginTop: 10 }}
                   contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
                 >
-                  {filteredBatches.map((batch: any) => {
-                    const existing = (adminStore.chats || []).find(
-                      (c) =>
-                        c.type === 'batch_group' &&
-                        (c.batchId === batch.id || c.title.toLowerCase() === batch.title.toLowerCase())
-                    );
+                  {filteredBatches.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                      <Users size={32} color="#94A3B8" style={{ marginBottom: 8 }} />
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748B' }}>
+                        {studentSearchQuery.trim()
+                          ? 'No batches found matching search.'
+                          : 'No batches in database yet.'}
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 4, textAlign: 'center', paddingHorizontal: 20 }}>
+                        Batches created in the Admin Portal will appear here.
+                      </Text>
+                    </View>
+                  ) : (
+                    filteredBatches.map((batch: any) => {
+                      const existing = (adminStore.chats || []).find(
+                        (c) =>
+                          c.type === 'batch_group' &&
+                          (c.batchId === batch.id || c.title.toLowerCase() === batch.title.toLowerCase())
+                      );
 
-                    return (
-                      <TouchableOpacity
-                        key={batch.id}
-                        activeOpacity={0.75}
-                        onPress={() => handleStartBatchChat(batch)}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor: '#FFFFFF',
-                          borderRadius: 14,
-                          padding: 12,
-                          borderWidth: 1,
-                          borderColor: existing ? '#BAE6FD' : '#E2E8F0',
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 1 },
-                          shadowOpacity: 0.04,
-                          shadowRadius: 2,
-                          elevation: 1,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 22,
-                            backgroundColor: '#E0F2FE',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: 12,
-                            borderWidth: 1,
-                            borderColor: '#BAE6FD',
-                          }}
-                        >
-                          <Users size={20} color="#0284C7" />
-                        </View>
-
-                        <View style={{ flex: 1, marginRight: 8 }}>
-                          <Text
-                            style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}
-                            numberOfLines={1}
-                          >
-                            {batch.title}
-                          </Text>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={{ fontSize: 11.5, color: '#0284C7', fontWeight: '600' }}>
-                              {batch.subject}
-                            </Text>
-                            <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                              • {batch.enrolledCount || 24} enrolled students
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View
+                      return (
+                        <TouchableOpacity
+                          key={batch.id}
+                          activeOpacity={0.75}
+                          onPress={() => handleStartBatchChat(batch)}
                           style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            paddingHorizontal: 9,
-                            paddingVertical: 5,
-                            borderRadius: 8,
-                            backgroundColor: existing ? '#F0F9FF' : '#0284C7',
-                            borderWidth: existing ? 1 : 0,
-                            borderColor: '#BAE6FD',
-                            gap: 4,
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: 14,
+                            padding: 12,
+                            borderWidth: 1,
+                            borderColor: existing ? '#BAE6FD' : '#E2E8F0',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.04,
+                            shadowRadius: 2,
+                            elevation: 1,
                           }}
                         >
-                          <Users size={12} color={existing ? '#0284C7' : '#FFFFFF'} />
-                          <Text
+                          <View
                             style={{
-                              fontSize: 11.5,
-                              fontWeight: '700',
-                              color: existing ? '#0284C7' : '#FFFFFF',
+                              width: 44,
+                              height: 44,
+                              borderRadius: 22,
+                              backgroundColor: '#E0F2FE',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: 12,
+                              borderWidth: 1,
+                              borderColor: '#BAE6FD',
                             }}
                           >
-                            {existing ? 'Open' : 'Group Chat'}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
+                            <Users size={20} color="#0284C7" />
+                          </View>
+
+                          <View style={{ flex: 1, marginRight: 8 }}>
+                            <Text
+                              style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}
+                              numberOfLines={1}
+                            >
+                              {batch.title}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={{ fontSize: 11.5, color: '#0284C7', fontWeight: '600' }}>
+                                {batch.subject}
+                              </Text>
+                              <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                                • {batch.enrolledCount || 0} enrolled students
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingHorizontal: 9,
+                              paddingVertical: 5,
+                              borderRadius: 8,
+                              backgroundColor: existing ? '#F0F9FF' : '#0284C7',
+                              borderWidth: existing ? 1 : 0,
+                              borderColor: '#BAE6FD',
+                              gap: 4,
+                            }}
+                          >
+                            <Users size={12} color={existing ? '#0284C7' : '#FFFFFF'} />
+                            <Text
+                              style={{
+                                fontSize: 11.5,
+                                fontWeight: '700',
+                                color: existing ? '#0284C7' : '#FFFFFF',
+                              }}
+                            >
+                              {existing ? 'Open' : 'Group Chat'}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })
+                  )}
                 </ScrollView>
               </View>
             )}
