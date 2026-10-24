@@ -534,7 +534,7 @@ export function useMe() {
       }
     },
     staleTime: 60 * 1000,
-    retry: 1,
+    retry: false,
   });
 }
 

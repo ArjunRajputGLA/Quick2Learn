@@ -52,7 +52,7 @@ function AppStartupGate({ children }: { children: React.ReactNode }) {
 
   if (isRestoring) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
         <StatusBar style="dark" />
         <BookLoader text="Starting Quick2Learn..." size="lg" />
       </View>
@@ -73,6 +73,17 @@ function RootLayout() {
     NotoSansDevanagari_600SemiBold,
     NotoSansDevanagari_700Bold,
   });
+
+  const [fontTimeout, setFontTimeout] = React.useState(false);
+
+  useEffect(() => {
+    // Safety latch: don't block app start for more than 500ms waiting for web fonts
+    const timer = setTimeout(() => {
+      setFontTimeout(true);
+      SplashScreen.hideAsync().catch(() => {});
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const cleanupFocus = setupQueryClientAppStateFocus();
@@ -98,14 +109,14 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if (fontsLoaded || fontError || fontTimeout) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, fontTimeout]);
 
-  if (!fontsLoaded && !fontError) {
+  if (!fontsLoaded && !fontError && !fontTimeout) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
         <StatusBar style="dark" />
         <BookLoader text="Starting Quick2Learn..." size="lg" />
       </View>
