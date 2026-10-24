@@ -31,7 +31,6 @@ import {
   Layers,
   FileText,
   Volume2,
-  ShieldCheck,
   Menu,
   School,
   Plus,
@@ -232,27 +231,26 @@ function StudentHomeScreen() {
       <View
         style={{
           marginHorizontal: 12,
-          marginTop: 4,
-          marginBottom: 6,
+          marginTop: 2,
+          marginBottom: 4,
           paddingHorizontal: 8,
-          paddingVertical: 6,
-          minHeight: 46,
+          paddingVertical: 4,
+          minHeight: 42,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderRadius: 24,
+          borderRadius: 22,
           backgroundColor: colors.surface,
           borderWidth: 1,
           borderColor: 'rgba(226, 232, 240, 0.9)',
           shadowColor: '#0F172A',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 6,
-          elevation: 3,
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          elevation: 2,
         }}
-        className="mx-3 mt-1 mb-1.5 px-2 py-1.5 flex-row items-center justify-between bg-surface rounded-full border border-border shadow-xs"
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 6 }}>
           {/* Sidebar drawer trigger */}
           <TouchableOpacity
             activeOpacity={0.7}
@@ -263,26 +261,25 @@ function StudentHomeScreen() {
               toggleDropdown();
             }}
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 17,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: colors['surface-subtle'],
               borderWidth: 1,
               borderColor: colors.border,
-              marginRight: 8,
+              marginRight: 6,
             }}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Menu size={18} color={colors.ink} strokeWidth={2.2} />
+            <Menu size={16} color={colors.ink} strokeWidth={2.2} />
           </TouchableOpacity>
 
-          <View style={{ flex: 1, justifyContent: 'center' }} className="flex-1 justify-center">
-            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 6 }} className="flex-row items-center">
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 5 }}>
               <Text
-                style={{ fontSize: 15, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
-                className="text-body font-bold text-ink mr-1.5"
+                style={{ fontSize: 14, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -292,16 +289,15 @@ function StudentHomeScreen() {
                 <View
                   style={{
                     backgroundColor: colors['primary-soft'],
-                    paddingHorizontal: 7,
-                    paddingVertical: 1.5,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
                     borderRadius: radii.full,
                     borderWidth: 1,
                     borderColor: 'rgba(37, 99, 235, 0.2)',
                     flexShrink: 0,
                   }}
-                  className="bg-primary-soft px-1.5 py-0.5 rounded-full border border-primary/20"
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primary }} className="text-[10px] font-semibold text-primary">
+                  <Text style={{ fontSize: 9.5, fontWeight: '600', color: colors.primary }}>
                     {chipLabel}
                   </Text>
                 </View>
@@ -311,7 +307,7 @@ function StudentHomeScreen() {
         </View>
 
         {/* Bell Button */}
-        <NotificationBell count={unreadCount} />
+        <NotificationBell count={unreadCount} size={15} style={{ width: 32, height: 32, borderRadius: 16 }} />
       </View>
 
       {/* Main Home Scroll Area */}
@@ -331,7 +327,7 @@ function StudentHomeScreen() {
       >
         {/* 2. LiveBanner (when class is live now or starting within 15 mins) */}
         {liveClass ? (
-          <View className="px-4 pt-4">
+          <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
             <LiveBanner
               title={`${liveClass.subjectName} • ${liveClass.batchTitle}`}
               isLive={liveClass.isLive}
@@ -352,78 +348,6 @@ function StudentHomeScreen() {
           </View>
         ) : null}
 
-        {/* Admin Quick Launch Banner (for Admin role) */}
-        {me?.role === 'admin' && (
-          <View style={{ marginHorizontal: 16, marginTop: 12 }}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.push('/(app)/admin' as any)}
-              style={{
-                backgroundColor: '#0F172A',
-                borderRadius: 20,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: '#1E293B',
-                shadowColor: '#0F172A',
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.12,
-                shadowRadius: 6,
-                elevation: 3,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <View
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 10,
-                      backgroundColor: '#2563EB',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ShieldCheck size={16} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
-                    Administrator Controls
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    backgroundColor: '#059669',
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 10,
-                  }}
-                >
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>ADMIN PORTAL</Text>
-                </View>
-              </View>
-
-              <Text style={{ fontSize: 12, color: '#94A3B8', marginBottom: 10, lineHeight: 16 }}>
-                Full access to upload & edit batches, notes, question bank, test exams, student records, and fee collections.
-              </Text>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: 8,
-                  borderTopWidth: 1,
-                  borderTopColor: '#1E293B',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#60A5FA' }}>
-                  Launch Admin Management Suite
-                </Text>
-                <ChevronRight size={14} color="#60A5FA" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
-
         {/* Live Test Card (When test is Live now or In Progress) */}
         {(() => {
           const liveTest = availableTestsData?.tests?.find(
@@ -434,19 +358,30 @@ function StudentHomeScreen() {
           const isInProgress = liveTest.latestAttemptStatus === 'in_progress';
 
           return (
-            <View className="px-4 pt-4">
-              <View className="bg-primary rounded-2xl p-4 shadow-sm border border-primary/30 flex-row items-center justify-between">
-                <View className="flex-1 mr-3">
-                  <View className="flex-row items-center mb-1">
-                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-400 mr-2" />
-                    <Text className="text-[11px] font-bold uppercase tracking-wider text-white">
+            <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
+              <View
+                style={{
+                  backgroundColor: colors.primary,
+                  borderRadius: 14,
+                  padding: 12,
+                  borderWidth: 1,
+                  borderColor: 'rgba(37, 99, 235, 0.3)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#34D399', marginRight: 6 }} />
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                       {isInProgress ? 'RESUME TEST' : 'TEST LIVE NOW'}
                     </Text>
                   </View>
-                  <Text className="text-body font-bold text-white mb-0.5" numberOfLines={1}>
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 }} numberOfLines={1}>
                     {liveTest.title}
                   </Text>
-                  <Text className="text-caption text-white/80">
+                  <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.8)' }}>
                     {liveTest.subjectName || 'Maths & Science'} • {liveTest.durationMinutes} mins • {liveTest.totalMarks} marks
                   </Text>
                 </View>
@@ -454,9 +389,9 @@ function StudentHomeScreen() {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => router.push(`/test/${liveTest.id}` as any)}
-                  className="bg-white px-3.5 py-2.5 rounded-xl shadow-2xs"
+                  style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 }}
                 >
-                  <Text className="text-small font-bold text-primary">
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
                     {isInProgress ? 'Resume' : 'Start'}
                   </Text>
                 </TouchableOpacity>
@@ -467,32 +402,41 @@ function StudentHomeScreen() {
 
         {/* 3. Fee alert (when due within 7 days or overdue) */}
         {feeAlert ? (
-          <View className="px-4 pt-4">
+          <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
             <View
-              className={`rounded-2xl p-4 border shadow-sm ${
-                feeAlert.isOverdue
-                  ? 'bg-red-50/80 border-red-200'
-                  : 'bg-amber-50/80 border-amber-200'
-              }`}
+              style={{
+                borderRadius: 14,
+                padding: 12,
+                borderWidth: 1,
+                backgroundColor: feeAlert.isOverdue ? '#FEF2F2' : '#FFFBEB',
+                borderColor: feeAlert.isOverdue ? '#FECACA' : '#FDE68A',
+              }}
             >
-              <View className="flex-row items-center justify-between mb-1.5">
-                <View className="flex-row items-center">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <AlertCircle
-                    size={16}
+                    size={14}
                     color={feeAlert.isOverdue ? '#DC2626' : '#D97706'}
                   />
                   <Text
-                    className={`text-caption font-bold uppercase tracking-wider ml-1.5 ${
-                      feeAlert.isOverdue ? 'text-danger' : 'text-amber-700'
-                    }`}
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      marginLeft: 5,
+                      color: feeAlert.isOverdue ? '#DC2626' : '#B45309',
+                    }}
                   >
                     {feeAlert.label}
                   </Text>
                 </View>
                 <Text
-                  className={`text-caption font-bold ${
-                    feeAlert.isOverdue ? 'text-danger' : 'text-amber-800'
-                  }`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: feeAlert.isOverdue ? '#DC2626' : '#92400E',
+                  }}
                 >
                   {feeAlert.isOverdue
                     ? `Overdue by ${Math.abs(feeAlert.daysRemaining)}d`
@@ -500,12 +444,12 @@ function StudentHomeScreen() {
                 </Text>
               </View>
 
-              <View className="flex-row items-center justify-between mt-1">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                 <View>
-                  <Text className="text-h3 font-bold text-ink">
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                     {feeAlert.formattedAmount}
                   </Text>
-                  <Text className="text-caption text-ink-muted">
+                  <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
                     {feeAlert.batchTitle} • Due {feeAlert.dueDate}
                   </Text>
                 </View>
@@ -513,11 +457,16 @@ function StudentHomeScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.push(feeAlert.route as any)}
-                  className={`py-2 px-3.5 rounded-xl min-h-[40px] justify-center ${
-                    feeAlert.isOverdue ? 'bg-danger' : 'bg-primary'
-                  }`}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 10,
+                    minHeight: 32,
+                    justifyContent: 'center',
+                    backgroundColor: feeAlert.isOverdue ? '#DC2626' : '#2563EB',
+                  }}
                 >
-                  <Text className="text-small font-bold text-white">
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
                     Pay Now
                   </Text>
                 </TouchableOpacity>
@@ -528,9 +477,9 @@ function StudentHomeScreen() {
 
         {/* 4. Continue watching (the last 5 partly watched lectures with progress bars) */}
         {continueWatching.length > 0 ? (
-          <View className="pt-5">
-            <View className="px-4 flex-row items-center justify-between mb-2.5">
-              <Text className="text-h3 font-bold text-ink">
+          <View style={{ paddingTop: 10 }}>
+            <View style={{ paddingHorizontal: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                 Continue Watching
               </Text>
             </View>
@@ -605,11 +554,11 @@ function StudentHomeScreen() {
 
         {/* 5. Today's Classes (from batch timetables) */}
         {todayClasses.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-2">
-              <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                <Calendar size={16} color={colors.primary} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginLeft: 6 }} className="text-body font-bold text-ink ml-1.5">
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Calendar size={15} color={colors.primary} />
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink, marginLeft: 6 }}>
                   Classes Today
                 </Text>
               </View>
@@ -682,8 +631,8 @@ function StudentHomeScreen() {
 
         {/* 6. Upcoming tests and new results */}
         {upcomingTests.length > 0 || recentResults.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 8 }} className="text-body font-bold text-ink mb-2">
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink, marginBottom: 8 }}>
               Tests & Results
             </Text>
 
@@ -777,35 +726,60 @@ function StudentHomeScreen() {
 
         {/* 7. With no batches: Friendly "Join your batch" card for students only */}
         {!isStaff && enrolledBatchesCount === 0 ? (
-          <View className="px-4 pt-5">
-            <View className="bg-surface rounded-2xl p-5 border border-primary/20 shadow-sm">
-              <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
-                <GraduationCap size={26} color="#2563EB" />
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: 'rgba(37, 99, 235, 0.2)',
+                elevation: 1,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 3,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: colors['primary-soft'],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                  borderWidth: 1,
+                  borderColor: 'rgba(37, 99, 235, 0.2)',
+                }}
+              >
+                <GraduationCap size={18} color="#2563EB" />
               </View>
 
-              <Text className="text-h3 font-bold text-ink mb-1.5">
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }}>
                 Join your batch
               </Text>
 
-              <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+              <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
                 Connect with Dinesh Sir's classroom to receive daily timetables, test alerts, and syllabus announcements.
               </Text>
 
-              <View className="flex-row space-x-3">
-                <View className="flex-1 mr-2">
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flex: 1 }}>
                   <Button
                     variant="primary"
-                    size="md"
+                    size="sm"
                     onPress={() => setShowBatchCodeModal(true)}
-                    icon={<KeyRound size={16} color="#FFFFFF" />}
+                    icon={<KeyRound size={14} color="#FFFFFF" />}
                   >
                     Enter Code
                   </Button>
                 </View>
-                <View className="flex-1 ml-2">
+                <View style={{ flex: 1 }}>
                   <Button
                     variant="outline"
-                    size="md"
+                    size="sm"
                     onPress={() => router.push('/(app)/(tabs)/batches' as any)}
                   >
                     Explore
@@ -818,25 +792,50 @@ function StudentHomeScreen() {
 
         {/* 7b. For Admin/Faculty with no batches created yet */}
         {isStaff && adminBatchesCount === 0 ? (
-          <View className="px-4 pt-5">
-            <View className="bg-surface rounded-2xl p-5 border border-blue-200/80 shadow-sm">
-              <View className="w-12 h-12 rounded-xl bg-blue-50 items-center justify-center mb-3 border border-blue-200">
-                <School size={24} color="#2563EB" />
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: 'rgba(37, 99, 235, 0.22)',
+                elevation: 1,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 3,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: '#EFF6FF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                }}
+              >
+                <School size={18} color="#2563EB" />
               </View>
 
-              <Text className="text-h3 font-bold text-ink mb-1.5">
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }}>
                 Create Your First Batch
               </Text>
 
-              <Text className="text-body text-ink-muted mb-4 leading-relaxed">
+              <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
                 Set up your Class 9–12 CBSE or ICSE classroom batches to start admitting students, generating join codes, and scheduling live classes.
               </Text>
 
               <Button
                 variant="primary"
-                size="md"
+                size="sm"
                 onPress={() => router.push('/(app)/(tabs)/batches' as any)}
-                icon={<Plus size={16} color="#FFFFFF" />}
+                icon={<Plus size={15} color="#FFFFFF" />}
               >
                 Go to Batches & Create
               </Button>
@@ -846,9 +845,9 @@ function StudentHomeScreen() {
 
         {/* 8. Announcements: latest 3, pinned first, "See all" */}
         {announcements.length > 0 ? (
-          <View style={{ paddingHorizontal: 16, paddingTop: 14 }} className="px-4 pt-3.5">
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }} className="flex-row items-center justify-between mb-2">
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }} className="text-body font-bold text-ink">
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                 Announcements
               </Text>
               <TouchableOpacity
@@ -910,9 +909,9 @@ function StudentHomeScreen() {
 
         {/* 9. Banner carousel from site_settings.app_banners (results, admissions) */}
         {banners.length > 0 ? (
-          <View className="pt-5">
-            <View className="px-4 mb-2.5">
-              <Text className="text-h3 font-bold text-ink">
+          <View style={{ paddingTop: 10 }}>
+            <View style={{ paddingHorizontal: 14, marginBottom: 8 }}>
+              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                 Highlights & Admissions
               </Text>
             </View>
@@ -956,9 +955,9 @@ function StudentHomeScreen() {
 
         {/* 10. Free lectures for my class (latest 10), "See all" -> Learn tab */}
         {freeLectures.length > 0 ? (
-          <View className="pt-5">
-            <View className="px-4 flex-row items-center justify-between mb-2.5">
-              <Text className="text-h3 font-bold text-ink">
+          <View style={{ paddingTop: 10 }}>
+            <View style={{ paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
                 Free Lectures
               </Text>
               <TouchableOpacity
@@ -1021,38 +1020,37 @@ function StudentHomeScreen() {
         ) : null}
 
         {/* 11. Share the app card (Android share sheet with Play Store link) */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 20 }} className="px-4 pt-5">
+        <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
           <View
             style={{
               backgroundColor: colors['primary-soft'],
-              borderRadius: radii.xl,
-              padding: 20,
+              borderRadius: 16,
+              padding: 14,
               borderWidth: 1,
               borderColor: 'rgba(37, 99, 235, 0.2)',
-              elevation: 2,
+              elevation: 1,
               shadowColor: '#000000',
               shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
+              shadowOpacity: 0.04,
               shadowRadius: 3,
             }}
-            className="bg-primary-soft/60 rounded-2xl p-5 border border-primary/20 shadow-sm"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }} className="flex-row items-center mb-2">
-              <Share2 size={20} color={colors.primary} />
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary, marginLeft: 8 }} className="text-h3 font-bold text-primary ml-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+              <Share2 size={16} color={colors.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.primary, marginLeft: 6 }}>
                 Share Quick2Learn
               </Text>
             </View>
 
-            <Text style={{ fontSize: 13, color: colors['ink-muted'], marginBottom: 16, lineHeight: 19 }} className="text-body text-ink-muted mb-4 leading-relaxed">
+            <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
               Help your friends and classmates master CBSE and ICSE Mathematics with Dinesh Sir. Share the app today!
             </Text>
 
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               onPress={handleShareApp}
-              icon={<Share2 size={16} color="#FFFFFF" />}
+              icon={<Share2 size={14} color="#FFFFFF" />}
             >
               Share App
             </Button>
