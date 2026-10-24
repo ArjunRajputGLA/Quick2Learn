@@ -12,6 +12,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -556,7 +557,7 @@ export default function DownloadsScreen() {
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 14,
+                  borderRadius: 16,
                   padding: 24,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
@@ -565,32 +566,24 @@ export default function DownloadsScreen() {
                   marginTop: 6,
                 }}
               >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: '#F1F5F9',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 10,
-                  }}
-                >
-                  <FolderOpen size={22} color="#64748B" />
-                </View>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>
+                <Image
+                  source={require('../../assets/empty material.png')}
+                  style={{ width: 140, height: 140, marginBottom: 10 }}
+                  contentFit="contain"
+                />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>
                   No Offline Downloads Yet
                 </Text>
-                <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center', maxWidth: 260, marginTop: 4, lineHeight: 16 }}>
+                <Text style={{ fontSize: 11.5, color: '#64748B', textAlign: 'center', maxWidth: 260, marginTop: 4, lineHeight: 16 }}>
                   Switch to the "Institute Library" tab to download notes, formula sheets, and chapter solutions for zero-data reading.
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => setActiveTab('library')}
                   style={{
-                    marginTop: 12,
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
+                    marginTop: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 9,
                     backgroundColor: '#2563EB',
                     borderRadius: 10,
                     flexDirection: 'row',
@@ -723,7 +716,33 @@ export default function DownloadsScreen() {
               </Text>
             </View>
 
-            {storeResources.map((item: AdminResourceItem) => {
+            {storeResources.length === 0 ? (
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 24,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 6,
+                }}
+              >
+                <Image
+                  source={require('../../assets/empty material.png')}
+                  style={{ width: 140, height: 140, marginBottom: 10 }}
+                  contentFit="contain"
+                />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>
+                  No Institute Materials Available
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#64748B', textAlign: 'center', maxWidth: 260, marginTop: 4, lineHeight: 16 }}>
+                  Study materials and formula sheets uploaded for offline access will appear here.
+                </Text>
+              </View>
+            ) : (
+              storeResources.map((item: AdminResourceItem) => {
               const isSaved = downloads.some((d) => d.id === item.id);
               const isDownloading = downloadingId === item.id;
 
@@ -932,7 +951,8 @@ export default function DownloadsScreen() {
                   </View>
                 </View>
               );
-            })}
+            })
+          )}
           </View>
         )}
       </ScrollView>

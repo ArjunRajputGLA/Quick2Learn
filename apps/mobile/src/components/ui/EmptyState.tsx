@@ -37,13 +37,33 @@ export function EmptyState({
   style,
 }: EmptyStateProps) {
   // Determine if a contextual illustration should be used
+  const lowerTitle = (title || '').toLowerCase();
+  const lowerDesc = (description || '').toLowerCase();
+  const combined = `${lowerTitle} ${lowerDesc}`;
+
   const resolvedImage =
     imageSource ||
-    (!illustration && title.toLowerCase().includes('batch')
+    (!illustration && (combined.includes('batch') || combined.includes('enrolled'))
       ? EMPTY_BATCH_IMG
-      : !illustration && (title.toLowerCase().includes('material') || title.toLowerCase().includes('resource'))
+      : !illustration &&
+        (combined.includes('material') ||
+          combined.includes('resource') ||
+          combined.includes('offline') ||
+          combined.includes('download') ||
+          combined.includes('document') ||
+          combined.includes('formula') ||
+          combined.includes('chapter') ||
+          combined.includes('note') ||
+          combined.includes('notes') ||
+          combined.includes('paper') ||
+          combined.includes('pdf') ||
+          combined.includes('study') ||
+          combined.includes('syllabus'))
       ? EMPTY_MATERIAL_IMG
-      : !illustration && (title.toLowerCase().includes('chat') || title.toLowerCase().includes('message'))
+      : !illustration &&
+        (combined.includes('chat') ||
+          combined.includes('message') ||
+          combined.includes('conversation'))
       ? EMPTY_CHATS_IMG
       : null);
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
   BookOpen,
@@ -107,9 +108,13 @@ export function BatchContentSection({
       {/* Empty State if no chapters */}
       {chapters.length === 0 ? (
         <View className="p-8 rounded-2xl bg-surface border border-border items-center justify-center text-center space-y-2">
-          <FolderOpen size={36} color="#9CA3AF" />
+          <Image
+            source={require('../../../assets/empty material.png')}
+            style={{ width: 140, height: 140, marginBottom: 8 }}
+            contentFit="contain"
+          />
           <Text className="text-body font-bold text-ink text-center">
-            No Chapters Available Yet
+            No Study Material Available Yet
           </Text>
           <Text className="text-caption text-ink-muted text-center max-w-[260px]">
             Study materials and video lectures for this subject are being prepared by your teachers.

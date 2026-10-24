@@ -238,7 +238,7 @@ export default function ChatsTabScreen() {
               // Channels List View (Matching 5.jpeg)
               <ScrollView
                 style={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: 130 }}
+                contentContainerStyle={{ paddingBottom: 130, flexGrow: 1 }}
                 onScroll={onTabBarScroll}
                 scrollEventThrottle={16}
                 refreshControl={
@@ -291,13 +291,14 @@ export default function ChatsTabScreen() {
                 </View>
 
                 {/* Channels List */}
-                <View style={{ backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+                <View style={{ backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', flex: 1 }}>
                   {filteredChannels.length === 0 ? (
                     <EmptyState
                       imageSource={require('../../../assets/empty chats.png')}
-                      imageSize={140}
+                      imageSize={160}
                       title="No Chats Found"
                       description="Batch groups and conversations will appear here."
+                      style={{ paddingVertical: 48, flex: 1, justifyContent: 'center' }}
                     />
                   ) : (
                     filteredChannels.map((channel) => {
