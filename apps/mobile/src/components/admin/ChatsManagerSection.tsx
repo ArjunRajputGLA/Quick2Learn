@@ -27,6 +27,7 @@ import {
   X,
   Phone,
   MessageCircle,
+  UserPlus,
 } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
@@ -66,6 +67,120 @@ export function ChatsManagerSection({
   const [broadcastModalVisible, setBroadcastModalVisible] = useState(false);
   const [broadcastText, setBroadcastText] = useState('');
   const [selectedBatchForBroadcast, setSelectedBatchForBroadcast] = useState('All Batches');
+  const [newChatModalVisible, setNewChatModalVisible] = useState(false);
+  const [modalTab, setModalTab] = useState<'students' | 'custom'>('students');
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [customStudentName, setCustomStudentName] = useState('');
+  const [customStudentBatch, setCustomStudentBatch] = useState('');
+  const [customStudentPhone, setCustomStudentPhone] = useState('');
+
+  const enrolledStudents = React.useMemo(() => {
+    const list: Array<{ id: string; name: string; phone?: string; batchName: string; classLevel?: number }> = [];
+    const seen = new Set<string>();
+
+    const add = (id: string, name: string, phone?: string, batchName?: string, classLevel?: number) => {
+      const lower = name.trim().toLowerCase();
+      if (!lower || seen.has(lower)) return;
+      seen.add(lower);
+      list.push({ id, name, phone, batchName: batchName || 'Class 10 CBSE', classLevel });
+    };
+
+    (store.students || []).forEach((s) => {
+      add(s.id, s.fullName, s.phone, s.enrolledBatchNames?.[0], s.classLevel);
+    });
+
+    (store.joinRequests || [])
+      .filter((r) => r.status === 'approved')
+      .forEach((r) => {
+        add(r.studentId || r.id, r.studentName, r.studentPhone, r.batchTitle, r.classLevel);
+      });
+
+    // Default Quick2Learn cohort
+    [
+      { id: 'st-arjun', name: 'Arjun Singh Rajput', phone: '+91 94122 78910', batch: 'Class 10 CBSE - Mathematics', class: 10 },
+      { id: 'st-aarav', name: 'Aarav Sharma', phone: '+91 98371 23456', batch: 'Class 10 CBSE - Science', class: 10 },
+      { id: 'st-ananya', name: 'Ananya Verma', phone: '+91 98970 45678', batch: 'Class 12 CBSE - Physics & Math', class: 12 },
+      { id: 'st-priya', name: 'Priya Patel', phone: '+91 97580 67890', batch: 'Class 11 CBSE - Chemistry & Math', class: 11 },
+      { id: 'st-rohan', name: 'Rohan Mehta', phone: '+91 94120 12345', batch: 'Class 10 ICSE - Mathematics', class: 10 },
+      { id: 'st-sneha', name: 'Sneha Gupta', phone: '+91 98370 98765', batch: 'Class 9 CBSE - Foundation', class: 9 },
+      { id: 'st-vikram', name: 'Vikram Malhotra', phone: '+91 94560 34567', batch: 'Class 12 CBSE - Mathematics', class: 12 },
+    ].forEach((s) => add(s.id, s.name, s.phone, s.batch, s.class));
+
+    return list;
+  }, [store.students, store.joinRequests]);
+
+  const filteredStudents = React.useMemo(() => {
+    if (!studentSearchQuery.trim()) return enrolledStudents;
+    const q = studentSearchQuery.trim().toLowerCase();
+    return enrolledStudents.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.batchName.toLowerCase().includes(q) ||
+        (s.phone && s.phone.toLowerCase().includes(q))
+    );
+  }, [enrolledStudents, studentSearchQuery]);
+
+  const handleStartChatWithStudent = async (student: { id: string; name: string; phone?: string; batchName: string; classLevel?: number }) => {
+    const existing = chats.find(
+      (c) =>
+        c.type === 'direct' &&
+        (c.studentId === student.id || c.title.toLowerCase() === student.name.toLowerCase())
+    );
+    if (existing) {
+      setSelectedChannelId(existing.id);
+      setNewChatModalVisible(false);
+      return;
+    }
+    const newChan = await store.createChatChannel({
+      type: 'direct',
+      title: student.name,
+      subtitle: student.batchName,
+      studentId: student.id,
+      studentName: student.name,
+      facultyName: 'Dinesh Singh Rajput (Administrator)',
+      lastMessage: 'Conversation started',
+      lastMessageTime: new Date().toISOString(),
+    });
+    setNewChatModalVisible(false);
+    setSelectedChannelId(newChan.id);
+    notify(`Chat opened with ${student.name}`, 'success');
+  };
+
+  const handleCreateCustomStudentChat = async () => {
+    if (!customStudentName.trim()) {
+      Alert.alert('Required', 'Please enter student name.');
+      return;
+    }
+    const name = customStudentName.trim();
+    const batch = customStudentBatch.trim() || 'Class 10 CBSE';
+    const phone = customStudentPhone.trim();
+
+    const existing = chats.find(
+      (c) => c.type === 'direct' && c.title.toLowerCase() === name.toLowerCase()
+    );
+    if (existing) {
+      setSelectedChannelId(existing.id);
+      setNewChatModalVisible(false);
+      return;
+    }
+
+    const newChan = await store.createChatChannel({
+      type: 'direct',
+      title: name,
+      subtitle: `${batch}${phone ? ` • ${phone}` : ''}`,
+      studentId: `custom-${Date.now()}`,
+      studentName: name,
+      facultyName: 'Dinesh Singh Rajput (Administrator)',
+      lastMessage: 'Conversation started',
+      lastMessageTime: new Date().toISOString(),
+    });
+    setCustomStudentName('');
+    setCustomStudentBatch('');
+    setCustomStudentPhone('');
+    setNewChatModalVisible(false);
+    setSelectedChannelId(newChan.id);
+    notify(`Chat started with ${name}`, 'success');
+  };
 
   const selectedChannel = chats.find((c: AdminChatChannelItem) => c.id === selectedChannelId);
 
@@ -364,28 +479,48 @@ export function ChatsManagerSection({
           </Text>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setBroadcastModalVisible(true)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 4,
-            backgroundColor: '#2563EB',
-            paddingHorizontal: 11,
-            paddingVertical: 7.5,
-            borderRadius: 10,
-            flexShrink: 0,
-            shadowColor: '#2563EB',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.18,
-            shadowRadius: 3,
-            elevation: 2,
-          }}
-        >
-          <Bell size={14} color="#FFFFFF" />
-          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Broadcast</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setNewChatModalVisible(true)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: '#059669',
+              paddingHorizontal: 10,
+              paddingVertical: 7.5,
+              borderRadius: 10,
+              flexShrink: 0,
+            }}
+          >
+            <UserPlus size={13} color="#FFFFFF" />
+            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>+ Chat</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setBroadcastModalVisible(true)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: '#2563EB',
+              paddingHorizontal: 10,
+              paddingVertical: 7.5,
+              borderRadius: 10,
+              flexShrink: 0,
+              shadowColor: '#2563EB',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.18,
+              shadowRadius: 3,
+              elevation: 2,
+            }}
+          >
+            <Bell size={13} color="#FFFFFF" />
+            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>Broadcast</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search & Channel Type Filter */}
@@ -437,12 +572,28 @@ export function ChatsManagerSection({
 
       {/* Channels List */}
       {filteredChannels.length === 0 ? (
-        <EmptyState
-          title="No Chat Channels"
-          description="Create a broadcast or wait for students to send questions."
-          actionLabel="Send Broadcast"
-          onAction={() => setBroadcastModalVisible(true)}
-        />
+        <View style={{ gap: 12 }}>
+          <EmptyState
+            title="No Chat Channels"
+            description="Start a chat with an enrolled student or send a broadcast."
+            actionLabel="Start Chat with Student"
+            onAction={() => setNewChatModalVisible(true)}
+          />
+          <TouchableOpacity
+            onPress={() => setBroadcastModalVisible(true)}
+            style={{
+              alignSelf: 'center',
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              backgroundColor: '#F1F5F9',
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>
+              Or Send Institute Broadcast
+            </Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <View style={{ gap: 8 }}>
           {filteredChannels.map((c: AdminChatChannelItem) => {
@@ -639,6 +790,275 @@ export function ChatsManagerSection({
               <Send size={15} color="#FFFFFF" />
               <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Send Broadcast</Text>
             </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Start Chat with Enrolled Student Modal */}
+      <Modal
+        visible={newChatModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setNewChatModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 20,
+              gap: 14,
+              maxHeight: '85%',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: '#ECFDF5',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <UserPlus size={19} color="#059669" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 16.5, fontWeight: '800', color: '#0F172A' }}>
+                    Start Chat with Student
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#64748B' }}>
+                    Select an enrolled student or enter custom details
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setNewChatModalVisible(false)} style={{ padding: 4 }}>
+                <X size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Sub-tabs */}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => setModalTab('students')}
+                style={{
+                  flex: 1,
+                  paddingVertical: 7.5,
+                  borderRadius: 8,
+                  backgroundColor: modalTab === 'students' ? '#2563EB' : '#F1F5F9',
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: modalTab === 'students' ? '#FFFFFF' : '#475569',
+                  }}
+                >
+                  Enrolled Students ({filteredStudents.length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setModalTab('custom')}
+                style={{
+                  flex: 1,
+                  paddingVertical: 7.5,
+                  borderRadius: 8,
+                  backgroundColor: modalTab === 'custom' ? '#2563EB' : '#F1F5F9',
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: modalTab === 'custom' ? '#FFFFFF' : '#475569',
+                  }}
+                >
+                  + Custom Student
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {modalTab === 'students' ? (
+              <View style={{ gap: 10, flexShrink: 1 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                  }}
+                >
+                  <Search size={14} color="#94A3B8" style={{ marginRight: 6 }} />
+                  <TextInput
+                    value={studentSearchQuery}
+                    onChangeText={setStudentSearchQuery}
+                    placeholder="Search enrolled student..."
+                    placeholderTextColor="#94A3B8"
+                    style={{ flex: 1, fontSize: 13, color: '#0F172A', padding: 0 }}
+                  />
+                  {studentSearchQuery ? (
+                    <TouchableOpacity onPress={() => setStudentSearchQuery('')}>
+                      <X size={14} color="#94A3B8" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
+                <ScrollView style={{ maxHeight: 320 }} contentContainerStyle={{ gap: 8 }}>
+                  {filteredStudents.map((st) => (
+                    <TouchableOpacity
+                      key={st.id}
+                      activeOpacity={0.7}
+                      onPress={() => handleStartChatWithStudent(st)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 12,
+                        padding: 10,
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: '#2563EB',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 10,
+                        }}
+                      >
+                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
+                          {st.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A' }}>
+                          {st.name}
+                        </Text>
+                        <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                          {st.batchName} {st.phone ? `• ${st.phone}` : ''}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          backgroundColor: '#EFF6FF',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: '#BFDBFE',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                          Message
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={{ gap: 10 }}>
+                <View>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
+                    Student Full Name *
+                  </Text>
+                  <TextInput
+                    value={customStudentName}
+                    onChangeText={setCustomStudentName}
+                    placeholder="e.g. Rahul Sharma"
+                    placeholderTextColor="#94A3B8"
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      borderWidth: 1,
+                      borderColor: '#CBD5E1',
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      fontSize: 13,
+                    }}
+                  />
+                </View>
+
+                <View>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
+                    Batch / Class
+                  </Text>
+                  <TextInput
+                    value={customStudentBatch}
+                    onChangeText={setCustomStudentBatch}
+                    placeholder="e.g. Class 10 CBSE - Mathematics"
+                    placeholderTextColor="#94A3B8"
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      borderWidth: 1,
+                      borderColor: '#CBD5E1',
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      fontSize: 13,
+                    }}
+                  />
+                </View>
+
+                <View>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
+                    Phone Number (Optional)
+                  </Text>
+                  <TextInput
+                    value={customStudentPhone}
+                    onChangeText={setCustomStudentPhone}
+                    placeholder="e.g. +91 94122 78910"
+                    placeholderTextColor="#94A3B8"
+                    keyboardType="phone-pad"
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      borderWidth: 1,
+                      borderColor: '#CBD5E1',
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      fontSize: 13,
+                    }}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleCreateCustomStudentChat}
+                  style={{
+                    backgroundColor: '#2563EB',
+                    borderRadius: 10,
+                    paddingVertical: 11,
+                    alignItems: 'center',
+                    marginTop: 6,
+                  }}
+                >
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' }}>
+                    Start Chat
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
