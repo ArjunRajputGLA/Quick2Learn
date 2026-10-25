@@ -353,7 +353,7 @@ export function ParentHomeScreen() {
         {/* 3. This Week's Attendance Card */}
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => router.push("/(app)/(tabs)/attendance" as any)}
+          onPress={() => router.push("/(app)/(tabs)/parent-attendance" as any)}
           style={{
             backgroundColor: "#FFFFFF",
             borderRadius: 18,

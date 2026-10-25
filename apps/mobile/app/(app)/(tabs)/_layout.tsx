@@ -50,9 +50,9 @@ export default function TabsLayout() {
 
       {/* 2. Parent Attendance Tab (Only visible for parents) */}
       <Tabs.Screen
-        name="attendance"
+        name="parent-attendance"
         options={{
-          href: isParent ? '/attendance' : null,
+          href: isParent ? '/parent-attendance' : null,
           title: 'Attendance',
           tabBarLabel: 'Attendance',
           tabBarIcon: ({ color }) => <Calendar size={20} color={color} />,

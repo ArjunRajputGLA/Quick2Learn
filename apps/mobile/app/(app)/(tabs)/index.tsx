@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ import {
   Plus,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useHome, useAvailableTests, useMe, queryKeys } from '../../../src/api/hooks';
+import { useHome, useAvailableTests, useMe, useTeacherBatches, queryKeys } from '../../../src/api/hooks';
 import { useAdminStore } from '../../../src/lib/adminDataStore';
 import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
 import { useQueryClient } from '@tanstack/react-query';
@@ -85,27 +85,66 @@ function StudentHomeScreen() {
   const { data: me } = useMe();
   const { data: home, isLoading, isRefetching, refetch } = useHome();
   const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
+  const isStaff = me?.role === 'admin' || me?.role === 'teacher';
+  const { data: teacherBatchesData, refetch: refetchTeacherBatches } = useTeacherBatches();
+  const adminStore = useAdminStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [showBatchCodeModal, setShowBatchCodeModal] = useState(false);
   const [batchCodeInput, setBatchCodeInput] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-  const isStaff = me?.role === 'admin' || me?.role === 'teacher';
-  const adminBatchesCount = useAdminStore((s) => s.batches.length);
   const lastToggleRef = React.useRef(0);
   const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
-  // Refresh home data on screen focus
+  // Load and sync admin/faculty store on mount
+  useEffect(() => {
+    if (isStaff) {
+      adminStore.init();
+    }
+  }, [isStaff]);
+
+  // Refresh home data and staff batches on screen focus
   useFocusEffect(
     useCallback(() => {
       refetch();
       refetchTests();
-    }, [refetch, refetchTests])
+      if (isStaff) {
+        adminStore.init();
+        refetchTeacherBatches();
+      }
+    }, [refetch, refetchTests, isStaff, refetchTeacherBatches])
   );
+
+  const adminBatches = adminStore.batches || [];
+  const teacherApiBatches = teacherBatchesData?.batches || [];
+
+  const allStaffBatches = useMemo(() => {
+    if (adminBatches.length > 0) return adminBatches;
+    if (teacherApiBatches.length > 0) {
+      return teacherApiBatches.map((b: any) => ({
+        id: b.id,
+        title: b.name || b.title,
+        subject: b.subject || 'Mathematics',
+        classLevel: b.classLevel || 10,
+        enrolledCount: b.studentCount || b.enrolledCount || 0,
+        scheduleTime: b.scheduleTime || 'Regular',
+        scheduleDays: b.scheduleDays || [],
+      }));
+    }
+    return [];
+  }, [adminBatches, teacherApiBatches]);
+
+  const staffBatchesCount = allStaffBatches.length;
+  const isStaffBatchesLoaded = adminStore.isInitialized || !isLoading;
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([
+      refetch(),
+      refetchTests(),
+      isStaff ? adminStore.init() : Promise.resolve(),
+      isStaff ? refetchTeacherBatches() : Promise.resolve(),
+    ]);
     setRefreshing(false);
   };
 
@@ -769,7 +808,7 @@ function StudentHomeScreen() {
         ) : null}
 
         {/* 7b. For Admin/Faculty with no batches created yet */}
-        {isStaff && adminBatchesCount === 0 ? (
+        {isStaff && isStaffBatchesLoaded && staffBatchesCount === 0 ? (
           <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
             <View
               style={{
@@ -817,6 +856,107 @@ function StudentHomeScreen() {
               >
                 Go to Batches & Create
               </Button>
+            </View>
+          </View>
+        ) : null}
+
+        {/* 7c. For Admin/Faculty with active batches: Show Active Batches Overview Card */}
+        {isStaff && staffBatchesCount > 0 ? (
+          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <School size={16} color="#2563EB" strokeWidth={2.2} />
+                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
+                  Active Batches
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#EFF6FF',
+                    paddingHorizontal: 6,
+                    paddingVertical: 1.5,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                  }}
+                >
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1D4ED8' }}>
+                    {staffBatchesCount}
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/(tabs)/batches' as any)}
+                style={{ paddingVertical: 2, paddingHorizontal: 6 }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>
+                  View All →
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ gap: 8 }}>
+              {allStaffBatches.slice(0, 3).map((b: any) => (
+                <TouchableOpacity
+                  key={b.id}
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/(app)/(tabs)/batches' as any)}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: 14,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    elevation: 1,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}
+                    >
+                      {b.title}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 11.5, color: '#2563EB', fontWeight: '600' }}>
+                        {b.subject || 'Mathematics'}
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                        • Class {b.classLevel}
+                      </Text>
+                      {b.enrolledCount !== undefined ? (
+                        <Text style={{ fontSize: 11.5, color: '#64748B' }}>
+                          • {b.enrolledCount} students
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#EFF6FF',
+                      paddingHorizontal: 8,
+                      paddingVertical: 4.5,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#DBEAFE',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
+                      Manage
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         ) : null}

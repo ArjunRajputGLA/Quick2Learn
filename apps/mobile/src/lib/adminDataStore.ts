@@ -39,6 +39,10 @@ export interface ChatMessageItem {
   text: string;
   time?: string;
   imageUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  fileType?: 'image' | 'pdf' | 'document';
   createdAt: string;
   isOutgoing?: boolean;
 }
@@ -51,13 +55,17 @@ export interface AdminChatChannelItem {
   batchId?: string;
   studentId?: string;
   studentName?: string;
+  studentPhone?: string;
   facultyName?: string;
+  facultyPhone?: string;
   avatarUrl?: string;
   unreadCount: number;
   lastMessage?: string;
   lastMessageTime?: string;
   messages: ChatMessageItem[];
   createdAt: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 export interface BatchTimingItem {
@@ -193,6 +201,10 @@ export interface BatchAttendanceRecord {
   id: string;
   batchId: string;
   date: string; // YYYY-MM-DD
+  time?: string; // Exact class time, e.g. "05:00 PM – 06:30 PM"
+  topic?: string;
+  room?: string;
+  faculty?: string;
   records: Record<string, 'P' | 'A' | 'L'>; // studentId -> status
   savedAt: string;
 }
@@ -349,11 +361,36 @@ export interface AdminPortalState {
   isInitialized: boolean;
 }
 
-// Initial clean state for Admin Portal (no dummy data)
+export const INITIAL_CHAT_CHANNEL: AdminChatChannelItem = {
+  id: 'channel-anisha-sisodia',
+  type: 'direct',
+  title: 'DINESH SINGH RAJPUT',
+  subtitle: 'Class 9 ICSE • Quick2Learn Faculty',
+  studentId: 'stud-anisha-sisodia',
+  studentName: 'Anisha Sisodia',
+  facultyName: 'Dinesh Singh Rajput',
+  unreadCount: 1,
+  messages: [
+    {
+      id: 'msg-welcome-anisha',
+      senderId: 'faculty-dinesh',
+      senderName: 'Dinesh Singh Rajput',
+      senderRole: 'teacher',
+      text: 'Dear Anisha Sisodia, we welcome you to Quick 2 Learn CBSE/ICSE - 9th to 12th community. You can connect with us for all your academic needs. What are you looking for?',
+      createdAt: '2021-05-24T20:23:00.000Z',
+      isOutgoing: false,
+    },
+  ],
+  lastMessage: 'Dear Anisha Sisodia, we welcome you to Quick 2 Learn...',
+  lastMessageTime: '2021-05-24T20:23:00.000Z',
+  createdAt: '2021-05-24T20:20:00.000Z',
+};
+
+// Initial clean state for Admin Portal
 export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
   batches: [],
   courses: [],
-  chats: [],
+  chats: [INITIAL_CHAT_CHANNEL],
   joinRequests: [],
   lectures: [],
   resources: [],
@@ -384,9 +421,17 @@ interface AdminStoreActions {
     senderRole?: 'admin' | 'teacher' | 'student',
     senderName?: string,
     imageUrl?: string,
-    isOutgoing?: boolean
+    isOutgoing?: boolean,
+    attachment?: {
+      fileUrl: string;
+      fileName: string;
+      fileSize?: string;
+      fileType: 'image' | 'pdf' | 'document';
+    }
   ) => Promise<ChatMessageItem>;
   createChatChannel: (channel: Omit<AdminChatChannelItem, 'id' | 'createdAt' | 'messages' | 'unreadCount'>) => Promise<AdminChatChannelItem>;
+  clearChatMessages: (channelId: string) => Promise<void>;
+  markChatAsRead: (channelId: string) => Promise<void>;
 
   // Batches
   createBatch: (batch: Omit<BatchItem, 'id' | 'enrolledCount' | 'joinCode'>) => Promise<BatchItem>;
@@ -422,7 +467,12 @@ interface AdminStoreActions {
   toggleLiveClassState: (id: string) => Promise<void>;
 
   // Attendance
-  saveBatchAttendance: (batchId: string, date: string, records: Record<string, 'P' | 'A' | 'L'>) => Promise<void>;
+  saveBatchAttendance: (
+    batchId: string,
+    date: string,
+    records: Record<string, 'P' | 'A' | 'L'>,
+    details?: { time?: string; topic?: string; room?: string; faculty?: string }
+  ) => Promise<void>;
 
   // Questions
   addQuestion: (question: Omit<AdminQuestionItem, 'id' | 'createdAt'>) => Promise<AdminQuestionItem>;
@@ -507,7 +557,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
               validity: c.validity || `${c.validityDays || 365} Days Access`,
             };
           }),
-          chats: parsed.chats || INITIAL_ADMIN_DATA.chats,
+          chats: (parsed.chats && parsed.chats.length > 0) ? parsed.chats : INITIAL_ADMIN_DATA.chats,
           isInitialized: true,
         });
         return;
@@ -743,7 +793,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     await persistState(get());
   },
 
-  saveBatchAttendance: async (batchId, date, records) => {
+  saveBatchAttendance: async (batchId, date, records, details) => {
     const existingIndex = get().attendanceRecords.findIndex(
       (a) => a.batchId === batchId && a.date === date
     );
@@ -753,6 +803,10 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
       updatedRecords[existingIndex] = {
         ...updatedRecords[existingIndex],
         records,
+        time: details?.time || updatedRecords[existingIndex].time,
+        topic: details?.topic || updatedRecords[existingIndex].topic,
+        room: details?.room || updatedRecords[existingIndex].room,
+        faculty: details?.faculty || updatedRecords[existingIndex].faculty,
         savedAt: new Date().toISOString(),
       };
     } else {
@@ -760,6 +814,10 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         id: `att-${Date.now()}`,
         batchId,
         date,
+        time: details?.time,
+        topic: details?.topic,
+        room: details?.room,
+        faculty: details?.faculty,
         records,
         savedAt: new Date().toISOString(),
       };
@@ -1085,7 +1143,15 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   },
 
   // Chats Actions
-  sendChatMessage: async (channelId, text, senderRole = 'admin', senderName, imageUrl, isOutgoing = true) => {
+  sendChatMessage: async (
+    channelId,
+    text,
+    senderRole = 'admin',
+    senderName,
+    imageUrl,
+    isOutgoing = true,
+    attachment
+  ) => {
     const role = senderRole || 'admin';
     const name =
       senderName ||
@@ -1094,6 +1160,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         : role === 'teacher'
         ? 'Dinesh Singh Rajput (Faculty)'
         : 'Student');
+    const resolvedImageUrl = imageUrl || (attachment?.fileType === 'image' ? attachment.fileUrl : undefined);
     const newMsg: ChatMessageItem = {
       id: `msg-${Date.now()}`,
       senderId: role === 'student' ? 'stud-01' : 'faculty-dinesh',
@@ -1102,15 +1169,20 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
       senderType: role,
       text,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      imageUrl,
+      imageUrl: resolvedImageUrl,
+      fileUrl: attachment?.fileUrl || (imageUrl ? imageUrl : undefined),
+      fileName: attachment?.fileName,
+      fileSize: attachment?.fileSize,
+      fileType: attachment?.fileType || (imageUrl ? 'image' : undefined),
       createdAt: new Date().toISOString(),
       isOutgoing: isOutgoing !== undefined ? isOutgoing : true,
     };
+    const summaryText = text || (attachment ? `📎 ${attachment.fileName}` : 'Attachment');
     const updated = get().chats.map((c) =>
       c.id === channelId
         ? {
             ...c,
-            lastMessage: text,
+            lastMessage: summaryText,
             lastMessageTime: newMsg.createdAt,
             messages: [...c.messages, newMsg],
           }
@@ -1134,6 +1206,37 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     set({ chats: updated });
     await persistState(get());
     return newChannel;
+  },
+
+  clearChatMessages: async (channelId) => {
+    const updated = get().chats.map((c) =>
+      c.id === channelId
+        ? {
+            ...c,
+            messages: [],
+            unreadCount: 0,
+            lastMessage: 'Conversation cleared',
+            lastMessageTime: new Date().toISOString(),
+          }
+        : c
+    );
+    set({ chats: updated });
+    await persistState(get());
+  },
+
+  markChatAsRead: async (channelId) => {
+    const current = get().chats.find((c) => c.id === channelId);
+    if (!current || current.unreadCount === 0) return;
+    const updated = get().chats.map((c) =>
+      c.id === channelId
+        ? {
+            ...c,
+            unreadCount: 0,
+          }
+        : c
+    );
+    set({ chats: updated });
+    await persistState(get());
   },
 
   resetToDefault: async () => {

@@ -8,6 +8,7 @@ import { colors, radii } from '@quick2learn/shared';
 const EMPTY_BATCH_IMG = require('../../../assets/empty batch.png');
 const EMPTY_MATERIAL_IMG = require('../../../assets/empty material.png');
 const EMPTY_CHATS_IMG = require('../../../assets/empty chats.png');
+const EMPTY_NOTIFICATIONS_IMG = require('../../../assets/empty notifications.svg');
 
 export interface EmptyStateProps {
   illustration?: React.ReactNode;
@@ -43,7 +44,9 @@ export function EmptyState({
 
   const resolvedImage =
     imageSource ||
-    (!illustration && (combined.includes('batch') || combined.includes('enrolled'))
+    (!illustration && (combined.includes('notification') || combined.includes('alert') || combined.includes('notice'))
+      ? EMPTY_NOTIFICATIONS_IMG
+      : !illustration && (combined.includes('batch') || combined.includes('enrolled'))
       ? EMPTY_BATCH_IMG
       : !illustration &&
         (combined.includes('material') ||

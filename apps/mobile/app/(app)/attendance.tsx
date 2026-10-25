@@ -19,16 +19,29 @@ import {
   Wifi,
   ArrowLeft,
 } from "lucide-react-native";
-import { useAttendance } from "../../src/api/hooks";
+import { useAttendance, useMe } from "../../src/api/hooks";
+import { AdminAttendanceCalendar } from "../../src/components/admin/AdminAttendanceCalendar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { AttendanceRecordItem } from "@quick2learn/shared";
 
 export default function AttendanceScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { data: me } = useMe();
   const params = useLocalSearchParams<{
     studentId?: string;
     batchId?: string;
     batchTitle?: string;
   }>();
+  const isStaff = !params.studentId && (me?.role === "admin" || me?.role === "teacher");
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(app)/(tabs)/profile" as any);
+    }
+  };
 
   // Current month state in "YYYY-MM" format
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -143,12 +156,51 @@ export default function AttendanceScreen() {
     return days;
   };
 
+  if (isStaff) {
+    return (
+      <View className="flex-1 bg-slate-50 dark:bg-slate-950">
+        {/* Top Header with Safe Insets */}
+        <View
+          style={{ paddingTop: Math.max(insets.top, 14), paddingBottom: 12, paddingHorizontal: 16 }}
+          className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-row items-center justify-between"
+        >
+          <TouchableOpacity
+            onPress={handleBack}
+            className="p-2 -ml-2 rounded-full active:bg-slate-100 dark:active:bg-slate-800"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <ArrowLeft size={20} color="#64748b" />
+          </TouchableOpacity>
+
+          <Text className="text-slate-900 dark:text-white font-black text-base">
+            Institute Attendance Calendar
+          </Text>
+
+          <View className="w-8" />
+        </View>
+
+        <ScrollView className="flex-1 p-3.5" showsVerticalScrollIndicator={false}>
+          <AdminAttendanceCalendar
+            initialBatchId={params.batchId}
+            onBatchPress={() => {
+              router.push("/(app)/(tabs)/batches" as any);
+            }}
+          />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-950">
-      {/* Top Header */}
-      <View className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between">
+      {/* Top Header with Safe Insets */}
+      <View
+        style={{ paddingTop: Math.max(insets.top, 14), paddingBottom: 12, paddingHorizontal: 16 }}
+        className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-row items-center justify-between"
+      >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={handleBack}
           className="p-2 -ml-2 rounded-full active:bg-slate-100 dark:active:bg-slate-800"
         >
           <ArrowLeft size={20} color="#64748b" />

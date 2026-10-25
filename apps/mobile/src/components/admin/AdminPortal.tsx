@@ -79,6 +79,7 @@ import { Toast } from '../ui/Toast';
 import { EmptyState } from '../ui/EmptyState';
 import { colors, radii } from '@quick2learn/shared';
 import { BatchDetailAdminModal } from './BatchDetailAdminModal';
+import { StudentDetailModal } from './StudentDetailModal';
 import { CoursesManagerSection, CourseFormModal } from './CoursesManagerSection';
 import { ChatsManagerSection } from './ChatsManagerSection';
 import { RequestsManagerSection } from './RequestsManagerSection';
@@ -180,6 +181,8 @@ export function AdminPortal() {
   const [enrollModalVisible, setEnrollModalVisible] = useState(false);
   const [selectedStudentForEnroll, setSelectedStudentForEnroll] = useState<AdminStudentItem | null>(null);
   const [newStudentModalVisible, setNewStudentModalVisible] = useState(false);
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<AdminStudentItem | null>(null);
+  const [studentDetailModalVisible, setStudentDetailModalVisible] = useState(false);
 
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
 
@@ -376,7 +379,7 @@ export function AdminPortal() {
       {/* 2. MAIN SCROLLABLE CONTENT BODY */}
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 10, paddingBottom: 110 }}
+        contentContainerStyle={{ padding: 12, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -586,6 +589,10 @@ export function AdminPortal() {
               setEnrollModalVisible(true);
             }}
             onOpenEnrollNewStudent={() => setNewStudentModalVisible(true)}
+            onViewStudentDetail={(stud) => {
+              setSelectedStudentForDetail(stud);
+              setStudentDetailModalVisible(true);
+            }}
             onToast={(t) => setToastMessage(t)}
           />
         )}
@@ -772,6 +779,26 @@ export function AdminPortal() {
         }}
       />
 
+      {/* G1. Student Profile Detail Modal */}
+      <StudentDetailModal
+        visible={studentDetailModalVisible}
+        student={selectedStudentForDetail}
+        batches={store.batches}
+        onClose={() => setStudentDetailModalVisible(false)}
+        onEnrollInBatch={(stud) => {
+          setSelectedStudentForEnroll(stud);
+          setEnrollModalVisible(true);
+        }}
+        onDeleteStudent={async (id, name) => {
+          await store.deleteStudent(id);
+          setToastMessage({ type: 'info', message: `${name} removed from directory.` });
+        }}
+        onGenerateParentCode={async (id) => {
+          return await store.generateParentCode(id);
+        }}
+        onToast={(t) => setToastMessage(t)}
+      />
+
       {/* G2. New Student Enrollment Modal (Admit new student to institute & batch) */}
       <NewStudentEnrollModal
         visible={newStudentModalVisible}
@@ -891,20 +918,25 @@ function SectionPill({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 7,
+        paddingHorizontal: 13,
+        paddingVertical: 7.5,
         borderRadius: radii.full,
         backgroundColor: isActive ? '#2563EB' : '#F1F5F9',
         borderWidth: 1,
         borderColor: isActive ? '#1D4ED8' : '#E2E8F0',
         minHeight: 34,
+        shadowColor: isActive ? '#2563EB' : 'transparent',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isActive ? 0.25 : 0,
+        shadowRadius: 4,
+        elevation: isActive ? 2 : 0,
       }}
     >
       {icon}
       <Text
         style={{
           fontSize: 12.5,
-          fontWeight: '700',
+          fontWeight: isActive ? '800' : '600',
           color: isActive ? '#FFFFFF' : '#334155',
           marginLeft: 5,
         }}
@@ -972,12 +1004,12 @@ function OverviewSection({
   return (
     <View style={{ gap: 14 }}>
       {/* 1. INSTITUTE STATS STRIP */}
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
         <StatBox
           label="Active Students"
           value={totalStudents.toString()}
           sub="Enrolled in batches"
-          icon={<Users size={16} color="#2563EB" />}
+          icon={<Users size={15} color="#2563EB" />}
           bg="#EFF6FF"
           border="#DBEAFE"
           onPress={() => onNavigate('students')}
@@ -986,19 +1018,19 @@ function OverviewSection({
           label="Ongoing Batches"
           value={ongoingBatches.toString()}
           sub="Maths & Sciences"
-          icon={<GraduationCap size={16} color="#059669" />}
+          icon={<GraduationCap size={15} color="#059669" />}
           bg="#ECFDF5"
           border="#D1FAE5"
           onPress={() => onNavigate('batches')}
         />
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
         <StatBox
           label="Collections (₹)"
           value={`₹${(totalCollections / 1000).toFixed(0)}k`}
           sub="Tuition fees paid"
-          icon={<IndianRupee size={16} color="#4F46E5" />}
+          icon={<IndianRupee size={15} color="#4F46E5" />}
           bg="#EEF2FF"
           border="#E0E7FF"
           onPress={() => onNavigate('fees')}
@@ -1007,7 +1039,7 @@ function OverviewSection({
           label="Overdue Dues"
           value={`₹${(totalOverdue / 1000).toFixed(0)}k`}
           sub="Action required"
-          icon={<AlertTriangle size={16} color="#DC2626" />}
+          icon={<AlertTriangle size={15} color="#DC2626" />}
           bg="#FEF2F2"
           border="#FEE2E2"
           valueColor="#DC2626"
@@ -1015,69 +1047,138 @@ function OverviewSection({
         />
       </View>
 
-      {/* 2. ADMIN QUICK ACTIONS BAR */}
+      {/* 2. ADMIN QUICK ACTIONS GRID (ALL 8 ACTIONS VISIBLE AT ONCE) */}
       <View
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: 16,
-          padding: 12,
+          borderRadius: 18,
+          padding: 14,
           borderWidth: 1,
           borderColor: '#E2E8F0',
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 8,
+          elevation: 2,
         }}
       >
-        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', marginBottom: 10 }}>
-          Quick Creation & Upload Center
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          <QuickActionBtn
-            label="+ Enroll Student"
-            icon={<UserPlus size={16} color="#FFFFFF" />}
-            bg="#0284C7"
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: '#EFF6FF',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Sparkles size={14} color="#2563EB" />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                Quick Creation & Upload Center
+              </Text>
+              <Text style={{ fontSize: 10, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
+                Instant tools to create content and manage students
+              </Text>
+            </View>
+          </View>
+          <View
+            style={{
+              backgroundColor: '#F8FAFC',
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+            }}
+          >
+            <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748B' }}>8 Tools</Text>
+          </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginHorizontal: -2,
+            marginTop: 4,
+          }}
+        >
+          <QuickGridActionTile
+            label={`Enroll\nStudent`}
+            icon={<UserPlus size={21} color="#0284C7" />}
+            bg="#F0F9FF"
+            border="#BAE6FD"
+            iconColor="#0284C7"
             onPress={onEnrollStudent}
           />
-          <QuickActionBtn
-            label="+ New Batch"
-            icon={<GraduationCap size={16} color="#FFFFFF" />}
-            bg="#2563EB"
+          <QuickGridActionTile
+            label={`New\nBatch`}
+            icon={<GraduationCap size={21} color="#2563EB" />}
+            bg="#EFF6FF"
+            border="#BFDBFE"
+            iconColor="#2563EB"
             onPress={onCreateBatch}
           />
-          <QuickActionBtn
-            label="+ Upload PDF"
-            icon={<FileUp size={16} color="#FFFFFF" />}
-            bg="#059669"
+          <QuickGridActionTile
+            label={`Upload\nPDF`}
+            icon={<FileUp size={21} color="#059669" />}
+            bg="#ECFDF5"
+            border="#A7F3D0"
+            iconColor="#059669"
             onPress={onUploadResource}
           />
-          <QuickActionBtn
-            label="+ Add Video"
-            icon={<Video size={16} color="#FFFFFF" />}
-            bg="#7C3AED"
+          <QuickGridActionTile
+            label={`Add\nVideo`}
+            icon={<Video size={21} color="#7C3AED" />}
+            bg="#F5F3FF"
+            border="#DDD6FE"
+            iconColor="#7C3AED"
             onPress={onAddLecture}
           />
-          <QuickActionBtn
-            label="+ Question"
-            icon={<BookOpen size={16} color="#FFFFFF" />}
-            bg="#D97706"
+          <QuickGridActionTile
+            label={`Question\nBank`}
+            icon={<BookOpen size={21} color="#D97706" />}
+            bg="#FFFBEB"
+            border="#FDE68A"
+            iconColor="#D97706"
             onPress={onAddQuestion}
           />
-          <QuickActionBtn
-            label="+ Create Test"
-            icon={<Award size={16} color="#FFFFFF" />}
-            bg="#0891B2"
+          <QuickGridActionTile
+            label={`Create\nTest`}
+            icon={<Award size={21} color="#0891B2" />}
+            bg="#ECFEFF"
+            border="#A5F3FC"
+            iconColor="#0891B2"
             onPress={onCreateTest}
           />
-          <QuickActionBtn
-            label="+ Record Fee"
-            icon={<CreditCard size={16} color="#FFFFFF" />}
-            bg="#4F46E5"
+          <QuickGridActionTile
+            label={`Record\nFee`}
+            icon={<CreditCard size={21} color="#4F46E5" />}
+            bg="#EEF2FF"
+            border="#C7D2FE"
+            iconColor="#4F46E5"
             onPress={onRecordFee}
           />
-          <QuickActionBtn
-            label="+ Announce"
-            icon={<Bell size={16} color="#FFFFFF" />}
-            bg="#E11D48"
+          <QuickGridActionTile
+            label={`Broadcast\nNotice`}
+            icon={<Bell size={21} color="#E11D48" />}
+            bg="#FFF1F2"
+            border="#FECDD3"
+            iconColor="#E11D48"
             onPress={onBroadcast}
           />
-        </ScrollView>
+        </View>
       </View>
 
       {/* 3. PENDING ITEMS REQUIRING ATTENTION */}
@@ -1085,15 +1186,31 @@ function OverviewSection({
         <View
           style={{
             backgroundColor: '#FFFBEB',
-            borderRadius: 16,
-            padding: 12,
-            borderWidth: 1,
+            borderRadius: 18,
+            padding: 14,
+            borderWidth: 1.2,
             borderColor: '#FDE68A',
+            shadowColor: '#D97706',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 6,
+            elevation: 1,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-              <Clock size={15} color="#D97706" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
+              <View
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  backgroundColor: '#FEF3C7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Clock size={15} color="#D97706" />
+              </View>
               <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400E' }} numberOfLines={1}>
                 Pending Requests ({store.joinRequests.filter((r: any) => r.status === 'pending').length})
               </Text>
@@ -1101,7 +1218,16 @@ function OverviewSection({
             <TouchableOpacity
               onPress={() => onNavigate('requests')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 2,
+                flexShrink: 0,
+                backgroundColor: '#FEF3C7',
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 8,
+              }}
             >
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>View All</Text>
               <ChevronRight size={13} color="#B45309" />
@@ -1168,81 +1294,160 @@ function OverviewSection({
       <View
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: 16,
-          padding: 12,
+          borderRadius: 18,
+          padding: 14,
           borderWidth: 1,
           borderColor: '#E2E8F0',
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 8,
+          elevation: 2,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-            <MessageSquare size={15} color="#2563EB" />
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
-              Recent Admission Leads
-            </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: '#EFF6FF',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MessageSquare size={15} color="#2563EB" />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                Recent Admission Leads
+              </Text>
+              <Text style={{ fontSize: 10, color: '#64748B', marginTop: 1 }} numberOfLines={1}>
+                Prospective students & course inquiries
+              </Text>
+            </View>
           </View>
           <TouchableOpacity
             onPress={() => onNavigate('enquiries')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 2,
+              flexShrink: 0,
+              backgroundColor: '#EFF6FF',
+              paddingHorizontal: 9,
+              paddingVertical: 4,
+              borderRadius: 8,
+            }}
           >
             <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>Manage Leads</Text>
             <ChevronRight size={13} color="#2563EB" />
           </TouchableOpacity>
         </View>
 
-        {store.enquiries.slice(0, 3).map((enq: any) => (
-          <View
-            key={enq.id}
-            style={{
-              paddingVertical: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: '#F1F5F9',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-            }}
-          >
-            <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
-                  {enq.studentName}
-                </Text>
-                <Badge
-                  label={enq.status.toUpperCase()}
-                  variant={enq.status === 'new' ? 'warning' : enq.status === 'enrolled' ? 'success' : 'neutral'}
-                  size="sm"
-                />
-              </View>
-              <Text style={{ fontSize: 10.5, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
-                Class {enq.classLevel} • {enq.message}
-              </Text>
+        {store.enquiries.length === 0 ? (
+          <View style={{ paddingVertical: 18, alignItems: 'center', justifyContent: 'center' }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#F8FAFC',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 6,
+              }}
+            >
+              <MessageSquare size={18} color="#94A3B8" />
             </View>
-            <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
-              <TouchableOpacity
-                onPress={() => Linking.openURL(`tel:${enq.phone}`)}
-                style={{
-                  backgroundColor: '#EFF6FF',
-                  padding: 7,
-                  borderRadius: radii.full,
-                }}
-              >
-                <Phone size={14} color="#2563EB" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => Linking.openURL(`https://wa.me/${enq.phone.replace(/[^0-9]/g, '')}`)}
-                style={{
-                  backgroundColor: '#ECFDF5',
-                  padding: 7,
-                  borderRadius: radii.full,
-                }}
-              >
-                <MessageCircle size={14} color="#059669" />
-              </TouchableOpacity>
-            </View>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B' }}>No admission leads yet</Text>
+            <Text style={{ fontSize: 10.5, color: '#94A3B8', marginTop: 2, textAlign: 'center' }}>
+              Inquiries from your website landing page will appear here
+            </Text>
           </View>
-        ))}
+        ) : (
+          store.enquiries.slice(0, 3).map((enq: any, idx: number) => (
+            <View
+              key={enq.id}
+              style={{
+                paddingVertical: 10,
+                borderBottomWidth: idx === Math.min(store.enquiries.length, 3) - 1 ? 0 : 1,
+                borderBottomColor: '#F1F5F9',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: '#EFF6FF',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#2563EB' }}>
+                  {(enq.studentName || 'S').slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A', flexShrink: 1 }} numberOfLines={1}>
+                    {enq.studentName}
+                  </Text>
+                  <Badge
+                    label={enq.status.toUpperCase()}
+                    variant={enq.status === 'new' ? 'warning' : enq.status === 'enrolled' ? 'success' : 'neutral'}
+                    size="sm"
+                  />
+                </View>
+                <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
+                  Class {enq.classLevel} • {enq.message || 'Admission inquiry'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`tel:${enq.phone}`)}
+                  style={{
+                    backgroundColor: '#EFF6FF',
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                  }}
+                >
+                  <Phone size={14} color="#2563EB" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`https://wa.me/${enq.phone.replace(/[^0-9]/g, '')}`)}
+                  style={{
+                    backgroundColor: '#ECFDF5',
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#A7F3D0',
+                  }}
+                >
+                  <MessageCircle size={14} color="#059669" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
       </View>
     </View>
   );
@@ -1269,23 +1474,113 @@ function StatBox({
 }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={onPress}
+      activeOpacity={0.75}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       style={{
         flex: 1,
         backgroundColor: bg,
-        borderRadius: 14,
-        padding: 11,
-        borderWidth: 1,
+        borderRadius: 16,
+        padding: 13,
+        borderWidth: 1.2,
         borderColor: border,
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        elevation: 1,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B', letterSpacing: 0.2 }}>{label}</Text>
+        <View
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            backgroundColor: '#FFFFFF',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: border,
+          }}
+        >
+          {icon}
+        </View>
+      </View>
+      <Text style={{ fontSize: 22, fontWeight: '800', color: valueColor, letterSpacing: -0.5 }}>{value}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+        <Text style={{ fontSize: 10.5, color: '#64748B', fontWeight: '500' }}>{sub}</Text>
+        <ChevronRight size={12} color="#94A3B8" />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function QuickGridActionTile({
+  label,
+  icon,
+  bg,
+  border,
+  iconColor,
+  onPress,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  bg: string;
+  border: string;
+  iconColor: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      style={{
+        width: '25%',
+        alignItems: 'center',
+        paddingVertical: 7,
+        paddingHorizontal: 2,
+      }}
+    >
+      <View
+        style={{
+          width: 50,
+          height: 50,
+          borderRadius: 16,
+          backgroundColor: bg,
+          borderWidth: 1.2,
+          borderColor: border,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: iconColor,
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.12,
+          shadowRadius: 5,
+          elevation: 2,
+        }}
+      >
         {icon}
       </View>
-      <Text style={{ fontSize: 20, fontWeight: '800', color: valueColor, letterSpacing: -0.5 }}>{value}</Text>
-      <Text style={{ fontSize: 10, color: '#64748B', marginTop: 1 }}>{sub}</Text>
+      <Text
+        numberOfLines={2}
+        style={{
+          fontSize: 11,
+          fontWeight: '700',
+          color: '#1E293B',
+          textAlign: 'center',
+          marginTop: 6,
+          lineHeight: 14,
+          minHeight: 28,
+        }}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -2541,6 +2836,7 @@ function StudentsDirectorySection({
   setClassFilter,
   onEnrollStudent,
   onOpenEnrollNewStudent,
+  onViewStudentDetail,
   onToast,
 }: {
   store: any;
@@ -2550,6 +2846,7 @@ function StudentsDirectorySection({
   setClassFilter: (c: any) => void;
   onEnrollStudent: (s: AdminStudentItem) => void;
   onOpenEnrollNewStudent: () => void;
+  onViewStudentDetail: (s: AdminStudentItem) => void;
   onToast: (t: any) => void;
 }) {
   const filteredStudents = useMemo(() => {
@@ -2641,27 +2938,40 @@ function StudentsDirectorySection({
           onAction={onOpenEnrollNewStudent}
         />
       ) : (
-        filteredStudents.map((s: AdminStudentItem) => (
-          <View
-            key={s.id}
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 16,
-              padding: 14,
-              borderWidth: 1,
-              borderColor: '#E2E8F0',
-              gap: 10,
-              elevation: 1,
-              shadowColor: '#000000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.04,
-              shadowRadius: 3,
-            }}
-          >
-            {/* Header: Student Info & Badges */}
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-              <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+        filteredStudents.map((s: AdminStudentItem) => {
+          const primaryBatch = s.enrolledBatchNames[0];
+          const extraBatches = s.enrolledBatchNames.length - 1;
+          const initials = s.fullName
+            .split(' ')
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0].toUpperCase())
+            .join('');
+
+          return (
+            <TouchableOpacity
+              key={s.id}
+              activeOpacity={0.75}
+              onPress={() => onViewStudentDetail(s)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open details for ${s.fullName}`}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                padding: 13,
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
+                gap: 9,
+                elevation: 1,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 3,
+              }}
+            >
+              {/* Top Row: Badges & Attendance Indicator */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
                   <Badge label={`CLASS ${s.classLevel}`} variant="primary" size="sm" />
                   <Badge label={s.board.toUpperCase()} variant="neutral" size="sm" />
                   <Badge
@@ -2670,271 +2980,68 @@ function StudentsDirectorySection({
                     size="sm"
                   />
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1} ellipsizeMode="tail">
-                  {s.fullName}
-                </Text>
-                <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
-                  {s.school}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }} numberOfLines={1}>
-                  📞 {s.phone}
-                </Text>
-              </View>
 
-              {/* Attendance badge + Delete Action */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <View
                   style={{
                     backgroundColor: s.attendanceRate >= 90 ? '#ECFDF5' : s.attendanceRate >= 75 ? '#EFF6FF' : '#FEF2F2',
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 8,
-                    alignItems: 'center',
+                    paddingHorizontal: 7,
+                    paddingVertical: 2.5,
+                    borderRadius: 6,
                     borderWidth: 1,
                     borderColor: s.attendanceRate >= 90 ? '#A7F3D0' : s.attendanceRate >= 75 ? '#BFDBFE' : '#FECACA',
+                    flexShrink: 0,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 12.5,
+                      fontSize: 10.5,
                       fontWeight: '800',
                       color: s.attendanceRate >= 90 ? '#059669' : s.attendanceRate >= 75 ? '#2563EB' : '#DC2626',
                     }}
                   >
-                    {s.attendanceRate}%
+                    {s.attendanceRate}% ATT.
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 8.5,
-                      fontWeight: '700',
-                      color: s.attendanceRate >= 90 ? '#059669' : s.attendanceRate >= 75 ? '#2563EB' : '#DC2626',
-                    }}
-                  >
-                    ATTENDANCE
+                </View>
+              </View>
+
+              {/* Main Student Row: Initial Avatar + Name + Subtitle + Chevron */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 21,
+                    backgroundColor: '#EFF6FF',
+                    borderWidth: 1.5,
+                    borderColor: '#DBEAFE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Text style={{ fontSize: 14.5, fontWeight: '900', color: '#1E40AF' }}>
+                    {initials || 'ST'}
                   </Text>
                 </View>
 
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    Alert.alert(
-                      'Remove Student',
-                      `Remove ${s.fullName} from institute directory?`,
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Remove',
-                          style: 'destructive',
-                          onPress: async () => {
-                            await store.deleteStudent(s.id);
-                            onToast({ type: 'info', message: `${s.fullName} removed from directory.` });
-                          },
-                        },
-                      ]
-                    );
-                  }}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    backgroundColor: '#FEE2E2',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Trash2 size={13} color="#DC2626" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Enrolled Batches */}
-            <View style={{ gap: 4 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Enrolled Batches ({s.enrolledBatchNames.length})
-              </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                {s.enrolledBatchNames.length > 0 ? (
-                  s.enrolledBatchNames.map((name, i) => (
-                    <View
-                      key={i}
-                      style={{
-                        backgroundColor: '#F1F5F9',
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                        maxWidth: '100%',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }} numberOfLines={1}>
-                        {name}
-                      </Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={{ fontSize: 11, fontStyle: 'italic', color: '#94A3B8' }}>
-                    No batches enrolled
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                    {s.fullName}
                   </Text>
-                )}
-              </View>
-            </View>
-
-            {/* Parent Link Code Banner */}
-            <View
-              style={{
-                backgroundColor: '#F8FAFC',
-                borderRadius: 10,
-                paddingHorizontal: 10,
-                paddingVertical: 7,
-                borderWidth: 1,
-                borderColor: '#F1F5F9',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-                <Share2 size={12} color="#7C3AED" />
-                <Text style={{ fontSize: 11, color: '#64748B', flex: 1 }} numberOfLines={1}>
-                  Parent Code: <Text style={{ fontWeight: '800', color: '#7C3AED' }}>{s.parentInviteCode || 'Pending'}</Text>
-                </Text>
-              </View>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={async () => {
-                  const code = s.parentInviteCode || (await store.generateParentCode(s.id));
-                  Share.share({
-                    message: `Parent code for ${s.fullName} on Quick2Learn app: ${code}`,
-                  });
-                }}
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                style={{
-                  backgroundColor: '#F3E8FF',
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 6,
-                  flexShrink: 0,
-                }}
-              >
-                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#7C3AED' }}>Share Code</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Actions Bar */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 6,
-                paddingTop: 8,
-                borderTopWidth: 1,
-                borderTopColor: '#F1F5F9',
-              }}
-            >
-              {/* Call */}
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={() => Linking.openURL(`tel:${s.phone}`)}
-                style={{
-                  flex: 1,
-                  minWidth: 64,
-                  height: 34,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#EFF6FF',
-                  paddingHorizontal: 8,
-                  borderRadius: 8,
-                  gap: 4,
-                }}
-              >
-                <Phone size={12} color="#2563EB" />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }} numberOfLines={1}>
-                  Call
-                </Text>
-              </TouchableOpacity>
-
-              {/* WhatsApp */}
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={() =>
-                  Linking.openURL(
-                    `whatsapp://send?phone=${s.phone}&text=Hello ${encodeURIComponent(s.fullName)}, Quick2Learn Admin update:`
-                  )
-                }
-                style={{
-                  flex: 1,
-                  minWidth: 78,
-                  height: 34,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#DCFCE7',
-                  paddingHorizontal: 8,
-                  borderRadius: 8,
-                  gap: 4,
-                }}
-              >
-                <MessageCircle size={12} color="#16A34A" />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#16A34A' }} numberOfLines={1}>
-                  WhatsApp
-                </Text>
-              </TouchableOpacity>
-
-              {/* Parent Phone */}
-              {s.parentPhone ? (
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  onPress={() => Linking.openURL(`tel:${s.parentPhone}`)}
-                  style={{
-                    flex: 1,
-                    minWidth: 68,
-                    height: 34,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#F8FAFC',
-                    paddingHorizontal: 8,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                    gap: 4,
-                  }}
-                >
-                  <Users size={12} color="#64748B" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }} numberOfLines={1}>
-                    Parent
+                  <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1.5 }} numberOfLines={1}>
+                    {s.school || 'Enrolled Student'}
+                    {primaryBatch ? ` • ${primaryBatch}${extraBatches > 0 ? ` (+${extraBatches})` : ''}` : ''}
                   </Text>
-                </TouchableOpacity>
-              ) : null}
+                </View>
 
-              {/* + Batch */}
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={() => onEnrollStudent(s)}
-                style={{
-                  flex: 1,
-                  minWidth: 70,
-                  height: 34,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#2563EB',
-                  paddingHorizontal: 8,
-                  borderRadius: 8,
-                  gap: 4,
-                }}
-              >
-                <Plus size={12} color="#FFFFFF" strokeWidth={2.5} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }} numberOfLines={1}>
-                  Batch
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>Details</Text>
+                  <ChevronRight size={14} color="#2563EB" />
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })
       )}
     </View>
   );

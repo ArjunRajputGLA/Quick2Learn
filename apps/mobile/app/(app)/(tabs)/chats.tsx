@@ -13,7 +13,12 @@ import {
   Alert,
   BackHandler,
   Modal,
+  Animated,
+  Keyboard,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -44,7 +49,16 @@ import {
   MessageSquare,
   Sparkle,
   BookOpen,
+  Camera,
+  FileText,
+  Download,
+  Image as ImageIcon,
+  Mic,
+  MoreVertical,
+  Trash2,
+  Mail,
 } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
 import { Button } from '../../../src/components/ui/Button';
@@ -72,6 +86,21 @@ interface EnrolledStudentOption {
   avatarColor?: string;
 }
 
+interface ChatAttachmentItem {
+  uri: string;
+  name: string;
+  size?: string;
+  type: 'image' | 'pdf' | 'document';
+  mimeType?: string;
+}
+
+function formatFileSize(bytes?: number): string {
+  if (!bytes || bytes <= 0) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function ChatsTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -83,15 +112,55 @@ export default function ChatsTabScreen() {
 
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [chatMessageText, setChatMessageText] = useState('');
+  const [chatInputHeight, setChatInputHeight] = useState(42);
   const [chatSearch, setChatSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const chatScrollRef = useRef<any>(null);
+
+  // File attachment state
+  const [isAttachmentModalVisible, setIsAttachmentModalVisible] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<ChatAttachmentItem | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
+  // Keyboard visibility state
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const handleKeyboardShow = () => {
+      setIsKeyboardVisible(true);
+      setTimeout(() => {
+        chatScrollRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+      setTimeout(() => {
+        chatScrollRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    };
+
+    const handleKeyboardHide = () => {
+      setIsKeyboardVisible(false);
+    };
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, handleKeyboardShow);
+    const hideSub = Keyboard.addListener(hideEvent, handleKeyboardHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // New Chat Modal state
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState(false);
   const [modalTab, setModalTab] = useState<'students' | 'batches' | 'custom'>('students');
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('All');
+
+  // Chat Options Modal state & Unread Messages banner
+  const [isChatOptionsModalVisible, setIsChatOptionsModalVisible] = useState(false);
+  const [unreadBannerCount, setUnreadBannerCount] = useState<number>(0);
 
   // Custom student inputs
   const [customStudentName, setCustomStudentName] = useState('');
@@ -102,6 +171,23 @@ export default function ChatsTabScreen() {
   useEffect(() => {
     adminStore.init();
   }, []);
+
+  // Track unread messages on entering channel & mark as read
+  useEffect(() => {
+    if (selectedChannelId) {
+      const channel = (adminStore.chats || []).find((c) => c.id === selectedChannelId);
+      if (channel && channel.unreadCount > 0) {
+        setUnreadBannerCount(channel.unreadCount);
+        adminStore.markChatAsRead(selectedChannelId);
+      } else {
+        setUnreadBannerCount(0);
+      }
+    } else {
+      setUnreadBannerCount(0);
+      setIsChatOptionsModalVisible(false);
+      setIsKeyboardVisible(false);
+    }
+  }, [selectedChannelId]);
 
   // Hide footer navbar inside active chat, restore on exit or unmount
   useEffect(() => {
@@ -119,11 +205,28 @@ export default function ChatsTabScreen() {
   useEffect(() => {
     if (!selectedChannelId) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isChatOptionsModalVisible) {
+        setIsChatOptionsModalVisible(false);
+        return true;
+      }
+      if (isAttachmentModalVisible) {
+        setIsAttachmentModalVisible(false);
+        return true;
+      }
+      if (previewImageUrl) {
+        setPreviewImageUrl(null);
+        return true;
+      }
+      if (isKeyboardVisible) {
+        Keyboard.dismiss();
+        setIsKeyboardVisible(false);
+        return true;
+      }
       setSelectedChannelId(null);
       return true;
     });
     return () => sub.remove();
-  }, [selectedChannelId]);
+  }, [selectedChannelId, isChatOptionsModalVisible, isKeyboardVisible, isAttachmentModalVisible, previewImageUrl]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -159,9 +262,186 @@ export default function ChatsTabScreen() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
+  const formatChatDate = (dateStr?: string | Date) => {
+    if (!dateStr) return '24 May 2021';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '24 May 2021';
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const handleRecordVoiceNote = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {}
+    Alert.alert(
+      'Voice Note',
+      'Voice note recording is coming soon! You can type your doubts and attach documents or photos directly in this chat.',
+      [{ text: 'OK' }]
+    );
+  };
+
   // Chats data from admin store
   const channels = adminStore.chats || [];
   const selectedChannel = channels.find((c) => c.id === selectedChannelId);
+
+  // Check whether other party in direct chat is online
+  const isOtherUserOnline = useMemo(() => {
+    if (!selectedChannel || selectedChannel.type !== 'direct') return false;
+    if (typeof selectedChannel.isOnline === 'boolean') {
+      return selectedChannel.isOnline;
+    }
+    // Check if other party sent an incoming message within last 5 minutes
+    const lastMsg = selectedChannel.messages?.[selectedChannel.messages.length - 1];
+    if (lastMsg && !lastMsg.isOutgoing && lastMsg.createdAt) {
+      const diff = Date.now() - new Date(lastMsg.createdAt).getTime();
+      if (diff >= 0 && diff < 5 * 60 * 1000) return true;
+    }
+    return false;
+  }, [selectedChannel]);
+
+  // Contextual target contact details for Chat Options Modal
+  const targetContactName = useMemo(() => {
+    if (!selectedChannel) return 'CHAT CONTACT';
+    if (selectedChannel.type === 'batch_group') return (selectedChannel.title || 'BATCH GROUP').toUpperCase();
+    if (isAdminOrTeacher) {
+      return (selectedChannel.studentName || selectedChannel.title || 'STUDENT').toUpperCase();
+    }
+    return (selectedChannel.facultyName || selectedChannel.title || 'DINESH SINGH RAJPUT').toUpperCase();
+  }, [selectedChannel, isAdminOrTeacher]);
+
+  const targetSubtitle = useMemo(() => {
+    if (!selectedChannel) return '';
+    return selectedChannel.subtitle || (selectedChannel.type === 'batch_group' ? 'Batch Discussion' : 'Enrolled Student');
+  }, [selectedChannel]);
+
+  const targetPhoneNumber = useMemo(() => {
+    if (!selectedChannel) return '9412278910';
+    if (isAdminOrTeacher) {
+      if (selectedChannel.studentPhone) return selectedChannel.studentPhone;
+      const found = (adminStore.students || []).find(
+        (s) => s.id === selectedChannel.studentId || s.fullName.toLowerCase() === (selectedChannel.studentName || selectedChannel.title).toLowerCase()
+      );
+      if (found?.phone) return found.phone;
+      const foundJoinReq = (adminStore.joinRequests || []).find(
+        (r) => (r.studentId && r.studentId === selectedChannel.studentId) || r.studentName?.toLowerCase() === (selectedChannel.studentName || selectedChannel.title).toLowerCase()
+      );
+      if (foundJoinReq?.studentPhone) return foundJoinReq.studentPhone;
+      return '9412278910';
+    }
+    return selectedChannel.facultyPhone || '9412278910';
+  }, [selectedChannel, isAdminOrTeacher, adminStore.students, adminStore.joinRequests]);
+
+  const callButtonLabel = useMemo(() => {
+    if (selectedChannel?.type === 'batch_group') {
+      return 'Call Institute (+91 94122 78910)';
+    }
+    if (isAdminOrTeacher) {
+      const rawName = selectedChannel?.studentName || selectedChannel?.title || 'Student';
+      const firstName = rawName.split(' ')[0] || 'Student';
+      return `Call ${firstName}`;
+    }
+    return 'Call Faculty (Dinesh Sir)';
+  }, [selectedChannel, isAdminOrTeacher]);
+
+  const whatsappButtonLabel = useMemo(() => {
+    if (selectedChannel?.type === 'batch_group') {
+      return 'Join Batch WhatsApp Group';
+    }
+    if (isAdminOrTeacher) {
+      const rawName = selectedChannel?.studentName || selectedChannel?.title || 'Student';
+      const firstName = rawName.split(' ')[0] || 'Student';
+      return `WhatsApp Chat (${firstName})`;
+    }
+    return 'WhatsApp Chat';
+  }, [selectedChannel, isAdminOrTeacher]);
+
+  const handleOpenChatOptions = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {}
+    setIsChatOptionsModalVisible(true);
+  };
+
+  const handleCallContact = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {}
+    setIsChatOptionsModalVisible(false);
+    const cleanNumber = targetPhoneNumber.replace(/[^0-9+]/g, '');
+    const url = `tel:${cleanNumber}`;
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          'Contact Phone',
+          `Direct dialer is unavailable on this device.\n\nPhone Number: ${cleanNumber}`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (e) {
+      Alert.alert(
+        'Contact Phone',
+        `Phone Number: ${cleanNumber}`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleWhatsAppContact = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {}
+    setIsChatOptionsModalVisible(false);
+    const digitsOnly = targetPhoneNumber.replace(/\D/g, '');
+    const fullPhone = digitsOnly.length === 10 ? `91${digitsOnly}` : digitsOnly;
+    const greeting = isAdminOrTeacher
+      ? `Hi ${selectedChannel?.studentName || selectedChannel?.title || 'Student'}, messaging you from Quick2Learn regarding your classes and doubts.`
+      : `Hi Dinesh Sir, regarding the batch and my coursework in Quick2Learn...`;
+    const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(greeting)}`;
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        await Linking.openURL(`https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(greeting)}`);
+      }
+    } catch (e) {
+      Alert.alert(
+        'WhatsApp Contact',
+        `Unable to open WhatsApp.\n\nWhatsApp Number: +${fullPhone}`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleClearChat = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    } catch {}
+    setIsChatOptionsModalVisible(false);
+    Alert.alert(
+      'Clear Conversation',
+      `Are you sure you want to delete all messages in this conversation with ${targetContactName}? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All Messages',
+          style: 'destructive',
+          onPress: async () => {
+            if (selectedChannelId) {
+              await adminStore.clearChatMessages(selectedChannelId);
+              setUnreadBannerCount(0);
+              try {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } catch {}
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const filteredChannels = useMemo(() => {
     if (!chatSearch.trim()) return channels;
@@ -399,10 +679,125 @@ export default function ChatsTabScreen() {
     setSelectedChannelId(channelId);
   };
 
+  const handleTakePhoto = async () => {
+    setIsAttachmentModalVisible(false);
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Camera Permission Required', 'Please enable camera permissions in settings to take photos.');
+        return;
+      }
+      const res = await ImagePicker.launchCameraAsync({
+        quality: 0.85,
+      });
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        const filename = asset.fileName || `camera_photo_${Date.now()}.jpg`;
+        const sizeStr = asset.fileSize ? formatFileSize(asset.fileSize) : undefined;
+        setAttachedFile({
+          uri: asset.uri,
+          name: filename,
+          size: sizeStr,
+          type: 'image',
+          mimeType: asset.mimeType || 'image/jpeg',
+        });
+      }
+    } catch (e: any) {
+      console.warn('Error taking photo:', e);
+      Alert.alert('Error', 'Unable to open camera. Please try again.');
+    }
+  };
+
+  const handlePickGallery = async () => {
+    setIsAttachmentModalVisible(false);
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Gallery Permission Required', 'Please enable photo library permissions in settings to attach photos.');
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        allowsMultipleSelection: false,
+      });
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        const filename = asset.fileName || `gallery_image_${Date.now()}.jpg`;
+        const sizeStr = asset.fileSize ? formatFileSize(asset.fileSize) : undefined;
+        setAttachedFile({
+          uri: asset.uri,
+          name: filename,
+          size: sizeStr,
+          type: 'image',
+          mimeType: asset.mimeType || 'image/jpeg',
+        });
+      }
+    } catch (e: any) {
+      console.warn('Error picking image from gallery:', e);
+      Alert.alert('Error', 'Unable to pick photo from gallery. Please try again.');
+    }
+  };
+
+  const handlePickDocument = async () => {
+    setIsAttachmentModalVisible(false);
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'image/*',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-powerpoint',
+          'text/plain',
+        ],
+        copyToCacheDirectory: true,
+      });
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        const isImage =
+          (asset.mimeType && asset.mimeType.startsWith('image/')) ||
+          /\.(jpg|jpeg|png|webp|gif)$/i.test(asset.name);
+        const isPdf = asset.mimeType === 'application/pdf' || /\.pdf$/i.test(asset.name);
+        const sizeStr = asset.size ? formatFileSize(asset.size) : undefined;
+        setAttachedFile({
+          uri: asset.uri,
+          name: asset.name,
+          size: sizeStr,
+          type: isImage ? 'image' : isPdf ? 'pdf' : 'document',
+          mimeType: asset.mimeType || 'application/octet-stream',
+        });
+      }
+    } catch (e: any) {
+      console.warn('Error picking document:', e);
+      Alert.alert('Error', 'Unable to pick document. Please try again.');
+    }
+  };
+
+  const handleOpenFile = async (fileUrl?: string, fileName?: string) => {
+    if (!fileUrl) return;
+    try {
+      const supported = await Linking.canOpenURL(fileUrl);
+      if (supported) {
+        await Linking.openURL(fileUrl);
+      } else {
+        Alert.alert('Attachment', `File: ${fileName || 'Document'}\n${fileUrl}`);
+      }
+    } catch {
+      Alert.alert('Attachment', `File: ${fileName || 'Document'}`);
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!chatMessageText.trim() || !selectedChannelId) return;
+    if ((!chatMessageText.trim() && !attachedFile) || !selectedChannelId) return;
     const text = chatMessageText.trim();
+    const fileToAttach = attachedFile ? { ...attachedFile } : null;
+
     setChatMessageText('');
+    setAttachedFile(null);
+    setChatInputHeight(42);
+    setUnreadBannerCount(0);
+
     const senderName =
       me?.profile?.fullName ||
       me?.user?.name ||
@@ -411,11 +806,19 @@ export default function ChatsTabScreen() {
 
     await adminStore.sendChatMessage(
       selectedChannelId,
-      text,
+      text || (fileToAttach ? fileToAttach.name : 'Message'),
       senderRole,
       senderName,
-      undefined,
-      true
+      fileToAttach?.type === 'image' ? fileToAttach.uri : undefined,
+      true,
+      fileToAttach
+        ? {
+            fileUrl: fileToAttach.uri,
+            fileName: fileToAttach.name,
+            fileSize: fileToAttach.size,
+            fileType: fileToAttach.type,
+          }
+        : undefined
     );
 
     setTimeout(() => {
@@ -426,9 +829,12 @@ export default function ChatsTabScreen() {
     if (selectedChannel?.type === 'direct' && senderRole === 'student') {
       setTimeout(async () => {
         const facultyName = selectedChannel.facultyName || 'Namita Singh Rajput';
+        const replyText = fileToAttach
+          ? `Received your attachment "${fileToAttach.name}". I will review this and get back to you shortly!`
+          : `Received your message! I will review this concept and reply shortly.`;
         await adminStore.sendChatMessage(
           selectedChannelId,
-          `Received your message! I will review this concept and reply shortly.`,
+          replyText,
           'teacher',
           `${facultyName} (Faculty)`,
           undefined,
@@ -443,29 +849,122 @@ export default function ChatsTabScreen() {
     <Screen
       scrollable={false}
       header={
-        <AppHeader
-          title={selectedChannel ? selectedChannel.title : 'Chats'}
-          subtitle={selectedChannel ? selectedChannel.subtitle : undefined}
-          showBack={Boolean(selectedChannel)}
-          onBack={selectedChannel ? () => setSelectedChannelId(null) : undefined}
-          rightActions={
-            selectedChannel ? (
+        selectedChannel ? (
+          <View
+            style={{
+              backgroundColor: '#4845D2',
+              marginTop: -insets.top,
+              paddingTop: insets.top,
+              shadowColor: '#1E1B4B',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3,
+              elevation: 4,
+            }}
+          >
+            <View
+              style={{
+                height: 56,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 12,
+                justifyContent: 'space-between',
+              }}
+            >
+              {/* Back button + Profile Avatar + Contact Name */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedChannelId(null)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={{ padding: 4, marginRight: 6 }}
+                >
+                  <ArrowLeft size={24} color="#FFFFFF" strokeWidth={2.2} />
+                </TouchableOpacity>
+
+                {/* Circular Avatar with bright green online dot (rendered ONLY when other user online) */}
+                <View style={{ position: 'relative', marginRight: 10 }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#F1F5F9',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {selectedChannel.type === 'batch_group' ? (
+                      <Users size={20} color="#0284C7" strokeWidth={1.8} />
+                    ) : (
+                      <User size={22} color="#64748B" strokeWidth={2} />
+                    )}
+                  </View>
+                  {isOtherUserOnline ? (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: '#22C55E',
+                        borderWidth: 2,
+                        borderColor: '#4845D2',
+                      }}
+                    />
+                  ) : null}
+                </View>
+
+                {/* Uppercase bold contact name & online status */}
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      fontSize: 15.5,
+                      fontWeight: '700',
+                      color: '#FFFFFF',
+                      letterSpacing: 0.3,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {selectedChannel.title || 'DINESH SINGH RAJPUT'}
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      fontSize: 11,
+                      color: isOtherUserOnline ? '#86EFAC' : 'rgba(255, 255, 255, 0.75)',
+                      fontWeight: isOtherUserOnline ? '600' : '400',
+                      marginTop: 1,
+                    }}
+                  >
+                    {selectedChannel.type === 'batch_group'
+                      ? (selectedChannel.subtitle || 'Batch Discussion')
+                      : isOtherUserOnline
+                      ? 'Online'
+                      : (selectedChannel.lastSeen || 'Offline')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Three dots vertical menu */}
               <TouchableOpacity
-                onPress={() => setSelectedChannelId(null)}
-                style={{
-                  paddingHorizontal: 9,
-                  paddingVertical: 4,
-                  borderRadius: radii.full,
-                  backgroundColor: '#EFF6FF',
-                  borderWidth: 1,
-                  borderColor: '#BFDBFE',
-                }}
+                activeOpacity={0.7}
+                onPress={handleOpenChatOptions}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ padding: 6 }}
               >
-                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563EB' }}>
-                  All Chats
-                </Text>
+                <MoreVertical size={22} color="#FFFFFF" />
               </TouchableOpacity>
-            ) : (
+            </View>
+          </View>
+        ) : (
+          <AppHeader
+            title="Chats"
+            rightActions={
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TouchableOpacity
                   activeOpacity={0.75}
@@ -510,11 +1009,14 @@ export default function ChatsTabScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
-            )
-          }
-        />
+            }
+          />
+        )
       }
     >
+      <StatusBar
+        style={selectedChannel ? 'light' : 'dark'}
+      />
       <View style={{ flex: 1, backgroundColor: colors['surface-subtle'] }}>
         {!selectedChannel ? (
           // Channels List View (Matching 5.jpeg)
@@ -820,243 +1322,664 @@ export default function ChatsTabScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          // Active Conversation Screen (WhatsApp Styled)
-          <KeyboardAvoidingView
-            style={{ flex: 1, backgroundColor: '#EFEAE2' }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-          >
-            {/* Messages List */}
-            <ScrollView
-              ref={chatScrollRef}
-              style={{ flex: 1, backgroundColor: '#EFEAE2' }}
-              contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 10, paddingBottom: 16 }}
-              onContentSizeChange={() => chatScrollRef.current?.scrollToEnd({ animated: false })}
-            >
-              {/* WhatsApp style encryption banner notice */}
-              <View style={{ alignItems: 'center', marginVertical: 8, paddingHorizontal: 16 }}>
+          // Active Conversation Screen (Quick2Learn Educational Theme)
+          (() => {
+            const activeChatBody = (
+              <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+                {/* 1. Unread Banner - Rendered only at appropriate times when there are unread messages */}
+                {unreadBannerCount > 0 ? (
+                  <View
+                    style={{
+                      backgroundColor: '#E0F2FE',
+                      paddingVertical: 7,
+                      paddingHorizontal: 12,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderBottomWidth: 0.5,
+                      borderBottomColor: '#BAE6FD',
+                      flexDirection: 'row',
+                      gap: 6,
+                    }}
+                  >
+                    <Mail size={13} color="#0284C7" />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: '#0284C7',
+                        letterSpacing: 0.6,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {unreadBannerCount === 1 ? '1 UNREAD MESSAGE' : `${unreadBannerCount} UNREAD MESSAGES`}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* 2. Messages List */}
+                <ScrollView
+                  ref={chatScrollRef}
+                  style={{ flex: 1, backgroundColor: '#F8FAFC' }}
+                  contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 16 }}
+                  keyboardShouldPersistTaps="handled"
+                  onScrollBeginDrag={() => {
+                    Keyboard.dismiss();
+                    setIsKeyboardVisible(false);
+                  }}
+                  onContentSizeChange={() => chatScrollRef.current?.scrollToEnd({ animated: false })}
+                  onLayout={() => chatScrollRef.current?.scrollToEnd({ animated: true })}
+                >
+                  {/* Centered Date Separator */}
+                  <View style={{ alignItems: 'center', marginVertical: 12 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748B' }}>
+                      {formatChatDate(selectedChannel.messages?.[0]?.createdAt || selectedChannel.lastMessageTime)}
+                    </Text>
+                  </View>
+
+                  {/* Messages list - Matching Screenshot Layout */}
+                  {(selectedChannel.messages || []).map((msg) => {
+                    const isMe = Boolean(
+                      msg.isOutgoing ||
+                      (me?.user?.id && msg.senderId === me.user.id) ||
+                      (isAdminOrTeacher
+                        ? (msg.senderRole === 'admin' || msg.senderRole === 'teacher' || msg.senderName?.includes('Dinesh')) &&
+                          !msg.senderName?.includes('Namita') && !msg.senderName?.includes('Anisha')
+                        : msg.senderRole === 'student' ||
+                          msg.senderName?.includes('Arjun') ||
+                          msg.senderName?.includes('Aarav') ||
+                          msg.senderName?.includes('Anisha'))
+                    );
+
+                    const hasImage = Boolean(msg.imageUrl || msg.fileType === 'image');
+                    const hasDoc = Boolean(
+                      msg.fileType === 'pdf' ||
+                      msg.fileType === 'document' ||
+                      (msg.fileUrl && !hasImage && msg.fileType !== 'image')
+                    );
+                    const showText = Boolean(
+                      msg.text && (msg.text !== msg.fileName || (!hasImage && !hasDoc))
+                    );
+
+                    return (
+                      <View
+                        key={msg.id}
+                        style={{
+                          marginVertical: 4,
+                          alignItems: isMe ? 'flex-end' : 'flex-start',
+                          paddingLeft: isMe ? 36 : 0,
+                          paddingRight: isMe ? 0 : 36,
+                        }}
+                      >
+                        <View
+                          style={{
+                            maxWidth: '88%',
+                            borderRadius: 14,
+                            borderBottomRightRadius: isMe ? 3 : 14,
+                            borderBottomLeftRadius: !isMe ? 3 : 14,
+                            paddingHorizontal: 14,
+                            paddingTop: 10,
+                            paddingBottom: 7,
+                            backgroundColor: '#FFFFFF',
+                            borderWidth: 1,
+                            borderColor: isMe ? '#CBD5E1' : '#E2E8F0',
+                            shadowColor: '#0F172A',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.04,
+                            shadowRadius: 2,
+                            elevation: 1,
+                          }}
+                        >
+                          {/* Image Attachment Preview */}
+                          {hasImage && (
+                            <TouchableOpacity
+                              activeOpacity={0.9}
+                              onPress={() => setPreviewImageUrl(msg.imageUrl || msg.fileUrl || null)}
+                              style={{
+                                marginBottom: showText ? 6 : 2,
+                                borderRadius: 10,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <Image
+                                source={{ uri: msg.imageUrl || msg.fileUrl }}
+                                style={{
+                                  width: 220,
+                                  height: 150,
+                                  borderRadius: 10,
+                                  backgroundColor: '#E2E8F0',
+                                }}
+                                resizeMode="cover"
+                              />
+                            </TouchableOpacity>
+                          )}
+
+                          {/* Document / PDF Attachment Preview */}
+                          {hasDoc && (
+                            <TouchableOpacity
+                              activeOpacity={0.8}
+                              onPress={() => handleOpenFile(msg.fileUrl, msg.fileName)}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 10,
+                                padding: 9,
+                                borderRadius: 10,
+                                backgroundColor: '#F1F5F9',
+                                borderWidth: 1,
+                                borderColor: '#E2E8F0',
+                                marginBottom: showText ? 6 : 2,
+                                minWidth: 200,
+                                maxWidth: 240,
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 8,
+                                  backgroundColor: msg.fileType === 'pdf' ? '#FEE2E2' : '#EFF6FF',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <FileText
+                                  size={18}
+                                  color={msg.fileType === 'pdf' ? '#DC2626' : '#2563EB'}
+                                />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  numberOfLines={1}
+                                  style={{
+                                    fontSize: 12.5,
+                                    fontWeight: '700',
+                                    color: '#0F172A',
+                                  }}
+                                >
+                                  {msg.fileName || 'Attached Document'}
+                                </Text>
+                                <Text
+                                  style={{
+                                    fontSize: 10.5,
+                                    color: '#64748B',
+                                    marginTop: 1,
+                                  }}
+                                >
+                                  {msg.fileType ? msg.fileType.toUpperCase() : 'DOCUMENT'}
+                                  {msg.fileSize ? ` • ${msg.fileSize}` : ''}
+                                </Text>
+                              </View>
+                              <Download size={15} color="#64748B" />
+                            </TouchableOpacity>
+                          )}
+
+                          {/* Text Message */}
+                          {showText && (
+                            <Text
+                              style={{
+                                fontSize: 14.5,
+                                lineHeight: 21,
+                                color: '#0F172A',
+                              }}
+                            >
+                              {msg.text}
+                            </Text>
+                          )}
+
+                          {/* Bottom Right Timestamp + Ticks */}
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              marginTop: 4,
+                              gap: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10.5,
+                                color: '#64748B',
+                                fontWeight: '500',
+                              }}
+                            >
+                              {formatBubbleTime(msg.createdAt)}
+                            </Text>
+                            {isMe && (
+                              <CheckCheck size={14} color="#2563EB" strokeWidth={2.2} />
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+
+                {/* Attachment Preview Chip above input bar */}
+                {attachedFile && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#F8FAFC',
+                      borderTopWidth: 1,
+                      borderTopColor: '#E2E8F0',
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      gap: 10,
+                    }}
+                  >
+                    {attachedFile.type === 'image' ? (
+                      <Image
+                        source={{ uri: attachedFile.uri }}
+                        style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#E2E8F0' }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 8,
+                          backgroundColor: attachedFile.type === 'pdf' ? '#FEE2E2' : '#EFF6FF',
+                          borderWidth: 1,
+                          borderColor: attachedFile.type === 'pdf' ? '#FECACA' : '#BFDBFE',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <FileText size={22} color={attachedFile.type === 'pdf' ? '#DC2626' : '#2563EB'} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{ fontSize: 13, fontWeight: '700', color: '#0F172A' }}
+                      >
+                        {attachedFile.name}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>
+                        {attachedFile.type === 'image' ? 'Image file' : attachedFile.type === 'pdf' ? 'PDF document' : 'Document'}
+                        {attachedFile.size ? ` • ${attachedFile.size}` : ''}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setAttachedFile(null)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        backgroundColor: '#E2E8F0',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <X size={15} color="#475569" strokeWidth={2.4} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Message Input Bar (Matching User Reference Image) */}
                 <View
                   style={{
                     flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 6,
-                    backgroundColor: '#FFEECD',
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 8,
-                    maxWidth: '92%',
+                    alignItems: 'flex-end',
+                    backgroundColor: '#FFFFFF',
+                    borderTopWidth: 1,
+                    borderTopColor: '#E2E8F0',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 10),
+                    gap: 12,
                   }}
                 >
-                  <ShieldCheck size={13} color="#856404" />
-                  <Text style={{ fontSize: 10.5, color: '#543B00', textAlign: 'center', flexShrink: 1, lineHeight: 14 }}>
-                    Messages are end-to-end encrypted & synced with Dinesh Sir
-                  </Text>
+                  {/* Paperclip */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      setIsAttachmentModalVisible(true);
+                    }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{ paddingBottom: 8 }}
+                  >
+                    <Paperclip size={24} color={attachedFile ? '#2563EB' : '#64748B'} strokeWidth={2} />
+                  </TouchableOpacity>
+
+                  {/* Frameless Multiline TextInput */}
+                  <TextInput
+                    value={chatMessageText}
+                    onChangeText={(text) => {
+                      setChatMessageText(text);
+                      if (!text || text.length === 0) {
+                        setChatInputHeight(38);
+                      }
+                    }}
+                    onContentSizeChange={(e) => {
+                      const rawHeight = e.nativeEvent.contentSize.height;
+                      if (!chatMessageText || chatMessageText.trim().length === 0) {
+                        setChatInputHeight(38);
+                        return;
+                      }
+                      const clampedHeight = Math.max(38, Math.min(110, Math.round(rawHeight + 8)));
+                      setChatInputHeight(clampedHeight);
+                    }}
+                    onFocus={() => {
+                      setIsKeyboardVisible(true);
+                      setTimeout(() => {
+                        chatScrollRef.current?.scrollToEnd({ animated: true });
+                      }, 100);
+                    }}
+                    onBlur={() => {
+                      setIsKeyboardVisible(false);
+                    }}
+                    placeholder={attachedFile ? 'Add a caption...' : 'Type a message...'}
+                    placeholderTextColor="#94A3B8"
+                    multiline
+                    textAlignVertical="center"
+                    style={{
+                      flex: 1,
+                      height: chatInputHeight,
+                      minHeight: 38,
+                      maxHeight: 110,
+                      backgroundColor: 'transparent',
+                      borderWidth: 0,
+                      paddingHorizontal: 4,
+                      paddingVertical: 6,
+                      fontSize: 15.5,
+                      lineHeight: 21,
+                      color: '#0F172A',
+                    }}
+                  />
+
+                  {/* Mic Button */}
+                  <TouchableOpacity
+                    onPress={handleRecordVoiceNote}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{ paddingBottom: 8 }}
+                  >
+                    <Mic size={24} color="#64748B" strokeWidth={2} />
+                  </TouchableOpacity>
+
+                  {/* Send Button */}
+                  <TouchableOpacity
+                    onPress={handleSendMessage}
+                    disabled={!chatMessageText.trim() && !attachedFile}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{ paddingBottom: 8 }}
+                  >
+                    <Send
+                      size={24}
+                      color={(chatMessageText.trim() || attachedFile) ? '#2563EB' : '#94A3B8'}
+                      strokeWidth={2.2}
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
+            );
 
-              {/* Friendly Welcome Banner when chat has no messages yet */}
-              {(selectedChannel.messages || []).length === 0 && (
-                <View style={{ alignItems: 'center', marginVertical: 32, paddingHorizontal: 24 }}>
-                  <View
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      backgroundColor: '#FFFFFF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 12,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.08,
-                      shadowRadius: 4,
-                      elevation: 2,
-                    }}
-                  >
-                    <MessageCircle size={28} color="#2563EB" />
-                  </View>
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>
-                    Start chat with {selectedChannel.studentName || selectedChannel.title}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: '#64748B', textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                    Send questions, doubts, assignments, or batch notices. Type your message below.
-                  </Text>
-                </View>
-              )}
-
-              {/* Messages list - WhatsApp layout */}
-              {(selectedChannel.messages || []).map((msg) => {
-                const isMe = Boolean(
-                  msg.isOutgoing ||
-                  (me?.user?.id && msg.senderId === me.user.id) ||
-                  (isAdminOrTeacher
-                    ? (msg.senderRole === 'admin' || msg.senderRole === 'teacher' || msg.senderName?.includes('Dinesh')) &&
-                      !msg.senderName?.includes('Namita')
-                    : msg.senderRole === 'student' ||
-                      msg.senderName?.includes('Arjun') ||
-                      msg.senderName?.includes('Aarav'))
-                );
-
-                return (
-                  <View
-                    key={msg.id}
-                    style={{
-                      marginVertical: 3,
-                      alignItems: isMe ? 'flex-end' : 'flex-start',
-                      paddingLeft: isMe ? 40 : 0,
-                      paddingRight: isMe ? 0 : 40,
-                    }}
-                  >
-                    <View
-                      style={{
-                        maxWidth: '85%',
-                        borderRadius: 10,
-                        borderTopRightRadius: isMe ? 2 : 10,
-                        borderTopLeftRadius: isMe ? 10 : 2,
-                        paddingHorizontal: 11,
-                        paddingTop: 6,
-                        paddingBottom: 6,
-                        backgroundColor: isMe ? '#D9FDD3' : '#FFFFFF',
-                        borderWidth: isMe ? 0 : 0.5,
-                        borderColor: '#E2E8F0',
-                        shadowColor: '#0F172A',
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.08,
-                        shadowRadius: 1.5,
-                        elevation: 1,
-                      }}
-                    >
-                      {/* Incoming message sender name header */}
-                      {!isMe && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2.5, gap: 5 }}>
-                          <Text
-                            style={{
-                              fontSize: 11.5,
-                              fontWeight: '700',
-                              color:
-                                msg.senderRole === 'teacher' || msg.senderRole === 'admin'
-                                  ? '#0D9488'
-                                  : '#D97706',
-                            }}
-                          >
-                            {msg.senderName}
-                          </Text>
-                          {msg.senderRole === 'teacher' || msg.senderRole === 'admin' ? (
-                            <View
-                              style={{
-                                backgroundColor: '#ECFDF5',
-                                paddingHorizontal: 4,
-                                paddingVertical: 1,
-                                borderRadius: 4,
-                                borderWidth: 0.5,
-                                borderColor: '#A7F3D0',
-                              }}
-                            >
-                              <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#065F46' }}>
-                                FACULTY
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-                      )}
-
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          lineHeight: 19.5,
-                          color: '#111B21',
-                        }}
-                      >
-                        {msg.text}
-                      </Text>
-
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          marginTop: 2,
-                          gap: 3,
-                        }}
-                      >
-                        <Text style={{ fontSize: 10, color: '#667781' }}>
-                          {formatBubbleTime(msg.createdAt)}
-                        </Text>
-                        {isMe && (
-                          <CheckCheck size={14} color="#53BDEB" strokeWidth={2.2} />
-                        )}
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-
-            {/* Message Input Bar (WhatsApp Styled) */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#F0F2F5',
-                paddingHorizontal: 8,
-                paddingVertical: 6,
-                paddingBottom: Math.max(insets.bottom, 8),
-                gap: 6,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => Alert.alert('Attachment', 'Attach notes, assignments, or PDF.')}
-                activeOpacity={0.7}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+            return (
+              <KeyboardAvoidingView
+                style={{ flex: 1, backgroundColor: '#F8FAFC' }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
               >
-                <Paperclip size={18} color="#54656F" />
-              </TouchableOpacity>
-
-              <TextInput
-                value={chatMessageText}
-                onChangeText={setChatMessageText}
-                placeholder="Message"
-                placeholderTextColor="#667781"
-                multiline
-                style={{
-                  flex: 1,
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  borderRadius: 22,
-                  paddingHorizontal: 14,
-                  paddingVertical: Platform.OS === 'ios' ? 8 : 6,
-                  fontSize: 14,
-                  maxHeight: 96,
-                  color: '#111B21',
-                }}
-              />
-
-              <TouchableOpacity
-                onPress={handleSendMessage}
-                disabled={!chatMessageText.trim()}
-                activeOpacity={0.7}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: chatMessageText.trim() ? '#00A884' : '#CBD5E1',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Send size={17} color="#FFFFFF" style={{ marginLeft: 2 }} />
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
+                {activeChatBody}
+              </KeyboardAvoidingView>
+            );
+          })()
         )}
       </View>
+
+      {/* Sleek Custom Chat Options Modal (Replacing generic Alert.alert) */}
+      <Modal
+        visible={isChatOptionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsChatOptionsModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setIsChatOptionsModalVisible(false)}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 20,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              padding: 22,
+              width: '100%',
+              maxWidth: 380,
+              alignItems: 'center',
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.22,
+              shadowRadius: 24,
+              elevation: 16,
+            }}
+          >
+            {/* Top Avatar / Help Icon Badge matching screenshot style */}
+            <View
+              style={{
+                width: 58,
+                height: 58,
+                borderRadius: 29,
+                backgroundColor: '#EFF6FF',
+                borderWidth: 2,
+                borderColor: '#BFDBFE',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+              }}
+            >
+              <HelpCircle size={28} color="#2563EB" strokeWidth={2.2} />
+            </View>
+
+            {/* Contact Title */}
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: 18,
+                fontWeight: '800',
+                color: '#0F172A',
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                letterSpacing: 0.3,
+              }}
+            >
+              {targetContactName}
+            </Text>
+
+            {/* Subtitle Prompt */}
+            <Text
+              style={{
+                fontSize: 13,
+                color: '#64748B',
+                textAlign: 'center',
+                marginTop: 4,
+                marginBottom: selectedChannel?.type === 'direct' ? 8 : 16,
+              }}
+            >
+              Select an action for this chat:
+            </Text>
+
+            {/* Online Status Pill for Direct chats */}
+            {selectedChannel?.type === 'direct' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: isOtherUserOnline ? '#ECFDF5' : '#F1F5F9',
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 12,
+                  marginBottom: 16,
+                  gap: 6,
+                }}
+              >
+                <View
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 3.5,
+                    backgroundColor: isOtherUserOnline ? '#10B981' : '#94A3B8',
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: '700',
+                    color: isOtherUserOnline ? '#059669' : '#64748B',
+                  }}
+                >
+                  {isOtherUserOnline ? 'Active Online' : (selectedChannel?.lastSeen || 'Offline')}
+                </Text>
+              </View>
+            )}
+
+            {/* Action 1: Call Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleCallContact}
+              style={{
+                width: '100%',
+                backgroundColor: '#2563EB',
+                borderRadius: 14,
+                paddingVertical: 13,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 10,
+                shadowColor: '#2563EB',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 3,
+                gap: 10,
+              }}
+            >
+              <Phone size={18} color="#FFFFFF" strokeWidth={2.3} />
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: 14.5,
+                  fontWeight: '700',
+                  letterSpacing: 0.1,
+                }}
+              >
+                {callButtonLabel}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Action 2: WhatsApp Chat Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleWhatsAppContact}
+              style={{
+                width: '100%',
+                backgroundColor: '#16A34A',
+                borderRadius: 14,
+                paddingVertical: 13,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 10,
+                shadowColor: '#16A34A',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 3,
+                gap: 10,
+              }}
+            >
+              <MessageCircle size={18} color="#FFFFFF" strokeWidth={2.3} />
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: 14.5,
+                  fontWeight: '700',
+                  letterSpacing: 0.1,
+                }}
+              >
+                {whatsappButtonLabel}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Action 3: Clear Chat Messages Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleClearChat}
+              style={{
+                width: '100%',
+                backgroundColor: '#DC2626',
+                borderRadius: 14,
+                paddingVertical: 13,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+                shadowColor: '#DC2626',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 3,
+                gap: 10,
+              }}
+            >
+              <Trash2 size={18} color="#FFFFFF" strokeWidth={2.3} />
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: 14.5,
+                  fontWeight: '700',
+                  letterSpacing: 0.1,
+                }}
+              >
+                Clear Chat Messages
+              </Text>
+            </TouchableOpacity>
+
+            {/* Action 4: Cancel Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setIsChatOptionsModalVisible(false)}
+              style={{
+                width: '100%',
+                backgroundColor: '#F8FAFC',
+                borderWidth: 1.5,
+                borderColor: '#E2E8F0',
+                borderRadius: 14,
+                paddingVertical: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#475569',
+                  fontSize: 14.5,
+                  fontWeight: '700',
+                }}
+              >
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Start Chat with Enrolled Student Modal */}
       <Modal
@@ -1738,6 +2661,235 @@ export default function ChatsTabScreen() {
             )}
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      {/* Attachment Picker Modal */}
+      <Modal
+        visible={isAttachmentModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsAttachmentModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setIsAttachmentModalVisible(false)}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              paddingHorizontal: 20,
+              paddingTop: 14,
+              paddingBottom: Math.max(insets.bottom, 20),
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 10,
+            }}
+          >
+            {/* Drag handle */}
+            <View
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: '#CBD5E1',
+                alignSelf: 'center',
+                marginBottom: 16,
+              }}
+            />
+
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A', marginBottom: 4 }}>
+              Attach File or Media
+            </Text>
+            <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 18 }}>
+              Share doubts, photos, class notes, or assignment PDF
+            </Text>
+
+            {/* Options */}
+            <View style={{ gap: 10 }}>
+              {/* Camera */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleTakePhoto}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 13,
+                  borderRadius: 14,
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: '#EFF6FF',
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Camera size={22} color="#2563EB" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#0F172A' }}>
+                    Take Photo
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 1 }}>
+                    Use camera to snap homework, doubt, or board
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#94A3B8" />
+              </TouchableOpacity>
+
+              {/* Gallery */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handlePickGallery}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 13,
+                  borderRadius: 14,
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: '#F5F3FF',
+                    borderWidth: 1,
+                    borderColor: '#DDD6FE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ImageIcon size={22} color="#7C3AED" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#0F172A' }}>
+                    Photo Library
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 1 }}>
+                    Choose image or screenshot from your device
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#94A3B8" />
+              </TouchableOpacity>
+
+              {/* Document / PDF */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handlePickDocument}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 13,
+                  borderRadius: 14,
+                  backgroundColor: '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: '#ECFDF5',
+                    borderWidth: 1,
+                    borderColor: '#A7F3D0',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <FileText size={22} color="#059669" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#0F172A' }}>
+                    Document or PDF
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 1 }}>
+                    Attach study material, notes, or test solutions
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Cancel Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setIsAttachmentModalVisible(false)}
+              style={{
+                marginTop: 14,
+                paddingVertical: 12,
+                borderRadius: 12,
+                backgroundColor: '#F1F5F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#475569' }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Full Image Preview Modal */}
+      <Modal
+        visible={Boolean(previewImageUrl)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImageUrl(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => setPreviewImageUrl(null)}
+            style={{
+              position: 'absolute',
+              top: Math.max(insets.top, 20) + 10,
+              right: 20,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+            }}
+          >
+            <X size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          {previewImageUrl && (
+            <Image
+              source={{ uri: previewImageUrl }}
+              style={{ width: '92%', height: '75%', borderRadius: 12 }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
       </Modal>
     </Screen>
   );

@@ -33,6 +33,7 @@ export default function AppLayout() {
         <Stack.Screen name="results" options={{ headerShown: false }} />
         <Stack.Screen name="free-material" options={{ headerShown: false }} />
         <Stack.Screen name="payments/result" options={{ headerShown: false }} />
+        <Stack.Screen name="attendance" options={{ headerShown: false }} />
         <Stack.Screen name="admin/index" options={{ headerShown: false }} />
       </Stack>
     </>

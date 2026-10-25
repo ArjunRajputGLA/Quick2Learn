@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
+  KeyRound,
   School,
   Users,
   Copy,
@@ -54,11 +55,13 @@ import {
   Filter,
   ChevronDown,
   UserPlus,
+  UserCheck,
   AlertCircle,
 } from 'lucide-react-native';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
+import { StudentDetailModal } from './StudentDetailModal';
 import { Image } from 'expo-image';
 import { getFacultyAvatarSource } from '../../lib/facultyImages';
 import { colors, radii } from '@quick2learn/shared';
@@ -145,6 +148,10 @@ export function BatchDetailAdminModal({
   const [selectedAssignmentForReview, setSelectedAssignmentForReview] = useState<AdminAssignmentItem | null>(null);
   const [scheduleTestModalVisible, setScheduleTestModalVisible] = useState(false);
   const [editingTestForBatch, setEditingTestForBatch] = useState<AdminTestItem | null>(null);
+
+  // Student details modal state
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<AdminStudentItem | null>(null);
+  const [studentDetailModalVisible, setStudentDetailModalVisible] = useState(false);
 
   // Student search
   const [studentSearch, setStudentSearch] = useState('');
@@ -537,12 +544,12 @@ export function BatchDetailAdminModal({
           {/* 1. OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <View style={{ gap: 12 }}>
-              {/* 1. EXACT 2x2 METADATA GRID (Compact & Clean) */}
+              {/* 1. BATCH SUMMARY & FACULTY HERO CARD */}
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 14,
-                  padding: 12,
+                  borderRadius: 16,
+                  padding: 14,
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
                   gap: 10,
@@ -550,12 +557,210 @@ export function BatchDetailAdminModal({
                   shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 1 },
                   shadowOpacity: 0.04,
-                  shadowRadius: 2,
+                  shadowRadius: 3,
                 }}
               >
-                {/* Row 1: Batch Start Date & Course */}
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {/* Badges Row */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                    <Badge label={`CLASS ${batch.classLevel}`} variant="primary" size="sm" />
+                    <Badge label={batch.board.toUpperCase()} variant="neutral" size="sm" />
+                    <Badge
+                      label={batch.mode.toUpperCase()}
+                      variant={batch.mode === 'online' ? 'primary' : batch.mode === 'hybrid' ? 'warning' : 'neutral'}
+                      size="sm"
+                    />
+                  </View>
+                  <Badge
+                    label={batch.status.toUpperCase()}
+                    variant={batch.status === 'ongoing' ? 'success' : 'neutral'}
+                    size="sm"
+                  />
+                </View>
+
+                {/* Batch Title & Course/Subject */}
+                <View style={{ gap: 3 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 }}>
+                    {batch.title}
+                  </Text>
+                  <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#475569' }}>
+                    {batch.subject} • {batch.courseName || `Class ${batch.classLevel} Full Year Program`}
+                  </Text>
+                </View>
+
+                {/* Faculty Card */}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    backgroundColor: '#F8FAFC',
+                    padding: 10,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: '#F1F5F9',
+                  }}
+                >
+                  {getFacultyAvatarSource(batch.faculty) ? (
+                    <Image
+                      source={getFacultyAvatarSource(batch.faculty)!}
+                      style={{ width: 34, height: 34, borderRadius: 17 }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 17,
+                        backgroundColor: '#EFF6FF',
+                        borderWidth: 1,
+                        borderColor: '#DBEAFE',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <UserCheck size={18} color="#2563EB" />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                      {batch.faculty}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
+                      Lead Faculty • {batch.subject}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 2. DEDICATED BATCH JOIN CODE & SHARE CARD (ZERO OVERLAPPING) */}
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  gap: 10,
+                  elevation: 1,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 3,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <KeyRound size={15} color="#2563EB" />
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A' }}>Batch Join Code</Text>
+                  <Text style={{ fontSize: 11, color: '#64748B' }}>• Share with students</Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#EFF6FF',
+                      borderWidth: 1.2,
+                      borderColor: '#BFDBFE',
+                      borderRadius: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 12,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '900',
+                        color: '#1E40AF',
+                        letterSpacing: 1.2,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {batch.joinCode}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        Alert.alert('Code Copied', `Batch Join Code ${batch.joinCode} copied!`);
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        backgroundColor: '#FFFFFF',
+                        borderWidth: 1.2,
+                        borderColor: '#CBD5E1',
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                      }}
+                    >
+                      <Copy size={13} color="#334155" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Copy</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        void Share.share({
+                          title: `Join ${batch.title} on Quick2Learn`,
+                          message: `Join ${batch.title} (${batch.subject}) by ${batch.faculty} at Quick2Learn!\n\nUse Batch Join Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
+                        });
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        backgroundColor: '#2563EB',
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                      }}
+                    >
+                      <Share2 size={13} color="#FFFFFF" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>Share</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* 3. BATCH TIMETABLE, ROOM & DURATION CARD */}
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  gap: 10,
+                  elevation: 1,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 3,
+                }}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A' }}>
+                  Schedule & Classroom Location
+                </Text>
+
+                <View style={{ gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View
                       style={{
                         width: 32,
@@ -566,100 +771,19 @@ export function BatchDetailAdminModal({
                         justifyContent: 'center',
                       }}
                     >
-                      <Calendar size={16} color="#2563EB" />
+                      <Clock size={16} color="#2563EB" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
-                        Batch Start Date
-                      </Text>
+                      <Text style={{ fontSize: 10.5, color: '#64748B', fontWeight: '600' }}>Class Timing</Text>
                       <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }}>
-                        {formattedBatchStartDate}
+                        {batch.scheduleDays?.length ? batch.scheduleDays.join(', ') : 'Mon - Sat'} • {batch.scheduleTime || 'Regular'}
                       </Text>
                     </View>
                   </View>
 
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        backgroundColor: '#F5F3FF',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <BookOpen size={16} color="#7C3AED" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
-                        Course
-                      </Text>
-                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
-                        {batch.courseName || `Class ${batch.classLevel}`}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+                  <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
 
-                {/* Subtle Divider */}
-                <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
-
-                {/* Row 2: Batch Code & Subjects */}
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        backgroundColor: '#F8FAFC',
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, fontWeight: '900', color: '#64748B' }}>#</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
-                        Batch Code
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 }}>
-                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 }}>
-                          {batch.joinCode}
-                        </Text>
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => {
-                            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                            Alert.alert('Code Copied', `Batch Code ${batch.joinCode} copied!`);
-                          }}
-                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                          style={{ padding: 2 }}
-                        >
-                          <Copy size={12} color="#2563EB" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => {
-                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            void Share.share({
-                              title: `Join ${batch.title} on Quick2Learn`,
-                              message: `Join ${batch.title} at Quick2Learn!\nBatch Code: ${batch.joinCode}\nDownload App: https://quick2learn.in`,
-                            });
-                          }}
-                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                          style={{ padding: 2 }}
-                        >
-                          <Share2 size={12} color="#64748B" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View
                       style={{
                         width: 32,
@@ -670,17 +794,129 @@ export function BatchDetailAdminModal({
                         justifyContent: 'center',
                       }}
                     >
-                      <Layers size={16} color="#059669" />
+                      <School size={16} color="#059669" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
-                        Subjects
-                      </Text>
-                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }} numberOfLines={1}>
-                        {batch.subject}
+                      <Text style={{ fontSize: 10.5, color: '#64748B', fontWeight: '600' }}>Classroom / Room</Text>
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }}>
+                        {batch.mode === 'online' ? 'Online Live Stream' : (batch.room || 'Main Classroom Campus')}
                       </Text>
                     </View>
                   </View>
+
+                  <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        backgroundColor: '#F5F3FF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Calendar size={16} color="#7C3AED" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 10.5, color: '#64748B', fontWeight: '600' }}>Academic Session Duration</Text>
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', marginTop: 1 }}>
+                        {formattedBatchStartDate} to {batch.endDate || '31/03/2027'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* 4. KEY METRICS STRIP (3 BALANCED CARDS WITH CAPACITY PROGRESS) */}
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 14,
+                    padding: 11,
+                    alignItems: 'center',
+                    elevation: 1,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, color: '#64748B', fontWeight: '800', letterSpacing: 0.5 }}>ENROLLED</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '900', color: '#0F172A', marginTop: 2 }}>
+                    {batchStudents.length} / {batch.capacity}
+                  </Text>
+                  <View
+                    style={{
+                      width: '100%',
+                      height: 4,
+                      backgroundColor: '#E2E8F0',
+                      borderRadius: 2,
+                      marginTop: 6,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: `${Math.min(100, Math.round((batchStudents.length / Math.max(batch.capacity, 1)) * 100))}%`,
+                        height: '100%',
+                        backgroundColor: '#2563EB',
+                      }}
+                    />
+                  </View>
+                </View>
+
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 14,
+                    padding: 11,
+                    alignItems: 'center',
+                    elevation: 1,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, color: '#047857', fontWeight: '800', letterSpacing: 0.5 }}>TUITION FEE</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '900', color: '#064E3B', marginTop: 2 }}>
+                    ₹{batch.fee.toLocaleString('en-IN')}
+                  </Text>
+                  <Text style={{ fontSize: 9.5, color: '#64748B', fontWeight: '600', marginTop: 4 }}>Per Student</Text>
+                </View>
+
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    borderRadius: 14,
+                    padding: 11,
+                    alignItems: 'center',
+                    elevation: 1,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, color: '#1E40AF', fontWeight: '800', letterSpacing: 0.5 }}>CLASS MODE</Text>
+                  <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#1E3A8A', marginTop: 2 }}>
+                    {batch.mode.toUpperCase()}
+                  </Text>
+                  <Text style={{ fontSize: 9.5, color: '#059669', fontWeight: '700', marginTop: 4 }}>
+                    {batch.status.toUpperCase()}
+                  </Text>
                 </View>
               </View>
 
@@ -1087,147 +1323,6 @@ export function BatchDetailAdminModal({
                 </View>
               </View>
 
-              {/* 6. BATCH SPECIFICATIONS & KPIs */}
-              <View
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 14,
-                  padding: 12,
-                  borderWidth: 1,
-                  borderColor: '#E2E8F0',
-                  gap: 10,
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A' }}>Batch Specifications</Text>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 4,
-                      backgroundColor: batch.status === 'ongoing' ? '#ECFDF5' : '#F1F5F9',
-                      paddingHorizontal: 7,
-                      paddingVertical: 2.5,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: batch.status === 'ongoing' ? '#A7F3D0' : '#CBD5E1',
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: 2.5,
-                        backgroundColor: batch.status === 'ongoing' ? '#10B981' : '#64748B',
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: '800',
-                        color: batch.status === 'ongoing' ? '#047857' : '#475569',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {batch.status}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* KPI Triad */}
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: '#F0F9FF',
-                      borderWidth: 1,
-                      borderColor: '#BAE6FD',
-                      paddingVertical: 8,
-                      paddingHorizontal: 6,
-                      borderRadius: 10,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 9, color: '#0369A1', fontWeight: '800', letterSpacing: 0.5 }}>STUDENTS</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#0C4A6E', marginTop: 1 }}>
-                      {batchStudents.length} / {batch.capacity}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: '#ECFDF5',
-                      borderWidth: 1,
-                      borderColor: '#A7F3D0',
-                      paddingVertical: 8,
-                      paddingHorizontal: 6,
-                      borderRadius: 10,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 9, color: '#047857', fontWeight: '800', letterSpacing: 0.5 }}>FEE</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#064E3B', marginTop: 1 }}>
-                      ₹{batch.fee.toLocaleString('en-IN')}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: batch.mode === 'offline' ? '#FEF3C7' : '#EFF6FF',
-                      borderWidth: 1,
-                      borderColor: batch.mode === 'offline' ? '#FDE68A' : '#BFDBFE',
-                      paddingVertical: 8,
-                      paddingHorizontal: 6,
-                      borderRadius: 10,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 9, color: batch.mode === 'offline' ? '#92400E' : '#1E40AF', fontWeight: '800', letterSpacing: 0.5 }}>MODE</Text>
-                    <Text
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: '900',
-                        color: batch.mode === 'offline' ? '#78350F' : '#1E3A8A',
-                        marginTop: 1,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {batch.mode}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Detailed info rows */}
-                <View style={{ gap: 6, paddingTop: 2 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Faculty:</Text>
-                    {getFacultyAvatarSource(batch.faculty) ? (
-                      <Image
-                        source={getFacultyAvatarSource(batch.faculty)!}
-                        style={{ width: 18, height: 18, borderRadius: 9 }}
-                        contentFit="cover"
-                      />
-                    ) : null}
-                    <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
-                      {batch.faculty}
-                    </Text>
-                  </View>
-                  {batch.mode !== 'online' && batch.room ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Location Room:</Text>
-                      <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
-                        {batch.room}
-                      </Text>
-                    </View>
-                  ) : null}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Session Duration:</Text>
-                    <Text style={{ fontSize: 11.5, color: '#475569', fontWeight: '600' }}>
-                      {batch.startDate} to {batch.endDate}
-                    </Text>
-                  </View>
-                </View>
-              </View>
             </View>
           )}
 
@@ -3509,199 +3604,110 @@ export function BatchDetailAdminModal({
                       </View>
                     );
                   }
-                  return filteredStudents.map((stud) => (
-                    <View
-                      key={stud.id}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: 14,
-                        padding: 14,
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                        gap: 10,
-                      }}
-                    >
-                      {/* Student Info & Badges */}
-                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                        <View style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
-                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-                            <Badge
-                              label={`${stud.attendanceRate}% ATTENDANCE`}
-                              variant={stud.attendanceRate >= 90 ? 'success' : 'primary'}
-                              size="sm"
-                            />
+                  return filteredStudents.map((stud) => {
+                    const initials = stud.fullName
+                      .split(' ')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((w) => w[0].toUpperCase())
+                      .join('');
+
+                    return (
+                      <TouchableOpacity
+                        key={stud.id}
+                        activeOpacity={0.75}
+                        onPress={() => {
+                          setSelectedStudentForDetail(stud);
+                          setStudentDetailModalVisible(true);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Open details for ${stud.fullName}`}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: 16,
+                          padding: 13,
+                          borderWidth: 1,
+                          borderColor: '#E2E8F0',
+                          gap: 9,
+                          elevation: 1,
+                          shadowColor: '#000000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.04,
+                          shadowRadius: 3,
+                        }}
+                      >
+                        {/* Top Badges & Attendance Row */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
+                            <Badge label={`CLASS ${stud.classLevel}`} variant="primary" size="sm" />
+                            <Badge label={stud.board.toUpperCase()} variant="neutral" size="sm" />
                             <Badge
                               label={stud.feeStatus.toUpperCase()}
                               variant={stud.feeStatus === 'paid' ? 'success' : 'danger'}
                               size="sm"
                             />
                           </View>
-                          <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0F172A' }} numberOfLines={1} ellipsizeMode="tail">
-                            {stud.fullName}
-                          </Text>
-                          <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">
-                            {stud.school}
-                          </Text>
-                          <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }} numberOfLines={1}>
-                            📞 {stud.phone}
-                          </Text>
-                        </View>
 
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => {
-                            Alert.alert('Remove Student', `Remove ${stud.fullName} from this batch?`, [
-                              { text: 'Cancel', style: 'cancel' },
-                              {
-                                text: 'Remove',
-                                style: 'destructive',
-                                onPress: async () => {
-                                  await store.removeStudentFromBatch(stud.id, batch.id);
-                                  onToast({ type: 'info', message: `${stud.fullName} removed from batch.` });
-                                },
-                              },
-                            ]);
-                          }}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            backgroundColor: '#FEE2E2',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Trash2 size={13} color="#EF4444" />
-                        </TouchableOpacity>
-                      </View>
-
-                      {/* Parent invite code */}
-                      <View
-                        style={{
-                          backgroundColor: '#F8FAFC',
-                          borderRadius: 10,
-                          paddingHorizontal: 10,
-                          paddingVertical: 7,
-                          borderWidth: 1,
-                          borderColor: '#F1F5F9',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-                          <Share2 size={12} color="#2563EB" />
-                          <Text style={{ fontSize: 11, color: '#64748B', flex: 1 }} numberOfLines={1}>
-                            Parent Link Code: <Text style={{ fontWeight: '800', color: '#0F172A' }}>{stud.parentInviteCode}</Text>
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => {
-                            Share.share({
-                              message: `Dear Parent of ${stud.fullName}, monitor class attendance and test marks on Quick2Learn app using parent code: ${stud.parentInviteCode}`,
-                            });
-                          }}
-                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                          style={{
-                            backgroundColor: '#EFF6FF',
-                            paddingHorizontal: 8,
-                            paddingVertical: 4,
-                            borderRadius: 6,
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563EB' }}>Share Code</Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      {/* Quick Communication Buttons */}
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: 6,
-                          paddingTop: 4,
-                        }}
-                      >
-                        <TouchableOpacity
-                          activeOpacity={0.75}
-                          onPress={() => Linking.openURL(`tel:${stud.phone}`)}
-                          style={{
-                            flex: 1,
-                            minWidth: 70,
-                            height: 34,
-                            backgroundColor: '#F1F5F9',
-                            borderRadius: 8,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 4,
-                            paddingHorizontal: 6,
-                          }}
-                        >
-                          <Phone size={12} color="#2563EB" />
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }} numberOfLines={1}>
-                            Call
-                          </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          activeOpacity={0.75}
-                          onPress={() =>
-                            Linking.openURL(
-                              `whatsapp://send?phone=${stud.phone}&text=Hello ${encodeURIComponent(stud.fullName)}, Quick2Learn Admin update:`
-                            )
-                          }
-                          style={{
-                            flex: 1,
-                            minWidth: 80,
-                            height: 34,
-                            backgroundColor: '#DCFCE7',
-                            borderRadius: 8,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 4,
-                            paddingHorizontal: 6,
-                          }}
-                        >
-                          <MessageCircle size={12} color="#16A34A" />
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#16A34A' }} numberOfLines={1}>
-                            WhatsApp
-                          </Text>
-                        </TouchableOpacity>
-
-                        {stud.parentPhone ? (
-                          <TouchableOpacity
-                            activeOpacity={0.75}
-                            onPress={() => Linking.openURL(`tel:${stud.parentPhone}`)}
+                          <View
                             style={{
-                              flex: 1,
-                              minWidth: 70,
-                              height: 34,
-                              backgroundColor: '#EFF6FF',
-                              borderRadius: 8,
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 4,
-                              paddingHorizontal: 6,
+                              backgroundColor: stud.attendanceRate >= 90 ? '#ECFDF5' : '#EFF6FF',
+                              paddingHorizontal: 7,
+                              paddingVertical: 2.5,
+                              borderRadius: 6,
+                              borderWidth: 1,
+                              borderColor: stud.attendanceRate >= 90 ? '#A7F3D0' : '#BFDBFE',
+                              flexShrink: 0,
                             }}
                           >
-                            <Users size={12} color="#475569" />
-                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }} numberOfLines={1}>
-                              Parent
+                            <Text
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: '800',
+                                color: stud.attendanceRate >= 90 ? '#059669' : '#2563EB',
+                              }}
+                            >
+                              {stud.attendanceRate}% ATT.
                             </Text>
-                          </TouchableOpacity>
-                        ) : null}
-                      </View>
-                    </View>
-                  ));
+                          </View>
+                        </View>
+
+                        {/* Main Student Row: Initial Avatar + Name + Subtitle + Chevron */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          <View
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: 21,
+                              backgroundColor: '#EFF6FF',
+                              borderWidth: 1.5,
+                              borderColor: '#DBEAFE',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Text style={{ fontSize: 14.5, fontWeight: '900', color: '#1E40AF' }}>
+                              {initials || 'ST'}
+                            </Text>
+                          </View>
+
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>
+                              {stud.fullName}
+                            </Text>
+                            <Text style={{ fontSize: 11.5, color: '#64748B', marginTop: 1.5 }} numberOfLines={1}>
+                              {stud.school || 'Enrolled Student'} • 📞 {stud.phone}
+                            </Text>
+                          </View>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>Details</Text>
+                            <ChevronRight size={14} color="#2563EB" />
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  });
                 })()
               )}
             </View>
@@ -3762,6 +3768,22 @@ export function BatchDetailAdminModal({
           setAddAnnouncementModalVisible(false);
           onToast({ type: 'success', message: 'Announcement posted to batch notice board.' });
         }}
+      />
+
+      {/* MODAL 5B: STUDENT PROFILE DETAIL MODAL */}
+      <StudentDetailModal
+        visible={studentDetailModalVisible}
+        student={selectedStudentForDetail}
+        batches={store.batches}
+        onClose={() => setStudentDetailModalVisible(false)}
+        onDeleteStudent={async (id, name) => {
+          await store.deleteStudent(id);
+          onToast({ type: 'info', message: `${name} removed from directory.` });
+        }}
+        onGenerateParentCode={async (id) => {
+          return await store.generateParentCode(id);
+        }}
+        onToast={onToast}
       />
 
       {/* MODAL 6: ADD STUDENT FROM REGISTRY */}

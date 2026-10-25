@@ -50,6 +50,8 @@ function formatNotificationDate(dateInput: Date | string): string {
   });
 }
 
+const EMPTY_NOTIFICATIONS_IMG = require('../../assets/empty notifications.svg');
+
 export default function NotificationsScreen() {
   const router = useRouter();
   const {
@@ -135,6 +137,8 @@ export default function NotificationsScreen() {
         </View>
       ) : allNotifications.length === 0 ? (
         <EmptyState
+          imageSource={EMPTY_NOTIFICATIONS_IMG}
+          imageSize={160}
           title="No notifications yet"
           description="You are all caught up! When Dinesh Sir posts batch updates or test results, they'll appear here."
           actionLabel="Refresh"
