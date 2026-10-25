@@ -12,7 +12,6 @@ import {
   getStudentBatches,
   getBatchDetailForStudent,
   getBatchTimetable,
-  getBatchAnnouncements,
   approveJoinRequest,
   rejectJoinRequest,
   getBatchJoinRequests,
@@ -32,19 +31,19 @@ const testPool = new Pool({
 const testDb = drizzle(testPool, { schema });
 
 describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
-  const adminUser: AuthUser = {
+  const adminUser = {
     id: "admin-user-id",
     email: "admin@quick2learn.in",
     name: "Admin Dinesh",
     role: "admin",
-  };
+  } as const satisfies AuthUser;
 
-  const studentUser: AuthUser = {
+  const studentUser = {
     id: "student-flow-id",
     email: "student.batch@test.com",
     name: "Aman Sharma",
     role: "student",
-  };
+  } as const satisfies AuthUser;
 
   let offlineBatchId: string;
   let offlineJoinCode: string;
@@ -109,6 +108,7 @@ describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
       .limit(1);
 
     expect(offBatch).toBeDefined();
+    if (!offBatch) throw new Error("Offline batch not found");
     offlineBatchId = offBatch.id;
     offlineJoinCode = offBatch.joinCode || "Q2L101";
 
@@ -129,6 +129,7 @@ describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
       .limit(1);
 
     expect(onBatch).toBeDefined();
+    if (!onBatch) throw new Error("Online batch not found");
     onlineBatchId = onBatch.id;
     onlineJoinCode = onBatch.joinCode || "ONL101";
 
@@ -327,6 +328,7 @@ describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
       .select()
       .from(schema.batches)
       .where(eq(schema.batches.id, offlineBatchId));
+    if (!currentBatch) throw new Error("Current batch not found");
 
     const joinRes = await requestJoinBatch(
       secondStudentId,
@@ -348,6 +350,7 @@ describe("Batches: Join Requests, Timetable & 4-Section Flow Suite", () => {
       .select()
       .from(schema.batchJoinRequests)
       .where(eq(schema.batchJoinRequests.id, joinRes.requestId!));
+    if (!updatedReq) throw new Error("Updated request not found");
     expect(updatedReq.status).toBe("rejected");
     expect(updatedReq.note).toBe("Class capacity reached for offline mode");
     expect(updatedReq.decidedBy).toBe(adminUser.id);

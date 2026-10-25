@@ -1,0 +1,19 @@
+{
+  "extends": "./packages/config/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./apps/web/src/*"],
+      "@quick2learn/db": ["./packages/db/src"],
+      "@quick2learn/shared": ["./packages/shared/src"]
+    }
+  },
+  "include": [
+    "tests/**/*",
+    "scripts/**/*",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", "apps", "packages"]
+}
