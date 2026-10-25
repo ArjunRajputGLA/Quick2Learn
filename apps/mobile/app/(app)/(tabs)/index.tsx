@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,49 +7,60 @@ import {
   TouchableOpacity,
   Dimensions,
   Share,
-  Linking,
   Modal,
   Alert,
+  Platform,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as Linking from 'expo-linking';
+import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
 import {
+  Menu,
   Bell,
-  Sparkles,
-  Calendar,
-  Clock,
-  MapPin,
-  GraduationCap,
   Play,
-  KeyRound,
   Share2,
   ChevronRight,
-  AlertCircle,
+  Clock,
+  Calendar,
   Award,
-  CreditCard,
-  Layers,
-  FileText,
-  Volume2,
-  Menu,
-  School,
+  AlertCircle,
+  GraduationCap,
+  KeyRound,
+  CheckCircle2,
+  X,
   Plus,
+  School,
+  ExternalLink,
+  MessageCircle,
+  Link2,
+  Sparkles,
+  Check,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useHome, useAvailableTests, useMe, useTeacherBatches, queryKeys } from '../../../src/api/hooks';
+import {
+  useHome,
+  useAvailableTests,
+  useMe,
+  useStudentBatches,
+  useTeacherBatches,
+  queryKeys,
+} from '../../../src/api/hooks';
 import { useAdminStore } from '../../../src/lib/adminDataStore';
 import { ParentHomeScreen } from '../../../src/components/parent/ParentHomeScreen';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDropdownStore } from '../../../src/lib/drawerStore';
 import { OfflineBanner } from '../../../src/components/ui/OfflineBanner';
-import { Skeleton } from '../../../src/components/ui/Skeleton';
-import { NotificationBell } from '../../../src/components/ui/NotificationBell';
-import { Button } from '../../../src/components/ui/Button';
 import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { Badge } from '../../../src/components/ui/Badge';
-import { TextField } from '../../../src/components/ui/TextField';
+import { Button } from '../../../src/components/ui/Button';
 import { ProgressBar } from '../../../src/components/ui/ProgressBar';
 import { LiveBanner } from '../../../src/components/composite/LiveBanner';
+import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
 import { analytics } from '../../../src/lib/analytics';
 import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import { colors, radii } from '@quick2learn/shared';
@@ -57,6 +68,94 @@ import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Authentic institute banners matching the screenshot & course materials
+const LOCAL_BANNERS = [
+  {
+    id: 'banner-cbse-result',
+    title: 'Spectacular Class XII CBSE Board Result',
+    subtitle: '70+ students with 90-99 marks • Dinesh Rajput Sir',
+    source: require('../../../assets/banners/cbse_results_banner.jpg'),
+    actionType: 'results',
+    route: '/(app)/results',
+  },
+  {
+    id: 'banner-rajput-ix-x',
+    title: 'Rajput Sir Tutorials - Classes IX & X',
+    subtitle: 'Maths • Physics • Biology • Chemistry Registrations Open',
+    source: require('../../../assets/banners/rajput_sir_ix_x.jpg'),
+    actionType: 'batch_inquiry',
+    route: '/(app)/(tabs)/batches',
+  },
+  {
+    id: 'banner-rajput-xi-xii',
+    title: 'Rajput Sir Tutorials - Classes XI & XII',
+    subtitle: 'Maths • Physics • Chemistry Registrations Open',
+    source: require('../../../assets/banners/rajput_sir_xi_xii.jpg'),
+    actionType: 'batch_inquiry',
+    route: '/(app)/(tabs)/batches',
+  },
+  {
+    id: 'banner-xii-maths',
+    title: 'CBSE Class 12 Maths Complete Course',
+    subtitle: 'Detailed Course Term 1 • Finish Syllabus Fast & Prepare for IIT/NDA',
+    source: require('../../../assets/banners/xii_maths_course.png'),
+    actionType: 'course',
+    route: '/(app)/(tabs)/learn',
+  },
+  {
+    id: 'banner-icse-9-chem',
+    title: 'ICSE Class 9 Chemistry Complete Course',
+    subtitle: 'Study at your own comfort with full animated lectures',
+    source: require('../../../assets/banners/icse_9_chemistry.png'),
+    actionType: 'course',
+    route: '/(app)/(tabs)/learn',
+  },
+];
+
+// Authentic free video lectures matching the screenshot
+const FREE_VIDEOS = [
+  {
+    id: 'free-vid-1',
+    title: 'Start your revision & doubt clearing with us',
+    category: 'advertisement',
+    duration: '2:45',
+    thumbnail: require('../../../assets/banners/free_video_1.png'),
+    hasOverlayText: true,
+    description: 'Learn how Quick2Learn helps Class IX to XII students excel in CBSE and ICSE Board examinations with Dinesh Rajput Sir.',
+    faculty: 'Dinesh Singh Rajput',
+  },
+  {
+    id: 'free-vid-2',
+    title: 'Class 9 & 10 Mathematics Foundations & Exam Strategy',
+    category: 'advertisement',
+    duration: '18:15',
+    thumbnail: require('../../../assets/banners/rajput_sir_ix_x.jpg'),
+    hasOverlayText: false,
+    description: 'In-depth introduction to ICSE Class IX and CBSE Class X Mathematics by Dinesh Singh Rajput Sir.',
+    faculty: 'Dinesh Singh Rajput',
+  },
+  {
+    id: 'free-vid-3',
+    title: 'ICSE Class 9 Chemistry - Course Introduction',
+    category: 'advertisement',
+    duration: '14:20',
+    thumbnail: require('../../../assets/banners/icse_9_chemistry.png'),
+    hasOverlayText: false,
+    description: "Complete syllabus overview and chapter breakdown for ICSE Class 9 Chemistry with Namita Singh Rajput Ma'am.",
+    faculty: 'Namita Singh Rajput',
+  },
+  {
+    id: 'free-vid-4',
+    title: 'CBSE Class 12 Mathematics - Term 1 Strategy & Calculus',
+    category: 'advertisement',
+    duration: '22:40',
+    thumbnail: require('../../../assets/banners/xii_maths_course.png'),
+    hasOverlayText: false,
+    description: 'Detailed strategy for scoring 95+ in Class XII Board Mathematics with Dinesh Singh Rajput Sir.',
+    faculty: 'Dinesh Singh Rajput',
+  },
+];
 
 export default function HomeScreen() {
   const { data: me, isLoading: isMeLoading } = useMe();
@@ -84,63 +183,45 @@ function StudentHomeScreen() {
   const { toggleDropdown } = useDropdownStore();
   const { data: me } = useMe();
   const { data: home, isLoading, isRefetching, refetch } = useHome();
+  const { data: studentBatchesData, refetch: refetchStudentBatches } = useStudentBatches();
   const { data: availableTestsData, refetch: refetchTests } = useAvailableTests();
   const isStaff = me?.role === 'admin' || me?.role === 'teacher';
   const { data: teacherBatchesData, refetch: refetchTeacherBatches } = useTeacherBatches();
   const adminStore = useAdminStore();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [showBatchCodeModal, setShowBatchCodeModal] = useState(false);
-  const [batchCodeInput, setBatchCodeInput] = useState('');
-  const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-  const lastToggleRef = React.useRef(0);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<(typeof FREE_VIDEOS)[0] | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
   const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
-  // Load and sync admin/faculty store on mount
+  // Load and sync admin/faculty store on mount if staff
   useEffect(() => {
     if (isStaff) {
       adminStore.init();
     }
   }, [isStaff]);
 
-  // Refresh home data and staff batches on screen focus
+  // Refresh home data and student batches on focus
   useFocusEffect(
     useCallback(() => {
       refetch();
+      refetchStudentBatches();
       refetchTests();
       if (isStaff) {
         adminStore.init();
         refetchTeacherBatches();
       }
-    }, [refetch, refetchTests, isStaff, refetchTeacherBatches])
+    }, [refetch, refetchStudentBatches, refetchTests, isStaff, refetchTeacherBatches])
   );
-
-  const adminBatches = adminStore.batches || [];
-  const teacherApiBatches = teacherBatchesData?.batches || [];
-
-  const allStaffBatches = useMemo(() => {
-    if (adminBatches.length > 0) return adminBatches;
-    if (teacherApiBatches.length > 0) {
-      return teacherApiBatches.map((b: any) => ({
-        id: b.id,
-        title: b.name || b.title,
-        subject: b.subject || 'Mathematics',
-        classLevel: b.classLevel || 10,
-        enrolledCount: b.studentCount || b.enrolledCount || 0,
-        scheduleTime: b.scheduleTime || 'Regular',
-        scheduleDays: b.scheduleDays || [],
-      }));
-    }
-    return [];
-  }, [adminBatches, teacherApiBatches]);
-
-  const staffBatchesCount = allStaffBatches.length;
-  const isStaffBatchesLoaded = adminStore.isInitialized || !isLoading;
 
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
       refetch(),
+      refetchStudentBatches(),
       refetchTests(),
       isStaff ? adminStore.init() : Promise.resolve(),
       isStaff ? refetchTeacherBatches() : Promise.resolve(),
@@ -148,203 +229,159 @@ function StudentHomeScreen() {
     setRefreshing(false);
   };
 
-  const handleShareApp = async () => {
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
+
+  // WhatsApp Share Handler
+  const handleShareWhatsApp = async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const shareMsg =
+      'Join Quick2Learn to learn Mathematics, Chemistry and Biology from Dinesh Singh Rajput Sir! Download the app: https://play.google.com/store/apps/details?id=in.quick2learn.app';
+    const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(shareMsg)}`;
     try {
-      const shareData = home?.shareApp || {
-        title: 'Quick2Learn App',
-        message: 'Master CBSE & ICSE Mathematics with Dinesh Singh Rajput Sir on Quick2Learn.',
-        url: 'https://play.google.com/store/apps/details?id=in.quick2learn.app',
-      };
+      const supported = await Linking.canOpenURL(whatsappUrl);
+      if (supported) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        await Share.share({
+          message: shareMsg,
+          url: 'https://play.google.com/store/apps/details?id=in.quick2learn.app',
+        });
+      }
+    } catch {
       await Share.share({
-        title: shareData.title,
-        message: `${shareData.message}\n${shareData.url}`,
+        message: shareMsg,
+        url: 'https://play.google.com/store/apps/details?id=in.quick2learn.app',
       });
-    } catch (err) {
-      console.warn('Share error:', err);
     }
   };
 
-  const handleBannerPress = (banner: AppBannerItem) => {
-    if (banner.targetType === 'url') {
-      Linking.openURL(banner.targetValue).catch((e) =>
-        console.warn('Cannot open banner url:', e)
-      );
-    } else if (banner.targetType === 'batch') {
-      router.push(`/batch/${banner.targetValue}` as any);
-    } else if (banner.targetType === 'lecture') {
-      router.push(`/lecture/${banner.targetValue}` as any);
-    } else if (banner.route) {
+  // Copy Link Handler
+  const handleCopyLink = async () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const appUrl = 'https://play.google.com/store/apps/details?id=in.quick2learn.app';
+    try {
+      await Share.share({
+        title: 'Quick2Learn App',
+        message: appUrl,
+        url: appUrl,
+      });
+      showToast('App link ready to share!');
+    } catch {
+      showToast('Link: ' + appUrl);
+    }
+  };
+
+  const handleBannerPress = (banner: (typeof LOCAL_BANNERS)[0]) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (banner.route) {
       router.push(banner.route as any);
     }
   };
 
-  const handleSubmitBatchCode = async () => {
-    if (!batchCodeInput.trim()) {
-      Alert.alert('Required', 'Please enter a valid batch code.');
-      return;
-    }
-    try {
-      setIsSubmittingCode(true);
-      setShowBatchCodeModal(false);
-      setBatchCodeInput('');
-      Alert.alert(
-        'Request Submitted',
-        'Your batch admission request has been submitted to Dinesh Sir for review.'
-      );
-    } finally {
-      setIsSubmittingCode(false);
-    }
-  };
-
-  // 1. Loading State (< 1.5s target)
-  if (isLoading && !home) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <BookLoader text="Loading your classroom..." size="lg" />
-      </View>
-    );
-  }
-
-  const header = home?.header;
-  const unreadCount = header?.unreadNotificationsCount ?? 0;
+  // Unread notification count
+  const unreadCount = home?.header?.unreadNotificationsCount ?? 0;
   const liveClass = home?.liveClass;
-  const continueWatching = home?.continueWatching || [];
-  const todayClasses = home?.todayClasses || [];
-  const upcomingTests = home?.upcomingTests || [];
-  const recentResults = home?.recentResults || [];
-  const feeAlert = home?.feeAlert;
   const announcements = home?.announcements || [];
-  const banners = home?.banners || [];
-  const freeLectures = home?.freeLectures || [];
-  const enrolledBatchesCount = home?.enrolledBatchesCount ?? 0;
+  const enrolledBatches = studentBatchesData?.enrolled || [];
+  const hasEnrolledBatches = enrolledBatches.length > 0;
 
-  // Resolve the logged-in person's name accurately
-  const rawName =
-    me?.profile?.fullName ||
-    me?.user?.name ||
-    header?.fullName ||
-    header?.firstName ||
-    'Student';
-  // Strip parenthetical role notes if any (e.g., "Dinesh Sir (Administrator)" -> "Dinesh Sir")
-  const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || 'Student';
-  const displayName = cleanName;
-
-  // Resolve chip label dynamically based on profile or header
-  const chipLabel =
-    me?.role === 'teacher'
-      ? 'Faculty'
-      : me?.role === 'admin'
-      ? 'Administrator'
-      : me?.profile?.classLevel
-      ? `Class ${me.profile.classLevel} • ${(me.profile.board || 'CBSE').toUpperCase()}`
-      : header?.chipLabel || null;
+  // Banner list: combine API banners (if any) with authentic local banners
+  const displayBanners = useMemo(() => {
+    if (home?.banners && home.banners.length > 0) {
+      return home.banners.map((b) => ({
+        id: b.id,
+        title: b.title,
+        subtitle: 'Quick2Learn Admission & Highlights',
+        source: { uri: b.imageUrl },
+        actionType: 'batch_inquiry',
+        route: b.route || '/(app)/(tabs)/batches',
+      }));
+    }
+    return LOCAL_BANNERS;
+  }, [home?.banners]);
 
   return (
-    <View className="flex-1 bg-surface-subtle" style={{ paddingTop: insets.top }}>
-      {/* Offline banner indicator (shows cached data) */}
-      <OfflineBanner />
+    <View style={styles.screenContainer}>
+      <StatusBar style="light" />
 
-      {/* 1. Header Island: 3-lined menu icon, "Hi, [Name]", class/board chip, notification bell */}
-      <View
-        style={{
-          marginHorizontal: 12,
-          marginTop: 2,
-          marginBottom: 4,
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-          minHeight: 42,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderRadius: 22,
-          backgroundColor: colors.surface,
-          borderWidth: 1,
-          borderColor: 'rgba(226, 232, 240, 0.9)',
-          shadowColor: '#0F172A',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 4,
-          elevation: 2,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 6 }}>
-          {/* Sidebar drawer trigger */}
+      {/* 1. Header Bar: Solid #4845D2 with Menu icon, 2-line title, and Notification Bell */}
+      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+        <View style={styles.headerContent}>
+          {/* Menu Button -> Opens Sidebar Drawer */}
           <TouchableOpacity
-            activeOpacity={0.7}
+            activeOpacity={0.75}
             accessibilityRole="button"
-            accessibilityLabel="Open sidebar menu"
+            accessibilityLabel="Open navigation menu"
             onPress={() => {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               toggleDropdown();
             }}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors['surface-subtle'],
-              borderWidth: 1,
-              borderColor: colors.border,
-              marginRight: 6,
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.headerIconButton}
           >
-            <Menu size={16} color={colors.ink} strokeWidth={2.2} />
+            <Menu size={24} color="#FFFFFF" strokeWidth={2.2} />
           </TouchableOpacity>
 
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 5 }}>
-              <Text
-                style={{ fontSize: 14, fontWeight: '700', color: colors.ink, flexShrink: 1 }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                Hi, {displayName}
-              </Text>
-              {chipLabel ? (
-                <View
-                  style={{
-                    backgroundColor: colors['primary-soft'],
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: radii.full,
-                    borderWidth: 1,
-                    borderColor: 'rgba(37, 99, 235, 0.2)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Text style={{ fontSize: 9.5, fontWeight: '600', color: colors.primary }}>
-                    {chipLabel}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+          {/* App Title: Exact 2-lines format as seen in the screenshot */}
+          <View style={styles.headerTitleWrapper}>
+            <Text numberOfLines={2} style={styles.headerTitleText}>
+              {'Quick 2 Learn CBSE/ICSE - 9th\nto 12th'}
+            </Text>
           </View>
-        </View>
 
-        {/* Bell Button */}
-        <NotificationBell count={unreadCount} size={15} style={{ width: 32, height: 32, borderRadius: 16 }} />
+          {/* Notification Bell */}
+          <TouchableOpacity
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Open notifications"
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/(app)/notifications');
+            }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.headerIconButton}
+          >
+            <Bell size={22} color="#FFFFFF" strokeWidth={2} />
+            {unreadCount > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Offline banner indicator (shows cached data banner if offline) */}
+      <OfflineBanner />
 
       {/* Main Home Scroll Area */}
       <ScrollView
         onScroll={handleTabBarScroll}
         scrollEventThrottle={scrollEventThrottle}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 12) + 66 }}
+        contentContainerStyle={{
+          paddingBottom: Math.max(insets.bottom, 12) + 76,
+          backgroundColor: '#F8FAFC',
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing || isRefetching}
             onRefresh={onRefresh}
-            colors={['#2563EB']}
-            tintColor="#2563EB"
+            colors={['#4845D2']}
+            tintColor="#4845D2"
           />
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* 2. LiveBanner (when class is live now or starting within 15 mins) */}
+        {/* Optional Live Class Alert (When teacher is live now) */}
         {liveClass ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
+          <View style={styles.liveBannerWrapper}>
             <LiveBanner
               title={`${liveClass.subjectName} • ${liveClass.batchTitle}`}
               isLive={liveClass.isLive}
@@ -365,862 +402,395 @@ function StudentHomeScreen() {
           </View>
         ) : null}
 
-        {/* Live Test Card (When test is Live now or In Progress) */}
-        {(() => {
-          const liveTest = availableTestsData?.tests?.find(
-            (t) => t.status === 'live' || t.latestAttemptStatus === 'in_progress'
-          );
-          if (!liveTest) return null;
-
-          const isInProgress = liveTest.latestAttemptStatus === 'in_progress';
-
-          return (
-            <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
-              <View
-                style={{
-                  backgroundColor: colors.primary,
-                  borderRadius: 14,
-                  padding: 12,
-                  borderWidth: 1,
-                  borderColor: 'rgba(37, 99, 235, 0.3)',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <View style={{ flex: 1, marginRight: 10 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#34D399', marginRight: 6 }} />
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {isInProgress ? 'RESUME TEST' : 'TEST LIVE NOW'}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 }} numberOfLines={1}>
-                    {liveTest.title}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.8)' }}>
-                    {liveTest.subjectName || 'Maths & Science'} • {liveTest.durationMinutes} mins • {liveTest.totalMarks} marks
-                  </Text>
-                </View>
-
+        {/* 2. Top Carousel / Banner Section */}
+        <View style={styles.bannersSection}>
+          <ScrollView
+            horizontal
+            pagingEnabled={false}
+            decelerationRate="fast"
+            snapToInterval={Math.round(SCREEN_WIDTH * 0.84) + 12}
+            snapToAlignment="start"
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.bannersScrollContent}
+            onScroll={(e) => {
+              const offsetX = e.nativeEvent.contentOffset.x;
+              const cardWidth = Math.round(SCREEN_WIDTH * 0.84) + 12;
+              const index = Math.round(offsetX / cardWidth);
+              if (index !== activeBannerIndex) {
+                setActiveBannerIndex(index);
+              }
+            }}
+            scrollEventThrottle={32}
+          >
+            {displayBanners.map((banner, index) => {
+              const cardWidth = Math.round(SCREEN_WIDTH * 0.84);
+              return (
                 <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => router.push(`/test/${liveTest.id}` as any)}
-                  style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 }}
+                  key={banner.id}
+                  activeOpacity={0.92}
+                  onPress={() => handleBannerPress(banner as any)}
+                  style={[styles.bannerCard, { width: cardWidth }]}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
-                    {isInProgress ? 'Resume' : 'Start'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })()}
-
-        {/* 3. Fee alert (when due within 7 days or overdue) */}
-        {feeAlert ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
-            <View
-              style={{
-                borderRadius: 14,
-                padding: 12,
-                borderWidth: 1,
-                backgroundColor: feeAlert.isOverdue ? '#FEF2F2' : '#FFFBEB',
-                borderColor: feeAlert.isOverdue ? '#FECACA' : '#FDE68A',
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <AlertCircle
-                    size={14}
-                    color={feeAlert.isOverdue ? '#DC2626' : '#D97706'}
+                  <Image
+                    source={banner.source}
+                    style={styles.bannerImage}
+                    contentFit="cover"
+                    transition={200}
                   />
-                  <Text
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: '700',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginLeft: 5,
-                      color: feeAlert.isOverdue ? '#DC2626' : '#B45309',
-                    }}
-                  >
-                    {feeAlert.label}
-                  </Text>
-                </View>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    color: feeAlert.isOverdue ? '#DC2626' : '#92400E',
-                  }}
-                >
-                  {feeAlert.isOverdue
-                    ? `Overdue by ${Math.abs(feeAlert.daysRemaining)}d`
-                    : `Due in ${feeAlert.daysRemaining}d`}
-                </Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
-                <View>
-                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                    {feeAlert.formattedAmount}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: colors['ink-muted'] }}>
-                    {feeAlert.batchTitle} • Due {feeAlert.dueDate}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push(feeAlert.route as any)}
-                  style={{
-                    paddingVertical: 6,
-                    paddingHorizontal: 12,
-                    borderRadius: 10,
-                    minHeight: 32,
-                    justifyContent: 'center',
-                    backgroundColor: feeAlert.isOverdue ? '#DC2626' : '#2563EB',
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
-                    Pay Now
-                  </Text>
                 </TouchableOpacity>
-              </View>
-            </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* Dots Indicator */}
+          <View style={styles.bannerDotsRow}>
+            {displayBanners.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.bannerDot,
+                  i === activeBannerIndex && styles.bannerDotActive,
+                ]}
+              />
+            ))}
           </View>
-        ) : null}
+        </View>
 
-        {/* 4. Continue watching (the last 5 partly watched lectures with progress bars) */}
-        {continueWatching.length > 0 ? (
-          <View style={{ paddingTop: 10 }}>
-            <View style={{ paddingHorizontal: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                Continue Watching
-              </Text>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16 }}
+        {/* 3. "FREE VIDEOS FOR YOU" Section */}
+        <View style={styles.freeVideosSection}>
+          {/* Header Row: "FREE VIDEOS FOR YOU" on left, "View All" on right */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeaderText}>FREE VIDEOS FOR YOU</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/(app)/free-material' as any);
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              {continueWatching.map((item: ContinueWatchingItem) => (
+              <Text style={styles.sectionViewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Horizontal list of Free Video Cards */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.videosScrollContent}
+          >
+            {FREE_VIDEOS.map((video) => {
+              const videoWidth = Math.round(SCREEN_WIDTH * 0.74);
+              return (
                 <TouchableOpacity
-                  key={item.id}
-                  activeOpacity={0.85}
-                  onPress={() => router.push(item.route as any)}
-                  className="w-[220px] mr-3 bg-surface rounded-2xl border border-border overflow-hidden shadow-sm"
+                  key={video.id}
+                  activeOpacity={0.88}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedVideo(video);
+                  }}
+                  style={[styles.videoCard, { width: videoWidth }]}
                 >
-                  {/* Thumbnail with progress */}
-                  <View className="w-full h-[120px] bg-ink/10 relative justify-end">
-                    {item.thumbnailUrl ? (
-                      <Image
-                        source={{ uri: item.thumbnailUrl }}
-                        style={{ width: '100%', height: '100%', position: 'absolute' }}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                    ) : (
-                      <View className="absolute inset-0 bg-primary-soft items-center justify-center">
-                        <Play size={28} color="#2563EB" />
+                  {/* Video Thumbnail with Play Button overlay and Advertisement tag */}
+                  <View style={styles.videoThumbnailWrapper}>
+                    <Image
+                      source={video.thumbnail}
+                      style={styles.videoThumbnailImage}
+                      contentFit="cover"
+                      transition={200}
+                    />
+
+                    {/* Play Button Icon on Top Right (matching screenshot) */}
+                    <View style={styles.playIconOverlay}>
+                      <Play size={15} color="#FFFFFF" fill="#FFFFFF" />
+                    </View>
+
+                    {/* If not pre-printed on image, show bottom labels */}
+                    {!video.hasOverlayText && (
+                      <View style={styles.videoBottomOverlayRow}>
+                        <Text style={styles.videoAdvertTag}>advertisement</Text>
+                        <View style={styles.videoWatermarkBadge}>
+                          <Text style={styles.videoWatermarkText}>QUICK2LEARN</Text>
+                        </View>
                       </View>
                     )}
-
-                    {/* Duration badge */}
-                    <View className="absolute bottom-2 right-2 bg-black/75 px-1.5 py-0.5 rounded">
-                      <Text className="text-[10px] font-bold text-white">
-                        {item.durationFormatted}
-                      </Text>
-                    </View>
-
-                    {/* Progress bar */}
-                    <View className="w-full">
-                      <ProgressBar
-                        progress={item.progressPercent}
-                        height={4}
-                        color="#2563EB"
-                        trackColor="rgba(0,0,0,0.4)"
-                      />
-                    </View>
-                  </View>
-
-                  <View className="p-3">
-                    <Text
-                      className="text-body font-semibold text-ink leading-snug"
-                      numberOfLines={2}
-                    >
-                      {item.title}
-                    </Text>
-                    {item.subjectName || item.chapterTitle ? (
-                      <Text
-                        className="text-caption text-ink-muted mt-1"
-                        numberOfLines={1}
-                      >
-                        {item.subjectName}
-                        {item.chapterTitle ? ` • ${item.chapterTitle}` : ''}
-                      </Text>
-                    ) : null}
                   </View>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+              );
+            })}
+          </ScrollView>
+        </View>
 
-        {/* 5. Today's Classes (from batch timetables) */}
-        {todayClasses.length > 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Calendar size={15} color={colors.primary} />
-                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink, marginLeft: 6 }}>
-                  Classes Today
-                </Text>
+        {/* 4. Batch Status Card */}
+        {!hasEnrolledBatches ? (
+          /* State A: Student is NOT added to any batch yet (Exact Screenshot Match) */
+          <View style={styles.batchStatusCardWrapper}>
+            <View style={styles.batchStatusCard}>
+              {/* Circular Classroom Illustration Avatar on Left */}
+              <View style={styles.batchAvatarWrapper}>
+                <Image
+                  source={require('../../../assets/banners/no_batch_icon.png')}
+                  style={styles.batchAvatarImage}
+                  contentFit="contain"
+                />
               </View>
-              <Badge label="Today" variant="primary" size="sm" />
-            </View>
 
-            <View style={{ gap: 8 }} className="space-y-2">
-              {todayClasses.map((cls) => (
+              {/* Title, Subtitle, and Send Join Request Action Link */}
+              <View style={styles.batchInfoWrapper}>
+                <Text style={styles.batchTitleText}>
+                  You are not added to any batch yet
+                </Text>
+
+                <Text style={styles.batchSubtitleText}>
+                  Request your tutor to add you to a batch
+                </Text>
+
                 <TouchableOpacity
-                  key={cls.batchId}
-                  activeOpacity={0.8}
-                  onPress={() => router.push(cls.route as any)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: radii.md,
-                    padding: 12,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    marginBottom: 8,
-                    elevation: 1,
-                    shadowColor: '#000000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 2,
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowJoinModal(true);
                   }}
-                  className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
-                    <Badge
-                      label={cls.mode.toUpperCase()}
-                      variant={cls.mode === 'offline' ? 'neutral' : 'primary'}
-                      size="sm"
-                    />
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                      <Clock size={12} color={colors.primary} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginLeft: 4 }} className="text-caption font-bold text-primary ml-1">
-                        {cls.timeText}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
-                    {cls.batchTitle}
+                  <Text style={styles.sendJoinRequestText}>
+                    Send Join Request
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                    {getFacultyAvatarSource(cls.facultyName || 'Dinesh Singh Rajput') ? (
-                      <Image
-                        source={getFacultyAvatarSource(cls.facultyName || 'Dinesh Singh Rajput')!}
-                        style={{ width: 14, height: 14, borderRadius: 7, marginRight: 5 }}
-                        contentFit="cover"
-                      />
-                    ) : null}
-                    <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
-                      {cls.subjectName} • {cls.facultyName || 'Dinesh Singh Rajput'}
-                    </Text>
-                  </View>
-                  {cls.locationText ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} className="flex-row items-center mt-1.5">
-                      <MapPin size={11} color="#6B7280" />
-                      <Text style={{ fontSize: 10.5, color: colors['ink-muted'], marginLeft: 4 }} className="text-[10.5px] text-ink-muted ml-1">
-                        {cls.locationText}
-                      </Text>
-                    </View>
-                  ) : null}
                 </TouchableOpacity>
-              ))}
+              </View>
             </View>
           </View>
-        ) : null}
+        ) : (
+          /* State B: Student is enrolled in batch(es) (Screenshot 20-26-18 & 20-33-27 match) */
+          <View style={styles.batchStatusCardWrapper}>
+            <View style={styles.batchStatusCard}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={styles.batchTitleText} numberOfLines={1}>
+                    {enrolledBatches[0].title}
+                  </Text>
+                  <View style={styles.enrolledBadge}>
+                    <Text style={styles.enrolledBadgeText}>Enrolled</Text>
+                  </View>
+                </View>
 
-        {/* 6. Upcoming tests and new results */}
-        {upcomingTests.length > 0 || recentResults.length > 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink, marginBottom: 8 }}>
-              Tests & Results
+                <Text style={styles.batchSubtitleText}>
+                  Class {enrolledBatches[0].classLevel} • Tests available • {enrolledBatches[0].subjectName || 'Maths, Science'}
+                </Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                  <Image
+                    source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                    style={{ width: 18, height: 18, borderRadius: 9 }}
+                  />
+                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155', textTransform: 'uppercase' }}>
+                    {enrolledBatches[0].teacherName || 'DINESH SINGH RAJPUT'}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push(`/batch/${enrolledBatches[0].id}` as any)}
+                    style={styles.goToBatchButton}
+                  >
+                    <Text style={styles.goToBatchButtonText}>View Batch</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setShowJoinModal(true)}
+                  >
+                    <Text style={styles.sendJoinRequestText}>
+                      + Join Another
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* 5. "Share the app" Card (Exact match with Screenshot 20-23-35) */}
+        <View style={styles.shareAppSection}>
+          <View style={styles.shareAppCard}>
+            {/* Subtle soft cyan/blue curved watermark shape on right */}
+            <View style={styles.shareWatermarkBlob} />
+
+            <Text style={styles.shareTitleText}>Share the app</Text>
+            <Text style={styles.shareSubtitleText}>
+              Let your friends know how much you enjoy this app
             </Text>
 
-            {/* Upcoming tests */}
-            {upcomingTests.map((test) => (
+            {/* Actions Row: "Share on WhatsApp" | "Copy link" */}
+            <View style={styles.shareActionsRow}>
+              {/* WhatsApp Action */}
               <TouchableOpacity
-                key={test.id}
-                activeOpacity={0.8}
-                onPress={() => router.push(test.route as any)}
-                style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: radii.md,
-                  padding: 12,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  marginBottom: 8,
-                  elevation: 1,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 2,
-                }}
-                className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
+                activeOpacity={0.75}
+                onPress={handleShareWhatsApp}
+                style={styles.shareActionButton}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
-                  <Badge label="Upcoming Test" variant="accent" size="sm" />
-                  <Text style={{ fontSize: 11.5, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
-                    {test.dateText}
-                  </Text>
+                <View style={styles.whatsappIconCircle}>
+                  <MessageCircle size={15} color="#FFFFFF" strokeWidth={2.4} />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
-                  {test.title}
-                </Text>
-                <Text style={{ fontSize: 12, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
-                  {test.batchTitle} • {test.subjectName}
-                  {test.totalMarks ? ` (${test.totalMarks} Marks)` : ''}
+                <Text style={styles.shareActionLinkText}>
+                  Share on WhatsApp
                 </Text>
               </TouchableOpacity>
-            ))}
 
-            {/* Recent results */}
-            {recentResults.map((result) => (
+              {/* Vertical Divider */}
+              <View style={styles.shareDivider} />
+
+              {/* Copy Link Action */}
               <TouchableOpacity
-                key={result.id}
-                activeOpacity={0.8}
-                onPress={() => router.push(result.route as any)}
-                style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: radii.md,
-                  padding: 12,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  marginBottom: 8,
-                  elevation: 1,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 2,
-                }}
-                className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
+                activeOpacity={0.75}
+                onPress={handleCopyLink}
+                style={styles.shareActionButton}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }} className="flex-row items-center justify-between mb-1.5">
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }} className="flex-row items-center">
-                    <Award size={13} color="#15803D" />
-                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#15803D', marginLeft: 4 }} className="text-caption font-bold text-green-700 ml-1">
-                      Result Declared
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
-                    {result.dateText}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
-                  {result.testTitle}
+                <Link2 size={16} color="#0284C7" strokeWidth={2.4} />
+                <Text style={styles.shareActionLinkText}>
+                  Copy link
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }} className="flex-row items-center justify-between mt-1">
-                  <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
-                    {result.batchTitle}
-                  </Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#15803D' }} className="text-small font-bold text-green-700">
-                    {result.scoreText}
-                    {result.percentage !== null && result.percentage !== undefined
-                      ? ` (${result.percentage}%)`
-                      : ''}
-                  </Text>
-                </View>
               </TouchableOpacity>
-            ))}
-          </View>
-        ) : null}
-
-        {/* 7. With no batches: Friendly "Join your batch" card for students only */}
-        {!isStaff && enrolledBatchesCount === 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: 'rgba(37, 99, 235, 0.2)',
-                elevation: 1,
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 3,
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: colors['primary-soft'],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                  borderWidth: 1,
-                  borderColor: 'rgba(37, 99, 235, 0.2)',
-                }}
-              >
-                <GraduationCap size={18} color="#2563EB" />
-              </View>
-
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }}>
-                Join your batch
-              </Text>
-
-              <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
-                Connect with Dinesh Sir's classroom to receive daily timetables, test alerts, and syllabus announcements.
-              </Text>
-
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onPress={() => setShowBatchCodeModal(true)}
-                    icon={<KeyRound size={14} color="#FFFFFF" />}
-                  >
-                    Enter Code
-                  </Button>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={() => router.push('/(app)/(tabs)/batches' as any)}
-                  >
-                    Explore
-                  </Button>
-                </View>
-              </View>
             </View>
           </View>
-        ) : null}
+        </View>
 
-        {/* 7b. For Admin/Faculty with no batches created yet */}
-        {isStaff && isStaffBatchesLoaded && staffBatchesCount === 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: 'rgba(37, 99, 235, 0.22)',
-                elevation: 1,
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 3,
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: '#EFF6FF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                  borderWidth: 1,
-                  borderColor: '#DBEAFE',
-                }}
-              >
-                <School size={18} color="#2563EB" />
-              </View>
-
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink, marginBottom: 4 }}>
-                Create Your First Batch
-              </Text>
-
-              <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
-                Set up your Class 9–12 CBSE or ICSE classroom batches to start admitting students, generating join codes, and scheduling live classes.
-              </Text>
-
-              <Button
-                variant="primary"
-                size="sm"
-                onPress={() => router.push('/(app)/(tabs)/batches' as any)}
-                icon={<Plus size={15} color="#FFFFFF" />}
-              >
-                Go to Batches & Create
-              </Button>
-            </View>
-          </View>
-        ) : null}
-
-        {/* 7c. For Admin/Faculty with active batches: Show Active Batches Overview Card */}
-        {isStaff && staffBatchesCount > 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <School size={16} color="#2563EB" strokeWidth={2.2} />
-                <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                  Active Batches
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: '#EFF6FF',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1.5,
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: '#BFDBFE',
-                  }}
-                >
-                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1D4ED8' }}>
-                    {staffBatchesCount}
-                  </Text>
-                </View>
-              </View>
-
+        {/* 6. Announcements (if any from Dinesh Sir) */}
+        {announcements.length > 0 && (
+          <View style={styles.announcementsSection}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>ANNOUNCEMENTS</Text>
               <TouchableOpacity
-                onPress={() => router.push('/(app)/(tabs)/batches' as any)}
-                style={{ paddingVertical: 2, paddingHorizontal: 6 }}
+                onPress={() => router.push('/(app)/notifications' as any)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>
-                  View All →
-                </Text>
+                <Text style={styles.sectionViewAllText}>See all</Text>
               </TouchableOpacity>
             </View>
 
             <View style={{ gap: 8 }}>
-              {allStaffBatches.slice(0, 3).map((b: any) => (
-                <TouchableOpacity
-                  key={b.id}
-                  activeOpacity={0.8}
-                  onPress={() => router.push('/(app)/(tabs)/batches' as any)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: 14,
-                    padding: 12,
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                    elevation: 1,
-                    shadowColor: '#000000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 2,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}
-                    >
-                      {b.title}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 11.5, color: '#2563EB', fontWeight: '600' }}>
-                        {b.subject || 'Mathematics'}
-                      </Text>
-                      <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                        • Class {b.classLevel}
-                      </Text>
-                      {b.enrolledCount !== undefined ? (
-                        <Text style={{ fontSize: 11.5, color: '#64748B' }}>
-                          • {b.enrolledCount} students
-                        </Text>
-                      ) : null}
-                    </View>
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#EFF6FF',
-                      paddingHorizontal: 8,
-                      paddingVertical: 4.5,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: '#DBEAFE',
-                    }}
-                  >
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB' }}>
-                      Manage
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {/* 8. Announcements: latest 3, pinned first, "See all" */}
-        {announcements.length > 0 ? (
-          <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                Announcements
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/notifications' as any)}
-                style={{ paddingVertical: 2, paddingHorizontal: 6 }}
-                className="py-0.5 px-1.5"
-              >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }} className="text-caption font-semibold text-primary">
-                  See all
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ gap: 8 }} className="space-y-2">
-              {announcements.map((ann) => (
-                <TouchableOpacity
-                  key={ann.id}
-                  activeOpacity={0.8}
-                  onPress={() => router.push(ann.route as any)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: radii.md,
-                    padding: 12,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    marginBottom: 8,
-                    elevation: 1,
-                    shadowColor: '#000000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 2,
-                  }}
-                  className="bg-surface rounded-xl p-3 border border-border shadow-xs mb-2"
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }} className="flex-row items-center justify-between mb-1">
-                    <Text style={{ fontSize: 11.5, color: colors['ink-muted'] }} className="text-caption text-ink-muted">
+              {announcements.slice(0, 2).map((ann) => (
+                <View key={ann.id} style={styles.announcementCard}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 11, color: '#64748B' }}>
                       {ann.dateFormatted}
                     </Text>
-                    {ann.isPinned ? (
+                    {ann.isPinned && (
                       <Badge label="Pinned" variant="accent" size="sm" />
-                    ) : null}
+                    )}
                   </View>
-
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink, marginBottom: 2 }} className="text-body font-bold text-ink mb-0.5">
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}>
                     {ann.title}
                   </Text>
-                  <Text
-                    style={{ fontSize: 12, color: colors['ink-muted'], lineHeight: 16 }}
-                    className="text-caption text-ink-muted leading-relaxed"
-                    numberOfLines={2}
-                  >
+                  <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 17 }} numberOfLines={2}>
                     {ann.body}
                   </Text>
-                </TouchableOpacity>
+                </View>
               ))}
             </View>
           </View>
-        ) : null}
+        )}
+      </ScrollView>
 
-        {/* 9. Banner carousel from site_settings.app_banners (results, admissions) */}
-        {banners.length > 0 ? (
-          <View style={{ paddingTop: 10 }}>
-            <View style={{ paddingHorizontal: 14, marginBottom: 8 }}>
-              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                Highlights & Admissions
-              </Text>
-            </View>
+      {/* Floating Toast Alert (e.g. for Copy Link confirmation) */}
+      {toastMessage && (
+        <View style={[styles.toastContainer, { bottom: insets.bottom + 68 }]}>
+          <Check size={16} color="#FFFFFF" strokeWidth={2.5} />
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
 
-            <ScrollView
-              horizontal
-              pagingEnabled
-              snapToInterval={SCREEN_WIDTH - 32}
-              decelerationRate="fast"
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16 }}
-            >
-              {banners.map((banner) => (
-                <TouchableOpacity
-                  key={banner.id}
-                  activeOpacity={0.9}
-                  onPress={() => handleBannerPress(banner)}
-                  style={{ width: SCREEN_WIDTH - 32 }}
-                  className="mr-4 rounded-2xl overflow-hidden border border-border shadow-sm bg-surface"
-                >
-                  <Image
-                    source={{ uri: banner.imageUrl }}
-                    style={{ width: '100%', height: 160 }}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                  <View className="p-3 bg-surface flex-row items-center justify-between">
-                    <Text
-                      className="text-body font-bold text-ink flex-1 mr-2"
-                      numberOfLines={1}
-                    >
-                      {banner.title}
-                    </Text>
-                    <ChevronRight size={18} color="#2563EB" />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+      {/* Join Batch Modal */}
+      <JoinBatchModal
+        visible={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onSuccess={() => {
+          setShowJoinModal(false);
+          refetchStudentBatches();
+          showToast('Join request sent to Dinesh Sir!');
+        }}
+      />
 
-        {/* 10. Free lectures for my class (latest 10), "See all" -> Learn tab */}
-        {freeLectures.length > 0 ? (
-          <View style={{ paddingTop: 10 }}>
-            <View style={{ paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 14.5, fontWeight: '700', color: colors.ink }}>
-                Free Lectures
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/(tabs)/learn' as any)}
-                className="py-1 px-2"
-              >
-                <Text className="text-small font-semibold text-primary">
-                  See all
+      {/* Free Video Player Modal */}
+      <Modal
+        visible={Boolean(selectedVideo)}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedVideo(null)}
+      >
+        <View style={styles.videoModalOverlay}>
+          <View style={styles.videoModalContent}>
+            {/* Modal Header */}
+            <View style={styles.videoModalHeader}>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text style={styles.videoModalCategory}>FREE LECTURE PREVIEW</Text>
+                <Text style={styles.videoModalTitle} numberOfLines={2}>
+                  {selectedVideo?.title}
                 </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedVideo(null)}
+                style={styles.videoModalCloseButton}
+              >
+                <X size={18} color="#0F172A" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16 }}
-            >
-              {freeLectures.map((lec: HomeFreeLecture) => (
-                <TouchableOpacity
-                  key={lec.id}
-                  activeOpacity={0.85}
-                  onPress={() => router.push(lec.route as any)}
-                  className="w-[200px] mr-3 bg-surface rounded-2xl border border-border overflow-hidden shadow-sm"
-                >
-                  <View className="w-full h-[110px] bg-ink/10 relative justify-end">
-                    {lec.thumbnailUrl ? (
-                      <Image
-                        source={{ uri: lec.thumbnailUrl }}
-                        style={{ width: '100%', height: '100%', position: 'absolute' }}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                    ) : (
-                      <View className="absolute inset-0 bg-primary-soft items-center justify-center">
-                        <Play size={24} color="#2563EB" />
-                      </View>
-                    )}
-                    <View className="absolute bottom-2 right-2 bg-black/75 px-1.5 py-0.5 rounded">
-                      <Text className="text-[10px] font-bold text-white">
-                        {lec.durationFormatted}
-                      </Text>
-                    </View>
-                  </View>
+            {/* Video Player Display */}
+            {selectedVideo && (
+              <View style={styles.modalPlayerWrapper}>
+                <Image
+                  source={selectedVideo.thumbnail}
+                  style={styles.modalPlayerThumbnail}
+                  contentFit="cover"
+                />
+                <View style={styles.modalPlayButtonOverlay}>
+                  <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+                </View>
+                <View style={styles.modalDurationBadge}>
+                  <Text style={styles.modalDurationText}>
+                    {selectedVideo.duration}
+                  </Text>
+                </View>
+              </View>
+            )}
 
-                  <View className="p-3">
-                    <Text
-                      className="text-body font-semibold text-ink leading-snug"
-                      numberOfLines={2}
-                    >
-                      {lec.title}
-                    </Text>
-                    <Text className="text-caption text-ink-muted mt-1">
-                      {lec.subjectName || `Class ${lec.classLevel ?? ''}`}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+            {/* Teacher Details & Description */}
+            <View style={styles.videoModalMeta}>
+              <View style={styles.videoFacultyRow}>
+                <Image
+                  source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                  style={styles.videoFacultyAvatar}
+                />
+                <View>
+                  <Text style={styles.videoFacultyName}>
+                    {selectedVideo?.faculty || 'Dinesh Singh Rajput'}
+                  </Text>
+                  <Text style={styles.videoFacultyRole}>
+                    Founder & Head of Mathematics
+                  </Text>
+                </View>
+              </View>
 
-        {/* 11. Share the app card (Android share sheet with Play Store link) */}
-        <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
-          <View
-            style={{
-              backgroundColor: colors['primary-soft'],
-              borderRadius: 16,
-              padding: 14,
-              borderWidth: 1,
-              borderColor: 'rgba(37, 99, 235, 0.2)',
-              elevation: 1,
-              shadowColor: '#000000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.04,
-              shadowRadius: 3,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-              <Share2 size={16} color={colors.primary} />
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.primary, marginLeft: 6 }}>
-                Share Quick2Learn
+              <Text style={styles.videoModalDescription}>
+                {selectedVideo?.description}
               </Text>
             </View>
 
-            <Text style={{ fontSize: 12, color: colors['ink-muted'], marginBottom: 12, lineHeight: 17 }}>
-              Help your friends and classmates master CBSE and ICSE Mathematics with Dinesh Sir. Share the app today!
-            </Text>
-
-            <Button
-              variant="primary"
-              size="sm"
-              onPress={handleShareApp}
-              icon={<Share2 size={14} color="#FFFFFF" />}
-            >
-              Share App
-            </Button>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Enter Batch Code Modal */}
-      <Modal
-        visible={showBatchCodeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowBatchCodeModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-center p-6">
-          <View className="bg-surface rounded-3xl p-6 shadow-xl border border-border">
-            <Text className="text-h2 font-bold text-ink mb-2">
-              Enter Batch Code
-            </Text>
-            <Text className="text-body text-ink-muted mb-4 leading-relaxed">
-              Enter the batch code provided by Dinesh Sir or the Quick2Learn administration.
-            </Text>
-
-            <TextField
-              label="Batch Code"
-              placeholder="e.g. M10CBSE"
-              value={batchCodeInput}
-              onChangeText={setBatchCodeInput}
-              autoCapitalize="characters"
-              maxLength={12}
-            />
-
-            <View className="flex-row space-x-3 mt-4">
-              <View className="flex-1 mr-2">
-                <Button
-                  variant="outline"
-                  size="md"
-                  onPress={() => setShowBatchCodeModal(false)}
-                >
-                  Cancel
-                </Button>
-              </View>
-              <View className="flex-1 ml-2">
-                <Button
-                  variant="primary"
-                  size="md"
-                  loading={isSubmittingCode}
-                  onPress={handleSubmitBatchCode}
-                >
-                  Join
-                </Button>
-              </View>
+            {/* Actions */}
+            <View style={styles.videoModalActions}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setSelectedVideo(null);
+                  router.push('/(app)/free-material' as any);
+                }}
+                style={styles.viewMoreVideosButton}
+              >
+                <Text style={styles.viewMoreVideosText}>Explore All Free Videos</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1228,3 +798,524 @@ function StudentHomeScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+    backgroundColor: '#4845D2',
+  },
+  // 1. Header Styles: Solid #4845D2 Action Bar
+  headerContainer: {
+    backgroundColor: '#4845D2',
+    elevation: 4,
+    shadowColor: '#1E1B4B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    zIndex: 10,
+  },
+  headerContent: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+  },
+  headerIconButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  headerTitleWrapper: {
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+  headerTitleText: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 3,
+    right: 4,
+    minWidth: 15,
+    height: 15,
+    borderRadius: 7.5,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#4845D2',
+    paddingHorizontal: 2,
+  },
+  bellBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  liveBannerWrapper: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+  },
+
+  // 2. Banner Section Styles
+  bannersSection: {
+    paddingTop: 12,
+    paddingBottom: 6,
+  },
+  bannersScrollContent: {
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  bannerCard: {
+    height: 165,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 8,
+  },
+  bannerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#CBD5E1',
+  },
+  bannerDotActive: {
+    width: 16,
+    backgroundColor: '#4845D2',
+  },
+
+  // 3. "FREE VIDEOS FOR YOU" Styles
+  freeVideosSection: {
+    paddingTop: 12,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  sectionViewAllText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  videosScrollContent: {
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  videoCard: {
+    height: 160,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+  },
+  videoThumbnailWrapper: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    backgroundColor: '#F1F5F9',
+  },
+  videoThumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  playIconOverlay: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoBottomOverlayRow: {
+    position: 'absolute',
+    bottom: 8,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  videoAdvertTag: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  videoWatermarkBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  videoWatermarkText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+
+  // 4. Batch Status Card Styles: "You are not added to any batch yet"
+  batchStatusCardWrapper: {
+    paddingHorizontal: 14,
+    paddingTop: 16,
+  },
+  batchStatusCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+  },
+  batchAvatarWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#FFF7ED',
+  },
+  batchAvatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  batchInfoWrapper: {
+    flex: 1,
+  },
+  batchTitleText: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    lineHeight: 21,
+  },
+  batchSubtitleText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  sendJoinRequestText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0284C7',
+    marginTop: 10,
+  },
+  enrolledBadge: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  enrolledBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  goToBatchButton: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  goToBatchButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563EB',
+  },
+
+  // 5. "Share the app" Card Styles (Screenshot 20-23-35 match)
+  shareAppSection: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+  },
+  shareAppCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  shareWatermarkBlob: {
+    position: 'absolute',
+    top: -20,
+    right: -20,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(238, 242, 255, 0.65)',
+    zIndex: 0,
+  },
+  shareTitleText: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    zIndex: 1,
+  },
+  shareSubtitleText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 3,
+    lineHeight: 18,
+    zIndex: 1,
+  },
+  shareActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    zIndex: 1,
+  },
+  shareActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  whatsappIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#25D366',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareActionLinkText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0284C7',
+  },
+  shareDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E2E8F0',
+  },
+
+  // 6. Announcements Styles
+  announcementsSection: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+  },
+  announcementCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 1,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+  },
+
+  // Toast Styles
+  toastContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    backgroundColor: '#0F172A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    elevation: 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    zIndex: 999,
+  },
+  toastText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+
+  // Video Modal Styles
+  videoModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  videoModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 18,
+    maxHeight: '85%',
+  },
+  videoModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  videoModalCategory: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#2563EB',
+    letterSpacing: 0.6,
+    marginBottom: 2,
+  },
+  videoModalTitle: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  videoModalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPlayerWrapper: {
+    width: '100%',
+    height: 190,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#0F172A',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPlayerThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  modalPlayButtonOverlay: {
+    position: 'absolute',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(37, 99, 235, 0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalDurationBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  modalDurationText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  videoModalMeta: {
+    marginTop: 14,
+  },
+  videoFacultyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  videoFacultyAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  videoFacultyName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  videoFacultyRole: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  videoModalDescription: {
+    fontSize: 12.5,
+    color: '#475569',
+    lineHeight: 18,
+  },
+  videoModalActions: {
+    marginTop: 16,
+  },
+  viewMoreVideosButton: {
+    backgroundColor: '#4845D2',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewMoreVideosText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+});

@@ -99,12 +99,13 @@ export default function TabsLayout() {
         name="learn"
         options={{
           href: !isParent && !isTeacherOrStaff ? '/learn' : null,
-          title: 'Learn',
-          tabBarLabel: 'Learn',
-          tabBarIcon: ({ color }) => (
+          title: 'Store',
+          tabBarLabel: 'Store',
+          tabBarBadge: 'New',
+          tabBarIcon: ({ color }: { color: string }) => (
             <BookOpen size={20} color={color} />
           ),
-        }}
+        } as any}
       />
 
       {/* 7. Chats Tab (Functional and visible for all roles, matching 3.jpeg & 5.jpeg) */}
@@ -113,10 +114,11 @@ export default function TabsLayout() {
         options={{
           title: 'Chats',
           tabBarLabel: 'Chats',
-          tabBarIcon: ({ color }) => (
+          tabBarBadge: 'dot',
+          tabBarIcon: ({ color }: { color: string }) => (
             <MessageSquare size={20} color={color} />
           ),
-        }}
+        } as any}
       />
 
       {/* 8. Legacy doubts route (kept for deep-links, hidden from footer) */}

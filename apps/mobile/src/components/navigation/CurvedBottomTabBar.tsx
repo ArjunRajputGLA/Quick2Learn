@@ -293,13 +293,64 @@ export function CurvedBottomTabBar({
               {/* Only show inactive icon & text when this tab is NOT active */}
               {!isFocused && (
                 <View style={styles.inactiveTabContent}>
-                  {options.tabBarIcon
-                    ? options.tabBarIcon({
-                        focused: false,
-                        color: '#94A3B8',
-                        size: 20,
-                      })
-                    : null}
+                  <View style={{ position: 'relative' }}>
+                    {options.tabBarIcon
+                      ? options.tabBarIcon({
+                          focused: false,
+                          color: '#94A3B8',
+                          size: 20,
+                        })
+                      : null}
+                    {options.tabBarBadge === 'New' && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: -16,
+                          backgroundColor: '#EF4444',
+                          borderRadius: 8,
+                          paddingHorizontal: 4,
+                          paddingVertical: 1,
+                        }}
+                      >
+                        <Text style={{ fontSize: 8.5, fontWeight: '800', color: '#FFFFFF' }}>New</Text>
+                      </View>
+                    )}
+                    {options.tabBarBadge === 'dot' && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -3,
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: '#22C55E',
+                          borderWidth: 1.5,
+                          borderColor: '#FFFFFF',
+                        }}
+                      />
+                    )}
+                    {typeof options.tabBarBadge === 'number' && options.tabBarBadge > 0 && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: -12,
+                          backgroundColor: '#2563EB',
+                          borderRadius: 8,
+                          paddingHorizontal: 4,
+                          paddingVertical: 1,
+                          minWidth: 16,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 8.5, fontWeight: '700', color: '#FFFFFF' }}>
+                          {options.tabBarBadge}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.inactiveLabel} numberOfLines={1}>
                     {label}
                   </Text>
@@ -324,13 +375,45 @@ export function CurvedBottomTabBar({
         >
           <View style={styles.floatingCircleOuter}>
             <View style={styles.floatingCircleInner}>
-              {activeDescriptor.options.tabBarIcon
-                ? activeDescriptor.options.tabBarIcon({
-                    focused: true,
-                    color: '#2563EB',
-                    size: 22,
-                  })
-                : null}
+              <View style={{ position: 'relative' }}>
+                {activeDescriptor.options.tabBarIcon
+                  ? activeDescriptor.options.tabBarIcon({
+                      focused: true,
+                      color: '#2563EB',
+                      size: 22,
+                    })
+                  : null}
+                {activeDescriptor.options.tabBarBadge === 'New' && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -6,
+                      right: -16,
+                      backgroundColor: '#EF4444',
+                      borderRadius: 8,
+                      paddingHorizontal: 4,
+                      paddingVertical: 1,
+                    }}
+                  >
+                    <Text style={{ fontSize: 8.5, fontWeight: '800', color: '#FFFFFF' }}>New</Text>
+                  </View>
+                )}
+                {activeDescriptor.options.tabBarBadge === 'dot' && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -2,
+                      right: -3,
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: '#22C55E',
+                      borderWidth: 1.5,
+                      borderColor: '#FFFFFF',
+                    }}
+                  />
+                )}
+              </View>
             </View>
           </View>
         </Animated.View>
