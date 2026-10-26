@@ -15,6 +15,7 @@ import {
   Phone,
   MessageCircle,
   Bot,
+  Smartphone,
 } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import {
@@ -223,6 +224,20 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
               >
                 <Users className="h-4 w-4 text-primary" />
                 <span>Faculty Mentors</span>
+              </Link>
+
+              <Link
+                href="/#app-promotion"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-small font-semibold text-ink hover:bg-primary-soft hover:text-primary transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  <span>Mobile App</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                  Android
+                </span>
               </Link>
 
               {onOpenEnquiry && (

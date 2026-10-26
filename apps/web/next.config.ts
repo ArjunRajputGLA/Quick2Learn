@@ -31,6 +31,9 @@ const cspHeader = cspDirectives.join("; ");
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@quick2learn/shared"],
+  experimental: {
+    agentUpgrade: "security",
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

@@ -208,6 +208,15 @@ export function Footer({ settings }: FooterProps) {
               </li>
               <li>
                 <Link
+                  href="/#app-promotion"
+                  className="hover:text-primary transition-colors hover:underline underline-offset-2 flex items-center gap-1.5"
+                >
+                  <span>Quick2Learn Mobile App</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary-soft px-1.5 py-0.5 rounded">New</span>
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/contact"
                   className="hover:text-primary transition-colors hover:underline underline-offset-2"
                 >

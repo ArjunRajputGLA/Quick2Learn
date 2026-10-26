@@ -22,6 +22,7 @@ import { CurriculumGoals, type GoalConfig } from "@/components/marketing/curricu
 import { ResultsShowcase, type ResultsShowcaseProps } from "@/components/marketing/results-showcase";
 import { TeachersGrid } from "@/components/marketing/teachers-grid";
 import { TestimonialsCarousel } from "@/components/marketing/testimonials-carousel";
+import { AppPromoSection } from "@/components/marketing/app-promo-section";
 import { FaqAccordion, type FaqItem } from "@/components/marketing/faq-accordion";
 import { ClosingBand } from "@/components/marketing/closing-band";
 
@@ -290,7 +291,10 @@ export default async function MarketingHomePage() {
         testimonials={testimonials}
       />
 
-      {/* 11. FAQ accordion from site_settings.faqs (bg-surface) */}
+      {/* 11. Quick2Learn Mobile App Promotion Section with phone frame mockup */}
+      <AppPromoSection />
+
+      {/* 12. FAQ accordion from site_settings.faqs (bg-surface) */}
       <FaqAccordion
         faqs={faqs}
       />
