@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   RefreshControl,
   TouchableOpacity,
   Dimensions,
@@ -19,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import {
   Menu,
   Bell,
@@ -68,6 +70,9 @@ import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
 import type { AppBannerItem, HomeFreeLecture, ContinueWatchingItem } from '@quick2learn/shared';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const BANNER_WIDTH = Math.round(SCREEN_WIDTH * 0.84);
+const BANNER_GAP = 12;
+const BANNER_STEP = BANNER_WIDTH + BANNER_GAP;
 
 // Authentic institute banners matching the screenshot & course materials
 const LOCAL_BANNERS = [
@@ -113,47 +118,111 @@ const LOCAL_BANNERS = [
   },
 ];
 
-// Authentic free video lectures matching the screenshot
-const FREE_VIDEOS = [
+export interface FreeVideoItem {
+  id: string;
+  title: string;
+  category: string;
+  duration: string;
+  thumbnail: any;
+  hasOverlayText: boolean;
+  description: string;
+  faculty: string;
+  facultyRole: string;
+  youtubeId: string;
+}
+
+// Authentic free video lectures matching Quick2Learn website's free video library
+const FREE_VIDEOS: FreeVideoItem[] = [
   {
-    id: 'free-vid-1',
-    title: 'Start your revision & doubt clearing with us',
-    category: 'advertisement',
-    duration: '2:45',
-    thumbnail: require('../../../assets/banners/free_video_1.png'),
-    hasOverlayText: true,
-    description: 'Learn how Quick2Learn helps Class IX to XII students excel in CBSE and ICSE Board examinations with Dinesh Rajput Sir.',
+    id: 'free-vid-parabola',
+    title: 'Class 11 Maths: Parabola & Its Standard Forms | Dinesh Sir',
+    category: 'Class 11 CBSE/ISC Maths',
+    duration: '44:30',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/E4FABpLiJ40/hqdefault.jpg' },
+    hasOverlayText: false,
+    description:
+      'Detailed conceptual analysis of Parabola, standard equations, focal distance, and latus rectum with Dinesh Sir.',
     faculty: 'Dinesh Singh Rajput',
+    facultyRole: 'Founder & Head of Mathematics',
+    youtubeId: 'E4FABpLiJ40',
   },
   {
-    id: 'free-vid-2',
-    title: 'Class 9 & 10 Mathematics Foundations & Exam Strategy',
-    category: 'advertisement',
-    duration: '18:15',
-    thumbnail: require('../../../assets/banners/rajput_sir_ix_x.jpg'),
+    id: 'free-vid-vectors',
+    title: 'Class 12 Maths: Dot Product of Two Vectors | Dinesh Sir',
+    category: 'Class 12 CBSE/ISC Maths',
+    duration: '1:00:22',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/Vz3BaPSa6i0/hqdefault.jpg' },
     hasOverlayText: false,
-    description: 'In-depth introduction to ICSE Class IX and CBSE Class X Mathematics by Dinesh Singh Rajput Sir.',
+    description:
+      'Scalar or dot product of two vectors, geometric interpretation, angle between vectors and projection formulas.',
     faculty: 'Dinesh Singh Rajput',
+    facultyRole: 'Founder & Head of Mathematics',
+    youtubeId: 'Vz3BaPSa6i0',
   },
   {
-    id: 'free-vid-3',
-    title: 'ICSE Class 9 Chemistry - Course Introduction',
-    category: 'advertisement',
-    duration: '14:20',
-    thumbnail: require('../../../assets/banners/icse_9_chemistry.png'),
+    id: 'free-vid-3d-line',
+    title: 'Class 12 Maths: Equation of a Line in Space | Dinesh Sir',
+    category: 'Class 12 3D Geometry',
+    duration: '1:01:15',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/j09xh8J7qlo/hqdefault.jpg' },
     hasOverlayText: false,
-    description: "Complete syllabus overview and chapter breakdown for ICSE Class 9 Chemistry with Namita Singh Rajput Ma'am.",
+    description:
+      'Three Dimensional Geometry: Vector and Cartesian equations of a line passing through given points by Dinesh Singh Rajput.',
+    faculty: 'Dinesh Singh Rajput',
+    facultyRole: 'Founder & Head of Mathematics',
+    youtubeId: 'j09xh8J7qlo',
+  },
+  {
+    id: 'free-vid-hindi-sakhi',
+    title: "ICSE Class 9 Hindi: Sakhi (Kabir Das) Explanation & Notes | Namita Ma'am",
+    category: 'ICSE Class 9 Hindi',
+    duration: '1:10:00',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/bu6Hmff0m0U/hqdefault.jpg' },
+    hasOverlayText: false,
+    description:
+      "Line-by-line explanation of Kabir Das Sakhi, word meanings, and ICSE Class 9 board question answers by Namita Ma'am.",
     faculty: 'Namita Singh Rajput',
+    facultyRole: 'Faculty of ICSE Sciences & Hindi',
+    youtubeId: 'bu6Hmff0m0U',
   },
   {
-    id: 'free-vid-4',
-    title: 'CBSE Class 12 Mathematics - Term 1 Strategy & Calculus',
-    category: 'advertisement',
-    duration: '22:40',
-    thumbnail: require('../../../assets/banners/xii_maths_course.png'),
+    id: 'free-vid-bio-classification',
+    title: "ICSE Class 9 Biology: Five Kingdom Classification One-Shot | Namita Ma'am",
+    category: 'ICSE Class 9 Biology',
+    duration: '53:15',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/6rvDSfsuR6A/hqdefault.jpg' },
     hasOverlayText: false,
-    description: 'Detailed strategy for scoring 95+ in Class XII Board Mathematics with Dinesh Singh Rajput Sir.',
-    faculty: 'Dinesh Singh Rajput',
+    description:
+      "Complete one-shot revision of Monera, Protista, Fungi, Plantae, and Animalia with objective board questions by Namita Ma'am.",
+    faculty: 'Namita Singh Rajput',
+    facultyRole: 'Faculty of Biology & Sciences',
+    youtubeId: '6rvDSfsuR6A',
+  },
+  {
+    id: 'free-vid-history-strategy',
+    title: "ICSE 9 History & Civics: Paper Pattern & Strategy | Namita Ma'am",
+    category: 'ICSE Class 9 History & Civics',
+    duration: '25:30',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/Sa6vSiYCqyo/hqdefault.jpg' },
+    hasOverlayText: false,
+    description:
+      'Detailed analysis of ICSE Class 9 History and Civics question paper pattern, marks distribution, and answer-writing tips.',
+    faculty: 'Namita Singh Rajput',
+    facultyRole: 'Faculty of ICSE Sciences & Humanities',
+    youtubeId: 'Sa6vSiYCqyo',
+  },
+  {
+    id: 'free-vid-civics-rights',
+    title: "ICSE Class 9 Civics: Fundamental Rights & Duties | Namita Ma'am",
+    category: 'ICSE Class 9 Civics',
+    duration: '1:18:17',
+    thumbnail: { uri: 'https://i.ytimg.com/vi/THJtNZRmkT4/hqdefault.jpg' },
+    hasOverlayText: false,
+    description:
+      'Comprehensive class on Right to Equality, Freedom of Speech, and Constitutional Remedies by Namita Singh Rajput.',
+    faculty: 'Namita Singh Rajput',
+    facultyRole: 'Faculty of ICSE Sciences & Humanities',
+    youtubeId: 'THJtNZRmkT4',
   },
 ];
 
@@ -191,9 +260,16 @@ function StudentHomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<(typeof FREE_VIDEOS)[0] | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<FreeVideoItem | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const bannerScrollRef = useRef<any>(null);
+  const bannerIndexRef = useRef(0);
+  const lastUserTouchTimeRef = useRef(0);
+  const [isScreenFocused, setIsScreenFocused] = useState(true);
 
   const { onScroll: handleTabBarScroll, scrollEventThrottle } = useTabBarScroll();
 
@@ -207,6 +283,7 @@ function StudentHomeScreen() {
   // Refresh home data and student batches on focus
   useFocusEffect(
     useCallback(() => {
+      setIsScreenFocused(true);
       refetch();
       refetchStudentBatches();
       refetchTests();
@@ -214,6 +291,9 @@ function StudentHomeScreen() {
         adminStore.init();
         refetchTeacherBatches();
       }
+      return () => {
+        setIsScreenFocused(false);
+      };
     }, [refetch, refetchStudentBatches, refetchTests, isStaff, refetchTeacherBatches])
   );
 
@@ -270,9 +350,13 @@ function StudentHomeScreen() {
         message: appUrl,
         url: appUrl,
       });
+      setIsCopied(true);
       showToast('App link ready to share!');
+      setTimeout(() => setIsCopied(false), 2400);
     } catch {
+      setIsCopied(true);
       showToast('Link: ' + appUrl);
+      setTimeout(() => setIsCopied(false), 2400);
     }
   };
 
@@ -287,8 +371,30 @@ function StudentHomeScreen() {
   const unreadCount = home?.header?.unreadNotificationsCount ?? 0;
   const liveClass = home?.liveClass;
   const announcements = home?.announcements || [];
-  const enrolledBatches = studentBatchesData?.enrolled || [];
+  // Batches status & enrollment (combines student batches API, local joined batches, and home todayClasses)
+  const enrolledBatches = useMemo(() => {
+    if (studentBatchesData?.enrolled && studentBatchesData.enrolled.length > 0) {
+      return studentBatchesData.enrolled;
+    }
+    if (home?.todayClasses && home.todayClasses.length > 0) {
+      return home.todayClasses.map((tc) => ({
+        id: tc.batchId,
+        title: tc.batchTitle,
+        classLevel: 12,
+        board: 'CBSE',
+        subjectName: tc.subjectName || 'Mathematics',
+        mode: tc.mode || 'offline',
+        status: 'ongoing',
+        teacherName: tc.facultyName || 'Dinesh Singh Rajput',
+        progressPercentage: 45,
+      }));
+    }
+    return [];
+  }, [studentBatchesData?.enrolled, home?.todayClasses]);
+
+  const pendingRequests = studentBatchesData?.pendingRequests || [];
   const hasEnrolledBatches = enrolledBatches.length > 0;
+  const hasPendingRequests = pendingRequests.length > 0;
 
   // Banner list: combine API banners (if any) with authentic local banners
   const displayBanners = useMemo(() => {
@@ -305,13 +411,122 @@ function StudentHomeScreen() {
     return LOCAL_BANNERS;
   }, [home?.banners]);
 
+  // Infinite non-stop sliding loop: repeat banners in forward sequence so scrolling is continuous right-to-left
+  const REPEAT_COUNT = 60;
+  const loopBanners = useMemo(() => {
+    if (displayBanners.length <= 1) {
+      return displayBanners.map((b) => ({ ...b, uniqueKey: b.id }));
+    }
+    const items: Array<(typeof displayBanners)[0] & { uniqueKey: string }> = [];
+    for (let r = 0; r < REPEAT_COUNT; r++) {
+      for (let i = 0; i < displayBanners.length; i++) {
+        items.push({
+          ...displayBanners[i],
+          uniqueKey: `${displayBanners[i].id}-rep-${r}-${i}`,
+        });
+      }
+    }
+    return items;
+  }, [displayBanners]);
+
+  // Auto-sliding nonstop banner carousel effect:
+  // Slides from right to left, stops for 3 seconds at each image, then moves to next
+  useEffect(() => {
+    if (displayBanners.length <= 1 || !isScreenFocused) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
+
+    const tick = () => {
+      timer = setTimeout(() => {
+        if (!isMounted) return;
+
+        // If the user touched the carousel recently, pause and re-check after cooldown
+        const timeSinceTouch = Date.now() - lastUserTouchTimeRef.current;
+        if (timeSinceTouch < 3000) {
+          const waitRemaining = Math.max(500, 3000 - timeSinceTouch);
+          timer = setTimeout(tick, waitRemaining);
+          return;
+        }
+
+        // Calculate next slide index (moving forward: right to left)
+        const currentIdx = bannerIndexRef.current;
+        const totalItems = loopBanners.length;
+        const nextIdx = (currentIdx + 1) % totalItems;
+
+        bannerIndexRef.current = nextIdx;
+        setActiveBannerIndex(nextIdx % displayBanners.length);
+
+        bannerScrollRef.current?.scrollTo({
+          x: nextIdx * BANNER_STEP,
+          animated: true,
+        });
+
+        // Stay on this image for 3 seconds before advancing to next
+        tick();
+      }, 3000);
+    };
+
+    tick();
+
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [displayBanners.length, loopBanners.length, isScreenFocused]);
+
+  // Free video lectures: combine backend lectures (if any) with authentic website lectures
+  const displayVideos = useMemo(() => {
+    if (home?.freeLectures && home.freeLectures.length > 0) {
+      return home.freeLectures.map((item, idx) => {
+        const matched = FREE_VIDEOS.find(
+          (v) => v.youtubeId === item.id || v.id === item.id
+        );
+        if (matched) return matched;
+
+        const isNamita =
+          item.title?.includes('Hindi') ||
+          item.title?.includes('Biology') ||
+          item.title?.includes('Civics') ||
+          item.title?.includes('History') ||
+          item.title?.includes('Chemistry');
+
+        return {
+          id: item.id || `api-free-vid-${idx}`,
+          title: item.title,
+          category: item.subjectName
+            ? `${item.classLevel ? `Class ${item.classLevel} ` : ''}${item.subjectName}`
+            : 'Free Lecture',
+          duration: item.durationFormatted || '45:00',
+          thumbnail: item.thumbnailUrl
+            ? { uri: item.thumbnailUrl }
+            : { uri: `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg` },
+          hasOverlayText: false,
+          description: `Watch free conceptual lecture on ${item.title} by Quick2Learn faculty.`,
+          faculty: isNamita ? 'Namita Singh Rajput' : 'Dinesh Singh Rajput',
+          facultyRole: isNamita
+            ? 'Faculty of ICSE Sciences & Hindi'
+            : 'Founder & Head of Mathematics',
+          youtubeId: item.id.length === 11 ? item.id : 'bu6Hmff0m0U',
+        };
+      });
+    }
+    return FREE_VIDEOS;
+  }, [home?.freeLectures]);
+
+  const handleCloseVideoModal = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsVideoPlaying(false);
+    setSelectedVideo(null);
+  };
+
   return (
     <View style={styles.screenContainer}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
-      {/* 1. Header Bar: Solid #4845D2 with Menu icon, 2-line title, and Notification Bell */}
-      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
+      {/* 1. Floating Header: Floating card matching the other floating sections */}
+      <View style={[styles.floatingHeaderWrapper, { paddingTop: insets.top + 6 }]}>
+        <View style={styles.floatingHeaderCard}>
           {/* Menu Button -> Opens Sidebar Drawer */}
           <TouchableOpacity
             activeOpacity={0.75}
@@ -324,10 +539,10 @@ function StudentHomeScreen() {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={styles.headerIconButton}
           >
-            <Menu size={24} color="#FFFFFF" strokeWidth={2.2} />
+            <Menu size={22} color="#FFFFFF" strokeWidth={2.2} />
           </TouchableOpacity>
 
-          {/* App Title: Exact 2-lines format as seen in the screenshot */}
+          {/* App Title */}
           <View style={styles.headerTitleWrapper}>
             <Text numberOfLines={2} style={styles.headerTitleText}>
               {'Quick 2 Learn CBSE/ICSE - 9th\nto 12th'}
@@ -346,7 +561,7 @@ function StudentHomeScreen() {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={styles.headerIconButton}
           >
-            <Bell size={22} color="#FFFFFF" strokeWidth={2} />
+            <Bell size={21} color="#FFFFFF" strokeWidth={2} />
             {unreadCount > 0 && (
               <View style={styles.bellBadge}>
                 <Text style={styles.bellBadgeText}>
@@ -405,53 +620,87 @@ function StudentHomeScreen() {
         {/* 2. Top Carousel / Banner Section */}
         <View style={styles.bannersSection}>
           <ScrollView
+            ref={bannerScrollRef}
             horizontal
-            pagingEnabled={false}
-            decelerationRate="fast"
-            snapToInterval={Math.round(SCREEN_WIDTH * 0.84) + 12}
-            snapToAlignment="start"
             showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            decelerationRate="fast"
+            snapToInterval={BANNER_STEP}
+            snapToAlignment="start"
+            disableIntervalMomentum={true}
             contentContainerStyle={styles.bannersScrollContent}
+            onTouchStart={() => {
+              lastUserTouchTimeRef.current = Date.now();
+            }}
+            onScrollBeginDrag={() => {
+              lastUserTouchTimeRef.current = Date.now();
+            }}
             onScroll={(e) => {
               const offsetX = e.nativeEvent.contentOffset.x;
-              const cardWidth = Math.round(SCREEN_WIDTH * 0.84) + 12;
-              const index = Math.round(offsetX / cardWidth);
-              if (index !== activeBannerIndex) {
-                setActiveBannerIndex(index);
-              }
+              const idx = Math.max(0, Math.round(offsetX / BANNER_STEP));
+              setActiveBannerIndex(idx % displayBanners.length);
             }}
-            scrollEventThrottle={32}
+            onScrollEndDrag={() => {
+              lastUserTouchTimeRef.current = Date.now();
+            }}
+            onMomentumScrollEnd={(e) => {
+              const offsetX = e.nativeEvent.contentOffset.x;
+              const idx = Math.max(0, Math.round(offsetX / BANNER_STEP));
+              bannerIndexRef.current = idx;
+              setActiveBannerIndex(idx % displayBanners.length);
+              lastUserTouchTimeRef.current = Date.now();
+            }}
           >
-            {displayBanners.map((banner, index) => {
-              const cardWidth = Math.round(SCREEN_WIDTH * 0.84);
-              return (
-                <TouchableOpacity
-                  key={banner.id}
-                  activeOpacity={0.92}
-                  onPress={() => handleBannerPress(banner as any)}
-                  style={[styles.bannerCard, { width: cardWidth }]}
-                >
-                  <Image
-                    source={banner.source}
-                    style={styles.bannerImage}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                </TouchableOpacity>
-              );
-            })}
+            {loopBanners.map((banner, index) => (
+              <TouchableOpacity
+                key={banner.uniqueKey || `${banner.id}-${index}`}
+                activeOpacity={0.92}
+                onPress={() => handleBannerPress(banner as any)}
+                style={[
+                  styles.bannerCard,
+                  {
+                    width: BANNER_WIDTH,
+                    marginRight: index === loopBanners.length - 1 ? 0 : BANNER_GAP,
+                  },
+                ]}
+              >
+                <Image
+                  source={banner.source}
+                  style={styles.bannerImage}
+                  contentFit="cover"
+                  transition={200}
+                />
+              </TouchableOpacity>
+            ))}
           </ScrollView>
 
           {/* Dots Indicator */}
           <View style={styles.bannerDotsRow}>
             {displayBanners.map((_, i) => (
-              <View
+              <TouchableOpacity
                 key={i}
-                style={[
-                  styles.bannerDot,
-                  i === activeBannerIndex && styles.bannerDotActive,
-                ]}
-              />
+                activeOpacity={0.7}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  const currentRep = Math.floor(bannerIndexRef.current / displayBanners.length);
+                  const targetIndex = currentRep * displayBanners.length + i;
+                  bannerIndexRef.current = targetIndex;
+                  setActiveBannerIndex(i);
+                  bannerScrollRef.current?.scrollTo({
+                    x: targetIndex * BANNER_STEP,
+                    animated: true,
+                  });
+                  lastUserTouchTimeRef.current = Date.now();
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+              >
+                <View
+                  style={[
+                    styles.bannerDot,
+                    i === activeBannerIndex && styles.bannerDotActive,
+                  ]}
+                />
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -473,13 +722,13 @@ function StudentHomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Horizontal list of Free Video Cards */}
+          {/* Horizontal list of Free Video Cards with Exact Matching Thumbnails */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.videosScrollContent}
           >
-            {FREE_VIDEOS.map((video) => {
+            {displayVideos.map((video) => {
               const videoWidth = Math.round(SCREEN_WIDTH * 0.74);
               return (
                 <TouchableOpacity
@@ -488,6 +737,7 @@ function StudentHomeScreen() {
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSelectedVideo(video);
+                    setIsVideoPlaying(true);
                   }}
                   style={[styles.videoCard, { width: videoWidth }]}
                 >
@@ -500,20 +750,26 @@ function StudentHomeScreen() {
                       transition={200}
                     />
 
+                    {/* Duration badge on Top Left */}
+                    <View style={styles.videoDurationBadge}>
+                      <Clock size={11} color="#FFFFFF" strokeWidth={2.4} />
+                      <Text style={styles.videoDurationText}>{video.duration}</Text>
+                    </View>
+
                     {/* Play Button Icon on Top Right (matching screenshot) */}
                     <View style={styles.playIconOverlay}>
                       <Play size={15} color="#FFFFFF" fill="#FFFFFF" />
                     </View>
 
-                    {/* If not pre-printed on image, show bottom labels */}
-                    {!video.hasOverlayText && (
+                    {/* Bottom overlay: subtle dark scrim with advertisement tag & QUICK2LEARN watermark */}
+                    <View style={styles.videoBottomScrim}>
                       <View style={styles.videoBottomOverlayRow}>
                         <Text style={styles.videoAdvertTag}>advertisement</Text>
                         <View style={styles.videoWatermarkBadge}>
                           <Text style={styles.videoWatermarkText}>QUICK2LEARN</Text>
                         </View>
                       </View>
-                    )}
+                    </View>
                   </View>
                 </TouchableOpacity>
               );
@@ -521,9 +777,106 @@ function StudentHomeScreen() {
           </ScrollView>
         </View>
 
-        {/* 4. Batch Status Card */}
-        {!hasEnrolledBatches ? (
-          /* State A: Student is NOT added to any batch yet (Exact Screenshot Match) */
+        {/* 4. Batch Status Card: Enrolled vs Pending Approval vs Not Added */}
+        {hasEnrolledBatches ? (
+          /* State A: Student is ENROLLED in batch(es) (Screenshot 20-26-18 & 20-33-27 match) */
+          <View style={styles.batchStatusCardWrapper}>
+            <View style={styles.batchStatusCard}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+                  <Text style={styles.batchTitleText} numberOfLines={1} ellipsizeMode="tail">
+                    {enrolledBatches[0].title}
+                  </Text>
+                  <View style={[styles.enrolledBadge, { flexShrink: 0 }]}>
+                    <Text style={styles.enrolledBadgeText}>Enrolled</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.batchSubtitleText} numberOfLines={1} ellipsizeMode="tail">
+                  Class {enrolledBatches[0].classLevel} • Tests available • {enrolledBatches[0].subjectName || 'Maths, Science'}
+                </Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                  <Image
+                    source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                    style={{ width: 18, height: 18, borderRadius: 9 }}
+                  />
+                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155', textTransform: 'uppercase' }} numberOfLines={1}>
+                    {enrolledBatches[0].teacherName || 'DINESH SINGH RAJPUT'}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push(`/batch/${enrolledBatches[0].id}` as any)}
+                    style={styles.goToBatchButton}
+                  >
+                    <Text style={styles.goToBatchButtonText}>View Batch</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setShowJoinModal(true)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.joinAnotherButtonText}>
+                      + Join Another
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : hasPendingRequests ? (
+          /* State B: Student has submitted a JOIN REQUEST awaiting tutor approval */
+          <View style={styles.batchStatusCardWrapper}>
+            <View style={[styles.batchStatusCard, { borderColor: '#FDE68A', backgroundColor: '#FFFDF5' }]}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+                  <Text style={styles.batchTitleText} numberOfLines={1} ellipsizeMode="tail">
+                    {pendingRequests[0].batchTitle}
+                  </Text>
+                  <View style={[styles.enrolledBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexShrink: 0 }]}>
+                    <Text style={[styles.enrolledBadgeText, { color: '#B45309' }]}>Approval Pending</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.batchSubtitleText} numberOfLines={1} ellipsizeMode="tail">
+                  Class {pendingRequests[0].classLevel} • Join request submitted to Dinesh Sir
+                </Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                  <Clock size={14} color="#D97706" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#92400E' }} numberOfLines={1}>
+                    Awaiting tutor approval. Materials will unlock once approved.
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push(`/batch/${pendingRequests[0].batchId}` as any)}
+                    style={[styles.goToBatchButton, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}
+                  >
+                    <Text style={[styles.goToBatchButtonText, { color: '#B45309' }]}>Check Status</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setShowJoinModal(true)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.joinAnotherButtonText}>
+                      + Enter Another Code
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : (
+          /* State C: Student is NOT added to any batch yet (Exact Screenshot Match) */
           <View style={styles.batchStatusCardWrapper}>
             <View style={styles.batchStatusCard}>
               {/* Circular Classroom Illustration Avatar on Left */}
@@ -560,96 +913,69 @@ function StudentHomeScreen() {
               </View>
             </View>
           </View>
-        ) : (
-          /* State B: Student is enrolled in batch(es) (Screenshot 20-26-18 & 20-33-27 match) */
-          <View style={styles.batchStatusCardWrapper}>
-            <View style={styles.batchStatusCard}>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <Text style={styles.batchTitleText} numberOfLines={1}>
-                    {enrolledBatches[0].title}
-                  </Text>
-                  <View style={styles.enrolledBadge}>
-                    <Text style={styles.enrolledBadgeText}>Enrolled</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.batchSubtitleText}>
-                  Class {enrolledBatches[0].classLevel} • Tests available • {enrolledBatches[0].subjectName || 'Maths, Science'}
-                </Text>
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
-                  <Image
-                    source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
-                    style={{ width: 18, height: 18, borderRadius: 9 }}
-                  />
-                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155', textTransform: 'uppercase' }}>
-                    {enrolledBatches[0].teacherName || 'DINESH SINGH RAJPUT'}
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => router.push(`/batch/${enrolledBatches[0].id}` as any)}
-                    style={styles.goToBatchButton}
-                  >
-                    <Text style={styles.goToBatchButtonText}>View Batch</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => setShowJoinModal(true)}
-                  >
-                    <Text style={styles.sendJoinRequestText}>
-                      + Join Another
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </View>
         )}
 
-        {/* 5. "Share the app" Card (Exact match with Screenshot 20-23-35) */}
+        {/* 5. "Share the app" Card */}
         <View style={styles.shareAppSection}>
           <View style={styles.shareAppCard}>
-            {/* Subtle soft cyan/blue curved watermark shape on right */}
-            <View style={styles.shareWatermarkBlob} />
+            {/* Soft concentric ripple waves watermark on top right */}
+            <View style={styles.shareWatermarkContainer} pointerEvents="none">
+              <View style={styles.shareRingOuter} />
+              <View style={styles.shareRingMid} />
+              <View style={styles.shareRingInner} />
+            </View>
 
-            <Text style={styles.shareTitleText}>Share the app</Text>
-            <Text style={styles.shareSubtitleText}>
-              Let your friends know how much you enjoy this app
-            </Text>
+            {/* Header: Title, Subtitle, and Invite Pill Badge */}
+            <View style={styles.shareHeaderRow}>
+              <View style={{ flex: 1, paddingRight: 8, zIndex: 1 }}>
+                <Text style={styles.shareTitleText}>Share the app</Text>
+                <Text style={styles.shareSubtitleText}>
+                  Let your friends know how much you enjoy this app
+                </Text>
+              </View>
+              <View style={styles.shareInviteBadge}>
+                <Share2 size={11} color="#4845D2" strokeWidth={2.4} />
+                <Text style={styles.shareInviteBadgeText}>INVITE</Text>
+              </View>
+            </View>
 
-            {/* Actions Row: "Share on WhatsApp" | "Copy link" */}
+            {/* Actions Row: Two Distinct, Tactile Pill Buttons */}
             <View style={styles.shareActionsRow}>
-              {/* WhatsApp Action */}
+              {/* WhatsApp Action Pill */}
               <TouchableOpacity
-                activeOpacity={0.75}
+                activeOpacity={0.8}
                 onPress={handleShareWhatsApp}
-                style={styles.shareActionButton}
+                style={styles.shareWhatsAppPill}
               >
                 <View style={styles.whatsappIconCircle}>
-                  <MessageCircle size={15} color="#FFFFFF" strokeWidth={2.4} />
+                  <MessageCircle size={13} color="#FFFFFF" strokeWidth={2.4} />
                 </View>
-                <Text style={styles.shareActionLinkText}>
+                <Text
+                  style={styles.shareWhatsAppText}
+                  numberOfLines={1}
+                >
                   Share on WhatsApp
                 </Text>
               </TouchableOpacity>
 
-              {/* Vertical Divider */}
-              <View style={styles.shareDivider} />
-
-              {/* Copy Link Action */}
+              {/* Copy Link Action Pill */}
               <TouchableOpacity
-                activeOpacity={0.75}
+                activeOpacity={0.8}
                 onPress={handleCopyLink}
-                style={styles.shareActionButton}
+                style={[
+                  styles.shareCopyLinkPill,
+                  isCopied && styles.shareCopiedPill,
+                ]}
               >
-                <Link2 size={16} color="#0284C7" strokeWidth={2.4} />
-                <Text style={styles.shareActionLinkText}>
-                  Copy link
+                <View style={[styles.copyLinkIconCircle, isCopied && styles.copiedIconCircle]}>
+                  {isCopied ? (
+                    <Check size={13} color="#059669" strokeWidth={2.8} />
+                  ) : (
+                    <Link2 size={13} color="#0284C7" strokeWidth={2.5} />
+                  )}
+                </View>
+                <Text style={[styles.shareCopyLinkText, isCopied && styles.shareCopiedText]}>
+                  {isCopied ? 'Copied!' : 'Copy link'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -708,60 +1034,80 @@ function StudentHomeScreen() {
         onSuccess={() => {
           setShowJoinModal(false);
           refetchStudentBatches();
-          showToast('Join request sent to Dinesh Sir!');
+          refetch();
+          showToast('Batch updated successfully!');
         }}
       />
 
-      {/* Free Video Player Modal */}
+      {/* Free Video Player Popup Modal */}
       <Modal
         visible={Boolean(selectedVideo)}
         transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedVideo(null)}
+        animationType="fade"
+        onRequestClose={handleCloseVideoModal}
       >
         <View style={styles.videoModalOverlay}>
-          <View style={styles.videoModalContent}>
-            {/* Modal Header */}
+          {/* Backdrop dismiss */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={handleCloseVideoModal}
+          />
+
+          <View style={styles.videoModalPopup}>
+            {/* Minimal Header */}
             <View style={styles.videoModalHeader}>
-              <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.videoModalCategory}>FREE LECTURE PREVIEW</Text>
+              <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={styles.videoModalTitle} numberOfLines={2}>
                   {selectedVideo?.title}
                 </Text>
-              </View>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setSelectedVideo(null)}
-                style={styles.videoModalCloseButton}
-              >
-                <X size={18} color="#0F172A" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Video Player Display */}
-            {selectedVideo && (
-              <View style={styles.modalPlayerWrapper}>
-                <Image
-                  source={selectedVideo.thumbnail}
-                  style={styles.modalPlayerThumbnail}
-                  contentFit="cover"
-                />
-                <View style={styles.modalPlayButtonOverlay}>
-                  <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-                </View>
-                <View style={styles.modalDurationBadge}>
-                  <Text style={styles.modalDurationText}>
-                    {selectedVideo.duration}
+                <View style={styles.videoModalSubtitleRow}>
+                  <Clock size={11} color="#64748B" strokeWidth={2.2} />
+                  <Text style={styles.videoModalSubtitleText}>
+                    {selectedVideo?.duration} • {selectedVideo?.category}
                   </Text>
                 </View>
               </View>
-            )}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleCloseVideoModal}
+                style={styles.videoModalCloseButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <X size={15} color="#64748B" strokeWidth={2.4} />
+              </TouchableOpacity>
+            </View>
 
-            {/* Teacher Details & Description */}
-            <View style={styles.videoModalMeta}>
-              <View style={styles.videoFacultyRow}>
+            {/* Video Player Display (Clean & Responsive) */}
+            <View style={styles.modalPlayerWrapper}>
+              {selectedVideo?.youtubeId ? (
+                <YoutubePlayer
+                  height={205}
+                  play={isVideoPlaying}
+                  videoId={selectedVideo.youtubeId}
+                  onChangeState={(state: string) => {
+                    if (state === 'ended') {
+                      setIsVideoPlaying(false);
+                    }
+                  }}
+                />
+              ) : (
                 <Image
-                  source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                  source={selectedVideo?.thumbnail}
+                  style={styles.modalPlayerThumbnail}
+                  contentFit="cover"
+                />
+              )}
+            </View>
+
+            {/* Minimal Teacher Details & YouTube Action */}
+            <View style={styles.videoModalFooterRow}>
+              <View style={styles.videoFacultyMinimal}>
+                <Image
+                  source={
+                    getFacultyAvatarSource(selectedVideo?.faculty) ||
+                    require('../../../assets/Dinesh Singh Rajput.jpeg')
+                  }
                   style={styles.videoFacultyAvatar}
                 />
                 <View>
@@ -769,27 +1115,22 @@ function StudentHomeScreen() {
                     {selectedVideo?.faculty || 'Dinesh Singh Rajput'}
                   </Text>
                   <Text style={styles.videoFacultyRole}>
-                    Founder & Head of Mathematics
+                    {selectedVideo?.facultyRole || 'Founder & Head of Mathematics'}
                   </Text>
                 </View>
               </View>
 
-              <Text style={styles.videoModalDescription}>
-                {selectedVideo?.description}
-              </Text>
-            </View>
-
-            {/* Actions */}
-            <View style={styles.videoModalActions}>
               <TouchableOpacity
-                activeOpacity={0.8}
+                activeOpacity={0.75}
                 onPress={() => {
-                  setSelectedVideo(null);
-                  router.push('/(app)/free-material' as any);
+                  if (selectedVideo?.youtubeId) {
+                    Linking.openURL(`https://www.youtube.com/watch?v=${selectedVideo.youtubeId}`).catch(() => {});
+                  }
                 }}
-                style={styles.viewMoreVideosButton}
+                style={styles.minimalYoutubeButton}
               >
-                <Text style={styles.viewMoreVideosText}>Explore All Free Videos</Text>
+                <Play size={11} color="#DC2626" fill="#DC2626" />
+                <Text style={styles.minimalYoutubeText}>YouTube</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -802,47 +1143,55 @@ function StudentHomeScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#4845D2',
+    backgroundColor: '#F8FAFC',
   },
-  // 1. Header Styles: Solid #4845D2 Action Bar
-  headerContainer: {
-    backgroundColor: '#4845D2',
-    elevation: 4,
-    shadowColor: '#1E1B4B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
+  // 1. Floating Header Styles: Floating Card matching other sections
+  floatingHeaderWrapper: {
+    paddingHorizontal: 14,
+    paddingBottom: 4,
+    backgroundColor: '#F8FAFC',
     zIndex: 10,
   },
-  headerContent: {
-    height: 56,
+  floatingHeaderCard: {
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#4845D2',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+    elevation: 3,
+    shadowColor: '#1E1B4B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.16,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   headerIconButton: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   headerTitleWrapper: {
     flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   headerTitleText: {
-    fontSize: 15.5,
+    fontSize: 14.5,
     fontWeight: '700',
     color: '#FFFFFF',
-    lineHeight: 20,
-    letterSpacing: 0.2,
+    lineHeight: 19,
+    letterSpacing: 0.15,
   },
   bellBadge: {
     position: 'absolute',
-    top: 3,
-    right: 4,
+    top: -1,
+    right: -1,
     minWidth: 15,
     height: 15,
     borderRadius: 7.5,
@@ -870,19 +1219,18 @@ const styles = StyleSheet.create({
   },
   bannersScrollContent: {
     paddingHorizontal: 14,
-    gap: 12,
   },
   bannerCard: {
     height: 165,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     elevation: 2,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 3,
   },
   bannerImage: {
@@ -897,13 +1245,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   bannerDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#CBD5E1',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#D1D5DB',
   },
   bannerDotActive: {
-    width: 16,
+    width: 14,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: '#4845D2',
   },
 
@@ -957,6 +1307,24 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  videoDurationBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+  },
+  videoDurationText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
   playIconOverlay: {
     position: 'absolute',
     top: 10,
@@ -968,11 +1336,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  videoBottomOverlayRow: {
+  videoBottomScrim: {
     position: 'absolute',
-    bottom: 8,
-    left: 10,
-    right: 10,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.36)',
+  },
+  videoBottomOverlayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -1010,6 +1384,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    overflow: 'hidden',
     elevation: 2,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 1.5 },
@@ -1038,6 +1413,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0F172A',
     lineHeight: 21,
+    flex: 1,
+    marginRight: 8,
   },
   batchSubtitleText: {
     fontSize: 13,
@@ -1051,6 +1428,11 @@ const styles = StyleSheet.create({
     color: '#0284C7',
     marginTop: 10,
   },
+  joinAnotherButtonText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
   enrolledBadge: {
     backgroundColor: '#ECFDF5',
     paddingHorizontal: 7,
@@ -1058,6 +1440,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#A7F3D0',
+    flexShrink: 0,
   },
   enrolledBadgeText: {
     fontSize: 10.5,
@@ -1078,83 +1461,167 @@ const styles = StyleSheet.create({
     color: '#2563EB',
   },
 
-  // 5. "Share the app" Card Styles (Screenshot 20-23-35 match)
+  // 5. "Share the app" Card Styles
   shareAppSection: {
     paddingHorizontal: 14,
     paddingTop: 14,
   },
   shareAppCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     elevation: 2,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1.5 },
+    shadowColor: '#1E1B4B',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowRadius: 6,
     overflow: 'hidden',
     position: 'relative',
   },
-  shareWatermarkBlob: {
+  shareWatermarkContainer: {
     position: 'absolute',
-    top: -20,
-    right: -20,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: 'rgba(238, 242, 255, 0.65)',
+    top: -35,
+    right: -35,
+    width: 170,
+    height: 170,
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 0,
   },
-  shareTitleText: {
-    fontSize: 15.5,
-    fontWeight: '700',
-    color: '#0F172A',
+  shareRingOuter: {
+    position: 'absolute',
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    borderWidth: 1.5,
+    borderColor: 'rgba(186, 230, 253, 0.45)',
+    backgroundColor: 'rgba(240, 249, 255, 0.35)',
+  },
+  shareRingMid: {
+    position: 'absolute',
+    width: 118,
+    height: 118,
+    borderRadius: 59,
+    borderWidth: 1.5,
+    borderColor: 'rgba(186, 230, 253, 0.65)',
+    backgroundColor: 'rgba(224, 242, 254, 0.3)',
+  },
+  shareRingInner: {
+    position: 'absolute',
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: 'rgba(186, 230, 253, 0.45)',
+  },
+  shareHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     zIndex: 1,
+  },
+  shareTitleText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.2,
   },
   shareSubtitleText: {
     fontSize: 13,
     color: '#64748B',
     marginTop: 3,
     lineHeight: 18,
+  },
+  shareInviteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
     zIndex: 1,
+  },
+  shareInviteBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#4845D2',
+    letterSpacing: 0.5,
   },
   shareActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    gap: 10,
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
     zIndex: 1,
   },
-  shareActionButton: {
+  shareWhatsAppPill: {
+    flex: 1.15,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 4,
+    gap: 7,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
   },
   whatsappIconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#25D366',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shareActionLinkText: {
-    fontSize: 13,
-    fontWeight: '600',
+  shareWhatsAppText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  shareCopyLinkPill: {
+    flex: 0.85,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  shareCopiedPill: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  copyLinkIconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copiedIconCircle: {
+    backgroundColor: '#D1FAE5',
+  },
+  shareCopyLinkText: {
+    fontSize: 12.5,
+    fontWeight: '700',
     color: '#0284C7',
   },
-  shareDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: '#E2E8F0',
+  shareCopiedText: {
+    color: '#059669',
   },
 
   // 6. Announcements Styles
@@ -1199,123 +1666,116 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Video Modal Styles
+  // Video Modal Popup Styles (Minimal & Clean)
   videoModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
-  videoModalContent: {
+  videoModalPopup: {
+    width: '100%',
+    maxWidth: 400,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 18,
-    maxHeight: '85%',
+    borderRadius: 20,
+    padding: 14,
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   videoModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  videoModalCategory: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#2563EB',
-    letterSpacing: 0.6,
-    marginBottom: 2,
+    marginBottom: 10,
   },
   videoModalTitle: {
-    fontSize: 15.5,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0F172A',
+    lineHeight: 18,
+    letterSpacing: -0.2,
+  },
+  videoModalSubtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
+  },
+  videoModalSubtitleText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#64748B',
   },
   videoModalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   modalPlayerWrapper: {
     width: '100%',
-    height: 190,
-    borderRadius: 14,
+    height: 205,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#0F172A',
-    position: 'relative',
-    alignItems: 'center',
+    backgroundColor: '#000000',
     justifyContent: 'center',
   },
   modalPlayerThumbnail: {
     width: '100%',
     height: '100%',
   },
-  modalPlayButtonOverlay: {
-    position: 'absolute',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(37, 99, 235, 0.88)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalDurationBadge: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  modalDurationText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  videoModalMeta: {
-    marginTop: 14,
-  },
-  videoFacultyRow: {
+  videoModalFooterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 6,
+  },
+  videoFacultyMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
   },
   videoFacultyAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#E2E8F0',
   },
   videoFacultyName: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#0F172A',
   },
   videoFacultyRole: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#64748B',
   },
-  videoModalDescription: {
-    fontSize: 12.5,
-    color: '#475569',
-    lineHeight: 18,
-  },
-  videoModalActions: {
-    marginTop: 16,
-  },
-  viewMoreVideosButton: {
-    backgroundColor: '#4845D2',
-    paddingVertical: 12,
-    borderRadius: 12,
+  minimalYoutubeButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
-  viewMoreVideosText: {
-    fontSize: 13.5,
+  minimalYoutubeText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#DC2626',
   },
 });

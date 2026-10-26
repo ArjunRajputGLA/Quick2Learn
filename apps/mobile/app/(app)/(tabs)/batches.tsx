@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Share,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -33,6 +34,8 @@ import {
   X,
   BookOpen,
   UserCheck,
+  MessageCircle,
+  HelpCircle,
 } from 'lucide-react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
@@ -43,7 +46,7 @@ import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
-import { useMe, useStudentBatches } from '../../../src/api/hooks';
+import { useMe, useStudentBatches, DEFAULT_INSTITUTE_BATCHES } from '../../../src/api/hooks';
 import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import { BatchCard } from '../../../src/components/batches/BatchCard';
 import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
@@ -94,6 +97,9 @@ export default function BatchesScreen() {
   // Student hook data
   const { data: studentData, isLoading: isStudentLoading, refetch: refetchStudent, isRefetching: isStudentRefetching } = useStudentBatches();
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinModalCode, setJoinModalCode] = useState('');
+  const [joinModalTab, setJoinModalTab] = useState<'code' | 'scanner'>('code');
+  const [studentExploreClassFilter, setStudentExploreClassFilter] = useState<'all' | '9' | '10' | '11' | '12'>('all');
 
   // Admin store data
   const adminStore = useAdminStore();
@@ -141,6 +147,74 @@ export default function BatchesScreen() {
       return matchSearch && matchClass;
     });
   }, [adminStore.batches, adminSearchQuery, adminClassFilter]);
+
+  // Explored Institute Batches for Students
+  const exploreBatches = useMemo(() => {
+    const list: Array<{
+      id: string;
+      title: string;
+      subject: string;
+      classLevel: number;
+      board: string;
+      mode: string;
+      joinCode: string;
+      faculty: string;
+      room?: string;
+      scheduleText: string;
+    }> = [];
+
+    const seenCodes = new Set<string>();
+
+    // Add default institute batches
+    DEFAULT_INSTITUTE_BATCHES.forEach((b) => {
+      if (!seenCodes.has(b.joinCode)) {
+        seenCodes.add(b.joinCode);
+        list.push({
+          id: b.id,
+          title: b.title,
+          subject: b.subjectName,
+          classLevel: b.classLevel,
+          board: b.board,
+          mode: b.mode,
+          joinCode: b.joinCode,
+          faculty: b.teacherName,
+          room: b.mode === 'online' ? 'Live Digital Classroom' : 'Quick2Learn Centre • Room 101',
+          scheduleText:
+            b.classLevel === 12
+              ? 'Mon - Sat • 5:00 PM – 6:30 PM'
+              : b.classLevel === 11
+              ? 'Mon - Sat • 6:30 PM – 8:00 PM'
+              : 'Mon, Wed, Fri • 4:00 PM – 5:30 PM',
+        });
+      }
+    });
+
+    // Add any custom batches from adminStore
+    adminStore.batches.forEach((b) => {
+      if (!seenCodes.has(b.joinCode)) {
+        seenCodes.add(b.joinCode);
+        list.push({
+          id: b.id,
+          title: b.title,
+          subject: b.subject,
+          classLevel: b.classLevel,
+          board: b.board,
+          mode: b.mode,
+          joinCode: b.joinCode,
+          faculty: b.faculty,
+          room: b.room || 'Room 101',
+          scheduleText: formatScheduleSummary(b.scheduleDays, b.scheduleTime),
+        });
+      }
+    });
+
+    return list;
+  }, [adminStore.batches]);
+
+  const filteredExploreBatches = useMemo(() => {
+    if (studentExploreClassFilter === 'all') return exploreBatches;
+    return exploreBatches.filter((b) => b.classLevel.toString() === studentExploreClassFilter);
+  }, [exploreBatches, studentExploreClassFilter]);
 
   const handleRefresh = async () => {
     if (isAdmin) {
@@ -212,7 +286,12 @@ export default function BatchesScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={() => setShowJoinModal(true)}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setJoinModalCode('');
+                  setJoinModalTab('code');
+                  setShowJoinModal(true);
+                }}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -632,8 +711,10 @@ export default function BatchesScreen() {
                 </View>
 
                 {pendingRequests.map((req) => (
-                  <View
+                  <TouchableOpacity
                     key={req.id}
+                    activeOpacity={0.85}
+                    onPress={() => router.push(`/batch/${req.batchId}` as any)}
                     className="bg-surface rounded-2xl border border-amber-200/80 p-4 shadow-2xs space-y-2"
                   >
                     <View className="flex-row items-center justify-between">
@@ -663,27 +744,46 @@ export default function BatchesScreen() {
                         : 'Your request could not be approved. Please contact the centre office.'}
                     </Text>
 
-                    <View className="flex-row items-center pt-1 border-t border-border/40">
-                      <Clock size={13} color="#9CA3AF" />
-                      <Text className="text-[11px] text-ink-muted ml-1.5">
-                        Requested on {new Date(req.requestedAt).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                    <View className="flex-row items-center justify-between pt-1 border-t border-border/40">
+                      <View className="flex-row items-center">
+                        <Clock size={13} color="#9CA3AF" />
+                        <Text className="text-[11px] text-ink-muted ml-1.5">
+                          Requested on {new Date(req.requestedAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </Text>
+                      </View>
+                      <Text className="text-[11px] font-bold text-primary">
+                        View Status →
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
 
             {/* Enrolled Batches Section */}
             {!isStudentLoading && batches.length > 0 && (
-              <View style={{ marginBottom: 14 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors['ink-muted'], textTransform: 'uppercase', letterSpacing: 0.6 }}>
+              <View style={{ marginBottom: 18 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#1E293B', textTransform: 'uppercase', letterSpacing: 0.6 }}>
                     My Enrolled Batches ({batches.length})
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setJoinModalCode('');
+                      setJoinModalTab('code');
+                      setShowJoinModal(true);
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                  >
+                    <Plus size={14} color="#2563EB" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>
+                      Add Another
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
                 {batches.map((batch) => (
@@ -696,40 +796,624 @@ export default function BatchesScreen() {
               </View>
             )}
 
-            {/* Empty State when no enrolled batches & no pending requests */}
+            {/* If NO enrolled batches & NO pending requests: Hero Join Card */}
             {!isStudentLoading && batches.length === 0 && pendingRequests.length === 0 && (
-              <View className="bg-surface rounded-2xl p-4 border border-border items-center shadow-2xs mt-2">
-                <View className="w-12 h-12 rounded-xl bg-primary-soft items-center justify-center mb-3 border border-primary/20">
-                  <GraduationCap size={24} color="#2563EB" />
+              <View
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 22,
+                  borderWidth: 1.5,
+                  borderColor: '#DBEAFE',
+                  padding: 18,
+                  marginBottom: 18,
+                  shadowColor: '#2563EB',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 14,
+                  elevation: 3,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <View
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 15,
+                      backgroundColor: '#EFF6FF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 1.5,
+                      borderColor: '#BFDBFE',
+                    }}
+                  >
+                    <GraduationCap size={26} color="#2563EB" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                        Join Your First Batch
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: '#EFF6FF',
+                          paddingHorizontal: 7,
+                          paddingVertical: 2,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: '#BFDBFE',
+                        }}
+                      >
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#2563EB' }}>
+                          2026–27
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 12, color: '#64748B', marginTop: 1 }}>
+                      Quick2Learn Classroom Portal
+                    </Text>
+                  </View>
                 </View>
-                <Text className="text-body font-bold text-ink text-center mb-1">
-                  Join Your First Batch
-                </Text>
-                <Text className="text-caption text-ink-muted text-center mb-4 leading-relaxed max-w-xs">
-                  Access your timetable, live lectures, notes, test series, and teacher announcements.
+
+                <Text style={{ fontSize: 13, color: '#475569', lineHeight: 19, marginBottom: 16 }}>
+                  Access your daily timetable, live lectures, curated chapter notes, and board-pattern test series.
                 </Text>
 
-                <View className="w-full space-y-2">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onPress={() => setShowJoinModal(true)}
-                    icon={<KeyRound size={16} color="#FFFFFF" />}
+                {/* Primary Action Buttons */}
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setJoinModalCode('');
+                      setJoinModalTab('code');
+                      setShowJoinModal(true);
+                    }}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#2563EB',
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      paddingHorizontal: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 7,
+                      shadowColor: '#2563EB',
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 6,
+                      elevation: 2,
+                    }}
                   >
-                    Enter Batch Join Code
-                  </Button>
+                    <KeyRound size={16} color="#FFFFFF" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>
+                      Enter Batch Code
+                    </Text>
+                  </TouchableOpacity>
 
-                  <Button
-                    variant="outline"
-                    size="md"
-                    onPress={() => setShowJoinModal(true)}
-                    icon={<QrCode size={16} color="#2563EB" />}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setJoinModalCode('');
+                      setJoinModalTab('scanner');
+                      setShowJoinModal(true);
+                    }}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#EFF6FF',
+                      borderWidth: 1.5,
+                      borderColor: '#BFDBFE',
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      paddingHorizontal: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 7,
+                    }}
                   >
-                    Scan Classroom QR Code
-                  </Button>
+                    <QrCode size={16} color="#2563EB" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#2563EB' }}>
+                      Scan QR Code
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Quick Join Chips */}
+                <View
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: 12,
+                    padding: 11,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                      <Sparkles size={13} color="#2563EB" />
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155' }}>
+                        Quick Select by Class:
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748B' }}>
+                      Tap to autofill
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {[
+                      { code: 'Q2L012', label: 'Class 12 Maths' },
+                      { code: 'Q2L011', label: 'Class 11 Maths' },
+                      { code: 'Q2L010', label: 'Class 10 Science' },
+                      { code: 'Q2L009', label: 'Class 10 Maths' },
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.code}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          setJoinModalCode(item.code);
+                          setJoinModalTab('code');
+                          setShowJoinModal(true);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#FFFFFF',
+                          borderWidth: 1,
+                          borderColor: '#CBD5E1',
+                          borderRadius: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4.5,
+                          gap: 4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>
+                          {item.code}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#475569', fontWeight: '500' }}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
               </View>
             )}
+
+            {/* "What Unlocks Inside Your Batch" (Grid of 4) */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2, marginBottom: 2 }}>
+                What Unlocks Inside Your Batch
+              </Text>
+              <Text style={{ fontSize: 11.5, color: '#64748B', marginBottom: 10 }}>
+                Essential academic features enabled for classroom students
+              </Text>
+
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 9 }}>
+                {[
+                  {
+                    icon: Video,
+                    color: '#2563EB',
+                    bgColor: '#EFF6FF',
+                    borderColor: '#BFDBFE',
+                    title: 'Live Lectures & Doubts',
+                    desc: 'Interactive live sessions with Dinesh Sir & instant doubt resolution',
+                  },
+                  {
+                    icon: BookOpen,
+                    color: '#059669',
+                    bgColor: '#ECFDF5',
+                    borderColor: '#A7F3D0',
+                    title: 'Digital Notes & DPPs',
+                    desc: 'Hand-crafted chapter PDFs, formula sheets & homework banks',
+                  },
+                  {
+                    icon: CheckCircle2,
+                    color: '#7C3AED',
+                    bgColor: '#F5F3FF',
+                    borderColor: '#DDD6FE',
+                    title: 'Mock Tests & Ranks',
+                    desc: 'Timed board mock exams with detailed scorecards & rank',
+                  },
+                  {
+                    icon: Clock,
+                    color: '#D97706',
+                    bgColor: '#FFFBEB',
+                    borderColor: '#FDE68A',
+                    title: 'Timetable & Attendance',
+                    desc: 'Real-time lecture schedule, room updates & attendance log',
+                  },
+                ].map((feature, idx) => {
+                  const IconComp = feature.icon;
+                  return (
+                    <View
+                      key={idx}
+                      style={{
+                        width: '48%',
+                        flexGrow: 1,
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                        padding: 12,
+                        shadowColor: '#000000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.02,
+                        shadowRadius: 3,
+                        elevation: 1,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          backgroundColor: feature.bgColor,
+                          borderWidth: 1,
+                          borderColor: feature.borderColor,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <IconComp size={17} color={feature.color} />
+                      </View>
+                      <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A', marginBottom: 2 }}>
+                        {feature.title}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#64748B', lineHeight: 15 }}>
+                        {feature.desc}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* "Explore Institute Batches (2026–27)" */}
+            <View style={{ marginBottom: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A', letterSpacing: -0.2 }}>
+                    Explore Institute Batches
+                  </Text>
+                  <View
+                    style={{
+                      backgroundColor: '#EFF6FF',
+                      paddingHorizontal: 6,
+                      paddingVertical: 1.5,
+                      borderRadius: 6,
+                      borderWidth: 1,
+                      borderColor: '#BFDBFE',
+                    }}
+                  >
+                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#2563EB' }}>
+                      2026–27
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Text style={{ fontSize: 11.5, color: '#64748B', marginBottom: 8 }}>
+                Official Quick2Learn offline & hybrid batches for CBSE / ICSE
+              </Text>
+
+              {/* Class Filter Chips */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 6, paddingBottom: 10 }}
+              >
+                <Chip
+                  label="All Classes"
+                  selected={studentExploreClassFilter === 'all'}
+                  onPress={() => setStudentExploreClassFilter('all')}
+                />
+                {(['12', '11', '10', '9'] as const).map((lvl) => (
+                  <Chip
+                    key={lvl}
+                    label={`Class ${lvl}`}
+                    selected={studentExploreClassFilter === lvl}
+                    onPress={() => setStudentExploreClassFilter(lvl)}
+                  />
+                ))}
+              </ScrollView>
+
+              {/* Explored Batches Cards */}
+              <View style={{ gap: 9 }}>
+                {filteredExploreBatches.map((b) => {
+                  const avatarSource = getFacultyAvatarSource(b.faculty);
+                  return (
+                    <View
+                      key={b.id}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                        padding: 13,
+                        shadowColor: '#000000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.03,
+                        shadowRadius: 3,
+                        elevation: 1,
+                      }}
+                    >
+                      {/* Top Badges */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                          <Badge label={`Class ${b.classLevel}`} variant="neutral" size="sm" />
+                          <Badge label={b.board.toUpperCase()} variant="neutral" size="sm" />
+                        </View>
+                        <Badge
+                          label={b.mode.toUpperCase()}
+                          variant={b.mode === 'online' ? 'primary' : b.mode === 'hybrid' ? 'warning' : 'neutral'}
+                          size="sm"
+                        />
+                      </View>
+
+                      {/* Title */}
+                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0F172A', lineHeight: 18, marginBottom: 7 }}>
+                        {b.title}
+                      </Text>
+
+                      {/* Faculty info */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          backgroundColor: '#F8FAFC',
+                          borderRadius: 10,
+                          padding: 8,
+                          marginBottom: 8,
+                          borderWidth: 1,
+                          borderColor: '#F1F5F9',
+                        }}
+                      >
+                        {avatarSource ? (
+                          <Image
+                            source={avatarSource}
+                            style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#CBD5E1' }}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 16,
+                              backgroundColor: '#EFF6FF',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderWidth: 1,
+                              borderColor: '#BFDBFE',
+                            }}
+                          >
+                            <Users size={15} color="#2563EB" />
+                          </View>
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E293B' }}>
+                            {b.faculty}
+                          </Text>
+                          <Text style={{ fontSize: 10.5, color: '#64748B' }}>
+                            {b.subject} • Senior Faculty
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Schedule info */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                        <Clock size={12} color="#64748B" />
+                        <Text style={{ fontSize: 11, color: '#475569', fontWeight: '500' }}>
+                          {b.scheduleText}
+                        </Text>
+                      </View>
+
+                      {/* Bottom row: Join Code & Join CTA */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: '#F1F5F9',
+                        }}
+                      >
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            setJoinModalCode(b.joinCode);
+                            setJoinModalTab('code');
+                            setShowJoinModal(true);
+                          }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#EFF6FF',
+                            borderRadius: 7,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            gap: 4,
+                            borderWidth: 1,
+                            borderColor: '#BFDBFE',
+                          }}
+                        >
+                          <KeyRound size={11} color="#2563EB" />
+                          <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>
+                            Code: {b.joinCode}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            setJoinModalCode(b.joinCode);
+                            setJoinModalTab('code');
+                            setShowJoinModal(true);
+                          }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#2563EB',
+                            borderRadius: 9,
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            gap: 4,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' }}>
+                            Join Batch
+                          </Text>
+                          <ChevronRight size={13} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* "How to Find Your Batch Code" Guide */}
+            <View
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
+                padding: 14,
+                marginBottom: 16,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                <HelpCircle size={16} color="#2563EB" />
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}>
+                  Where to Find Your Batch Code?
+                </Text>
+              </View>
+
+              <View style={{ gap: 8 }}>
+                {[
+                  {
+                    num: '1',
+                    title: 'Admission Fee Receipt',
+                    desc: 'Check your official receipt provided by Quick2Learn centre desk.',
+                  },
+                  {
+                    num: '2',
+                    title: 'Classroom Notice Board',
+                    desc: 'Batch codes and timetables are posted outside each lecture room.',
+                  },
+                  {
+                    num: '3',
+                    title: 'WhatsApp Batch Broadcast',
+                    desc: 'Your faculty or batch coordinator will post the join code in the group.',
+                  },
+                ].map((step) => (
+                  <View key={step.num} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+                    <View
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 10,
+                        backgroundColor: '#EFF6FF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: '#BFDBFE',
+                        marginTop: 1,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#2563EB' }}>
+                        {step.num}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#1E293B' }}>
+                        {step.title}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#64748B', lineHeight: 14.5 }}>
+                        {step.desc}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Faculty WhatsApp Support Card */}
+            <View
+              style={{
+                backgroundColor: '#F0FDF4',
+                borderRadius: 16,
+                borderWidth: 1.5,
+                borderColor: '#BBF7D0',
+                padding: 14,
+                marginBottom: 20,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 6 }}>
+                <View
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    backgroundColor: '#DCFCE7',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#86EFAC',
+                  }}
+                >
+                  <MessageCircle size={17} color="#16A34A" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#14532D' }}>
+                    Don't Have Your Batch Code?
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#15803D' }}>
+                    Contact Dinesh Sir directly on WhatsApp
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 11.5, color: '#166534', lineHeight: 16, marginBottom: 10 }}>
+                Send your student name and class level. The Quick2Learn administration team will verify and send your batch join code immediately.
+              </Text>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  Linking.openURL(
+                    'https://wa.me/919412278775?text=Hello%20Dinesh%20Sir%2C%20I%20am%20a%20student%20at%20Quick2Learn%20and%20need%20my%20batch%20join%20code.'
+                  ).catch(() => {
+                    Alert.alert('Quick2Learn Support', 'Please contact Dinesh Sir at +91 94122 78775.');
+                  });
+                }}
+                style={{
+                  backgroundColor: '#16A34A',
+                  borderRadius: 10,
+                  paddingVertical: 9,
+                  paddingHorizontal: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 7,
+                }}
+              >
+                <MessageCircle size={15} color="#FFFFFF" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                  Chat with Dinesh Sir (+91 94122 78775)
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -739,7 +1423,13 @@ export default function BatchesScreen() {
       {/* Student: Join Batch Modal */}
       <JoinBatchModal
         visible={showJoinModal}
-        onClose={() => setShowJoinModal(false)}
+        initialCode={joinModalCode}
+        initialTab={joinModalTab}
+        onClose={() => {
+          setShowJoinModal(false);
+          setJoinModalCode('');
+          setJoinModalTab('code');
+        }}
         onSuccess={() => {
           refetchStudent();
         }}

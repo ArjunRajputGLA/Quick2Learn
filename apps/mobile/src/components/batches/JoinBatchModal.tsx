@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -38,24 +38,47 @@ interface JoinBatchModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess?: (batchSlug?: string) => void;
+  initialCode?: string;
+  initialTab?: 'code' | 'scanner';
 }
 
-export function JoinBatchModal({ visible, onClose, onSuccess }: JoinBatchModalProps) {
+export function JoinBatchModal({
+  visible,
+  onClose,
+  onSuccess,
+  initialCode,
+  initialTab,
+}: JoinBatchModalProps) {
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<'code' | 'scanner'>('code');
-  const [code, setCode] = useState('');
+  const [tab, setTab] = useState<'code' | 'scanner'>(initialTab || 'code');
+  const [code, setCode] = useState(initialCode ? initialCode.toUpperCase() : '');
   const [result, setResult] = useState<BatchJoinResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      if (initialCode !== undefined) {
+        setCode(initialCode.toUpperCase());
+      }
+      if (initialTab !== undefined) {
+        setTab(initialTab);
+      }
+      setErrorMessage(null);
+      setResult(null);
+    } else {
+      resetState();
+    }
+  }, [visible, initialCode, initialTab]);
 
   const [permission, requestPermission] = useCameraPermissions();
   const joinBatchMutation = useJoinBatch();
 
   const resetState = () => {
-    setCode('');
+    setCode(initialCode ? initialCode.toUpperCase() : '');
     setResult(null);
     setErrorMessage(null);
-    setTab('code');
+    setTab(initialTab || 'code');
   };
 
   const handleClose = () => {

@@ -2,6 +2,8 @@ import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
 export const ADMIN_DATA_STORAGE_KEY = 'q2l_admin_portal_data_v6';
+export const STUDENT_JOINED_BATCHES_KEY = 'q2l_student_joined_batches_v1';
+export const STUDENT_PENDING_REQUESTS_KEY = 'q2l_student_pending_requests_v1';
 
 export interface AdminCourseItem {
   id: string;
@@ -439,7 +441,7 @@ interface AdminStoreActions {
   deleteBatch: (id: string) => Promise<void>;
   regenerateJoinCode: (id: string) => Promise<string>;
   approveJoinRequest: (id: string) => Promise<void>;
-  rejectJoinRequest: (id: string) => Promise<void>;
+  rejectJoinRequest: (id: string, note?: string) => Promise<void>;
   approveAllPendingJoinRequests: () => Promise<void>;
   deleteJoinRequest: (id: string) => Promise<void>;
   addJoinRequest: (request: Omit<JoinRequestItem, 'id' | 'requestedAt'>) => Promise<JoinRequestItem>;
@@ -520,6 +522,57 @@ interface AdminStoreActions {
 }
 
 export type AdminStore = AdminPortalState & AdminStoreActions;
+
+async function syncApprovalToStudentStorage(batchId: string, batchTitle?: string, classLevel?: number) {
+  try {
+    const enrolledJson = await SecureStore.getItemAsync(STUDENT_JOINED_BATCHES_KEY).catch(() => null);
+    let enrolled: any[] = enrolledJson ? JSON.parse(enrolledJson) : [];
+    if (!enrolled.some((b) => b.id === batchId)) {
+      const storeBatch = useAdminStore.getState().batches.find((b) => b.id === batchId);
+      enrolled.unshift({
+        id: batchId,
+        slug: batchId,
+        title: storeBatch?.title || batchTitle || 'Batch',
+        subtitle: storeBatch?.courseName || `Class ${storeBatch?.classLevel || classLevel || 12} - Tests available`,
+        classLevel: storeBatch?.classLevel || classLevel || 12,
+        board: storeBatch?.board || 'cbse',
+        mode: storeBatch?.mode || 'hybrid',
+        teacherName: storeBatch?.faculty || 'Dinesh Singh Rajput',
+        subjectName: storeBatch?.subject || 'Mathematics',
+        progressPercentage: 0,
+        enrolledAt: new Date().toISOString(),
+      });
+      await SecureStore.setItemAsync(STUDENT_JOINED_BATCHES_KEY, JSON.stringify(enrolled)).catch(() => {});
+    }
+
+    const pendingJson = await SecureStore.getItemAsync(STUDENT_PENDING_REQUESTS_KEY).catch(() => null);
+    if (pendingJson) {
+      let pending: any[] = JSON.parse(pendingJson);
+      pending = pending.filter((r) => r.batchId !== batchId);
+      await SecureStore.setItemAsync(STUDENT_PENDING_REQUESTS_KEY, JSON.stringify(pending)).catch(() => {});
+    }
+  } catch {}
+}
+
+async function syncRejectionToStudentStorage(batchId: string, note?: string) {
+  try {
+    const enrolledJson = await SecureStore.getItemAsync(STUDENT_JOINED_BATCHES_KEY).catch(() => null);
+    if (enrolledJson) {
+      let enrolled: any[] = JSON.parse(enrolledJson);
+      enrolled = enrolled.filter((b) => b.id !== batchId);
+      await SecureStore.setItemAsync(STUDENT_JOINED_BATCHES_KEY, JSON.stringify(enrolled)).catch(() => {});
+    }
+
+    const pendingJson = await SecureStore.getItemAsync(STUDENT_PENDING_REQUESTS_KEY).catch(() => null);
+    if (pendingJson) {
+      let pending: any[] = JSON.parse(pendingJson);
+      pending = pending.map((r) =>
+        r.batchId === batchId ? { ...r, status: 'rejected', note: note || 'Request declined by administration' } : r
+      );
+      await SecureStore.setItemAsync(STUDENT_PENDING_REQUESTS_KEY, JSON.stringify(pending)).catch(() => {});
+    }
+  } catch {}
+}
 
 export const useAdminStore = create<AdminStore>((set, get) => ({
   ...INITIAL_ADMIN_DATA,
@@ -619,14 +672,19 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ joinRequests: updatedReqs, batches: updatedBatches });
     await persistState(get());
+    await syncApprovalToStudentStorage(req.batchId, req.batchTitle, req.classLevel);
   },
 
-  rejectJoinRequest: async (requestId) => {
+  rejectJoinRequest: async (requestId, note) => {
+    const req = get().joinRequests.find((r) => r.id === requestId);
     const updatedReqs = get().joinRequests.map((r) =>
-      r.id === requestId ? { ...r, status: 'rejected' as const } : r
+      r.id === requestId ? { ...r, status: 'rejected' as const, note: note || r.note } : r
     );
     set({ joinRequests: updatedReqs });
     await persistState(get());
+    if (req) {
+      await syncRejectionToStudentStorage(req.batchId, note || req.note);
+    }
   },
 
   approveAllPendingJoinRequests: async () => {
@@ -645,6 +703,9 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     });
     set({ joinRequests: updatedReqs, batches: updatedBatches });
     await persistState(get());
+    for (const r of pendingReqs) {
+      await syncApprovalToStudentStorage(r.batchId, r.batchTitle, r.classLevel);
+    }
   },
 
   deleteJoinRequest: async (requestId) => {

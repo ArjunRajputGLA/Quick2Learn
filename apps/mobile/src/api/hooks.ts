@@ -153,6 +153,63 @@ import { getFacultyAvatarUri } from "../lib/facultyImages";
 
 export const DEMO_MODE_STORAGE_KEY = "q2l_demo_mode";
 export const ACTIVE_USER_STORAGE_KEY = "q2l_active_user";
+export const STUDENT_JOINED_BATCHES_KEY = "q2l_student_joined_batches_v1";
+export const STUDENT_PENDING_REQUESTS_KEY = "q2l_student_pending_requests_v1";
+
+export const DEFAULT_INSTITUTE_BATCHES = [
+  {
+    id: "b0000000-0000-0000-0000-000000000001",
+    title: "Class XII CBSE Mathematics Comprehensive Masterclass",
+    joinCode: "Q2L012",
+    classLevel: 12,
+    board: "cbse",
+    subjectName: "Mathematics",
+    mode: "hybrid",
+    status: "ongoing",
+    teacherName: "Dinesh Singh Rajput",
+    progressPercentage: 45,
+    enrolledAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "b0000000-0000-0000-0000-000000000002",
+    title: "Class XI CBSE Mathematics Foundation Program",
+    joinCode: "Q2L011",
+    classLevel: 11,
+    board: "cbse",
+    subjectName: "Mathematics",
+    mode: "offline",
+    status: "ongoing",
+    teacherName: "Dinesh Singh Rajput",
+    progressPercentage: 35,
+    enrolledAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "b0000000-0000-0000-0000-000000000003",
+    title: "Class X ICSE Science & Biology Mastery Batch",
+    joinCode: "Q2L010",
+    classLevel: 10,
+    board: "icse",
+    subjectName: "Science & Biology",
+    mode: "online",
+    status: "ongoing",
+    teacherName: "Namita Singh Rajput",
+    progressPercentage: 50,
+    enrolledAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "b0000000-0000-0000-0000-000000000004",
+    title: "Class X CBSE Mathematics Board Booster 2026–27",
+    joinCode: "Q2L009",
+    classLevel: 10,
+    board: "cbse",
+    subjectName: "Mathematics",
+    mode: "offline",
+    status: "ongoing",
+    teacherName: "Dinesh Singh Rajput",
+    progressPercentage: 60,
+    enrolledAt: "2026-01-01T00:00:00.000Z",
+  },
+];
 
 export const DEMO_USER_ME: MeResponse = {
   user: {
@@ -1451,31 +1508,138 @@ export function useStudentBatches() {
         };
       });
 
+      // 1. Check local joined batches in SecureStore
+      const localJoinedJson = await SecureStore.getItemAsync(STUDENT_JOINED_BATCHES_KEY).catch(() => null);
+      let localJoined: any[] = [];
+      if (localJoinedJson) {
+        try {
+          localJoined = JSON.parse(localJoinedJson);
+        } catch {}
+      }
+
+      // 2. Check local pending requests in SecureStore
+      const localPendingJson = await SecureStore.getItemAsync(STUDENT_PENDING_REQUESTS_KEY).catch(() => null);
+      let localPending: any[] = [];
+      if (localPendingJson) {
+        try {
+          localPending = JSON.parse(localPendingJson);
+        } catch {}
+      }
+
+      // 3. Sync with adminStore.joinRequests
+      let pendingUpdated = false;
+      let joinedUpdated = false;
+      adminStore.joinRequests.forEach((req) => {
+        if (req.status === 'approved') {
+          if (!localJoined.some((b) => b.id === req.batchId)) {
+            const matchedAdminBatch = adminStore.batches.find((b) => b.id === req.batchId);
+            const fallbackDefault = DEFAULT_INSTITUTE_BATCHES.find((b) => b.id === req.batchId);
+            const batchToAdd = matchedAdminBatch
+              ? {
+                  id: matchedAdminBatch.id,
+                  slug: matchedAdminBatch.id,
+                  title: matchedAdminBatch.title,
+                  subtitle: matchedAdminBatch.courseName || `Class ${matchedAdminBatch.classLevel} - Tests available`,
+                  classLevel: matchedAdminBatch.classLevel,
+                  board: matchedAdminBatch.board,
+                  mode: matchedAdminBatch.mode,
+                  teacherName: matchedAdminBatch.faculty || 'Dinesh Singh Rajput',
+                  subjectName: matchedAdminBatch.subject || 'Mathematics',
+                  progressPercentage: 0,
+                  enrolledAt: new Date().toISOString(),
+                }
+              : fallbackDefault || {
+                  id: req.batchId,
+                  slug: req.batchId,
+                  title: req.batchTitle,
+                  subtitle: `Class ${req.classLevel} - Tests available`,
+                  classLevel: req.classLevel,
+                  board: 'cbse',
+                  mode: 'hybrid',
+                  teacherName: 'Dinesh Singh Rajput',
+                  subjectName: 'Mathematics',
+                  progressPercentage: 0,
+                  enrolledAt: new Date().toISOString(),
+                };
+            localJoined.unshift(batchToAdd);
+            joinedUpdated = true;
+          }
+          if (localPending.some((r) => r.batchId === req.batchId && r.status === 'pending')) {
+            localPending = localPending.filter((r) => r.batchId !== req.batchId);
+            pendingUpdated = true;
+          }
+        } else if (req.status === 'rejected') {
+          if (localJoined.some((b) => b.id === req.batchId)) {
+            localJoined = localJoined.filter((b) => b.id !== req.batchId);
+            joinedUpdated = true;
+          }
+          const existingPendingIdx = localPending.findIndex((r) => r.batchId === req.batchId);
+          if (existingPendingIdx >= 0) {
+            if (localPending[existingPendingIdx].status !== 'rejected') {
+              localPending[existingPendingIdx] = {
+                ...localPending[existingPendingIdx],
+                status: 'rejected',
+                note: req.note || 'Request declined by administration',
+              };
+              pendingUpdated = true;
+            }
+          }
+        } else if (req.status === 'pending') {
+          if (!localPending.some((r) => r.batchId === req.batchId)) {
+            localPending.unshift({
+              id: req.id,
+              batchId: req.batchId,
+              batchTitle: req.batchTitle,
+              batchMode: 'hybrid',
+              classLevel: req.classLevel,
+              status: 'pending',
+              requestedAt: req.requestedAt,
+            });
+            pendingUpdated = true;
+          }
+        }
+      });
+
+      if (joinedUpdated) {
+        await SecureStore.setItemAsync(STUDENT_JOINED_BATCHES_KEY, JSON.stringify(localJoined)).catch(() => {});
+      }
+      if (pendingUpdated) {
+        await SecureStore.setItemAsync(STUDENT_PENDING_REQUESTS_KEY, JSON.stringify(localPending)).catch(() => {});
+      }
+
+      // 4. In online non-demo mode, query /batches/mine
       try {
         const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
         if (isDemo !== 'true') {
           const res = await apiClient.get('/batches/mine', { schema: batchesMineResponseSchema });
-          if (res?.enrolled?.length) {
-            const existingIds = new Set(res.enrolled.map((e) => e.id));
-            const merged = [...res.enrolled];
-            mappedAdminBatches.forEach((ab) => {
-              if (!existingIds.has(ab.id)) {
-                merged.unshift(ab as any);
+          if (res) {
+            const existingIds = new Set((res.enrolled || []).map((e) => e.id));
+            const merged = [...(res.enrolled || [])];
+            localJoined.forEach((lb) => {
+              if (!existingIds.has(lb.id)) {
+                merged.unshift(lb);
+                existingIds.add(lb.id);
+              }
+            });
+            const mergedPending = [...(res.pendingRequests || [])];
+            const pendingIds = new Set(mergedPending.map((p) => p.batchId));
+            localPending.forEach((lp) => {
+              if (!pendingIds.has(lp.batchId)) {
+                mergedPending.unshift(lp);
+                pendingIds.add(lp.batchId);
               }
             });
             return {
-              ...res,
               enrolled: merged,
+              pendingRequests: mergedPending,
             };
           }
         }
-      } catch (err) {
-        // Fall back to admin store batches
-      }
+      } catch (err) {}
 
       return {
-        enrolled: mappedAdminBatches.length ? (mappedAdminBatches as any) : [],
-        pendingRequests: [],
+        enrolled: localJoined,
+        pendingRequests: localPending,
       };
     },
     staleTime: 30 * 1000,
@@ -1492,9 +1656,82 @@ export function useBatchDetail(id: string) {
       const adminStore = useAdminStore.getState();
       const adminBatch = adminStore.batches.find((b) => b.id === id);
 
+      // 1. Check local enrolled
+      const localJoinedJson = await SecureStore.getItemAsync(STUDENT_JOINED_BATCHES_KEY).catch(() => null);
+      let localJoined: any[] = [];
+      if (localJoinedJson) {
+        try {
+          localJoined = JSON.parse(localJoinedJson);
+        } catch {}
+      }
+      const isEnrolledLocally = localJoined.some((b) => b.id === id || b.slug === id);
+
+      // 2. Check local pending
+      const localPendingJson = await SecureStore.getItemAsync(STUDENT_PENDING_REQUESTS_KEY).catch(() => null);
+      let localPending: any[] = [];
+      if (localPendingJson) {
+        try {
+          localPending = JSON.parse(localPendingJson);
+        } catch {}
+      }
+      const localPendingReq = localPending.find((r) => r.batchId === id || r.id === id);
+
+      // 3. Check admin store join requests
+      const adminReq = adminStore.joinRequests.find((r) => r.batchId === id);
+
+      // 4. Check active user role
+      const meJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      let meRole: string | undefined;
+      if (meJson) {
+        try {
+          meRole = JSON.parse(meJson)?.role;
+        } catch {}
+      }
+      const isStaff = meRole === 'admin' || meRole === 'teacher';
+
+      let computedEnrollment: {
+        status: string;
+        enrolledAt: string;
+        source: string;
+      } | null = null;
+
+      if (isStaff) {
+        computedEnrollment = {
+          status: 'enrolled',
+          enrolledAt: adminBatch?.startDate || '2026-04-01',
+          source: 'faculty_access',
+        };
+      } else if (isEnrolledLocally || adminReq?.status === 'approved') {
+        computedEnrollment = {
+          status: 'enrolled',
+          enrolledAt: adminBatch?.startDate || new Date().toISOString(),
+          source: 'approved_request',
+        };
+      } else if (localPendingReq?.status === 'pending' || adminReq?.status === 'pending') {
+        computedEnrollment = {
+          status: 'pending',
+          enrolledAt: localPendingReq?.requestedAt || adminReq?.requestedAt || new Date().toISOString(),
+          source: 'join_request',
+        };
+      } else if (localPendingReq?.status === 'rejected' || adminReq?.status === 'rejected') {
+        computedEnrollment = {
+          status: 'rejected',
+          enrolledAt: localPendingReq?.requestedAt || adminReq?.requestedAt || new Date().toISOString(),
+          source: 'join_request',
+        };
+      }
+
       try {
         const res = await apiClient.get(`/batches/${id}`, { schema: batchDetailResponseSchema });
-        if (res && res.title) return res;
+        if (res && res.title) {
+          if (!res.enrollment && computedEnrollment) {
+            return {
+              ...res,
+              enrollment: computedEnrollment,
+            };
+          }
+          return res;
+        }
       } catch (err) {}
 
       if (adminBatch) {
@@ -1533,11 +1770,7 @@ export function useBatchDetail(id: string) {
               slug: adminBatch.subject.toLowerCase().replace(/[^a-z0-9]/g, '-'),
             },
           ],
-          enrollment: {
-            status: 'enrolled',
-            enrolledAt: adminBatch.startDate,
-            source: 'admin_portal',
-          },
+          enrollment: computedEnrollment,
           nextClass: live
             ? {
                 title: live.title,
@@ -1559,17 +1792,18 @@ export function useBatchDetail(id: string) {
         };
       }
 
+      const fallbackDefault = DEFAULT_INSTITUTE_BATCHES.find((b) => b.id === id);
       return {
         id,
         slug: id,
-        title: 'IX ICSE ( 2026 - 2027 )',
-        subtitle: 'Class 9 - Tests available',
+        title: fallbackDefault?.title || 'Class IX ICSE Mathematics & Science ( 2026 - 2027 )',
+        subtitle: fallbackDefault?.subjectName ? `${fallbackDefault.subjectName} • Class ${fallbackDefault.classLevel}` : 'Class 9 - Tests available',
         description: 'Comprehensive coaching for Class 9 ICSE Mathematics & Science.',
-        classLevel: 9,
-        board: 'icse',
-        mode: 'online',
+        classLevel: (fallbackDefault?.classLevel as any) || 9,
+        board: fallbackDefault?.board || 'icse',
+        mode: fallbackDefault?.mode || 'online',
         academicYear: '2026 - 2027',
-        joinCode: 'iiwbpg',
+        joinCode: fallbackDefault?.joinCode || 'iiwbpg',
         whatsappGroupUrl: 'https://wa.me/919412278910',
         startDate: '2026-04-01',
         scheduleText: 'Mon, Wed, Fri 5:00 PM - 6:30 PM',
@@ -1577,20 +1811,16 @@ export function useBatchDetail(id: string) {
         teachers: [
           {
             id: 'teacher-dinesh',
-            name: 'DINESH SINGH RAJPUT',
+            name: fallbackDefault?.teacherName || 'DINESH SINGH RAJPUT',
             role: 'Director & HOD Mathematics',
             avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
           },
         ],
         subjects: [
-          { id: 'sub-1', name: 'Mathematics', slug: 'mathematics' },
+          { id: 'sub-1', name: fallbackDefault?.subjectName || 'Mathematics', slug: 'mathematics' },
           { id: 'sub-2', name: 'Science', slug: 'science' },
         ],
-        enrollment: {
-          status: 'enrolled',
-          enrolledAt: '2026-04-22',
-          source: 'invite_code',
-        },
+        enrollment: computedEnrollment,
         nextClass: null,
         latestAnnouncements: [],
       };
@@ -1703,11 +1933,98 @@ export function useBatchAnnouncements(batchId: string) {
 export function useJoinBatch() {
   const queryClient = useQueryClient();
   return useMutation<BatchJoinResponse, Error, string>({
-    mutationFn: (code: string) =>
-      apiClient.post("/batches/join", { code }, { schema: batchJoinResponseSchema }),
+    mutationFn: async (code: string) => {
+      const cleanCode = code.trim().toUpperCase();
+      const adminStore = useAdminStore.getState();
+
+      const matched =
+        adminStore.batches.find((b) => b.joinCode && b.joinCode.toUpperCase() === cleanCode) ||
+        DEFAULT_INSTITUTE_BATCHES.find(
+          (b) => (b.joinCode && b.joinCode.toUpperCase() === cleanCode) || b.id.toUpperCase().includes(cleanCode)
+        );
+
+      if (!matched) {
+        throw new Error(`Invalid batch join code "${cleanCode}". Please verify the 6-character code with your teacher.`);
+      }
+
+      // 1. Check if student is already enrolled
+      const localJoinedJson = await SecureStore.getItemAsync(STUDENT_JOINED_BATCHES_KEY).catch(() => null);
+      const enrolledList: any[] = localJoinedJson ? JSON.parse(localJoinedJson) : [];
+      if (enrolledList.some((b) => b.id === matched.id)) {
+        return {
+          status: 'already_enrolled',
+          message: `You are already enrolled in ${matched.title}.`,
+          batchTitle: matched.title,
+          batchSlug: matched.id,
+        };
+      }
+
+      // 2. Check if student already has a pending join request
+      const localPendingJson = await SecureStore.getItemAsync(STUDENT_PENDING_REQUESTS_KEY).catch(() => null);
+      const pendingList: any[] = localPendingJson ? JSON.parse(localPendingJson) : [];
+      if (pendingList.some((r) => r.batchId === matched.id && r.status === 'pending')) {
+        return {
+          status: 'already_requested',
+          message: `You already have a pending join request for ${matched.title}. Quick2Learn administration will approve your enrollment shortly.`,
+          batchTitle: matched.title,
+          batchSlug: matched.id,
+        };
+      }
+
+      // 3. Read current active student profile
+      const meJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
+      let me: any = null;
+      if (meJson) {
+        try {
+          me = JSON.parse(meJson);
+        } catch {}
+      }
+
+      // 4. Add to admin store join requests
+      const newAdminReq = await adminStore.addJoinRequest({
+        batchId: matched.id,
+        batchTitle: matched.title,
+        studentId: me?.id || 'stud-current-user',
+        studentName: me?.fullName || 'Student',
+        studentPhone: me?.phone || '+91 94122 78910',
+        classLevel: matched.classLevel,
+        status: 'pending',
+      });
+
+      // 5. Save to student's pending requests in SecureStore
+      const pendingItem = {
+        id: newAdminReq.id,
+        batchId: matched.id,
+        batchTitle: matched.title,
+        batchMode: (matched as any).mode || 'hybrid',
+        classLevel: matched.classLevel,
+        status: 'pending' as const,
+        requestedAt: new Date().toISOString(),
+      };
+      const updatedPending = [pendingItem, ...pendingList.filter((r) => r.batchId !== matched.id)];
+      await SecureStore.setItemAsync(STUDENT_PENDING_REQUESTS_KEY, JSON.stringify(updatedPending)).catch(() => {});
+
+      // 6. Forward to backend if online and not demo
+      try {
+        const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
+        if (isDemo !== 'true') {
+          const res = await apiClient.post('/batches/join', { code: cleanCode }, { schema: batchJoinResponseSchema });
+          if (res) return res;
+        }
+      } catch (err) {}
+
+      return {
+        status: 'request_created',
+        message: `Join request submitted for ${matched.title}! Quick2Learn administration will review and approve your enrollment shortly.`,
+        batchTitle: matched.title,
+        batchSlug: matched.id,
+        requestId: newAdminReq.id,
+      };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.batchesMine });
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
+      queryClient.invalidateQueries({ queryKey: ['batch'] });
     },
   });
 }

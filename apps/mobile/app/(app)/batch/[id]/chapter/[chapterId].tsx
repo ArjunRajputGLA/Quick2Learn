@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   PlayCircle,
   FileText,
+  Lock,
 } from 'lucide-react-native';
 import { Screen } from '../../../../../src/components/ui/Screen';
 import { AppHeader } from '../../../../../src/components/ui/AppHeader';
@@ -21,6 +22,8 @@ import { LectureRow } from '../../../../../src/components/composite/LectureRow';
 import { PdfRow, type PdfDownloadState } from '../../../../../src/components/composite/PdfRow';
 import {
   useBatchChapterContent,
+  useBatchDetail,
+  useMe,
   getContentFilePresignedUrl,
 } from '../../../../../src/api/hooks';
 import type { BatchContentItem, BatchChapterContentSection } from '@quick2learn/shared';
@@ -42,6 +45,11 @@ export default function BatchChapterScreen() {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
   const [downloads, setDownloads] = useState<Record<string, DownloadedItem>>({});
   const [downloadingIds, setDownloadingIds] = useState<Record<string, boolean>>({});
+
+  const { data: me } = useMe();
+  const { data: batchDetail } = useBatchDetail(id || '');
+  const isStaff = me?.role === 'admin' || me?.role === 'teacher';
+  const isEnrolled = isStaff || batchDetail?.enrollment?.status === 'enrolled' || batchDetail?.enrollment?.status === 'active';
 
   const {
     data: chapterData,
@@ -212,7 +220,27 @@ export default function BatchChapterScreen() {
           </View>
         )}
 
-        {/* Tab Switcher: Lectures and Notes */}
+        {!isEnrolled ? (
+          <View className="p-8 rounded-3xl bg-surface border border-amber-200/80 items-center justify-center space-y-3 mt-4">
+            <View className="w-12 h-12 rounded-full bg-amber-100 items-center justify-center">
+              <Lock size={24} color="#D97706" />
+            </View>
+            <Text className="text-h3 font-bold text-ink text-center">
+              Chapter Content Locked
+            </Text>
+            <Text className="text-caption text-ink-muted text-center max-w-[280px] leading-relaxed">
+              This chapter belongs to {currentBatchTitle}. Your enrollment must be approved by institute administration before accessing these materials.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="mt-2 px-6 py-2.5 rounded-full bg-primary"
+            >
+              <Text className="text-caption font-bold text-white">Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {/* Tab Switcher: Lectures and Notes */}
         <View className="mb-4">
           <SegmentedControl
             options={[`Lectures (${lectures.length})`, `Notes (${notes.length})`]}
@@ -327,6 +355,8 @@ export default function BatchChapterScreen() {
               })
             )}
           </View>
+        )}
+          </>
         )}
       </ScrollView>
     </Screen>
