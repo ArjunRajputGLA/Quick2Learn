@@ -131,12 +131,25 @@ export function AdminPortal() {
     try {
       setIsRefreshing(true);
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await Promise.all([
-        store.init(),
-        new Promise((resolve) => setTimeout(resolve, 350)),
-      ]);
+      const synced = await store.syncWithServer(true);
+      if (synced) {
+        setToastMessage({
+          type: 'success',
+          message: `Synced with Web CRM! (${store.batches.length} batches, ${store.students.length} students)`,
+        });
+      } else {
+        await store.init();
+        setToastMessage({
+          type: 'info',
+          message: 'Synced from cache.',
+        });
+      }
     } catch (err) {
       console.warn('[AdminPortal] Refresh error:', err);
+      setToastMessage({
+        type: 'error',
+        message: 'Could not sync with server.',
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -204,41 +217,73 @@ export function AdminPortal() {
         <AppHeader
           title="Institute Admin"
           rightActions={
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => {
-                Alert.alert(
-                  'Reset Admin Demo Data',
-                  'Restore all batches, lectures, resources, and tests to default seed state?',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Reset Data',
-                      style: 'destructive',
-                      onPress: async () => {
-                        await store.resetToDefault();
-                        setToastMessage({ type: 'info', message: 'Admin data reset to default.' });
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={handleRefresh}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: radii.full,
+                  backgroundColor: store.syncStatus === 'syncing' ? '#FEF3C7' : '#DCFCE7',
+                  borderWidth: 1,
+                  borderColor: store.syncStatus === 'syncing' ? '#FDE68A' : '#86EFAC',
+                }}
+              >
+                <RefreshCw
+                  size={11}
+                  color={store.syncStatus === 'syncing' ? '#D97706' : '#15803D'}
+                />
+                <Text
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: '700',
+                    color: store.syncStatus === 'syncing' ? '#D97706' : '#15803D',
+                    marginLeft: 3,
+                  }}
+                >
+                  {store.syncStatus === 'syncing' ? 'Syncing...' : 'Live Synced'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  Alert.alert(
+                    'Reset Admin Demo Data',
+                    'Restore all batches, lectures, resources, and tests to default seed state?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Reset Data',
+                        style: 'destructive',
+                        onPress: async () => {
+                          await store.resetToDefault();
+                          setToastMessage({ type: 'info', message: 'Admin data reset to default.' });
+                        },
                       },
-                    },
-                  ]
-                );
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: radii.full,
-                backgroundColor: '#EFF6FF',
-                borderWidth: 1,
-                borderColor: '#BFDBFE',
-              }}
-            >
-              <RefreshCw size={12} color="#2563EB" />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB', marginLeft: 4 }}>
-                Reset
-              </Text>
-            </TouchableOpacity>
+                    ]
+                  );
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: radii.full,
+                  backgroundColor: '#EFF6FF',
+                  borderWidth: 1,
+                  borderColor: '#BFDBFE',
+                }}
+              >
+                <RefreshCw size={11} color="#2563EB" />
+                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563EB', marginLeft: 3 }}>
+                  Reset
+                </Text>
+              </TouchableOpacity>
+            </View>
           }
         />
       }

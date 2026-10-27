@@ -495,6 +495,7 @@ interface AdminStoreActions {
   deleteAnnouncement: (id: string) => Promise<void>;
 
   // Enquiries
+  addEnquiry: (enquiry: Omit<AdminEnquiryItem, 'id' | 'createdAt'>) => Promise<AdminEnquiryItem>;
   updateEnquiryStatus: (id: string, status: AdminEnquiryItem['status'], notes?: string) => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
 
@@ -579,16 +580,22 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
           payments: Array.isArray(parsed.payments) ? parsed.payments : [],
           feeDues: Array.isArray(parsed.feeDues) ? parsed.feeDues : [],
           joinRequests: Array.isArray(parsed.joinRequests) ? parsed.joinRequests : [],
+          resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+          questions: Array.isArray(parsed.questions) ? parsed.questions : [],
+          tests: Array.isArray(parsed.tests) ? parsed.tests : [],
+          lectures: Array.isArray(parsed.lectures) ? parsed.lectures : [],
+          attendanceRecords: Array.isArray(parsed.attendanceRecords) ? parsed.attendanceRecords : [],
           isInitialized: true,
         });
-        get().syncWithServer().catch(() => {});
+        // Immediately fetch latest from server to guarantee two-way sync with Web CRM
+        get().syncWithServer(true).catch(() => {});
         return;
       }
     } catch (e) {
       console.warn('[AdminStore] Error reading storage, initializing with seed data', e);
     }
     set({ ...INITIAL_ADMIN_DATA, isInitialized: true });
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
     try {
       await SecureStore.setItemAsync(ADMIN_DATA_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_DATA));
     } catch {}
@@ -596,7 +603,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
 
   createBatch: async (batchInput) => {
     const newId = `batch-${Date.now()}`;
-    const code = `${batchInput.subject.slice(0, 4).toUpperCase()}-${batchInput.classLevel}${Math.floor(10 + Math.random() * 90)}`;
+    const code = `${batchInput.subject.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase()}${batchInput.classLevel}${Math.floor(100 + Math.random() * 900)}`.slice(0, 6);
     const newBatch: BatchItem = {
       ...batchInput,
       mode: batchInput.mode || 'online',
@@ -628,7 +635,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   regenerateJoinCode: async (id) => {
     const b = get().batches.find((item) => item.id === id);
     if (!b) return '';
-    const newCode = `${b.subject.slice(0, 4).toUpperCase()}-${b.classLevel}${Math.floor(100 + Math.random() * 900)}`;
+    const newCode = `${b.subject.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase()}${b.classLevel}${Math.floor(100 + Math.random() * 900)}`.slice(0, 6);
     await get().updateBatch(id, { joinCode: newCode });
     return newCode;
   },
@@ -738,6 +745,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = [newResource, ...get().resources];
     set({ resources: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'upload_resource', payload: newResource }).catch(() => {});
     return newResource;
   },
 
@@ -751,6 +759,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().resources.filter((r) => r.id !== id);
     set({ resources: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_resource', payload: { id } }).catch(() => {});
   },
 
   createAssignment: async (asgInput) => {
@@ -860,6 +869,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     }
     set({ attendanceRecords: updatedRecords });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'save_attendance', payload: { batchId, date, records, details } }).catch(() => {});
   },
 
   addQuestion: async (questionInput) => {
@@ -872,6 +882,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = [newQuestion, ...get().questions];
     set({ questions: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_question', payload: newQuestion }).catch(() => {});
     return newQuestion;
   },
 
@@ -885,6 +896,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().questions.filter((q) => q.id !== id);
     set({ questions: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_question', payload: { id } }).catch(() => {});
   },
 
   createTest: async (testInput) => {
@@ -898,6 +910,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = [newTest, ...get().tests];
     set({ tests: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_test', payload: newTest }).catch(() => {});
     return newTest;
   },
 
@@ -911,6 +924,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().tests.filter((t) => t.id !== id);
     set({ tests: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_test', payload: { id } }).catch(() => {});
   },
 
   publishTestResults: async (id) => {
@@ -939,6 +953,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updatedStudents = [newStudent, ...get().students];
     set({ students: updatedStudents, batches: updatedBatches });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'register_student', payload: newStudent }).catch(() => {});
     return newStudent;
   },
 
@@ -955,6 +970,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().students.filter((s) => s.id !== id);
     set({ students: updated, batches: updatedBatches });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_student', payload: { id } }).catch(() => {});
   },
 
   enrollStudentInBatch: async (studentId, batchId) => {
@@ -1102,6 +1118,19 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     apiClient.post('/admin/sync', { action: 'delete_announcement', payload: { id } }).catch(() => {});
   },
 
+  addEnquiry: async (enquiryInput) => {
+    const newEnq: AdminEnquiryItem = {
+      ...enquiryInput,
+      id: `enq-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newEnq, ...get().enquiries];
+    set({ enquiries: updated });
+    await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_enquiry', payload: newEnq }).catch(() => {});
+    return newEnq;
+  },
+
   updateEnquiryStatus: async (id, status, notes) => {
     const updated = get().enquiries.map((e) =>
       e.id === id ? { ...e, status, notes: notes !== undefined ? notes : e.notes } : e
@@ -1115,6 +1144,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().enquiries.filter((e) => e.id !== id);
     set({ enquiries: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_enquiry', payload: { id } }).catch(() => {});
   },
 
   // Courses Actions
@@ -1146,6 +1176,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = [newCourse, ...get().courses];
     set({ courses: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_course', payload: newCourse }).catch(() => {});
     return newCourse;
   },
 
@@ -1179,6 +1210,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().courses.filter((c) => c.id !== id);
     set({ courses: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_course', payload: { id } }).catch(() => {});
   },
 
   // Chats Actions
@@ -1229,6 +1261,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ chats: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'send_chat_message', payload: { channelId, text: text || 'Attachment' } }).catch(() => {});
     return newMsg;
   },
 
@@ -1295,6 +1328,11 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
           feeDues: Array.isArray(sData.feeDues) ? sData.feeDues : state.feeDues,
           courses: Array.isArray(sData.courses) ? sData.courses : state.courses,
           chats: Array.isArray(sData.chats) ? sData.chats : state.chats,
+          resources: Array.isArray(sData.resources) ? sData.resources : state.resources,
+          questions: Array.isArray(sData.questions) ? sData.questions : state.questions,
+          tests: Array.isArray(sData.tests) ? sData.tests : state.tests,
+          lectures: Array.isArray(sData.lectures) ? sData.lectures : state.lectures,
+          attendanceRecords: Array.isArray(sData.attendanceRecords) ? sData.attendanceRecords : state.attendanceRecords,
           syncStatus: 'synced',
           lastSyncedAt: new Date().toISOString(),
           syncError: null,

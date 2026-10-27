@@ -10,6 +10,7 @@ import {
   schema,
   eq,
   desc,
+  and,
   sql,
 } from "@quick2learn/db";
 import { revalidateDataTag, safeRevalidatePath as revalidatePath } from "@/server/data/cached-home";
@@ -21,6 +22,8 @@ import {
   deleteAnnouncementAction,
   updateEnquiryStatusAction,
 } from "@/server/admin-actions";
+import { registerStudent } from "@/server/data/admin";
+import { createEnquiry } from "@/server/data/enquiries";
 
 /**
  * GET /api/v1/admin/sync
@@ -404,6 +407,194 @@ export async function GET(req: NextRequest) {
     );
 
 
+    // 10. Resources (from schema.resources)
+    const dbResources = await db
+      .select({
+        id: schema.resources.id,
+        title: schema.resources.title,
+        type: schema.resources.type,
+        storageKey: schema.resources.storageKey,
+        visibility: schema.resources.visibility,
+        batchId: schema.resources.batchId,
+        batchTitle: schema.batches.title,
+        createdAt: schema.resources.createdAt,
+      })
+      .from(schema.resources)
+      .leftJoin(schema.batches, eq(schema.resources.batchId, schema.batches.id))
+      .orderBy(desc(schema.resources.createdAt))
+      .limit(60);
+
+    const mappedResources = dbResources.map((r) => {
+      let mappedType: "notes" | "dpp" | "formula_sheet" | "pyq" | "solution" = "notes";
+      if (r.type === "worksheet") mappedType = "dpp";
+      else if (r.type === "formula_sheet") mappedType = "formula_sheet";
+      else if (r.type === "pyq") mappedType = "pyq";
+      else mappedType = "notes";
+
+      return {
+        id: r.id,
+        title: r.title,
+        type: mappedType,
+        fileUrl: r.storageKey,
+        fileSize: "2.4 MB",
+        filePages: 12,
+        subject: "General",
+        classLevel: 12 as const,
+        chapter: "Study Material",
+        visibility: (r.visibility === "public" ? "public" : "batch_only") as "public" | "batch_only",
+        batchTitle: r.batchTitle || undefined,
+        batchId: r.batchId || undefined,
+        uploadedAt: r.createdAt.toISOString().split("T")[0],
+        downloadCount: 0,
+      };
+    });
+
+    // 11. Questions (from schema.questions)
+    const dbQuestions = await db
+      .select({
+        id: schema.questions.id,
+        stem: schema.questions.stem,
+        options: schema.questions.options,
+        correct: schema.questions.correct,
+        solution: schema.questions.solution,
+        classLevel: schema.questions.classLevel,
+        difficulty: schema.questions.difficulty,
+        marks: schema.questions.marks,
+        negativeMarks: schema.questions.negativeMarks,
+        subjectName: schema.subjects.name,
+        chapterName: schema.chapters.title,
+        createdAt: schema.questions.createdAt,
+      })
+      .from(schema.questions)
+      .leftJoin(schema.subjects, eq(schema.questions.subjectId, schema.subjects.id))
+      .leftJoin(schema.chapters, eq(schema.questions.chapterId, schema.chapters.id))
+      .orderBy(desc(schema.questions.createdAt))
+      .limit(60);
+
+    const mappedQuestions = dbQuestions.map((q) => {
+      const opts = Array.isArray(q.options)
+        ? q.options.map((o: any) => (typeof o === "string" ? o : o.text || ""))
+        : ["Option A", "Option B", "Option C", "Option D"];
+      let correctIdx = 0;
+      if (typeof q.correct === "object" && q.correct !== null && "optionId" in q.correct) {
+        const optId = String((q.correct as any).optionId);
+        const idx = opts.findIndex((_: any, i: number) => `opt_${i}` === optId || optId.endsWith(String(i)));
+        if (idx >= 0) correctIdx = idx;
+      } else if (typeof q.correct === "number") {
+        correctIdx = q.correct;
+      }
+
+      return {
+        id: q.id,
+        statement: q.stem,
+        options: opts,
+        correctOptionIndex: correctIdx,
+        subject: q.subjectName || "Science",
+        classLevel: (q.classLevel >= 9 && q.classLevel <= 12 ? q.classLevel : 12) as 9 | 10 | 11 | 12,
+        chapter: q.chapterName || "Core Concepts",
+        difficulty: (q.difficulty === "easy" || q.difficulty === "hard" ? q.difficulty : "medium") as "easy" | "medium" | "hard",
+        marks: Number(q.marks) || 1,
+        negativeMarks: Number(q.negativeMarks) || 0,
+        explanation: q.solution || "",
+        createdAt: q.createdAt.toISOString().split("T")[0],
+      };
+    });
+
+    // 12. Tests (from schema.tests)
+    const dbTests = await db
+      .select({
+        id: schema.tests.id,
+        title: schema.tests.title,
+        durationMinutes: schema.tests.durationMinutes,
+        totalMarks: schema.tests.totalMarks,
+        status: schema.tests.status,
+        batchId: schema.tests.batchId,
+        batchTitle: schema.batches.title,
+        subjectName: schema.subjects.name,
+        createdAt: schema.tests.createdAt,
+      })
+      .from(schema.tests)
+      .leftJoin(schema.batches, eq(schema.tests.batchId, schema.batches.id))
+      .leftJoin(schema.subjects, eq(schema.tests.subjectId, schema.subjects.id))
+      .orderBy(desc(schema.tests.createdAt))
+      .limit(40);
+
+    const mappedTests = dbTests.map((t) => ({
+      id: t.id,
+      title: t.title,
+      subject: t.subjectName || "Science & Mathematics",
+      classLevel: 12 as const,
+      batchId: t.batchId || undefined,
+      batchTitle: t.batchTitle || undefined,
+      chapters: ["Key Concepts"],
+      durationMinutes: t.durationMinutes || 60,
+      totalMarks: Number(t.totalMarks) || 100,
+      passingMarks: Math.round((Number(t.totalMarks) || 100) * 0.4),
+      questionsCount: 25,
+      scheduledStart: new Date().toISOString(),
+      scheduledEnd: new Date(Date.now() + 86400000 * 7).toISOString(),
+      status: (t.status === "live" ? "live" : t.status === "closed" ? "completed" : "upcoming") as "upcoming" | "live" | "completed",
+      isPublished: t.status === "live",
+      submissionsCount: 0,
+      averageScore: 0,
+    }));
+
+    // 13. Lectures (from schema.youtubeVideos)
+    const dbLectures = await db
+      .select({
+        id: schema.youtubeVideos.id,
+        title: schema.youtubeVideos.title,
+        durationSeconds: schema.youtubeVideos.durationSeconds,
+        publishedAt: schema.youtubeVideos.publishedAt,
+        viewCount: schema.youtubeVideos.viewCount,
+      })
+      .from(schema.youtubeVideos)
+      .orderBy(desc(schema.youtubeVideos.publishedAt))
+      .limit(40);
+
+    const mappedLectures = dbLectures.map((l) => ({
+      id: l.id,
+      title: l.title,
+      videoUrl: `https://www.youtube.com/watch?v=${l.id}`,
+      duration: `${Math.floor((l.durationSeconds || 3600) / 60)} mins`,
+      subject: "Science & Mathematics",
+      classLevel: 12 as const,
+      chapter: "Video Lectures",
+      viewsCount: l.viewCount || 0,
+      uploadedAt: l.publishedAt ? l.publishedAt.toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    }));
+
+    // 14. Attendance Records (from schema.attendanceRecords)
+    const dbAttendance = await db
+      .select({
+        batchId: schema.attendanceRecords.batchId,
+        studentId: schema.attendanceRecords.studentId,
+        date: schema.attendanceRecords.date,
+        status: schema.attendanceRecords.status,
+      })
+      .from(schema.attendanceRecords)
+      .orderBy(desc(schema.attendanceRecords.date))
+      .limit(300);
+
+    const attGroupMap = new Map<string, Record<string, "P" | "A" | "L">>();
+    for (const att of dbAttendance) {
+      const key = `${att.batchId}___${att.date}`;
+      const cur = attGroupMap.get(key) || {};
+      cur[att.studentId] = att.status === "present" ? "P" : att.status === "late" ? "L" : "A";
+      attGroupMap.set(key, cur);
+    }
+
+    const mappedAttendance = Array.from(attGroupMap.entries()).map(([key, records]) => {
+      const [batchId, date] = key.split("___");
+      return {
+        id: `att-${batchId}-${date}`,
+        batchId,
+        date,
+        records,
+        savedAt: new Date().toISOString(),
+      };
+    });
+
     return NextResponse.json({
       success: true,
       syncedAt: new Date().toISOString(),
@@ -417,6 +608,11 @@ export async function GET(req: NextRequest) {
         feeDues: mappedFeeDues.length,
         courses: mappedCourses.length,
         chats: mappedChats.length,
+        resources: mappedResources.length,
+        questions: mappedQuestions.length,
+        tests: mappedTests.length,
+        lectures: mappedLectures.length,
+        attendanceRecords: mappedAttendance.length,
       },
       data: {
         batches: mappedBatches,
@@ -428,6 +624,11 @@ export async function GET(req: NextRequest) {
         feeDues: mappedFeeDues,
         courses: mappedCourses,
         chats: mappedChats,
+        resources: mappedResources,
+        questions: mappedQuestions,
+        tests: mappedTests,
+        lectures: mappedLectures,
+        attendanceRecords: mappedAttendance,
       },
     });
   } catch (err) {
@@ -496,7 +697,11 @@ export async function POST(req: NextRequest) {
               endDate: payload.endDate ? new Date(payload.endDate) : new Date(Date.now() + 300 * 86400000),
               seatsTotal: payload.capacity || payload.seatsTotal || 40,
               status: "open",
-              joinCode: payload.joinCode || `${title.slice(0, 4).toUpperCase()}-${Math.floor(10 + Math.random() * 90)}`,
+              joinCode: (
+                payload.joinCode
+                  ? payload.joinCode.replace(/[^A-Za-z0-9]/g, "")
+                  : `${title.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`
+              ).slice(0, 6).toUpperCase(),
             })
             .returning();
           result = inserted;
@@ -516,7 +721,10 @@ export async function POST(req: NextRequest) {
               scheduleText: payload.scheduleTime !== undefined ? payload.scheduleTime : undefined,
               locationText: payload.room !== undefined ? payload.room : undefined,
               seatsTotal: payload.capacity !== undefined ? payload.capacity : undefined,
-              joinCode: payload.joinCode !== undefined ? payload.joinCode : undefined,
+              joinCode:
+                payload.joinCode !== undefined
+                  ? payload.joinCode.replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()
+                  : undefined,
               updatedAt: new Date(),
             })
             .where(eq(schema.batches.id, payload.id));
@@ -640,6 +848,223 @@ export async function POST(req: NextRequest) {
           result = msg;
         }
         revalidatePath("/admin/doubts");
+        break;
+      }
+
+      case "register_student":
+      case "create_student": {
+        const studentName = payload.fullName || payload.name || "New Student";
+        const phone = payload.phone || "9876543210";
+        const email = payload.email || undefined;
+        const classLevel = payload.classLevel || 12;
+        const board = payload.board || "cbse";
+        const school = payload.school || "Quick2Learn High School";
+        const parentName = payload.parentName || undefined;
+        const parentPhone = payload.parentPhone || undefined;
+        const batchId =
+          Array.isArray(payload.enrolledBatchIds) && payload.enrolledBatchIds.length > 0
+            ? payload.enrolledBatchIds[0]
+            : payload.batchId || undefined;
+
+        result = await registerStudent(
+          { id: "usr-admin-dinesh", role: "admin", name: "Dinesh Sir", email: "admin@quick2learn.in" } as any,
+          {
+            name: studentName,
+            phone,
+            email,
+            classLevel,
+            board,
+            school,
+            parentName,
+            parentPhone,
+            batchId,
+          }
+        );
+        revalidatePath("/admin/students");
+        revalidatePath("/admin/batches");
+        break;
+      }
+
+      case "delete_student": {
+        if (payload?.id) {
+          await db.delete(schema.enrollments).where(eq(schema.enrollments.studentId, payload.id));
+          await db.delete(schema.profiles).where(eq(schema.profiles.userId, payload.id));
+        }
+        revalidatePath("/admin/students");
+        revalidatePath("/admin/batches");
+        break;
+      }
+
+      case "create_enquiry": {
+        result = await createEnquiry({
+          name: payload.studentName || payload.name || "Prospective Student",
+          phone: payload.phone || "9876543210",
+          classLevel: payload.classLevel || 12,
+          board: payload.board || "cbse",
+          message: payload.message || "Enquiry from mobile admin portal.",
+          notes: payload.notes || (payload.email ? `Email: ${payload.email}` : undefined),
+          sourcePath: "/admin/mobile",
+        });
+        revalidatePath("/admin/enquiries");
+        break;
+      }
+
+      case "delete_enquiry": {
+        if (payload?.id) {
+          await db
+            .update(schema.enquiries)
+            .set({ status: "closed" })
+            .where(eq(schema.enquiries.id, payload.id));
+        }
+        revalidatePath("/admin/enquiries");
+        break;
+      }
+
+      case "upload_resource": {
+        const title = payload.title || "Resource Document";
+        const [firstBatch] = await db.select({ id: schema.batches.id }).from(schema.batches).limit(1);
+        const [inserted] = await db
+          .insert(schema.resources)
+          .values({
+            title,
+            type:
+              payload.type === "dpp"
+                ? "worksheet"
+                : payload.type === "formula_sheet"
+                ? "formula_sheet"
+                : payload.type === "pyq"
+                ? "pyq"
+                : "notes",
+            storageKey: payload.fileUrl || `resources/${Date.now()}.pdf`,
+            visibility: payload.visibility === "public" ? "public" : "enrolled",
+            batchId: payload.batchId || firstBatch?.id || null,
+          })
+          .returning();
+        result = inserted;
+        revalidatePath("/admin/resources");
+        revalidatePath("/admin/batches");
+        break;
+      }
+
+      case "delete_resource": {
+        if (payload?.id) {
+          await db.delete(schema.resources).where(eq(schema.resources.id, payload.id));
+        }
+        revalidatePath("/admin/resources");
+        break;
+      }
+
+      case "create_question": {
+        const [firstSubject] = await db.select({ id: schema.subjects.id }).from(schema.subjects).limit(1);
+        if (firstSubject) {
+          const opts = Array.isArray(payload.options)
+            ? payload.options.map((opt: string, i: number) => ({ id: `opt_${i}`, text: opt }))
+            : [
+                { id: "opt_0", text: "Option A" },
+                { id: "opt_1", text: "Option B" },
+                { id: "opt_2", text: "Option C" },
+                { id: "opt_3", text: "Option D" },
+              ];
+          const correctIdx = typeof payload.correctOptionIndex === "number" ? payload.correctOptionIndex : 0;
+          const [inserted] = await db
+            .insert(schema.questions)
+            .values({
+              stem: payload.statement || "Question statement",
+              subjectId: payload.subjectId || firstSubject.id,
+              classLevel: payload.classLevel || 12,
+              type: "mcq_single",
+              options: opts,
+              correct: { optionId: `opt_${correctIdx}` },
+              solution: payload.explanation || null,
+              difficulty: payload.difficulty || "medium",
+              marks: String(payload.marks || "1.00"),
+              negativeMarks: String(payload.negativeMarks || "0.00"),
+            })
+            .returning();
+          result = inserted;
+        }
+        revalidatePath("/admin/tests");
+        break;
+      }
+
+      case "delete_question": {
+        if (payload?.id) {
+          await db.delete(schema.questions).where(eq(schema.questions.id, payload.id));
+        }
+        revalidatePath("/admin/tests");
+        break;
+      }
+
+      case "create_test": {
+        const [firstSubject] = await db.select({ id: schema.subjects.id }).from(schema.subjects).limit(1);
+        if (firstSubject) {
+          const [inserted] = await db
+            .insert(schema.tests)
+            .values({
+              title: payload.title || "Practice Test",
+              batchId: payload.batchId || null,
+              subjectId: firstSubject.id,
+              durationMinutes: payload.durationMinutes || 60,
+              totalMarks: String(payload.totalMarks || "100.00"),
+              status: payload.isPublished ? "live" : "draft",
+              chapterIds: payload.chapters || [],
+            })
+            .returning();
+          result = inserted;
+        }
+        revalidatePath("/admin/tests");
+        break;
+      }
+
+      case "delete_test": {
+        if (payload?.id) {
+          await db.delete(schema.tests).where(eq(schema.tests.id, payload.id));
+        }
+        revalidatePath("/admin/tests");
+        break;
+      }
+
+      case "save_attendance": {
+        if (payload?.batchId && payload?.date && payload?.records) {
+          const recordsMap = payload.records as Record<string, "P" | "A" | "L">;
+          for (const [studentId, status] of Object.entries(recordsMap)) {
+            const mappedStatus = status === "P" ? "present" : status === "L" ? "late" : "absent";
+            const [existing] = await db
+              .select({ id: schema.attendanceRecords.id })
+              .from(schema.attendanceRecords)
+              .where(
+                and(
+                  eq(schema.attendanceRecords.batchId, payload.batchId),
+                  eq(schema.attendanceRecords.date, payload.date),
+                  eq(schema.attendanceRecords.studentId, studentId)
+                )
+              )
+              .limit(1);
+
+            if (existing) {
+              await db
+                .update(schema.attendanceRecords)
+                .set({
+                  status: mappedStatus,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.attendanceRecords.id, existing.id));
+            } else {
+              await db
+                .insert(schema.attendanceRecords)
+                .values({
+                  batchId: payload.batchId,
+                  date: payload.date,
+                  studentId,
+                  status: mappedStatus,
+                  source: "marked",
+                });
+            }
+          }
+          result = { saved: true, count: Object.keys(recordsMap).length };
+        }
+        revalidatePath("/admin/attendance");
+        revalidatePath("/admin/batches");
         break;
       }
 
