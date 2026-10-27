@@ -410,8 +410,17 @@ export function BatchEditor({
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (!title.trim() || !slug.trim()) {
-      setErrorMsg("Batch Title and Slug are required.");
+    let effectiveSlug = slug.trim();
+    if (!effectiveSlug && title.trim()) {
+      effectiveSlug = `${title.trim()}-class-${classLevel}-${board}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      setSlug(effectiveSlug);
+    }
+
+    if (!title.trim() || !effectiveSlug) {
+      setErrorMsg("Batch Title is required.");
       return;
     }
     if (!subjectId) {
@@ -435,7 +444,7 @@ export function BatchEditor({
       const payload = {
         id: initialBatch?.id,
         title: title.trim(),
-        slug: slug.trim(),
+        slug: effectiveSlug,
         subtitle: subtitle.trim() || undefined,
         classLevel: Number(classLevel),
         board,

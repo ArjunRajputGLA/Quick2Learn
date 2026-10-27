@@ -1,14 +1,16 @@
 import { requireRole } from "@/server/auth/session";
-import { getAdminStudentsList } from "@/server/data/admin";
+import { getAdminStudentsList, getAdminAvailableBatchesWithPlans } from "@/server/data/admin";
 import { formatINR } from "@quick2learn/shared";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { RegisterStudentModal } from "@/components/admin/register-student-modal";
 import {
   Search,
   Filter,
   ArrowRight,
   CheckCircle2,
+  UserPlus,
 } from "lucide-react";
 
 export const revalidate = 0;
@@ -24,7 +26,7 @@ interface StudentsPageProps {
 }
 
 export default async function AdminStudentsPage({ searchParams }: StudentsPageProps) {
-  await requireRole(["admin"]);
+  const current = await requireRole(["admin"]);
   const sp = await searchParams;
 
   const searchQuery = sp.q || undefined;
@@ -34,17 +36,27 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
   const pageIndex = sp.page ? Math.max(0, parseInt(sp.page, 10) - 1) : 0;
   const pageSize = 25;
 
-  const { students, total } = await getAdminStudentsList(
-    { id: "admin", role: "admin" },
-    {
-      search: searchQuery,
-      classLevel,
-      board,
-      hasDues,
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-    },
-  );
+  const authUser = {
+    id: current.user.id,
+    email: current.user.email,
+    name: current.user.name,
+    role: current.role,
+  };
+
+  const [{ students, total }, availableBatches] = await Promise.all([
+    getAdminStudentsList(
+      authUser,
+      {
+        search: searchQuery,
+        classLevel,
+        board,
+        hasDues,
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+      },
+    ),
+    getAdminAvailableBatchesWithPlans(authUser),
+  ]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -56,8 +68,11 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
             Manage student registrations, course batches, and fee status across Classes IX–XII.
           </p>
         </div>
-        <div className="text-caption font-semibold text-ink-muted">
-          Total Students: <span className="font-bold text-ink">{total}</span>
+        <div className="flex items-center gap-3">
+          <div className="text-caption font-semibold text-ink-muted bg-surface-subtle px-3 py-1.5 rounded-lg border border-border">
+            Total Students: <span className="font-bold text-ink">{total}</span>
+          </div>
+          <RegisterStudentModal availableBatches={availableBatches} />
         </div>
       </div>
 
@@ -72,6 +87,7 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
               name="q"
               defaultValue={searchQuery || ""}
               placeholder="Search by name, email, phone..."
+              suppressHydrationWarning
               className="w-full pl-9 pr-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink"
             />
           </div>
@@ -80,6 +96,7 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
           <select
             name="class"
             defaultValue={classLevel ? String(classLevel) : ""}
+            suppressHydrationWarning
             className="w-full px-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink"
           >
             <option value="">All Classes (IX–XII)</option>
@@ -93,6 +110,7 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
           <select
             name="board"
             defaultValue={board || ""}
+            suppressHydrationWarning
             className="w-full px-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink"
           >
             <option value="">All Boards</option>
@@ -105,6 +123,7 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
           <select
             name="dues"
             defaultValue={sp.dues || ""}
+            suppressHydrationWarning
             className="w-full px-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink"
           >
             <option value="">All Fee Statuses</option>
@@ -143,8 +162,26 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
             <tbody className="divide-y divide-border">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-ink-muted">
-                    No students match the selected filter criteria.
+                  <td colSpan={6} className="py-16 text-center">
+                    <div className="max-w-sm mx-auto space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-surface-subtle border border-border text-ink-muted flex items-center justify-center mx-auto">
+                        <UserPlus className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="font-bold text-ink text-body-base">
+                        {total === 0 ? "No registered students found" : "No students match filter"}
+                      </div>
+                      <p className="text-body-xs text-ink-muted">
+                        {total === 0
+                          ? "Get started by registering your first student with profile, parent details, and course batch."
+                          : "Try adjusting or clearing your search and filters to view more student records."}
+                      </p>
+                      <div className="pt-2">
+                        <RegisterStudentModal
+                          availableBatches={availableBatches}
+                          triggerLabel={total === 0 ? "Register First Student" : "Register New Student"}
+                        />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (

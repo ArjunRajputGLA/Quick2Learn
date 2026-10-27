@@ -11,6 +11,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         type={type}
+        suppressHydrationWarning={props.suppressHydrationWarning ?? true}
         className={cn(
           "flex h-10 w-full border border-border bg-surface px-3.5 py-2 text-body text-ink transition-colors file:border-0 file:bg-transparent file:text-small file:font-medium placeholder:text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50",
           isPill ? "rounded-full px-5" : "rounded-md",

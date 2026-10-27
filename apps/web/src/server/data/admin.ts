@@ -573,6 +573,174 @@ export async function manualEnrollStudent(
   return enrollment;
 }
 
+export interface RegisterStudentInput {
+  name: string;
+  phone: string;
+  email?: string;
+  classLevel: number;
+  board: schema.Board;
+  school?: string;
+  city?: string;
+  parentName?: string;
+  parentPhone?: string;
+  batchId?: string;
+  feePlanId?: string;
+}
+
+export async function registerStudent(
+  user: AuthUser,
+  params: RegisterStudentInput,
+  tx?: DatabaseExecutor,
+) {
+  assert(isAdmin(user), "Only administrators can register students.");
+  const d = tx || db;
+
+  const rawPhone = params.phone.replace(/\D/g, "");
+  const cleanPhone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
+  assert(cleanPhone.length === 10, "A valid 10-digit mobile number is required.");
+
+  const studentUserId = `student_${cleanPhone}`;
+  const studentEmail = params.email?.trim().toLowerCase() || `${cleanPhone}@student.quick2learn.in`;
+  const formattedPhone = `+91 ${cleanPhone}`;
+
+  // 1. Create or ensure User record
+  await d
+    .insert(schema.user)
+    .values({
+      id: studentUserId,
+      name: params.name.trim(),
+      email: studentEmail,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: schema.user.id,
+      set: {
+        name: params.name.trim(),
+        email: studentEmail,
+        updatedAt: new Date(),
+      },
+    });
+
+  // 2. Create or ensure Profile record
+  await d
+    .insert(schema.profiles)
+    .values({
+      userId: studentUserId,
+      fullName: params.name.trim(),
+      phone: formattedPhone,
+      classLevel: params.classLevel,
+      board: params.board,
+      school: params.school?.trim() || "Quick2Learn Academy",
+      city: params.city?.trim() || "Mathura",
+      parentName: params.parentName?.trim() || null,
+      parentPhone: params.parentPhone?.trim() || null,
+      role: "student",
+      onboardedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: schema.profiles.userId,
+      set: {
+        fullName: params.name.trim(),
+        phone: formattedPhone,
+        classLevel: params.classLevel,
+        board: params.board,
+        school: params.school?.trim() || "Quick2Learn Academy",
+        city: params.city?.trim() || "Mathura",
+        parentName: params.parentName?.trim() || null,
+        parentPhone: params.parentPhone?.trim() || null,
+        onboardedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+  // 3. Parent link if provided
+  if (params.parentPhone && params.parentPhone.trim()) {
+    const rawParentPhone = params.parentPhone.replace(/\D/g, "");
+    const cleanParentPhone = rawParentPhone.length > 10 ? rawParentPhone.slice(-10) : rawParentPhone;
+    if (cleanParentPhone.length === 10) {
+      const parentUserId = `parent_${cleanParentPhone}`;
+      const parentName = params.parentName?.trim() || `Parent of ${params.name.trim()}`;
+      const parentEmail = `parent_${cleanParentPhone}@parent.quick2learn.in`;
+
+      await d
+        .insert(schema.user)
+        .values({
+          id: parentUserId,
+          name: parentName,
+          email: parentEmail,
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .onConflictDoNothing();
+
+      await d
+        .insert(schema.profiles)
+        .values({
+          userId: parentUserId,
+          fullName: parentName,
+          phone: `+91 ${cleanParentPhone}`,
+          role: "parent",
+          city: params.city?.trim() || "Mathura",
+          onboardedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .onConflictDoNothing();
+
+      await d
+        .insert(schema.parentLinks)
+        .values({
+          parentUserId,
+          studentUserId,
+          relation: "parent",
+          verifiedAt: new Date(),
+          createdAt: new Date(),
+        })
+        .onConflictDoNothing();
+    }
+  }
+
+  // 4. Enroll in batch if selected
+  let enrollment = null;
+  if (params.batchId) {
+    enrollment = await manualEnrollStudent(
+      user,
+      {
+        studentId: studentUserId,
+        batchId: params.batchId,
+        feePlanId: params.feePlanId,
+      },
+      d,
+    );
+  }
+
+  // 5. Audit log
+  await d.insert(schema.auditLog).values({
+    actorId: user.id,
+    action: "register_student",
+    entity: "student",
+    entityId: studentUserId,
+    diff: {
+      name: params.name,
+      phone: cleanPhone,
+      email: studentEmail,
+      classLevel: params.classLevel,
+      board: params.board,
+      batchId: params.batchId,
+    },
+  });
+
+  revalidatePath("/admin/students");
+  revalidatePath("/admin/batches");
+
+  return { studentUserId, studentEmail, enrollment };
+}
+
 export async function waiveFeeDue(
   user: AuthUser,
   params: {

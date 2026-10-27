@@ -156,7 +156,7 @@ export async function getStudentAttendance(
   const excusedDays = records.filter((r) => r.status === "excused").length;
 
   const monthPercentage =
-    totalDays > 0 ? Math.round(((presentDays + lateDays) / totalDays) * 100) : 100;
+    totalDays > 0 ? Math.round(((presentDays + lateDays) / totalDays) * 100) : 0;
 
   // Term percentage: all-time records for this student and optionally batch
   const allTermRecords = await db
@@ -175,7 +175,7 @@ export async function getStudentAttendance(
   const termAttended = allTermRecords.filter(
     (r) => r.status === "present" || r.status === "late"
   ).length;
-  const termPercentage = termTotal > 0 ? Math.round((termAttended / termTotal) * 100) : 100;
+  const termPercentage = termTotal > 0 ? Math.round((termAttended / termTotal) * 100) : 0;
 
   const absences = records.filter((r) => r.status === "absent");
 

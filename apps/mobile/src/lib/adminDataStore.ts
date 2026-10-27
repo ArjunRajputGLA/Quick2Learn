@@ -1,9 +1,10 @@
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
+import { apiClient } from '../api/client';
 
-export const ADMIN_DATA_STORAGE_KEY = 'q2l_admin_portal_data_v6';
-export const STUDENT_JOINED_BATCHES_KEY = 'q2l_student_joined_batches_v1';
-export const STUDENT_PENDING_REQUESTS_KEY = 'q2l_student_pending_requests_v1';
+export const ADMIN_DATA_STORAGE_KEY = 'q2l_admin_portal_data_v8';
+export const STUDENT_JOINED_BATCHES_KEY = 'q2l_student_joined_batches_v2';
+export const STUDENT_PENDING_REQUESTS_KEY = 'q2l_student_pending_requests_v2';
 
 export interface AdminCourseItem {
   id: string;
@@ -360,50 +361,30 @@ export interface AdminPortalState {
   assignments: AdminAssignmentItem[];
   liveClasses: AdminLiveClassItem[];
   attendanceRecords: BatchAttendanceRecord[];
+  syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
+  lastSyncedAt: string | null;
+  syncError: string | null;
   isInitialized: boolean;
 }
 
-export const INITIAL_CHAT_CHANNEL: AdminChatChannelItem = {
-  id: 'channel-anisha-sisodia',
-  type: 'direct',
-  title: 'DINESH SINGH RAJPUT',
-  subtitle: 'Class 9 ICSE • Quick2Learn Faculty',
-  studentId: 'stud-anisha-sisodia',
-  studentName: 'Anisha Sisodia',
-  facultyName: 'Dinesh Singh Rajput',
-  unreadCount: 1,
-  messages: [
-    {
-      id: 'msg-welcome-anisha',
-      senderId: 'faculty-dinesh',
-      senderName: 'Dinesh Singh Rajput',
-      senderRole: 'teacher',
-      text: 'Dear Anisha Sisodia, we welcome you to Quick 2 Learn CBSE/ICSE - 9th to 12th community. You can connect with us for all your academic needs. What are you looking for?',
-      createdAt: '2021-05-24T20:23:00.000Z',
-      isOutgoing: false,
-    },
-  ],
-  lastMessage: 'Dear Anisha Sisodia, we welcome you to Quick 2 Learn...',
-  lastMessageTime: '2021-05-24T20:23:00.000Z',
-  createdAt: '2021-05-24T20:20:00.000Z',
-};
-
-// Initial clean state for Admin Portal
 export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
+  syncStatus: 'idle',
+  lastSyncedAt: null,
+  syncError: null,
   batches: [],
+  students: [],
   courses: [],
-  chats: [INITIAL_CHAT_CHANNEL],
+  chats: [],
+  announcements: [],
+  enquiries: [],
+  payments: [],
+  feeDues: [],
   joinRequests: [],
   lectures: [],
   resources: [],
   questions: [],
   tests: [],
-  students: [],
-  payments: [],
-  feeDues: [],
   doubts: [],
-  announcements: [],
-  enquiries: [],
   assignments: [],
   liveClasses: [],
   attendanceRecords: [],
@@ -517,6 +498,10 @@ interface AdminStoreActions {
   updateEnquiryStatus: (id: string, status: AdminEnquiryItem['status'], notes?: string) => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
 
+  // Synchronization
+  syncWithServer: (force?: boolean) => Promise<boolean>;
+  pullLatestFromServer: () => Promise<void>;
+
   // Reset
   resetToDefault: () => Promise<void>;
 }
@@ -585,40 +570,25 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         const parsed = JSON.parse(raw);
         set({
           ...INITIAL_ADMIN_DATA,
-          ...parsed,
-          batches: (parsed.batches || INITIAL_ADMIN_DATA.batches).map((b: any) => ({
-            ...b,
-            mode: b.id === 'batch-ix-icse-maths-sci' && (b.mode === 'hybrid' || !b.mode) ? 'online' : (b.mode || 'online'),
-          })),
-          assignments: parsed.assignments || INITIAL_ADMIN_DATA.assignments,
-          liveClasses: parsed.liveClasses || INITIAL_ADMIN_DATA.liveClasses,
-          attendanceRecords: parsed.attendanceRecords || INITIAL_ADMIN_DATA.attendanceRecords,
-          courses: (parsed.courses || INITIAL_ADMIN_DATA.courses).map((c: any) => {
-            const classLevel = c.classLevel || c.targetClass || 9;
-            const isPublished = c.isPublished !== undefined ? c.isPublished : c.status === 'published';
-            const price = c.price || c.originalPrice || 9999;
-            const discountedPrice = c.discountedPrice ?? price;
-            return {
-              ...c,
-              classLevel,
-              targetClass: classLevel,
-              isPublished,
-              status: isPublished ? 'published' : 'draft',
-              price,
-              originalPrice: c.originalPrice || price,
-              discountedPrice,
-              validity: c.validity || `${c.validityDays || 365} Days Access`,
-            };
-          }),
-          chats: (parsed.chats && parsed.chats.length > 0) ? parsed.chats : INITIAL_ADMIN_DATA.chats,
+          batches: Array.isArray(parsed.batches) ? parsed.batches : [],
+          students: Array.isArray(parsed.students) ? parsed.students : [],
+          courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+          chats: Array.isArray(parsed.chats) ? parsed.chats : [],
+          announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
+          enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : [],
+          payments: Array.isArray(parsed.payments) ? parsed.payments : [],
+          feeDues: Array.isArray(parsed.feeDues) ? parsed.feeDues : [],
+          joinRequests: Array.isArray(parsed.joinRequests) ? parsed.joinRequests : [],
           isInitialized: true,
         });
+        get().syncWithServer().catch(() => {});
         return;
       }
     } catch (e) {
       console.warn('[AdminStore] Error reading storage, initializing with seed data', e);
     }
     set({ ...INITIAL_ADMIN_DATA, isInitialized: true });
+    get().syncWithServer().catch(() => {});
     try {
       await SecureStore.setItemAsync(ADMIN_DATA_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_DATA));
     } catch {}
@@ -637,6 +607,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updatedBatches = [newBatch, ...get().batches];
     set({ batches: updatedBatches });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_batch', payload: newBatch }).catch(() => {});
     return newBatch;
   },
 
@@ -644,12 +615,14 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().batches.map((b) => (b.id === id ? { ...b, ...updates } : b));
     set({ batches: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'update_batch', payload: { id, ...updates } }).catch(() => {});
   },
 
   deleteBatch: async (id) => {
     const updated = get().batches.filter((b) => b.id !== id);
     set({ batches: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_batch', payload: { id } }).catch(() => {});
   },
 
   regenerateJoinCode: async (id) => {
@@ -673,6 +646,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     set({ joinRequests: updatedReqs, batches: updatedBatches });
     await persistState(get());
     await syncApprovalToStudentStorage(req.batchId, req.batchTitle, req.classLevel);
+    apiClient.post('/admin/sync', { action: 'approve_join_request', payload: { requestId } }).catch(() => {});
   },
 
   rejectJoinRequest: async (requestId, note) => {
@@ -1077,6 +1051,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updatedPayments = [newPayment, ...get().payments];
     set({ payments: updatedPayments, feeDues: updatedDues, students: updatedStudents });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'record_offline_payment', payload: { studentId, batchTitle, amount, paymentMethod, notes } }).catch(() => {});
     return newPayment;
   },
 
@@ -1116,6 +1091,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = [newAnn, ...get().announcements];
     set({ announcements: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'create_announcement', payload: newAnn }).catch(() => {});
     return newAnn;
   },
 
@@ -1123,6 +1099,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const updated = get().announcements.filter((a) => a.id !== id);
     set({ announcements: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'delete_announcement', payload: { id } }).catch(() => {});
   },
 
   updateEnquiryStatus: async (id, status, notes) => {
@@ -1131,6 +1108,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ enquiries: updated });
     await persistState(get());
+    apiClient.post('/admin/sync', { action: 'update_enquiry_status', payload: { id, status, notes } }).catch(() => {});
   },
 
   deleteEnquiry: async (id) => {
@@ -1298,6 +1276,45 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ chats: updated });
     await persistState(get());
+  },
+
+  syncWithServer: async (force = false) => {
+    if (get().syncStatus === 'syncing' && !force) return false;
+    set({ syncStatus: 'syncing', syncError: null });
+    try {
+      const res = await apiClient.get<any>('/admin/sync');
+      if (res && res.data) {
+        const sData = res.data;
+        set((state) => ({
+          batches: Array.isArray(sData.batches) ? sData.batches : state.batches,
+          students: Array.isArray(sData.students) ? sData.students : state.students,
+          joinRequests: Array.isArray(sData.joinRequests) ? sData.joinRequests : state.joinRequests,
+          announcements: Array.isArray(sData.announcements) ? sData.announcements : state.announcements,
+          enquiries: Array.isArray(sData.enquiries) ? sData.enquiries : state.enquiries,
+          payments: Array.isArray(sData.payments) ? sData.payments : state.payments,
+          feeDues: Array.isArray(sData.feeDues) ? sData.feeDues : state.feeDues,
+          courses: Array.isArray(sData.courses) ? sData.courses : state.courses,
+          chats: Array.isArray(sData.chats) ? sData.chats : state.chats,
+          syncStatus: 'synced',
+          lastSyncedAt: new Date().toISOString(),
+          syncError: null,
+        }));
+        await persistState(get());
+        return true;
+      }
+    } catch (err: any) {
+      set({
+        syncStatus: 'idle',
+        syncError: err?.message || 'Server sync offline',
+      });
+      return false;
+    }
+    set({ syncStatus: 'idle' });
+    return false;
+  },
+
+  pullLatestFromServer: async () => {
+    await get().syncWithServer(true);
   },
 
   resetToDefault: async () => {

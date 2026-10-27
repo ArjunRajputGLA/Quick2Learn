@@ -242,14 +242,16 @@ export default function AttendanceScreen() {
               </Text>
               <Text
                 className={`text-2xl font-black mt-1 ${
-                  (data?.stats.monthPercentage || 0) >= 85
+                  (data?.stats.totalDays || 0) === 0
+                    ? "text-slate-400 dark:text-slate-500"
+                    : (data?.stats.monthPercentage || 0) >= 85
                     ? "text-emerald-600 dark:text-emerald-400"
                     : (data?.stats.monthPercentage || 0) >= 75
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-rose-600 dark:text-rose-400"
                 }`}
               >
-                {data?.stats.monthPercentage ?? 100}%
+                {(data?.stats.totalDays || 0) === 0 ? "—" : `${data?.stats.monthPercentage ?? 0}%`}
               </Text>
               <Text className="text-slate-400 text-[10px] mt-0.5 font-medium">
                 {data?.stats.presentDays || 0} / {data?.stats.totalDays || 0} classes
@@ -263,14 +265,16 @@ export default function AttendanceScreen() {
               </Text>
               <Text
                 className={`text-2xl font-black mt-1 ${
-                  (data?.stats.termPercentage || 0) >= 85
+                  (data?.stats.totalDays || 0) === 0
+                    ? "text-slate-400 dark:text-slate-500"
+                    : (data?.stats.termPercentage || 0) >= 85
                     ? "text-emerald-600 dark:text-emerald-400"
                     : (data?.stats.termPercentage || 0) >= 75
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-rose-600 dark:text-rose-400"
                 }`}
               >
-                {data?.stats.termPercentage ?? 100}%
+                {(data?.stats.totalDays || 0) === 0 ? "—" : `${data?.stats.termPercentage ?? 0}%`}
               </Text>
               <Text className="text-slate-400 text-[10px] mt-0.5 font-medium">
                 cumulative rate
@@ -370,6 +374,15 @@ export default function AttendanceScreen() {
               <Text className="text-slate-600 dark:text-slate-400 text-xs font-medium">Absent</Text>
             </View>
           </View>
+
+          {/* Empty Month Notice */}
+          {!isLoading && (data?.records?.length || 0) === 0 && (
+            <View className="mt-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 items-center justify-center">
+              <Text className="text-slate-500 dark:text-slate-400 text-xs font-semibold text-center">
+                No attendance sessions recorded for {monthName}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Selected Day Info Popup Card */}
@@ -445,10 +458,12 @@ export default function AttendanceScreen() {
             <View className="py-6 items-center">
               <CheckCircle2 size={32} color="#10b981" className="mb-2" />
               <Text className="text-slate-900 dark:text-white font-bold text-sm">
-                No absences this month!
+                {(data?.stats.totalDays || 0) === 0 ? "No records yet" : "No absences this month!"}
               </Text>
               <Text className="text-slate-400 text-xs mt-0.5">
-                Keep up the great consistency and punctuality.
+                {(data?.stats.totalDays || 0) === 0
+                  ? "Attendance records will appear once sessions are marked."
+                  : "Keep up the great consistency and punctuality."}
               </Text>
             </View>
           ) : (

@@ -46,7 +46,7 @@ import { Skeleton } from '../../../src/components/ui/Skeleton';
 import { BookLoader } from '../../../src/components/ui/BookLoader';
 import { EmptyState } from '../../../src/components/ui/EmptyState';
 import { SegmentedControl } from '../../../src/components/ui/SegmentedControl';
-import { useMe, useStudentBatches, DEFAULT_INSTITUTE_BATCHES } from '../../../src/api/hooks';
+import { useMe, useStudentBatches, useInstituteBatches } from '../../../src/api/hooks';
 import { useTabBarScroll } from '../../../src/lib/tabBarVisibilityStore';
 import { BatchCard } from '../../../src/components/batches/BatchCard';
 import { JoinBatchModal } from '../../../src/components/batches/JoinBatchModal';
@@ -62,7 +62,7 @@ import {
 import { BatchFormModal } from '../../../src/components/admin/AdminPortal';
 import { colors, radii } from '@quick2learn/shared';
 import { Image } from 'expo-image';
-import { getFacultyAvatarSource } from '../../../src/lib/facultyImages';
+import { getFacultyAvatarSource, getFacultyDetails } from '../../../src/lib/facultyImages';
 
 const CLASS_FILTERS = ['all', '9', '10', '11', '12'] as const;
 type ClassFilterType = (typeof CLASS_FILTERS)[number];
@@ -96,6 +96,7 @@ export default function BatchesScreen() {
 
   // Student hook data
   const { data: studentData, isLoading: isStudentLoading, refetch: refetchStudent, isRefetching: isStudentRefetching } = useStudentBatches();
+  const { data: instituteBatchesData, refetch: refetchInstituteBatches } = useInstituteBatches();
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinModalCode, setJoinModalCode] = useState('');
   const [joinModalTab, setJoinModalTab] = useState<'code' | 'scanner'>('code');
@@ -165,33 +166,28 @@ export default function BatchesScreen() {
 
     const seenCodes = new Set<string>();
 
-    // Add default institute batches
-    DEFAULT_INSTITUTE_BATCHES.forEach((b) => {
-      if (!seenCodes.has(b.joinCode)) {
+    // Add batches from database (via API)
+    (instituteBatchesData?.batches || []).forEach((b) => {
+      if (b.joinCode && !seenCodes.has(b.joinCode)) {
         seenCodes.add(b.joinCode);
         list.push({
           id: b.id,
           title: b.title,
-          subject: b.subjectName,
+          subject: b.subject,
           classLevel: b.classLevel,
           board: b.board,
           mode: b.mode,
           joinCode: b.joinCode,
-          faculty: b.teacherName,
-          room: b.mode === 'online' ? 'Live Digital Classroom' : 'Quick2Learn Centre • Room 101',
-          scheduleText:
-            b.classLevel === 12
-              ? 'Mon - Sat • 5:00 PM – 6:30 PM'
-              : b.classLevel === 11
-              ? 'Mon - Sat • 6:30 PM – 8:00 PM'
-              : 'Mon, Wed, Fri • 4:00 PM – 5:30 PM',
+          faculty: b.faculty,
+          room: b.room || (b.mode === 'online' ? 'Live Digital Classroom' : 'Quick2Learn Centre • Room 101'),
+          scheduleText: b.scheduleText || 'Regular Schedule',
         });
       }
     });
 
     // Add any custom batches from adminStore
     adminStore.batches.forEach((b) => {
-      if (!seenCodes.has(b.joinCode)) {
+      if (b.joinCode && !seenCodes.has(b.joinCode)) {
         seenCodes.add(b.joinCode);
         list.push({
           id: b.id,
@@ -209,7 +205,7 @@ export default function BatchesScreen() {
     });
 
     return list;
-  }, [adminStore.batches]);
+  }, [instituteBatchesData?.batches, adminStore.batches]);
 
   const filteredExploreBatches = useMemo(() => {
     if (studentExploreClassFilter === 'all') return exploreBatches;
@@ -219,10 +215,10 @@ export default function BatchesScreen() {
   const handleRefresh = async () => {
     if (isAdmin) {
       setRefreshingAdmin(true);
-      await Promise.all([adminStore.init(), refetchStudent()]);
+      await Promise.all([adminStore.init(), refetchStudent(), refetchInstituteBatches()]);
       setRefreshingAdmin(false);
     } else {
-      refetchStudent();
+      await Promise.all([refetchStudent(), refetchInstituteBatches()]);
     }
   };
 
@@ -703,63 +699,214 @@ export default function BatchesScreen() {
 
             {/* Pending Requests Section */}
             {pendingRequests.length > 0 && (
-              <View className="mb-6 space-y-2">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-caption font-bold text-ink-muted uppercase tracking-wider">
-                    Pending Requests ({pendingRequests.length})
-                  </Text>
+              <View style={{ marginBottom: 18, gap: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Clock size={14} color="#D97706" />
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#92400E', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+                      Pending Requests
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      borderWidth: 1,
+                      borderColor: '#FDE68A',
+                      paddingHorizontal: 7,
+                      paddingVertical: 1.5,
+                      borderRadius: 10,
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#B45309' }}>
+                      {pendingRequests.length}
+                    </Text>
+                  </View>
                 </View>
 
-                {pendingRequests.map((req) => (
-                  <TouchableOpacity
-                    key={req.id}
-                    activeOpacity={0.85}
-                    onPress={() => router.push(`/batch/${req.batchId}` as any)}
-                    className="bg-surface rounded-2xl border border-amber-200/80 p-4 shadow-2xs space-y-2"
-                  >
-                    <View className="flex-row items-center justify-between">
-                      <Badge
-                        label={
-                          req.status === 'pending'
-                            ? 'WAITING FOR APPROVAL'
-                            : req.status.toUpperCase()
-                        }
-                        variant={req.status === 'pending' ? 'neutral' : 'danger'}
-                        size="sm"
-                      />
-                      <Text className="text-[11px] font-semibold text-ink-muted">
-                        Class {req.classLevel}
+                {pendingRequests.map((req) => {
+                  const matchedBatch =
+                    (instituteBatchesData?.batches || []).find((b) => b.id === req.batchId) ||
+                    adminStore.batches.find((b) => b.id === req.batchId);
+                  const faculty = getFacultyDetails(
+                    req.batchTitle ||
+                      (matchedBatch as any)?.subjectName ||
+                      (matchedBatch as any)?.subject ||
+                      (matchedBatch as any)?.teacherName ||
+                      (matchedBatch as any)?.faculty
+                  );
+                  const boardLabel = ((matchedBatch as any)?.board || 'cbse').toUpperCase();
+                  const subjectLabel =
+                    (matchedBatch as any)?.subjectName ||
+                    (matchedBatch as any)?.subject ||
+                    faculty.subjects[0] ||
+                    'Curriculum';
+
+                  return (
+                    <TouchableOpacity
+                      key={req.id}
+                      activeOpacity={0.85}
+                      onPress={() => router.push(`/batch/${req.batchId}` as any)}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 22,
+                        borderWidth: 1.5,
+                        borderColor: '#FDE68A',
+                        padding: 16,
+                        shadowColor: '#D97706',
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 10,
+                        elevation: 2,
+                        gap: 10,
+                      }}
+                    >
+                      {/* Top Badges */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#FEF3C7',
+                            borderWidth: 1,
+                            borderColor: '#FCD34D',
+                            paddingHorizontal: 9,
+                            paddingVertical: 3.5,
+                            borderRadius: 9999,
+                            gap: 5,
+                          }}
+                        >
+                          <Clock size={11} color="#B45309" />
+                          <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#B45309' }}>
+                            {req.status === 'pending' ? 'WAITING FOR APPROVAL' : req.status.toUpperCase()}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            backgroundColor: '#F8FAFC',
+                            borderWidth: 1,
+                            borderColor: '#E2E8F0',
+                            paddingHorizontal: 8,
+                            paddingVertical: 2.5,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                            Class {req.classLevel} • {boardLabel}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Title */}
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '800',
+                          color: '#0F172A',
+                          letterSpacing: -0.2,
+                          lineHeight: 22,
+                        }}
+                      >
+                        {req.batchTitle}
                       </Text>
-                    </View>
 
-                    <Text className="text-body font-bold text-ink">
-                      {req.batchTitle}
-                    </Text>
+                      {/* Faculty & Subject Row (Shows Namita Ma'am or Dinesh Sir photo) */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 14,
+                            borderWidth: 1.5,
+                            borderColor: '#BFDBFE',
+                            overflow: 'hidden',
+                            backgroundColor: '#EFF6FF',
+                          }}
+                        >
+                          {faculty.avatarSource ? (
+                            <Image
+                              source={faculty.avatarSource}
+                              style={{ width: 28, height: 28 }}
+                              contentFit="cover"
+                            />
+                          ) : (
+                            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                              <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>
+                                {faculty.name.slice(0, 1)}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>
+                            {faculty.name}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>
+                            {subjectLabel} • {faculty.role}
+                          </Text>
+                        </View>
+                      </View>
 
-                    <Text className="text-caption text-ink-muted leading-relaxed">
-                      {req.status === 'pending'
-                        ? 'Your join request was submitted. Quick2Learn administration will approve your enrollment shortly.'
-                        : req.note
-                        ? `Reason: ${req.note}`
-                        : 'Your request could not be approved. Please contact the centre office.'}
-                    </Text>
-
-                    <View className="flex-row items-center justify-between pt-1 border-t border-border/40">
-                      <View className="flex-row items-center">
-                        <Clock size={13} color="#9CA3AF" />
-                        <Text className="text-[11px] text-ink-muted ml-1.5">
-                          Requested on {new Date(req.requestedAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                          })}
+                      {/* Explanatory banner */}
+                      <View
+                        style={{
+                          backgroundColor: '#FFFDF5',
+                          borderRadius: 12,
+                          padding: 10,
+                          borderWidth: 1,
+                          borderColor: '#FEF3C7',
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, color: '#78350F', lineHeight: 18 }}>
+                          {req.status === 'pending'
+                            ? `Your join request was submitted to ${faculty.shortName} and institute administration. Once approved, all lectures, notes & tests will unlock automatically.`
+                            : req.note
+                            ? `Reason: ${req.note}`
+                            : 'Your request could not be approved. Please contact the centre office.'}
                         </Text>
                       </View>
-                      <Text className="text-[11px] font-bold text-primary">
-                        View Status →
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+
+                      {/* Footer: Date and CTA */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: '#F1F5F9',
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                          <Clock size={13} color="#D97706" />
+                          <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '500' }}>
+                            Requested on{' '}
+                            {new Date(req.requestedAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                            })}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#EFF6FF',
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            borderRadius: 9999,
+                            gap: 3,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#2563EB' }}>
+                            View Status
+                          </Text>
+                          <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#2563EB' }}>→</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             )}
 
@@ -942,43 +1089,44 @@ export default function BatchesScreen() {
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                    {[
-                      { code: 'Q2L012', label: 'Class 12 Maths' },
-                      { code: 'Q2L011', label: 'Class 11 Maths' },
-                      { code: 'Q2L010', label: 'Class 10 Science' },
-                      { code: 'Q2L009', label: 'Class 10 Maths' },
-                    ].map((item) => (
-                      <TouchableOpacity
-                        key={item.code}
-                        activeOpacity={0.7}
-                        onPress={() => {
-                          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          setJoinModalCode(item.code);
-                          setJoinModalTab('code');
-                          setShowJoinModal(true);
-                        }}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor: '#FFFFFF',
-                          borderWidth: 1,
-                          borderColor: '#CBD5E1',
-                          borderRadius: 8,
-                          paddingHorizontal: 8,
-                          paddingVertical: 4.5,
-                          gap: 4,
-                        }}
-                      >
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>
-                          {item.code}
-                        </Text>
-                        <Text style={{ fontSize: 11, color: '#475569', fontWeight: '500' }}>
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  {exploreBatches.length > 0 ? (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                      {exploreBatches.slice(0, 4).map((item) => (
+                        <TouchableOpacity
+                          key={item.joinCode}
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            setJoinModalCode(item.joinCode);
+                            setJoinModalTab('code');
+                            setShowJoinModal(true);
+                          }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#FFFFFF',
+                            borderWidth: 1,
+                            borderColor: '#CBD5E1',
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4.5,
+                            gap: 4,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>
+                            {item.joinCode}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: '#475569', fontWeight: '500' }}>
+                            Class {item.classLevel} {item.subject}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={{ fontSize: 11.5, color: '#64748B', fontStyle: 'italic' }}>
+                      Enter your 6-character Batch Code provided by your teacher above.
+                    </Text>
+                  )}
                 </View>
               </View>
             )}
@@ -1123,7 +1271,17 @@ export default function BatchesScreen() {
 
               {/* Explored Batches Cards */}
               <View style={{ gap: 9 }}>
-                {filteredExploreBatches.map((b) => {
+                {filteredExploreBatches.length === 0 ? (
+                  <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', padding: 24, alignItems: 'center' }}>
+                    <EmptyState
+                      imageSource={require('../../../assets/empty batch.png')}
+                      imageSize={120}
+                      title="No Batches Available"
+                      description="No classroom batches have been published yet for this selection. New batches will appear here as soon as admissions open."
+                    />
+                  </View>
+                ) : (
+                  filteredExploreBatches.map((b) => {
                   const avatarSource = getFacultyAvatarSource(b.faculty);
                   return (
                     <View
@@ -1276,7 +1434,8 @@ export default function BatchesScreen() {
                       </View>
                     </View>
                   );
-                })}
+                })
+              )}
               </View>
             </View>
 

@@ -154,10 +154,10 @@ export default function ParentFeesTab() {
             >
               <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "600" }}>Total Paid</Text>
               <Text style={{ fontSize: 20, fontWeight: "800", color: "#059669", marginTop: 2 }}>
-                {formatINR(summary?.totalPaidPaise || 4500000)}
+                {formatINR(summary?.totalPaidPaise || 0)}
               </Text>
               <Text style={{ fontSize: 10.5, color: "#64748B", marginTop: 2 }}>
-                {paymentHistory.length || 2} receipts issued
+                {paymentHistory.length} receipts issued
               </Text>
             </View>
 
@@ -404,27 +404,29 @@ export default function ParentFeesTab() {
         {/* Content: History */}
         {activeTab === "history" && (
           <View style={{ gap: 10 }}>
-            {(paymentHistory.length > 0
-              ? paymentHistory
-              : [
-                  {
-                    id: "rec-001",
-                    receiptNo: "Q2L-REC-2026-0892",
-                    batchTitle: "Class 10 CBSE Mathematics & Science",
-                    amountPaise: 2500000,
-                    method: "upi",
-                    paidAt: new Date(Date.now() - 86400000 * 20).toISOString(),
-                  },
-                  {
-                    id: "rec-002",
-                    receiptNo: "Q2L-REC-2026-0411",
-                    batchTitle: "Class 10 Annual Academic Registration",
-                    amountPaise: 2000000,
-                    method: "cash",
-                    paidAt: new Date(Date.now() - 86400000 * 50).toISOString(),
-                  },
-                ]
-            ).map((item) => (
+            {paymentHistory.length === 0 ? (
+              <View
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 18,
+                  padding: 32,
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 8,
+                }}
+              >
+                <Receipt size={32} color="#94A3B8" />
+                <Text style={{ fontSize: 15, fontWeight: "700", color: "#1E293B", marginTop: 10 }}>
+                  No Payment Receipts Yet
+                </Text>
+                <Text style={{ fontSize: 12, color: "#64748B", textAlign: "center", marginTop: 4 }}>
+                  Completed fee payments and serialized receipts will appear here.
+                </Text>
+              </View>
+            ) : (
+              paymentHistory.map((item) => (
               <View
                 key={item.id}
                 style={{
@@ -534,7 +536,7 @@ export default function ParentFeesTab() {
                   </TouchableOpacity>
                 </View>
               </View>
-            ))}
+            )))}
           </View>
         )}
       </ScrollView>

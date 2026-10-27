@@ -26,6 +26,12 @@ import {
   CreditCard,
   X,
   ChevronRight,
+  ShieldCheck,
+  GraduationCap,
+  Users,
+  Calendar,
+  TrendingUp,
+  Award,
 } from 'lucide-react-native';
 import { useDropdownStore, useDrawerStore } from '../../lib/drawerStore';
 import { useMe } from '../../api/hooks';
@@ -73,7 +79,6 @@ export function RollingDropdownMenu() {
     }
   };
 
-
   const handleShareOnFacebook = async () => {
     handleClose();
     const appUrl = 'https://play.google.com/store/apps/details?id=in.quick2learn.app';
@@ -93,82 +98,254 @@ export function RollingDropdownMenu() {
     }
   };
 
-  const rawName = me?.profile?.fullName || me?.user?.name || 'Dinesh Sir';
-  const fullName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || 'Dinesh Sir';
+  const role = me?.role || 'student';
+  const isAdmin = role === 'admin' || role === 'teacher';
+  const isParent = role === 'parent';
+
+  const rawName = me?.profile?.fullName || me?.user?.name || (isAdmin ? 'Dinesh Sir' : isParent ? 'Parent' : 'Student');
+  const fullName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || (isAdmin ? 'Dinesh Sir' : 'Student');
   const roleName =
-    me?.role === 'admin'
+    role === 'admin'
       ? 'Administrator'
-      : me?.role === 'teacher'
+      : role === 'teacher'
       ? 'Faculty'
+      : isParent
+      ? 'Parent Portal'
       : me?.profile?.classLevel
       ? `Class ${me.profile.classLevel} • ${(me.profile.board || 'CBSE').toUpperCase()}`
-      : 'CBSE Mathematics';
+      : 'Student Portal';
 
   const orgCode = 'KFVMT';
-  const isAdmin = me?.role === 'admin' || me?.role === 'teacher';
 
-  const menuItems: MenuItem[] = [
-    {
-      id: 'downloads',
-      label: 'Offline Downloads',
-      subtitle: isAdmin ? 'Manage & upload offline notes' : 'Downloaded lectures & notes',
-      icon: <Download size={18} color="#2563EB" strokeWidth={2.1} />,
-      iconBg: '#EFF6FF',
-      badge: isAdmin ? 'UPLOAD' : 'NEW',
-      onPress: () => navigateTo('/downloads'),
-    },
-    {
-      id: 'free-material',
-      label: 'Free Material',
-      subtitle: isAdmin ? 'Upload sample papers & formulas' : 'Sample papers & formula sheets',
-      icon: <Folder size={18} color="#0D9488" strokeWidth={2.1} />,
-      iconBg: '#F0FDFA',
-      badge: isAdmin ? 'UPLOAD' : 'NEW',
-      onPress: () => navigateTo('/free-material'),
-    },
-    {
-      id: 'testimonials',
-      label: 'Students Testimonial',
-      subtitle: isAdmin ? 'Upload toppers & student reviews' : 'Past toppers & success stories',
-      icon: <MessageSquare size={18} color="#D97706" strokeWidth={2.1} />,
-      iconBg: '#FFFBEB',
-      badge: isAdmin ? 'UPLOAD' : 'NEW',
-      onPress: () => navigateTo('/results'),
-    },
-    {
-      id: 'edit-profile',
-      label: 'Edit Profile',
-      subtitle: 'Class, board & personal info',
-      icon: <User size={18} color="#7C3AED" strokeWidth={2.1} />,
-      iconBg: '#F5F3FF',
-      onPress: () => navigateTo('/profile/edit'),
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      subtitle: 'App preferences & notifications',
-      icon: <Settings size={18} color="#475569" strokeWidth={2.1} />,
-      iconBg: '#F1F5F9',
-      onPress: () => navigateTo('/settings'),
-    },
-    {
-      id: 'help',
-      label: 'How to use the App',
-      subtitle: 'Video walkthroughs & FAQs',
-      icon: <HelpCircle size={18} color="#0284C7" strokeWidth={2.1} />,
-      iconBg: '#F0F9FF',
-      badge: 'NEW',
-      onPress: () => navigateTo('/help'),
-    },
-    {
-      id: 'payments',
-      label: 'Payments & Fees',
-      subtitle: 'Fee invoices & payment history',
-      icon: <CreditCard size={18} color="#DB2777" strokeWidth={2.1} />,
-      iconBg: '#FDF2F8',
-      onPress: () => navigateTo('/fee-receipts'),
-    },
-  ];
+  // Role-specific drawer menus to ensure complete separation of Admin and Student portals
+  const menuItems: MenuItem[] = isAdmin
+    ? [
+        {
+          id: 'admin-portal',
+          label: 'Institute Admin Portal',
+          subtitle: 'Live batches, roster & admin tools',
+          icon: <ShieldCheck size={18} color="#4F46E5" strokeWidth={2.1} />,
+          iconBg: '#EEF2FF',
+          badge: 'PORTAL',
+          onPress: () => navigateTo('/teach'),
+        },
+        {
+          id: 'batches',
+          label: 'Batch Management',
+          subtitle: 'Classes IX–XII, timetable & lectures',
+          icon: <GraduationCap size={18} color="#2563EB" strokeWidth={2.1} />,
+          iconBg: '#EFF6FF',
+          onPress: () => navigateTo('/batches'),
+        },
+        {
+          id: 'admissions',
+          label: 'Student Admissions',
+          subtitle: 'Join requests & verified roster',
+          icon: <Users size={18} color="#16A34A" strokeWidth={2.1} />,
+          iconBg: '#F0FDF4',
+          onPress: () => navigateTo('/teach'),
+        },
+        {
+          id: 'fees',
+          label: 'Fee Management & Accounts',
+          subtitle: 'Center dues & offline payment receipts',
+          icon: <CreditCard size={18} color="#7C3AED" strokeWidth={2.1} />,
+          iconBg: '#F5F3FF',
+          onPress: () => navigateTo('/fees'),
+        },
+        {
+          id: 'attendance',
+          label: 'Batch Attendance Rosters',
+          subtitle: 'Daily attendance marking & registers',
+          icon: <Calendar size={18} color="#0D9488" strokeWidth={2.1} />,
+          iconBg: '#F0FDFA',
+          onPress: () => navigateTo('/attendance'),
+        },
+        {
+          id: 'free-material',
+          label: 'Free Study Material',
+          subtitle: 'Upload sample papers & formula sheets',
+          icon: <Folder size={18} color="#D97706" strokeWidth={2.1} />,
+          iconBg: '#FFFBEB',
+          badge: 'UPLOAD',
+          onPress: () => navigateTo('/free-material'),
+        },
+        {
+          id: 'testimonials',
+          label: 'Results & Testimonials',
+          subtitle: 'Manage toppers & student reviews',
+          icon: <MessageSquare size={18} color="#EA580C" strokeWidth={2.1} />,
+          iconBg: '#FFF7ED',
+          badge: 'UPLOAD',
+          onPress: () => navigateTo('/results'),
+        },
+        {
+          id: 'edit-profile',
+          label: 'Edit Faculty Profile',
+          subtitle: 'Designation, subjects & credentials',
+          icon: <User size={18} color="#4F46E5" strokeWidth={2.1} />,
+          iconBg: '#EEF2FF',
+          onPress: () => navigateTo('/profile/edit'),
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          subtitle: 'App preferences & security',
+          icon: <Settings size={18} color="#475569" strokeWidth={2.1} />,
+          iconBg: '#F1F5F9',
+          onPress: () => navigateTo('/settings'),
+        },
+        {
+          id: 'help',
+          label: 'Faculty Documentation',
+          subtitle: 'Admin walkthroughs & FAQs',
+          icon: <HelpCircle size={18} color="#0284C7" strokeWidth={2.1} />,
+          iconBg: '#F0F9FF',
+          onPress: () => navigateTo('/help'),
+        },
+      ]
+    : isParent
+    ? [
+        {
+          id: 'attendance',
+          label: 'Child Attendance',
+          subtitle: 'Monitor daily institute check-in',
+          icon: <Calendar size={18} color="#059669" strokeWidth={2.1} />,
+          iconBg: '#ECFDF5',
+          onPress: () => navigateTo('/attendance'),
+        },
+        {
+          id: 'tests',
+          label: 'Tests & Scores',
+          subtitle: 'Evaluated test marks & performance',
+          icon: <Award size={18} color="#2563EB" strokeWidth={2.1} />,
+          iconBg: '#EFF6FF',
+          onPress: () => navigateTo('/tests'),
+        },
+        {
+          id: 'payments',
+          label: 'Tuition Fees & Invoices',
+          subtitle: 'Tuition dues & payment receipts',
+          icon: <CreditCard size={18} color="#4F46E5" strokeWidth={2.1} />,
+          iconBg: '#EEF2FF',
+          onPress: () => navigateTo('/fee-receipts'),
+        },
+        {
+          id: 'free-material',
+          label: 'Free Study Material',
+          subtitle: 'Sample papers & formula sheets',
+          icon: <Folder size={18} color="#0D9488" strokeWidth={2.1} />,
+          iconBg: '#F0FDFA',
+          onPress: () => navigateTo('/free-material'),
+        },
+        {
+          id: 'testimonials',
+          label: 'Results & Testimonials',
+          subtitle: 'Past toppers & success stories',
+          icon: <MessageSquare size={18} color="#D97706" strokeWidth={2.1} />,
+          iconBg: '#FFFBEB',
+          onPress: () => navigateTo('/results'),
+        },
+        {
+          id: 'edit-profile',
+          label: 'Edit Profile',
+          subtitle: 'Parent details & contact info',
+          icon: <User size={18} color="#7C3AED" strokeWidth={2.1} />,
+          iconBg: '#F5F3FF',
+          onPress: () => navigateTo('/profile/edit'),
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          subtitle: 'App preferences & notifications',
+          icon: <Settings size={18} color="#475569" strokeWidth={2.1} />,
+          iconBg: '#F1F5F9',
+          onPress: () => navigateTo('/settings'),
+        },
+        {
+          id: 'help',
+          label: 'How to use the App',
+          subtitle: 'Parent walkthrough & FAQs',
+          icon: <HelpCircle size={18} color="#0284C7" strokeWidth={2.1} />,
+          iconBg: '#F0F9FF',
+          onPress: () => navigateTo('/help'),
+        },
+      ]
+    : [
+        {
+          id: 'downloads',
+          label: 'Offline Downloads',
+          subtitle: 'Downloaded lectures & study notes',
+          icon: <Download size={18} color="#2563EB" strokeWidth={2.1} />,
+          iconBg: '#EFF6FF',
+          onPress: () => navigateTo('/downloads'),
+        },
+        {
+          id: 'free-material',
+          label: 'Free Material',
+          subtitle: 'Sample papers & formula sheets',
+          icon: <Folder size={18} color="#0D9488" strokeWidth={2.1} />,
+          iconBg: '#F0FDFA',
+          badge: 'NEW',
+          onPress: () => navigateTo('/free-material'),
+        },
+        {
+          id: 'attendance',
+          label: 'My Attendance',
+          subtitle: 'Daily attendance record & percentage',
+          icon: <Calendar size={18} color="#059669" strokeWidth={2.1} />,
+          iconBg: '#ECFDF5',
+          onPress: () => navigateTo('/attendance'),
+        },
+        {
+          id: 'performance',
+          label: 'Tests & Performance',
+          subtitle: 'Evaluated tests & progress tracking',
+          icon: <TrendingUp size={18} color="#4F46E5" strokeWidth={2.1} />,
+          iconBg: '#EEF2FF',
+          onPress: () => navigateTo('/performance'),
+        },
+        {
+          id: 'payments',
+          label: 'Fee Receipts',
+          subtitle: 'Fee invoices & payment history',
+          icon: <CreditCard size={18} color="#DB2777" strokeWidth={2.1} />,
+          iconBg: '#FDF2F8',
+          onPress: () => navigateTo('/fee-receipts'),
+        },
+        {
+          id: 'testimonials',
+          label: 'Students Testimonial',
+          subtitle: 'Past toppers & success stories',
+          icon: <MessageSquare size={18} color="#D97706" strokeWidth={2.1} />,
+          iconBg: '#FFFBEB',
+          onPress: () => navigateTo('/results'),
+        },
+        {
+          id: 'edit-profile',
+          label: 'Edit Profile',
+          subtitle: 'Class, board & personal info',
+          icon: <User size={18} color="#7C3AED" strokeWidth={2.1} />,
+          iconBg: '#F5F3FF',
+          onPress: () => navigateTo('/profile/edit'),
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          subtitle: 'App preferences & notifications',
+          icon: <Settings size={18} color="#475569" strokeWidth={2.1} />,
+          iconBg: '#F1F5F9',
+          onPress: () => navigateTo('/settings'),
+        },
+        {
+          id: 'help',
+          label: 'How to use the App',
+          subtitle: 'Video walkthroughs & FAQs',
+          icon: <HelpCircle size={18} color="#0284C7" strokeWidth={2.1} />,
+          iconBg: '#F0F9FF',
+          onPress: () => navigateTo('/help'),
+        },
+      ];
 
   return (
     <Modal

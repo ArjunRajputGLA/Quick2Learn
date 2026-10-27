@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireRole } from "./auth/session";
 import {
   manualEnrollStudent,
+  registerStudent,
   waiveFeeDue,
   addStudentNote,
   saveBatchWithPlans,
@@ -15,7 +16,7 @@ import {
 } from "./data/admin";
 import { createResource } from "./data/resources";
 import { createAnnouncement } from "./data/announcements";
-import { updateEnquiry } from "./data/enquiries";
+import { updateEnquiry, createEnquiry } from "./data/enquiries";
 import { updateSetting } from "./data/settings";
 import { recordOfflinePayment } from "./payments/service";
 import { syncYouTubeChannel } from "./youtube/sync";
@@ -206,8 +207,52 @@ export async function getPresignedUploadUrlAction(
 }
 
 // -------------------------------------------------------------
-// 4. STUDENT ACTIONS (ENROL, RECORD OFFLINE PAYMENT, WAIVE, NOTE)
+// 4. STUDENT ACTIONS (REGISTER, ENROL, RECORD OFFLINE PAYMENT, WAIVE, NOTE)
 // -------------------------------------------------------------
+
+const registerStudentSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters"),
+  phone: z.string().trim().min(10, "Phone number must be at least 10 digits"),
+  email: z.string().trim().email("Invalid email").optional().or(z.literal("")),
+  classLevel: z.number().int().min(9).max(12),
+  board: z.enum(["cbse", "icse", "isc"]),
+  school: z.string().trim().optional(),
+  city: z.string().trim().optional(),
+  parentName: z.string().trim().optional(),
+  parentPhone: z.string().trim().optional(),
+  batchId: z.string().uuid().optional().or(z.literal("")),
+  feePlanId: z.string().uuid().optional().or(z.literal("")),
+});
+
+export async function registerStudentAction(
+  input: z.infer<typeof registerStudentSchema>,
+): Promise<ActionResult> {
+  const current = await requireRole(["admin"]);
+  const parsed = registerStudentSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.errors[0]?.message };
+  }
+
+  try {
+    const res = await registerStudent(toAuthUser(current), {
+      name: parsed.data.name,
+      phone: parsed.data.phone,
+      email: parsed.data.email || undefined,
+      classLevel: parsed.data.classLevel,
+      board: parsed.data.board,
+      school: parsed.data.school || undefined,
+      city: parsed.data.city || undefined,
+      parentName: parsed.data.parentName || undefined,
+      parentPhone: parsed.data.parentPhone || undefined,
+      batchId: parsed.data.batchId || undefined,
+      feePlanId: parsed.data.feePlanId || undefined,
+    });
+    revalidatePath("/admin/students");
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to register student" };
+  }
+}
 
 const manualEnrollSchema = z.object({
   studentId: z.string().min(1),
@@ -586,6 +631,61 @@ export async function convertEnquiryToStudentAction(
     return { success: true, data: res };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Failed to convert enquiry" };
+  }
+}
+
+const createEnquirySchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters"),
+  phone: z.string().trim().min(10, "Phone number must be at least 10 digits"),
+  email: z.string().trim().email("Invalid email").optional().or(z.literal("")),
+  classLevel: z.number().int().min(9).max(12).optional(),
+  board: z.enum(["cbse", "icse", "isc"]).optional(),
+  message: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+export async function createEnquiryAction(
+  input: z.infer<typeof createEnquirySchema>,
+): Promise<ActionResult> {
+  const current = await requireRole(["admin"]);
+  const parsed = createEnquirySchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.errors[0]?.message };
+  }
+
+  try {
+    const combinedNotes = [
+      parsed.data.email ? `Email: ${parsed.data.email}` : "",
+      parsed.data.notes || "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const res = await createEnquiry({
+      name: parsed.data.name,
+      phone: parsed.data.phone,
+      classLevel: parsed.data.classLevel ?? null,
+      board: parsed.data.board ?? null,
+      message: parsed.data.message ?? null,
+      notes: combinedNotes || null,
+      sourcePath: "/admin/enquiries",
+      status: "new",
+    });
+
+    if (res?.id) {
+      await db.insert(schema.auditLog).values({
+        actorId: current.user.id,
+        action: "create_enquiry",
+        entity: "enquiries",
+        entityId: res.id,
+        diff: { name: res.name, phone: res.phone },
+      });
+    }
+
+    revalidatePath("/admin/enquiries");
+    return { success: true, data: res };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to record enquiry" };
   }
 }
 

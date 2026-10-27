@@ -456,56 +456,58 @@ export default function HelpScreen() {
           </View>
         </View>
 
-        {/* Role Tab Selector (Student Guide vs Faculty Tools) */}
-        <View className="bg-surface rounded-2xl p-1 border border-border mb-4 flex-row">
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedRoleTab('student');
-              setActiveSlide(0);
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center ${
-              selectedRoleTab === 'student' ? 'bg-primary shadow-xs' : 'bg-transparent'
-            }`}
-          >
-            <GraduationCap
-              size={15}
-              color={selectedRoleTab === 'student' ? '#FFFFFF' : '#64748B'}
-            />
-            <Text
-              className={`text-xs font-bold ml-1.5 ${
-                selectedRoleTab === 'student' ? 'text-white' : 'text-ink-muted'
+        {/* Role Tab Selector (Only shown for Faculty & Admin to prevent leaking staff tools to students) */}
+        {isAdminOrTeacher && (
+          <View className="bg-surface rounded-2xl p-1 border border-border mb-4 flex-row">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setSelectedRoleTab('student');
+                setActiveSlide(0);
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              className={`flex-1 py-2 rounded-xl items-center flex-row justify-center ${
+                selectedRoleTab === 'student' ? 'bg-primary shadow-xs' : 'bg-transparent'
               }`}
             >
-              Student Guide
-            </Text>
-          </TouchableOpacity>
+              <GraduationCap
+                size={15}
+                color={selectedRoleTab === 'student' ? '#FFFFFF' : '#64748B'}
+              />
+              <Text
+                className={`text-xs font-bold ml-1.5 ${
+                  selectedRoleTab === 'student' ? 'text-white' : 'text-ink-muted'
+                }`}
+              >
+                Student Guide
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedRoleTab('teacher');
-              setActiveSlide(0);
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            className={`flex-1 py-2 rounded-xl items-center flex-row justify-center ${
-              selectedRoleTab === 'teacher' ? 'bg-primary shadow-xs' : 'bg-transparent'
-            }`}
-          >
-            <Users
-              size={15}
-              color={selectedRoleTab === 'teacher' ? '#FFFFFF' : '#64748B'}
-            />
-            <Text
-              className={`text-xs font-bold ml-1.5 ${
-                selectedRoleTab === 'teacher' ? 'text-white' : 'text-ink-muted'
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setSelectedRoleTab('teacher');
+                setActiveSlide(0);
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              className={`flex-1 py-2 rounded-xl items-center flex-row justify-center ${
+                selectedRoleTab === 'teacher' ? 'bg-primary shadow-xs' : 'bg-transparent'
               }`}
             >
-              Faculty & Admin
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <Users
+                size={15}
+                color={selectedRoleTab === 'teacher' ? '#FFFFFF' : '#64748B'}
+              />
+              <Text
+                className={`text-xs font-bold ml-1.5 ${
+                  selectedRoleTab === 'teacher' ? 'text-white' : 'text-ink-muted'
+                }`}
+              >
+                Faculty & Admin
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Walkthrough Carousel Section */}
         <View className="bg-surface rounded-2xl p-4 border border-border mb-4 shadow-xs space-y-3">

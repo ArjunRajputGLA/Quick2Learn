@@ -37,7 +37,11 @@ import { BatchContentSection } from '../../../../src/components/batches/BatchCon
 import { BatchTestsSection } from '../../../../src/components/batches/BatchTestsSection';
 import { BatchMoreSection } from '../../../../src/components/batches/BatchMoreSection';
 import { JoinBatchModal } from '../../../../src/components/batches/JoinBatchModal';
-import { getFacultyAvatarSource } from '../../../../src/lib/facultyImages';
+import {
+  getFacultyAvatarSource,
+  getFacultyDetails,
+  isNamitaFaculty,
+} from '../../../../src/lib/facultyImages';
 
 const SECTIONS = ['Today', 'Content', 'Tests', 'More'];
 
@@ -61,6 +65,11 @@ export default function BatchScreen() {
   const isEnrolled = isStaff || enrollmentStatus === 'enrolled' || enrollmentStatus === 'active';
   const isPending = !isEnrolled && enrollmentStatus === 'pending';
   const isRejected = !isEnrolled && enrollmentStatus === 'rejected';
+
+  // Dynamic mentor details (resolves Namita Ma'am for Science/Biology or Dinesh Sir for Maths)
+  const mentorDetails = getFacultyDetails(
+    batch?.title || batch?.subtitle || (batch?.teachers && batch.teachers[0]?.name)
+  );
 
   return (
     <Screen
@@ -102,86 +111,160 @@ export default function BatchScreen() {
             <Skeleton width="100%" height={48} borderRadius={12} />
           </View>
         ) : (
-          <View className="bg-surface rounded-3xl p-5 border border-border mb-4 shadow-xs space-y-3">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center space-x-1.5">
-                <Badge
-                  label={`Class ${batch?.classLevel || 12}`}
-                  variant="neutral"
-                  size="sm"
-                />
-                <Badge
-                  label={(batch?.board || 'cbse').toUpperCase()}
-                  variant="neutral"
-                  size="sm"
-                />
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              padding: 18,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+              marginBottom: 16,
+              shadowColor: '#0F172A',
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.05,
+              shadowRadius: 10,
+              elevation: 2,
+              gap: 12,
+            }}
+          >
+            {/* Top Badges Row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <View
+                  style={{
+                    backgroundColor: '#EFF6FF',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>
+                    Class {batch?.classLevel || 12}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                    {(batch?.board || 'cbse').toUpperCase()}
+                  </Text>
+                </View>
                 {batch?.academicYear && (
-                  <Badge
-                    label={batch.academicYear}
-                    variant="neutral"
-                    size="sm"
-                  />
+                  <View
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#E2E8F0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>
+                      {batch.academicYear}
+                    </Text>
+                  </View>
                 )}
               </View>
 
-              <Badge
-                label={`CODE: ${batch?.joinCode || '—'}`}
-                variant="neutral"
-                size="sm"
-              />
+              <View
+                style={{
+                  backgroundColor: '#F1F5F9',
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 8,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                  CODE: {batch?.joinCode || '—'}
+                </Text>
+              </View>
             </View>
 
+            {/* Batch Title & Subtitle */}
             <View>
-              <Text className="text-h2 font-black text-ink leading-tight">
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '900',
+                  color: '#0F172A',
+                  letterSpacing: -0.3,
+                  lineHeight: 24,
+                }}
+              >
                 {batch?.title}
               </Text>
               {batch?.subtitle && (
-                <Text className="text-caption text-ink-muted mt-0.5">
+                <Text style={{ fontSize: 12.5, color: '#64748B', marginTop: 3 }}>
                   {batch.subtitle}
                 </Text>
               )}
             </View>
 
-            {/* Teacher Avatars Row & Enrollment Status */}
-            <View className="flex-row items-center justify-between pt-2 border-t border-border/50">
-              <View className="flex-row items-center space-x-2">
+            {/* Teacher Row & Enrollment Status */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: 10,
+                borderTopWidth: 1,
+                borderTopColor: '#F1F5F9',
+                gap: 8,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
                 {(() => {
-                  const effectiveTeachers =
-                    batch?.teachers && batch.teachers.length > 0
-                      ? batch.teachers
-                      : [{ id: 'faculty-dinesh', name: 'Dinesh Singh Rajput', role: 'Founder & Senior Faculty', avatarUrl: undefined }];
-
+                  const teacherAvatar = mentorDetails.avatarSource;
                   return (
                     <>
-                      <View className="flex-row -space-x-2">
-                        {effectiveTeachers.map((t, idx) => (
-                          <View
-                            key={t.id || idx}
-                            className="border-2 border-surface rounded-full overflow-hidden"
-                          >
-                            {getFacultyAvatarSource(t.name) || t.avatarUrl ? (
-                              <Image
-                                source={getFacultyAvatarSource(t.name) || { uri: t.avatarUrl! }}
-                                style={{ width: 32, height: 32, borderRadius: 16 }}
-                                contentFit="cover"
-                              />
-                            ) : (
-                              <View className="w-8 h-8 rounded-full bg-primary-soft items-center justify-center">
-                                <Text className="text-caption font-bold text-primary">
-                                  {t.name.slice(0, 1)}
-                                </Text>
-                              </View>
-                            )}
+                      <View
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 19,
+                          borderWidth: 1.5,
+                          borderColor: '#BFDBFE',
+                          overflow: 'hidden',
+                          backgroundColor: '#EFF6FF',
+                        }}
+                      >
+                        {teacherAvatar ? (
+                          <Image
+                            source={teacherAvatar}
+                            style={{ width: 38, height: 38 }}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 14, fontWeight: '800', color: '#2563EB' }}>
+                              {mentorDetails.name.slice(0, 1)}
+                            </Text>
                           </View>
-                        ))}
+                        )}
                       </View>
 
-                      <View>
-                        <Text className="text-caption font-bold text-ink">
-                          {effectiveTeachers.map((t) => t.name).join(', ')}
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '800', color: '#0F172A' }}
+                          numberOfLines={1}
+                        >
+                          {mentorDetails.name}
                         </Text>
-                        <Text className="text-[11px] text-ink-muted">
-                          {effectiveTeachers[0]?.role || 'Senior Faculty'}
+                        <Text
+                          style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}
+                          numberOfLines={1}
+                        >
+                          {mentorDetails.role}
                         </Text>
                       </View>
                     </>
@@ -191,13 +274,77 @@ export default function BatchScreen() {
 
               {/* Dynamic Badge reflecting Enrolled / Approval Pending / Rejected */}
               {isEnrolled ? (
-                <Badge label="ENROLLED" variant="success" size="sm" />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#ECFDF5',
+                    borderColor: '#A7F3D0',
+                    borderWidth: 1,
+                    paddingHorizontal: 9,
+                    paddingVertical: 4.5,
+                    borderRadius: 9999,
+                    gap: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  <CheckCircle2 size={12} color="#059669" />
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#047857' }}>ENROLLED</Text>
+                </View>
               ) : isPending ? (
-                <Badge label="WAITING FOR APPROVAL" variant="warning" size="sm" />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#FEF3C7',
+                    borderColor: '#FCD34D',
+                    borderWidth: 1,
+                    paddingHorizontal: 9,
+                    paddingVertical: 4.5,
+                    borderRadius: 9999,
+                    gap: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Clock size={12} color="#B45309" />
+                  <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#B45309' }}>
+                    UNDER REVIEW
+                  </Text>
+                </View>
               ) : isRejected ? (
-                <Badge label="REQUEST DECLINED" variant="danger" size="sm" />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#FEF2F2',
+                    borderColor: '#FECACA',
+                    borderWidth: 1,
+                    paddingHorizontal: 9,
+                    paddingVertical: 4.5,
+                    borderRadius: 9999,
+                    gap: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  <AlertCircle size={12} color="#DC2626" />
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#DC2626' }}>
+                    DECLINED
+                  </Text>
+                </View>
               ) : (
-                <Badge label="NOT ENROLLED" variant="neutral" size="sm" />
+                <View
+                  style={{
+                    backgroundColor: '#F1F5F9',
+                    paddingHorizontal: 9,
+                    paddingVertical: 4.5,
+                    borderRadius: 9999,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
+                    NOT ENROLLED
+                  </Text>
+                </View>
               )}
             </View>
           </View>
@@ -259,32 +406,36 @@ export default function BatchScreen() {
             <View
               style={{
                 backgroundColor: '#FFFDF5',
-                borderRadius: 20,
+                borderRadius: 24,
                 borderWidth: 1.5,
                 borderColor: '#FDE68A',
                 padding: 18,
                 shadowColor: '#D97706',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: { width: 0, height: 3 },
                 shadowOpacity: 0.08,
-                shadowRadius: 6,
+                shadowRadius: 10,
                 elevation: 2,
+                gap: 14,
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              {/* Card Header */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
                     backgroundColor: '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: '#FCD34D',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Clock size={20} color="#D97706" />
+                  <Clock size={22} color="#D97706" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#92400E' }}>
+                  <Text style={{ fontSize: 16.5, fontWeight: '900', color: '#92400E', letterSpacing: -0.2 }}>
                     Join Request Under Review
                   </Text>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: '#B45309', marginTop: 1 }}>
@@ -293,44 +444,143 @@ export default function BatchScreen() {
                 </View>
               </View>
 
-              <Text style={{ fontSize: 13, color: '#78350F', lineHeight: 20, marginBottom: 14 }}>
-                Your request to join <Text style={{ fontWeight: '700' }}>{batch?.title}</Text> has been submitted to Dinesh Sir and institute administration. Once approved, all batch lectures, chapter notes, DPPs, and tests will unlock automatically.
+              <Text style={{ fontSize: 13, color: '#78350F', lineHeight: 20 }}>
+                Your request to join <Text style={{ fontWeight: '800' }}>{batch?.title}</Text> has been submitted to {mentorDetails.shortName} and Quick2Learn administration. Once approved, all batch lectures, chapter notes, DPPs, and tests will unlock automatically.
               </Text>
 
-              {/* Progress Steps */}
+              {/* Connected Stepper Timeline */}
               <View
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 14,
-                  padding: 12,
+                  borderRadius: 18,
+                  padding: 14,
                   borderWidth: 1,
                   borderColor: '#FEF3C7',
-                  gap: 10,
-                  marginBottom: 14,
+                  gap: 12,
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <CheckCircle2 size={16} color="#16A34A" />
-                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#166534', flex: 1 }}>
-                    Join Request Submitted
-                  </Text>
-                  <Text style={{ fontSize: 11, color: '#16A34A', fontWeight: '700' }}>Done</Text>
+                {/* Step 1 */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                  <View style={{ alignItems: 'center', width: 24 }}>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: '#DCFCE7',
+                        borderWidth: 1.5,
+                        borderColor: '#16A34A',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <CheckCircle2 size={13} color="#16A34A" />
+                    </View>
+                    <View style={{ width: 2, height: 26, backgroundColor: '#86EFAC', marginTop: 4 }} />
+                  </View>
+                  <View style={{ flex: 1, paddingTop: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#166534' }}>
+                        Join Request Submitted
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: '#DCFCE7',
+                          paddingHorizontal: 7,
+                          paddingVertical: 1.5,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803D' }}>Done</Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 11, color: '#15803D', marginTop: 2 }}>
+                      Batch join code ({batch?.joinCode || '—'}) registered
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Clock size={16} color="#D97706" />
-                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#92400E', flex: 1 }}>
-                    Admin Review & Approval
-                  </Text>
-                  <Text style={{ fontSize: 11, color: '#D97706', fontWeight: '800' }}>In Progress</Text>
+
+                {/* Step 2 */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                  <View style={{ alignItems: 'center', width: 24 }}>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: '#FEF3C7',
+                        borderWidth: 1.5,
+                        borderColor: '#D97706',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Clock size={12} color="#D97706" />
+                    </View>
+                    <View style={{ width: 2, height: 26, backgroundColor: '#E2E8F0', marginTop: 4 }} />
+                  </View>
+                  <View style={{ flex: 1, paddingTop: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400E' }}>
+                        Admin & Faculty Review
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: '#FEF3C7',
+                          borderWidth: 1,
+                          borderColor: '#FCD34D',
+                          paddingHorizontal: 7,
+                          paddingVertical: 1.5,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>In Progress</Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 11, color: '#B45309', marginTop: 2 }}>
+                      Reviewing admission with {mentorDetails.shortName}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ height: 1, backgroundColor: '#F1F5F9' }} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Lock size={16} color="#94A3B8" />
-                  <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#64748B', flex: 1 }}>
-                    All Batch Materials Unlock
-                  </Text>
-                  <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '600' }}>Locked</Text>
+
+                {/* Step 3 */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                  <View style={{ alignItems: 'center', width: 24 }}>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: '#F1F5F9',
+                        borderWidth: 1.5,
+                        borderColor: '#CBD5E1',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Lock size={12} color="#94A3B8" />
+                    </View>
+                  </View>
+                  <View style={{ flex: 1, paddingTop: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>
+                        All Batch Materials Unlock
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: '#F1F5F9',
+                          paddingHorizontal: 7,
+                          paddingVertical: 1.5,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748B' }}>Locked</Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+                      Video lectures, notes, DPPs & test series
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -340,7 +590,12 @@ export default function BatchScreen() {
                   activeOpacity={0.8}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    void refetch();
+                    void refetch().then(() => {
+                      Alert.alert(
+                        'Status Checked',
+                        `Your join request for "${batch?.title || 'Batch'}" is currently under review by Quick2Learn administration. You will be notified as soon as it is approved.`
+                      );
+                    });
                   }}
                   style={{
                     flex: 1,
@@ -348,15 +603,15 @@ export default function BatchScreen() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: '#FEF3C7',
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                     borderColor: '#FCD34D',
-                    borderRadius: 12,
-                    paddingVertical: 10,
+                    borderRadius: 14,
+                    paddingVertical: 11,
                     gap: 6,
                   }}
                 >
-                  <RotateCcw size={14} color="#92400E" />
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#92400E' }}>
+                  <RotateCcw size={15} color="#92400E" />
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400E' }}>
                     Check Status
                   </Text>
                 </TouchableOpacity>
@@ -365,7 +620,7 @@ export default function BatchScreen() {
                   activeOpacity={0.8}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    const msg = `Hello Dinesh Sir, I have submitted a join request for "${batch?.title || 'Batch'}" (Code: ${batch?.joinCode || '—'}). Please approve my enrollment.`;
+                    const msg = `Hello ${mentorDetails.shortName}, I have submitted a join request for "${batch?.title || 'Batch'}" (Code: ${batch?.joinCode || '—'}). Please approve my enrollment.`;
                     void Linking.openURL(`https://wa.me/919412278910?text=${encodeURIComponent(msg)}`);
                   }}
                   style={{
@@ -374,37 +629,63 @@ export default function BatchScreen() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: '#25D366',
-                    borderRadius: 12,
-                    paddingVertical: 10,
+                    borderRadius: 14,
+                    paddingVertical: 11,
                     gap: 6,
+                    shadowColor: '#25D366',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 2,
                   }}
                 >
-                  <MessageCircle size={14} color="#FFFFFF" />
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>
+                  <MessageCircle size={15} color="#FFFFFF" />
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
                     WhatsApp Admin
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              <Text style={{ fontSize: 11, color: '#92400E', textAlign: 'center', marginTop: -2 }}>
+                ⚡ Typical approval time: 1–2 hours during coaching hours (10 AM – 8 PM)
+              </Text>
             </View>
 
             {/* Locked Content Preview Section */}
             <View
               style={{
                 backgroundColor: '#FFFFFF',
-                borderRadius: 20,
+                borderRadius: 22,
                 borderWidth: 1,
                 borderColor: '#E2E8F0',
                 padding: 16,
                 gap: 12,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.03,
+                shadowRadius: 4,
+                elevation: 1,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Batch Contents
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Lock size={12} color="#64748B" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>Unlocks on Approval</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    backgroundColor: '#F1F5F9',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Lock size={11} color="#64748B" />
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#64748B' }}>
+                    Unlocks on Approval
+                  </Text>
                 </View>
               </View>
 
@@ -412,23 +693,35 @@ export default function BatchScreen() {
                 {[
                   {
                     icon: PlayCircle,
+                    color: '#2563EB',
+                    bgColor: '#EFF6FF',
+                    tag: 'Lectures',
                     title: 'Interactive Video Lectures',
-                    desc: 'Full syllabus chapters recorded and taught by Dinesh Sir',
+                    desc: `Full syllabus chapters recorded and taught by ${mentorDetails.shortName}`,
                   },
                   {
                     icon: FileText,
+                    color: '#059669',
+                    bgColor: '#ECFDF5',
+                    tag: 'Notes',
                     title: 'Chapter Notes & Daily DPPs',
                     desc: 'Formula sheets, handwritten notes, and homework questions',
                   },
                   {
                     icon: Award,
+                    color: '#7C3AED',
+                    bgColor: '#F5F3FF',
+                    tag: 'Tests',
                     title: 'Chapter Tests & Mock Series',
                     desc: 'Exam-pattern tests with detailed solutions & analysis',
                   },
                   {
                     icon: Users,
-                    title: 'Batch Discussion & Timetable',
-                    desc: 'Class schedules, live room links, and faculty announcements',
+                    color: '#D97706',
+                    bgColor: '#FFFBEB',
+                    tag: 'Schedule',
+                    title: 'Batch Timetable & Room Links',
+                    desc: `Class schedules, live room links, and notices from ${mentorDetails.shortName}`,
                   },
                 ].map((item, idx) => (
                   <View
@@ -437,7 +730,7 @@ export default function BatchScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       backgroundColor: '#F8FAFC',
-                      borderRadius: 12,
+                      borderRadius: 14,
                       padding: 12,
                       borderWidth: 1,
                       borderColor: '#F1F5F9',
@@ -446,15 +739,15 @@ export default function BatchScreen() {
                   >
                     <View
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 18,
-                        backgroundColor: '#EFF6FF',
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        backgroundColor: item.bgColor,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <item.icon size={18} color="#2563EB" />
+                      <item.icon size={19} color={item.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B' }}>
@@ -464,7 +757,17 @@ export default function BatchScreen() {
                         {item.desc}
                       </Text>
                     </View>
-                    <Lock size={15} color="#94A3B8" />
+                    <View
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderWidth: 1,
+                        borderColor: '#E2E8F0',
+                        padding: 5,
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Lock size={13} color="#94A3B8" />
+                    </View>
                   </View>
                 ))}
               </View>

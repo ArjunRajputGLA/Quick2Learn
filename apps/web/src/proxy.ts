@@ -1,12 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const disabledPrefixes = [
-  "/admin",
-  "/login",
-  "/dashboard",
-  "/checkout",
-  "/onboarding",
-];
+const disabledPrefixes: string[] = [];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

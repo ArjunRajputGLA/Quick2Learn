@@ -777,8 +777,72 @@ function StudentHomeScreen() {
           </ScrollView>
         </View>
 
-        {/* 4. Batch Status Card: Enrolled vs Pending Approval vs Not Added */}
-        {hasEnrolledBatches ? (
+        {/* 4. Batch Status Card: Staff Overview vs Student Enrolled vs Pending Approval vs Not Added */}
+        {isStaff ? (
+          /* State STAFF: Faculty & Administrator Institute Overview Card */
+          <View style={styles.batchStatusCardWrapper}>
+            <View style={[styles.batchStatusCard, { borderColor: '#C7D2FE', backgroundColor: '#F8FAFF' }]}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+                  <Text style={styles.batchTitleText} numberOfLines={1} ellipsizeMode="tail">
+                    Institute Batch Administration
+                  </Text>
+                  <View style={[styles.enrolledBadge, { backgroundColor: '#EEF2FF', borderColor: '#C7D2FE', flexShrink: 0 }]}>
+                    <Text style={[styles.enrolledBadgeText, { color: '#4F46E5' }]}>Administrator</Text>
+                  </View>
+                </View>
+
+                {(() => {
+                  const batchesCount = adminStore.batches.length;
+                  const totalEnrolled = adminStore.students.length > 0
+                    ? adminStore.students.length
+                    : adminStore.batches.reduce((sum, b) => sum + (b.enrolledCount || 0), 0);
+                  const classesList = Array.from(new Set(adminStore.batches.map((b) => b.classLevel).filter(Boolean))).sort((a, b) => a - b);
+                  const classesLabel = classesList.length > 0
+                    ? `Classes ${classesList.map((c) => c === 9 ? 'IX' : c === 10 ? 'X' : c === 11 ? 'XI' : 'XII').join(', ')}`
+                    : 'Classes IX–XII';
+                  return (
+                    <Text style={styles.batchSubtitleText} numberOfLines={1} ellipsizeMode="tail">
+                      {batchesCount > 0
+                        ? `${batchesCount} Active Batches • ${totalEnrolled} Enrolled • ${classesLabel}`
+                        : '0 Active Batches • 0 Enrolled'}
+                    </Text>
+                  );
+                })()}
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                  <Image
+                    source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                    style={{ width: 18, height: 18, borderRadius: 9 }}
+                  />
+                  <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155', textTransform: 'uppercase' }} numberOfLines={1}>
+                    DIRECTOR & MASTER FACULTY CONSOLE
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push("/(app)/(tabs)/batches" as any)}
+                    style={[styles.goToBatchButton, { backgroundColor: '#4F46E5', borderColor: '#4338CA' }]}
+                  >
+                    <Text style={[styles.goToBatchButtonText, { color: '#FFFFFF' }]}>Manage Batches</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push("/(app)/(tabs)/teach" as any)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={[styles.joinAnotherButtonText, { color: '#4F46E5' }]}>
+                      Open Admin Portal →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : hasEnrolledBatches ? (
           /* State A: Student is ENROLLED in batch(es) (Screenshot 20-26-18 & 20-33-27 match) */
           <View style={styles.batchStatusCardWrapper}>
             <View style={styles.batchStatusCard}>
@@ -798,7 +862,10 @@ function StudentHomeScreen() {
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
                   <Image
-                    source={require('../../../assets/Dinesh Singh Rajput.jpeg')}
+                    source={
+                      getFacultyAvatarSource(enrolledBatches[0].teacherName) ||
+                      require('../../../assets/Dinesh Singh Rajput.jpeg')
+                    }
                     style={{ width: 18, height: 18, borderRadius: 9 }}
                   />
                   <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#334155', textTransform: 'uppercase' }} numberOfLines={1}>
@@ -842,16 +909,35 @@ function StudentHomeScreen() {
                   </View>
                 </View>
 
-                <Text style={styles.batchSubtitleText} numberOfLines={1} ellipsizeMode="tail">
-                  Class {pendingRequests[0].classLevel} • Join request submitted to Dinesh Sir
-                </Text>
+                {(() => {
+                  const isNam =
+                    (pendingRequests[0].batchTitle || '').toLowerCase().includes('science') ||
+                    (pendingRequests[0].batchTitle || '').toLowerCase().includes('biology') ||
+                    (pendingRequests[0].batchTitle || '').toLowerCase().includes('namita');
+                  const mentorName = isNam ? "Namita Ma'am" : "Dinesh Sir";
+                  const mentorAvatar = getFacultyAvatarSource(mentorName);
+                  return (
+                    <>
+                      <Text style={styles.batchSubtitleText} numberOfLines={1} ellipsizeMode="tail">
+                        Class {pendingRequests[0].classLevel} • Join request submitted to {mentorName}
+                      </Text>
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
-                  <Clock size={14} color="#D97706" />
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#92400E' }} numberOfLines={1}>
-                    Awaiting tutor approval. Materials will unlock once approved.
-                  </Text>
-                </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                        {mentorAvatar ? (
+                          <Image
+                            source={mentorAvatar}
+                            style={{ width: 16, height: 16, borderRadius: 8 }}
+                          />
+                        ) : (
+                          <Clock size={14} color="#D97706" />
+                        )}
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#92400E' }} numberOfLines={1}>
+                          Awaiting tutor approval. Materials will unlock once approved.
+                        </Text>
+                      </View>
+                    </>
+                  );
+                })()}
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
                   <TouchableOpacity

@@ -263,9 +263,10 @@ export default function ChatsTabScreen() {
   };
 
   const formatChatDate = (dateStr?: string | Date) => {
-    if (!dateStr) return '24 May 2021';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '24 May 2021';
+    const d = dateStr ? new Date(dateStr) : new Date();
+    if (isNaN(d.getTime())) {
+      return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
@@ -930,7 +931,7 @@ export default function ChatsTabScreen() {
                       textTransform: 'uppercase',
                     }}
                   >
-                    {selectedChannel.title || 'DINESH SINGH RAJPUT'}
+                    {targetContactName}
                   </Text>
                   <Text
                     numberOfLines={1}
@@ -1240,7 +1241,12 @@ export default function ChatsTabScreen() {
                               }}
                               numberOfLines={1}
                             >
-                              {channel.title}
+                              {channel.type === 'direct'
+                                ? (isAdminOrTeacher
+                                    ? (channel.studentName || channel.title)
+                                    : (channel.facultyName || channel.title)
+                                  )
+                                : channel.title}
                             </Text>
                             <Text
                               style={{
@@ -1379,15 +1385,12 @@ export default function ChatsTabScreen() {
                   {/* Messages list - Matching Screenshot Layout */}
                   {(selectedChannel.messages || []).map((msg) => {
                     const isMe = Boolean(
-                      msg.isOutgoing ||
-                      (me?.user?.id && msg.senderId === me.user.id) ||
-                      (isAdminOrTeacher
-                        ? (msg.senderRole === 'admin' || msg.senderRole === 'teacher' || msg.senderName?.includes('Dinesh')) &&
-                          !msg.senderName?.includes('Namita') && !msg.senderName?.includes('Anisha')
-                        : msg.senderRole === 'student' ||
-                          msg.senderName?.includes('Arjun') ||
-                          msg.senderName?.includes('Aarav') ||
-                          msg.senderName?.includes('Anisha'))
+                      msg.isOutgoing !== undefined
+                        ? msg.isOutgoing
+                        : (me?.user?.id && msg.senderId === me.user.id) ||
+                          (isAdminOrTeacher
+                            ? msg.senderRole === 'admin' || msg.senderRole === 'teacher'
+                            : msg.senderRole === 'student')
                     );
 
                     const hasImage = Boolean(msg.imageUrl || msg.fileType === 'image');

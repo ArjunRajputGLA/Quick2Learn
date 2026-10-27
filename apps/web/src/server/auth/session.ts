@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { headers } from "next/headers";
-import { redirect, notFound } from "next/navigation";
+import { headers, cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "./auth";
 import { db, profiles, eq, type Profile, type UserRole } from "@quick2learn/db";
 
@@ -13,6 +13,7 @@ export interface CurrentUser {
     emailVerified: boolean;
     createdAt: Date;
     updatedAt: Date;
+    role?: UserRole;
   };
   profile: Profile | null;
   role: UserRole;
@@ -50,10 +51,77 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const role: UserRole = profile?.role ?? "student";
 
   return {
-    user: session.user,
+    user: {
+      ...session.user,
+      role,
+    },
     profile: profile || null,
     role,
   };
+});
+
+/**
+ * Returns the authenticated Admin/Faculty session.
+ * Checks for dedicated q2l_admin_session cookie or Better Auth staff session.
+ */
+export const getAdminSession = cache(async (): Promise<CurrentUser | null> => {
+  // 1. Check dedicated admin session cookie
+  try {
+    const cookieStore = await cookies();
+    const adminCookie = cookieStore.get("q2l_admin_session")?.value;
+    if (adminCookie) {
+      const decodedJson = Buffer.from(adminCookie, "base64").toString("utf-8");
+      const decoded = JSON.parse(decodedJson);
+      if (decoded && (decoded.role === "admin" || decoded.role === "teacher")) {
+        const role: UserRole = decoded.role;
+        const name = decoded.name || (role === "admin" ? "Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput");
+        const email = decoded.email || (role === "admin" ? "admin@quick2learn.in" : "teacher@quick2learn.in");
+        const userId = decoded.userId || (role === "admin" ? "usr-admin-dinesh" : "usr-teacher-namita");
+
+        return {
+          user: {
+            id: userId,
+            name,
+            email,
+            emailVerified: true,
+            createdAt: new Date(decoded.createdAt || "2026-01-01"),
+            updatedAt: new Date(decoded.createdAt || "2026-01-01"),
+            role,
+          },
+          profile: {
+            id: role === "admin" ? "a0000000-0000-0000-0000-000000000099" : "a0000000-0000-0000-0000-000000000098",
+            userId,
+            fullName: name,
+            phone: "+91 76688 75809",
+            role,
+            classLevel: 12,
+            board: "cbse",
+            school: "Quick2Learn Mathura",
+            parentName: null,
+            parentPhone: null,
+            city: "Mathura",
+            avatarUrl: null,
+            onboardedAt: new Date("2026-01-01"),
+            createdAt: new Date("2026-01-01"),
+            updatedAt: new Date("2026-01-01"),
+          },
+          role,
+        };
+      }
+    }
+  } catch (err) {
+    console.error("Error reading admin session cookie:", err);
+  }
+
+  // 2. Check Better Auth staff session
+  try {
+    const current = await getCurrentUser();
+    if (current && (current.role === "admin" || current.role === "teacher")) {
+      return current;
+    }
+  } catch {}
+
+  return null;
 });
 
 /**
@@ -82,17 +150,22 @@ export async function requireOnboardedUser(nextUrl?: string): Promise<CurrentUse
 
 /**
  * Requires the user to have one of the allowed roles ('admin' | 'teacher').
- * Returns 404 (notFound) if unauthorized, preserving security through obscurity.
+ * Redirects to /admin (login form) if not authenticated as admin/teacher.
  */
 export async function requireRole(
   allowedRoles: UserRole | UserRole[]
 ): Promise<CurrentUser> {
-  const current = await requireUser();
+  const adminSession = await getAdminSession();
   const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-  if (!allowed.includes(current.role)) {
-    notFound();
+  if (!adminSession) {
+    redirect("/admin");
   }
 
-  return current;
+  if (!allowed.includes(adminSession.role)) {
+    redirect("/admin");
+  }
+
+  return adminSession;
 }
+

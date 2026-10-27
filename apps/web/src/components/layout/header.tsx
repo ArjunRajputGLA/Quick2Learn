@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Bot } from "lucide-react";
+import { Bot, ShieldCheck } from "lucide-react";
 import { MegaMenu } from "./mega-menu";
 import { SearchTypeahead } from "./search-typeahead";
 import { MobileNav } from "./mobile-nav";
@@ -164,6 +164,14 @@ export function Header({ megaMenuData }: HeaderProps) {
                   className="text-small font-semibold text-ink hover:text-primary transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-300 hidden xl:inline-block"
                 >
                   Free Lectures
+                </Link>
+                <Link
+                  href="/admin"
+                  className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all shadow-2xs"
+                  title="Quick2Learn Management CRM"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                  <span>Admin CRM</span>
                 </Link>
               </nav>
             </div>

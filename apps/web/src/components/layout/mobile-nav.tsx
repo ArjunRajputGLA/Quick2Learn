@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Bot,
   Smartphone,
+  ShieldCheck,
 } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import {
@@ -237,6 +238,20 @@ export function MobileNav({ data, onOpenEnquiry }: MobileNavProps) {
                 </div>
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
                   Android
+                </span>
+              </Link>
+
+              <Link
+                href="/admin"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-small font-bold text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <span>Admin CRM &amp; Management</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white">
+                  STAFF
                 </span>
               </Link>
 

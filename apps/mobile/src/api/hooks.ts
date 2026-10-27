@@ -153,63 +153,22 @@ import { getFacultyAvatarUri } from "../lib/facultyImages";
 
 export const DEMO_MODE_STORAGE_KEY = "q2l_demo_mode";
 export const ACTIVE_USER_STORAGE_KEY = "q2l_active_user";
-export const STUDENT_JOINED_BATCHES_KEY = "q2l_student_joined_batches_v1";
-export const STUDENT_PENDING_REQUESTS_KEY = "q2l_student_pending_requests_v1";
+export const STUDENT_JOINED_BATCHES_KEY = "q2l_student_joined_batches_v2";
+export const STUDENT_PENDING_REQUESTS_KEY = "q2l_student_pending_requests_v2";
 
-export const DEFAULT_INSTITUTE_BATCHES = [
-  {
-    id: "b0000000-0000-0000-0000-000000000001",
-    title: "Class XII CBSE Mathematics Comprehensive Masterclass",
-    joinCode: "Q2L012",
-    classLevel: 12,
-    board: "cbse",
-    subjectName: "Mathematics",
-    mode: "hybrid",
-    status: "ongoing",
-    teacherName: "Dinesh Singh Rajput",
-    progressPercentage: 45,
-    enrolledAt: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "b0000000-0000-0000-0000-000000000002",
-    title: "Class XI CBSE Mathematics Foundation Program",
-    joinCode: "Q2L011",
-    classLevel: 11,
-    board: "cbse",
-    subjectName: "Mathematics",
-    mode: "offline",
-    status: "ongoing",
-    teacherName: "Dinesh Singh Rajput",
-    progressPercentage: 35,
-    enrolledAt: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "b0000000-0000-0000-0000-000000000003",
-    title: "Class X ICSE Science & Biology Mastery Batch",
-    joinCode: "Q2L010",
-    classLevel: 10,
-    board: "icse",
-    subjectName: "Science & Biology",
-    mode: "online",
-    status: "ongoing",
-    teacherName: "Namita Singh Rajput",
-    progressPercentage: 50,
-    enrolledAt: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "b0000000-0000-0000-0000-000000000004",
-    title: "Class X CBSE Mathematics Board Booster 2026–27",
-    joinCode: "Q2L009",
-    classLevel: 10,
-    board: "cbse",
-    subjectName: "Mathematics",
-    mode: "offline",
-    status: "ongoing",
-    teacherName: "Dinesh Singh Rajput",
-    progressPercentage: 60,
-    enrolledAt: "2026-01-01T00:00:00.000Z",
-  },
-];
+export const DEFAULT_INSTITUTE_BATCHES: Array<{
+  id: string;
+  title: string;
+  joinCode: string;
+  classLevel: number;
+  board: string;
+  subjectName: string;
+  mode: string;
+  status: string;
+  teacherName: string;
+  progressPercentage: number;
+  enrolledAt: string;
+}> = [];
 
 export const DEMO_USER_ME: MeResponse = {
   user: {
@@ -450,6 +409,8 @@ export const queryKeys = {
     ["learn", "search", q, classLevel, subject, type] as const,
   freeResources: (classLevel?: number, subject?: string) =>
     ["resources", "free", classLevel, subject] as const,
+  instituteBatches: (classLevel?: number) =>
+    ["batches", "institute", classLevel] as const,
   batchesMine: ["batches", "mine"] as const,
   batchDetail: (id: string) => ["batches", "detail", id] as const,
   batchTimetable: (batchId: string) => ["batches", "timetable", batchId] as const,
@@ -1000,56 +961,23 @@ export function useParentHome(studentId?: string | null) {
           avatarUrl: student.avatarUrl || null,
         },
         attendanceThisWeek: {
-          presentDays: 5,
+          presentDays: 0,
           absentDays: 0,
-          totalDays: 5,
-          percentage: 100,
-          summaryText: "All conducted classes attended this week",
+          totalDays: 0,
+          percentage: 0,
+          summaryText: "No classes scheduled or recorded this week",
         },
-        latestTestScore: {
-          testId: "test-001",
-          testTitle: `Class ${childClass} ${childBoard.toUpperCase()} Mathematics Evaluation Test`,
-          attemptId: "att-001",
-          score: 46,
-          totalMarks: 50,
-          percentage: 92,
-          previousPercentage: 84,
-          changePercentage: 8,
-          changeLabel: "+8% Improvement",
-          submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-        },
-        nextClass: {
-          batchId: `batch-class${childClass}-math`,
-          batchTitle: `Class ${childClass} - ${childBoard.toUpperCase()} Mathematics Live`,
-          subjectName: "Mathematics",
-          isLive: false,
-          timeOrCountdown: "Today at 5:00 PM",
-          startsAt: new Date(Date.now() + 3600000 * 2).toISOString(),
-        },
+        latestTestScore: null,
+        nextClass: null,
         feeAlert: {
           status: "all_clear",
           amountPaise: 0,
           formattedAmount: "₹0",
           dueDate: null,
-          dueLabel: "Paid up to date",
-          message: "All monthly fees are cleared. Next due on 5th of next month.",
+          dueLabel: "No Pending Dues",
+          message: "All fees are cleared. No upcoming dues.",
         },
-        announcements: [
-          {
-            id: "ann-01",
-            title: `Upcoming Class ${childClass} Revision Assessment Scheduled for Sunday`,
-            body: "Weekly Chapter assessment will be conducted this Sunday from 10:00 AM to 11:30 AM.",
-            batchTitle: `Class ${childClass}`,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "ann-02",
-            title: "Formula Sheet & Practice Notes Uploaded",
-            body: "Dinesh Sir has uploaded new Mathematics summary and problem solving sheets.",
-            batchTitle: "Resource Center",
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-          },
-        ],
+        announcements: [],
         instituteWhatsApp: {
           number: "+919412277888",
           prefilledText: `Hello Dinesh Sir, I am writing regarding ${childName} (Class ${childClass} • ${childBoard.toUpperCase()} • ${childSchool}).`,
@@ -1469,6 +1397,68 @@ export function useFreeResources(classLevel?: number, subject?: string) {
   });
 }
 
+export interface InstituteBatchItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  classLevel: number;
+  board: string;
+  mode: string;
+  status: string;
+  joinCode: string;
+  faculty: string;
+  subject: string;
+  room?: string;
+  scheduleText: string;
+  seatsTotal: number;
+}
+
+export interface InstituteBatchesResponse {
+  batches: InstituteBatchItem[];
+}
+
+/**
+ * Hook to fetch available institute batches from database for student exploration.
+ */
+export function useInstituteBatches(classLevel?: number) {
+  return useQuery<InstituteBatchesResponse>({
+    queryKey: queryKeys.instituteBatches(classLevel),
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<InstituteBatchesResponse>("/batches", {
+          params: classLevel ? { class: classLevel } : {},
+        });
+        if (res && Array.isArray(res.batches)) {
+          return res;
+        }
+      } catch (err) {}
+
+      const store = useAdminStore.getState();
+      const storeBatches: InstituteBatchItem[] = store.batches
+        .filter((b) => (classLevel ? b.classLevel === classLevel : true))
+        .map((b) => ({
+          id: b.id,
+          title: b.title,
+          subtitle: b.courseName,
+          classLevel: b.classLevel,
+          board: b.board,
+          mode: b.mode,
+          status: b.status,
+          joinCode: b.joinCode,
+          faculty: b.faculty,
+          subject: b.subject,
+          room: b.room || (b.mode === "online" ? "Live Digital Classroom" : "Quick2Learn Centre • Room 101"),
+          scheduleText: b.scheduleTime || "Regular Schedule",
+          seatsTotal: b.capacity || 50,
+        }));
+
+      return { batches: storeBatches };
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
 /**
  * Hook to fetch student's enrolled batches and pending join requests.
  */
@@ -1533,36 +1523,23 @@ export function useStudentBatches() {
         if (req.status === 'approved') {
           if (!localJoined.some((b) => b.id === req.batchId)) {
             const matchedAdminBatch = adminStore.batches.find((b) => b.id === req.batchId);
-            const fallbackDefault = DEFAULT_INSTITUTE_BATCHES.find((b) => b.id === req.batchId);
-            const batchToAdd = matchedAdminBatch
-              ? {
-                  id: matchedAdminBatch.id,
-                  slug: matchedAdminBatch.id,
-                  title: matchedAdminBatch.title,
-                  subtitle: matchedAdminBatch.courseName || `Class ${matchedAdminBatch.classLevel} - Tests available`,
-                  classLevel: matchedAdminBatch.classLevel,
-                  board: matchedAdminBatch.board,
-                  mode: matchedAdminBatch.mode,
-                  teacherName: matchedAdminBatch.faculty || 'Dinesh Singh Rajput',
-                  subjectName: matchedAdminBatch.subject || 'Mathematics',
-                  progressPercentage: 0,
-                  enrolledAt: new Date().toISOString(),
-                }
-              : fallbackDefault || {
-                  id: req.batchId,
-                  slug: req.batchId,
-                  title: req.batchTitle,
-                  subtitle: `Class ${req.classLevel} - Tests available`,
-                  classLevel: req.classLevel,
-                  board: 'cbse',
-                  mode: 'hybrid',
-                  teacherName: 'Dinesh Singh Rajput',
-                  subjectName: 'Mathematics',
-                  progressPercentage: 0,
-                  enrolledAt: new Date().toISOString(),
-                };
-            localJoined.unshift(batchToAdd);
-            joinedUpdated = true;
+            if (matchedAdminBatch) {
+              const batchToAdd = {
+                id: matchedAdminBatch.id,
+                slug: matchedAdminBatch.id,
+                title: matchedAdminBatch.title,
+                subtitle: matchedAdminBatch.courseName || `Class ${matchedAdminBatch.classLevel} - Tests available`,
+                classLevel: matchedAdminBatch.classLevel,
+                board: matchedAdminBatch.board,
+                mode: matchedAdminBatch.mode,
+                teacherName: matchedAdminBatch.faculty || 'Dinesh Singh Rajput',
+                subjectName: matchedAdminBatch.subject || 'Mathematics',
+                progressPercentage: 0,
+                enrolledAt: new Date().toISOString(),
+              };
+              localJoined.unshift(batchToAdd);
+              joinedUpdated = true;
+            }
           }
           if (localPending.some((r) => r.batchId === req.batchId && r.status === 'pending')) {
             localPending = localPending.filter((r) => r.batchId !== req.batchId);
@@ -1613,17 +1590,20 @@ export function useStudentBatches() {
         if (isDemo !== 'true') {
           const res = await apiClient.get('/batches/mine', { schema: batchesMineResponseSchema });
           if (res) {
+            const adminBatchIds = new Set(adminStore.batches.map((b) => b.id));
+            const validLocalJoined = localJoined.filter((lb) => adminBatchIds.has(lb.id));
             const existingIds = new Set((res.enrolled || []).map((e) => e.id));
             const merged = [...(res.enrolled || [])];
-            localJoined.forEach((lb) => {
+            validLocalJoined.forEach((lb) => {
               if (!existingIds.has(lb.id)) {
                 merged.unshift(lb);
                 existingIds.add(lb.id);
               }
             });
+            const validLocalPending = localPending.filter((lp) => adminBatchIds.has(lp.batchId));
             const mergedPending = [...(res.pendingRequests || [])];
             const pendingIds = new Set(mergedPending.map((p) => p.batchId));
-            localPending.forEach((lp) => {
+            validLocalPending.forEach((lp) => {
               if (!pendingIds.has(lp.batchId)) {
                 mergedPending.unshift(lp);
                 pendingIds.add(lp.batchId);
@@ -1756,12 +1736,19 @@ export function useBatchDetail(id: string) {
           scheduleText: adminBatch.scheduleTime || 'Mon-Fri 05:00 PM',
           locationText: adminBatch.mode === 'online' ? 'Online Live Class' : (adminBatch.room || 'Classroom 101'),
           teachers: [
-            {
-              id: 'teacher-dinesh',
-              name: adminBatch.faculty || 'DINESH SINGH RAJPUT',
-              role: 'Director & HOD Mathematics',
-              avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-            },
+            (() => {
+              const facName = adminBatch.faculty || 'Dinesh Singh Rajput';
+              const isNam =
+                facName.toLowerCase().includes('namita') ||
+                (adminBatch.subject || '').toLowerCase().includes('science') ||
+                (adminBatch.subject || '').toLowerCase().includes('biology');
+              return {
+                id: isNam ? 'teacher-namita' : 'teacher-dinesh',
+                name: isNam ? 'Namita Singh Rajput' : facName,
+                role: isNam ? 'Senior Faculty, ICSE Science & Biology' : 'Director & HOD Mathematics',
+                avatarUrl: undefined,
+              };
+            })(),
           ],
           subjects: [
             {
@@ -1791,39 +1778,7 @@ export function useBatchDetail(id: string) {
           })),
         };
       }
-
-      const fallbackDefault = DEFAULT_INSTITUTE_BATCHES.find((b) => b.id === id);
-      return {
-        id,
-        slug: id,
-        title: fallbackDefault?.title || 'Class IX ICSE Mathematics & Science ( 2026 - 2027 )',
-        subtitle: fallbackDefault?.subjectName ? `${fallbackDefault.subjectName} • Class ${fallbackDefault.classLevel}` : 'Class 9 - Tests available',
-        description: 'Comprehensive coaching for Class 9 ICSE Mathematics & Science.',
-        classLevel: (fallbackDefault?.classLevel as any) || 9,
-        board: fallbackDefault?.board || 'icse',
-        mode: fallbackDefault?.mode || 'online',
-        academicYear: '2026 - 2027',
-        joinCode: fallbackDefault?.joinCode || 'iiwbpg',
-        whatsappGroupUrl: 'https://wa.me/919412278910',
-        startDate: '2026-04-01',
-        scheduleText: 'Mon, Wed, Fri 5:00 PM - 6:30 PM',
-        locationText: 'Main Campus - Hall A',
-        teachers: [
-          {
-            id: 'teacher-dinesh',
-            name: fallbackDefault?.teacherName || 'DINESH SINGH RAJPUT',
-            role: 'Director & HOD Mathematics',
-            avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-          },
-        ],
-        subjects: [
-          { id: 'sub-1', name: fallbackDefault?.subjectName || 'Mathematics', slug: 'mathematics' },
-          { id: 'sub-2', name: 'Science', slug: 'science' },
-        ],
-        enrollment: computedEnrollment,
-        nextClass: null,
-        latestAnnouncements: [],
-      };
+      throw new Error(`Batch "${id}" not found.`);
     },
     staleTime: 30 * 1000,
     enabled: Boolean(id),
@@ -1844,12 +1799,7 @@ export function useBatchTimetable(batchId: string) {
 
       const store = useAdminStore.getState();
       const batch = store.batches.find((b) => b.id === batchId);
-      const timings = batch?.timings || [
-        { id: 't1', subject: 'Maths', dayTime: 'Mon, 08:00 PM - 09:00 PM', faculty: 'DINESH RAJPUT' },
-        { id: 't2', subject: 'Maths', dayTime: 'Wed, 08:00 PM - 09:00 PM', faculty: 'DINESH RAJPUT' },
-        { id: 't3', subject: 'Science', dayTime: 'Tue, 08:00 PM - 09:00 PM', faculty: 'DINESH RAJPUT' },
-        { id: 't4', subject: 'Science', dayTime: 'Thu, 08:00 PM - 09:00 PM', faculty: 'DINESH RAJPUT' },
-      ];
+      const timings = batch?.timings || [];
 
       const dayMap: Record<string, number> = {
         Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7,
@@ -1865,7 +1815,7 @@ export function useBatchTimetable(batchId: string) {
         7: 'Sun',
       };
 
-      const slots: BatchTimetableSlot[] = timings.map((t, idx) => {
+      const slots: BatchTimetableSlot[] = timings.map((t: any, idx: number) => {
         const firstPart = t.dayTime.split(',')[0]?.trim() || 'Mon';
         const weekday = dayMap[firstPart] || ((idx % 7) + 1);
         return {
@@ -1937,11 +1887,22 @@ export function useJoinBatch() {
       const cleanCode = code.trim().toUpperCase();
       const adminStore = useAdminStore.getState();
 
-      const matched =
-        adminStore.batches.find((b) => b.joinCode && b.joinCode.toUpperCase() === cleanCode) ||
-        DEFAULT_INSTITUTE_BATCHES.find(
-          (b) => (b.joinCode && b.joinCode.toUpperCase() === cleanCode) || b.id.toUpperCase().includes(cleanCode)
-        );
+      // 1. Try online backend join first
+      try {
+        const isDemo = await SecureStore.getItemAsync(DEMO_MODE_STORAGE_KEY).catch(() => null);
+        if (isDemo !== 'true') {
+          const res = await apiClient.post('/batches/join', { code: cleanCode }, { schema: batchJoinResponseSchema });
+          if (res) return res;
+        }
+      } catch (err: any) {
+        if (err?.message?.includes('Invalid') || err?.response?.data?.message?.includes('Invalid') || err?.response?.data?.message?.includes('enrolled')) {
+          throw err;
+        }
+      }
+
+      const matched = adminStore.batches.find(
+        (b) => (b.joinCode && b.joinCode.toUpperCase() === cleanCode) || b.id.toUpperCase() === cleanCode
+      );
 
       if (!matched) {
         throw new Error(`Invalid batch join code "${cleanCode}". Please verify the 6-character code with your teacher.`);
@@ -2362,8 +2323,6 @@ export function useAttendance(studentId?: string, batchId?: string, month?: stri
         // Find linked student details
         const activeUserJson = await SecureStore.getItemAsync(ACTIVE_USER_STORAGE_KEY).catch(() => null);
         let studentName = "Student";
-        let childClass = 10;
-        let childBoard = "CBSE";
         if (activeUserJson) {
           try {
             const parsed = JSON.parse(activeUserJson);
@@ -2372,85 +2331,29 @@ export function useAttendance(studentId?: string, batchId?: string, month?: stri
               parsed.linkedStudents?.[0] ||
               parsed.profile;
             if (s?.fullName) studentName = s.fullName;
-            if (s?.classLevel) childClass = s.classLevel;
-            if (s?.board) childBoard = s.board.toUpperCase();
           } catch {}
         }
 
         const now = new Date();
         const activeMonth =
           month || `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, "0")}`;
-        const [yearStr, mStr] = activeMonth.split("-");
-        const year = parseInt(yearStr || `${now.getFullYear()}`, 10);
-        const m = parseInt(mStr || `${now.getMonth() + 1}`, 10) - 1;
-        const daysInMonth = new Date(year, m + 1, 0).getDate();
-
-        const records: any[] = [];
-        let presentDays = 0;
-        let absentDays = 0;
-        let lateDays = 0;
-
-        for (let d = 1; d <= daysInMonth; d++) {
-          const dayDate = new Date(year, m, d);
-          const dayOfWeek = dayDate.getDay();
-          if (dayOfWeek === 0) continue; // Sunday holiday
-
-          // If current month, only populate up to today (or past days)
-          const isFuture =
-            year === now.getFullYear() && m === now.getMonth() && d > now.getDate();
-          if (isFuture) continue;
-
-          const dateStr = `${year}-${(m + 1).toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
-
-          // Realistic distribution: mostly present, day 14 absent, day 8 late
-          let status: "present" | "absent" | "late" = "present";
-          let note: string | null = "Attended full lecture";
-          if (d === 14) {
-            status = "absent";
-            note = "Absent (Sick leave approved)";
-            absentDays++;
-          } else if (d === 8) {
-            status = "late";
-            note = "Joined 10 mins late";
-            lateDays++;
-          } else {
-            presentDays++;
-          }
-
-          records.push({
-            id: `att-${year}-${m + 1}-${d}`,
-            batchId: `batch-class${childClass}-math`,
-            batchTitle: `Class ${childClass} ${childBoard} Mathematics`,
-            studentId: studentId || "student-1",
-            studentName,
-            date: dateStr,
-            status,
-            source: "marked",
-            note,
-            markedAt: `${dateStr}T10:00:00.000Z`,
-          });
-        }
-
-        const totalDays = presentDays + absentDays + lateDays;
-        const monthPercentage =
-          totalDays > 0 ? Math.round(((presentDays + lateDays) / totalDays) * 100) : 100;
 
         return {
           studentId: studentId || "student-1",
           studentName,
-          batchId: `batch-class${childClass}-math`,
+          batchId: batchId || null,
           month: activeMonth,
-          records,
+          records: [],
           stats: {
-            totalDays: totalDays || 22,
-            presentDays: presentDays || 20,
-            absentDays: absentDays || 1,
-            lateDays: lateDays || 1,
+            totalDays: 0,
+            presentDays: 0,
+            absentDays: 0,
+            lateDays: 0,
             excusedDays: 0,
-            monthPercentage: monthPercentage || 95,
-            termPercentage: 94,
+            monthPercentage: 0,
+            termPercentage: 0,
           },
-          absences: records.filter((r) => r.status === "absent"),
+          absences: [],
         };
       }
     },
@@ -2865,36 +2768,13 @@ export function useFees(studentId?: string) {
       } catch {
         return {
           summary: {
-            totalDuesPaise: 4500000,
-            totalPaidPaise: 4500000,
+            totalDuesPaise: 0,
+            totalPaidPaise: 0,
             pendingAmountPaise: 0,
             pendingDuesCount: 0,
           },
           dues: [],
-          paymentHistory: [
-            {
-              id: "pay-01",
-              receiptNo: "REC-2026-0891",
-              amountPaise: 500000,
-              formattedAmount: "₹5,000",
-              paidAt: new Date(Date.now() - 86400000 * 15).toISOString(),
-              createdAt: new Date(Date.now() - 86400000 * 15).toISOString(),
-              batchTitle: "Class 10 CBSE Maths & Science Batch",
-              method: "upi",
-              status: "success",
-            },
-            {
-              id: "pay-02",
-              receiptNo: "REC-2026-0742",
-              amountPaise: 500000,
-              formattedAmount: "₹5,000",
-              paidAt: new Date(Date.now() - 86400000 * 45).toISOString(),
-              createdAt: new Date(Date.now() - 86400000 * 45).toISOString(),
-              batchTitle: "Class 10 CBSE Maths & Science Batch",
-              method: "bank_transfer",
-              status: "success",
-            },
-          ] as any,
+          paymentHistory: [],
         };
       }
     },
@@ -3190,9 +3070,4 @@ export function useTeacherQuickUpload() {
       });
     },
   });
-}
-
-
-
-
-
+} 

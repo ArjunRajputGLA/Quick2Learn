@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import { requireRole } from "@/server/auth/session";
+import { getAdminSession } from "@/server/auth/session";
 import { getAdminDashboardKPIs } from "@/server/data/admin";
 import { formatINR } from "@quick2learn/shared";
 import { DashboardSyncCard } from "@/components/admin/dashboard-sync-card";
+import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
@@ -20,14 +21,18 @@ import {
 export const revalidate = 0;
 
 export default async function AdminDashboardPage() {
-  const current = await requireRole(["admin", "teacher"]);
+  const session = await getAdminSession();
+
+  if (!session) {
+    return <AdminLoginForm />;
+  }
 
   // Teachers see only Lectures, Resources, Announcements, and their own batches
-  if (current.role === "teacher") {
+  if (session.role === "teacher") {
     redirect("/admin/batches");
   }
 
-  const kpis = await getAdminDashboardKPIs(current.user);
+  const kpis = await getAdminDashboardKPIs(session.user);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">

@@ -209,8 +209,8 @@ export default function ParentAttendanceTab() {
             <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
               Attendance
             </Text>
-            <Text style={{ fontSize: 19, fontWeight: "800", color: "#2563EB", marginTop: 2 }}>
-              {stats.monthPercentage}%
+            <Text style={{ fontSize: 19, fontWeight: "800", color: stats.totalDays === 0 ? "#94A3B8" : "#2563EB", marginTop: 2 }}>
+              {stats.totalDays === 0 ? "—" : `${stats.monthPercentage}%`}
             </Text>
             <Text style={{ fontSize: 10.5, color: "#64748B", marginTop: 1 }}>
               This Month
@@ -468,6 +468,26 @@ export default function ParentAttendanceTab() {
               <Text style={{ fontSize: 11, fontWeight: "600", color: "#64748B" }}>Late</Text>
             </View>
           </View>
+
+          {/* Empty Month Notice */}
+          {!isLoading && (data?.records?.length || 0) === 0 && (
+            <View
+              style={{
+                marginTop: 14,
+                padding: 10,
+                borderRadius: 12,
+                backgroundColor: "#F8FAFC",
+                borderWidth: 1,
+                borderColor: "#E2E8F0",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 12, color: "#64748B", fontWeight: "600" }}>
+                No attendance sessions recorded for this month
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Selected Record Detail */}

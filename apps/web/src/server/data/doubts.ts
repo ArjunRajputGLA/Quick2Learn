@@ -856,13 +856,22 @@ export async function listCannedReplies(
   let rows = await d.select().from(schema.doubtCannedReplies).orderBy(asc(schema.doubtCannedReplies.title));
 
   if (rows.length === 0) {
+    // Check if user.id exists in the user table, otherwise null
+    const [existingUser] = await d
+      .select({ id: schema.user.id })
+      .from(schema.user)
+      .where(eq(schema.user.id, user.id))
+      .limit(1);
+
+    const validCreatorId = existingUser ? user.id : null;
+
     // Seed default canned replies
     await d.insert(schema.doubtCannedReplies).values(
       DEFAULT_CANNED_REPLIES.map((r) => ({
         title: r.title,
         body: r.body,
         category: r.category,
-        createdBy: user.id,
+        createdBy: validCreatorId,
       }))
     );
     rows = await d.select().from(schema.doubtCannedReplies).orderBy(asc(schema.doubtCannedReplies.title));
@@ -882,13 +891,19 @@ export async function createCannedReply(
   assert(isStaff(user), "Only teachers and admins can create canned replies.", 403);
   const d = tx || db;
 
+  const [existingUser] = await d
+    .select({ id: schema.user.id })
+    .from(schema.user)
+    .where(eq(schema.user.id, user.id))
+    .limit(1);
+
   const [created] = await d
     .insert(schema.doubtCannedReplies)
     .values({
       title: input.title.trim(),
       body: input.body.trim(),
       category: input.category?.trim() || "general",
-      createdBy: user.id,
+      createdBy: existingUser ? user.id : null,
     })
     .returning();
 

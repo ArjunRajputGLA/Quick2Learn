@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
+import { adminLogoutAction } from "@/server/admin-auth-actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { searchAdminGlobalAction } from "@/server/admin-actions";
@@ -27,7 +28,9 @@ import {
   ChevronRight,
   HelpCircle,
   Award,
+  RefreshCw,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AdminNavProps {
   user: {
@@ -119,12 +122,36 @@ export function AdminNav({ user, children }: AdminNavProps) {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      toast.success("Signed out successfully");
-      router.push("/login");
+      await adminLogoutAction();
+      try {
+        await signOut();
+      } catch {}
+      toast.success("Signed out of Admin Panel");
+      router.push("/admin");
       router.refresh();
     } catch {
       toast.error("Failed to sign out");
+    }
+  };
+
+
+  const [isSyncingMobile, setIsSyncingMobile] = useState(false);
+
+  const handleSyncWithMobile = async () => {
+    setIsSyncingMobile(true);
+    try {
+      const res = await fetch("/api/v1/admin/sync");
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Mobile App & CRM Synced! (${data.counts?.batches || 0} batches, ${data.counts?.students || 0} students)`);
+        router.refresh();
+      } else {
+        toast.error("Failed to sync mobile app");
+      }
+    } catch {
+      toast.error("Failed to connect to sync endpoint");
+    } finally {
+      setIsSyncingMobile(false);
     }
   };
 
@@ -142,6 +169,7 @@ export function AdminNav({ user, children }: AdminNavProps) {
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-ink hover:bg-neutral-subtle focus:outline-none"
             aria-label="Toggle navigation menu"
+            suppressHydrationWarning
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -164,6 +192,7 @@ export function AdminNav({ user, children }: AdminNavProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => searchQuery.trim() && setSearchOpen(true)}
+              suppressHydrationWarning
               className="w-full pl-9 pr-9 py-1.5 text-body-sm rounded-lg border border-border bg-surface-subtle text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all"
             />
             {isSearching && (
@@ -269,6 +298,20 @@ export function AdminNav({ user, children }: AdminNavProps) {
             </Badge>
           </div>
 
+          {/* Mobile App Two-Way Sync Indicator & Trigger */}
+          <button
+            type="button"
+            onClick={handleSyncWithMobile}
+            disabled={isSyncingMobile}
+            suppressHydrationWarning
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-caption font-semibold hover:bg-emerald-100 active:scale-95 transition-all cursor-pointer shadow-2xs"
+            title="Two-way synchronized with Quick2Learn Mobile App"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5 text-emerald-600", isSyncingMobile && "animate-spin")} />
+            <span className="hidden sm:inline">Mobile Synced</span>
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          </button>
+
           <Link
             href="/"
             target="_blank"
@@ -280,6 +323,7 @@ export function AdminNav({ user, children }: AdminNavProps) {
 
           <button
             onClick={handleSignOut}
+            suppressHydrationWarning
             className="p-2 rounded-lg text-ink-muted hover:text-critical hover:bg-critical/10 transition-colors"
             title="Sign Out"
             aria-label="Sign Out"
@@ -380,7 +424,11 @@ export function AdminNav({ user, children }: AdminNavProps) {
                   <div className="text-caption font-bold text-ink">{user.name}</div>
                   <div className="text-[11px] text-ink-muted capitalize">{user.role}</div>
                 </div>
-                <button onClick={handleSignOut} className="p-2 text-critical hover:bg-critical/10 rounded-lg">
+                <button
+                  onClick={handleSignOut}
+                  suppressHydrationWarning
+                  className="p-2 text-critical hover:bg-critical/10 rounded-lg"
+                >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
@@ -400,6 +448,7 @@ export function AdminNav({ user, children }: AdminNavProps) {
                 placeholder="Search students, batches..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                suppressHydrationWarning
                 className="w-full pl-9 pr-3 py-2 text-body-sm rounded-lg border border-border bg-white text-ink"
               />
             </div>

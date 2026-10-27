@@ -213,8 +213,8 @@ export function ParentHomeScreen() {
                 <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
                   Attendance
                 </Text>
-                <Text style={{ fontSize: 16, fontWeight: "800", color: "#059669", marginTop: 2 }}>
-                  {attendance ? `${attendance.percentage}%` : "100%"}
+                <Text style={{ fontSize: 16, fontWeight: "800", color: attendance && attendance.totalDays > 0 ? "#059669" : "#94A3B8", marginTop: 2 }}>
+                  {attendance && attendance.totalDays > 0 ? `${attendance.percentage}%` : "—"}
                 </Text>
               </View>
 
@@ -222,8 +222,8 @@ export function ParentHomeScreen() {
                 <Text style={{ fontSize: 10, fontWeight: "700", color: "#64748B", textTransform: "uppercase" }}>
                   Latest Test
                 </Text>
-                <Text style={{ fontSize: 16, fontWeight: "800", color: "#D97706", marginTop: 2 }}>
-                  {testScore ? `${testScore.percentage}%` : "92%"}
+                <Text style={{ fontSize: 16, fontWeight: "800", color: testScore ? "#D97706" : "#94A3B8", marginTop: 2 }}>
+                  {testScore ? `${testScore.percentage}%` : "—"}
                 </Text>
               </View>
 
@@ -392,11 +392,11 @@ export function ParentHomeScreen() {
 
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
             <View style={{ flex: 1, paddingRight: 8 }}>
-              <Text style={{ fontSize: 22, fontWeight: "800", color: "#0F172A" }}>
-                {attendance ? `${attendance.percentage}%` : "100%"}
+              <Text style={{ fontSize: 22, fontWeight: "800", color: attendance && attendance.totalDays > 0 ? "#0F172A" : "#94A3B8" }}>
+                {attendance && attendance.totalDays > 0 ? `${attendance.percentage}%` : "—"}
               </Text>
               <Text style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
-                {attendance?.summaryText || "All conducted classes attended this week"}
+                {attendance?.summaryText || "No attendance recorded this week"}
               </Text>
             </View>
 
@@ -413,7 +413,7 @@ export function ParentHomeScreen() {
                 }}
               >
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#047857" }}>
-                  {attendance?.presentDays ?? 5}
+                  {attendance?.presentDays ?? 0}
                 </Text>
                 <Text style={{ fontSize: 10, fontWeight: "700", color: "#059669" }}>Present</Text>
               </View>

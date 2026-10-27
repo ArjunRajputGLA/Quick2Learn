@@ -149,7 +149,7 @@ export async function getBatchesWithFilters(
       .from(schema.batchFeePlans)
       .where(eq(schema.batchFeePlans.isActive, true));
 
-    if (rows && rows.length > 0) {
+    if (Array.isArray(rows)) {
       return rows.map((r) => {
         const plans = allPlans.filter((p) => p.batchId === r.batch.id);
         plans.sort((a, b) => a.totalPaise - b.totalPaise);

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { requireRole } from "@/server/auth/session";
+import { getAdminSession } from "@/server/auth/session";
 import { AdminNav } from "@/components/admin/admin-nav";
 
 export default async function AdminLayout({
@@ -7,19 +7,28 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  // /admin needs teacher or admin, else 404
-  const current = await requireRole(["admin", "teacher"]);
+  const session = await getAdminSession();
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 text-slate-900 flex flex-col justify-between">
+        {children}
+      </div>
+    );
+  }
+
 
   return (
     <AdminNav
       user={{
-        id: current.user.id,
-        name: current.user.name,
-        email: current.user.email,
-        role: current.role,
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        role: session.role,
       }}
     >
       {children}
     </AdminNav>
   );
 }
+

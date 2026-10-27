@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system/legacy';
+import { useRouter } from 'expo-router';
 import {
   Calendar,
   CheckCircle2,
@@ -35,6 +36,7 @@ import {
   Trash2,
   ExternalLink,
   BookOpen,
+  ShieldAlert,
 } from 'lucide-react-native';
 import { Screen } from '../../../src/components/ui/Screen';
 import { AppHeader } from '../../../src/components/ui/AppHeader';
@@ -73,9 +75,59 @@ import type { TeacherBatchStudent } from '@quick2learn/shared';
 type TeachTabSection = 'today' | 'attendance' | 'announcement' | 'upload';
 
 export default function TeachScreen() {
-  const { data: me } = useMe();
+  const router = useRouter();
+  const { data: me, isLoading } = useMe();
+  if (isLoading) {
+    return null;
+  }
   if (me?.role === 'admin') {
     return <AdminPortal />;
+  }
+  if (me?.role !== 'teacher') {
+    return (
+      <Screen scrollable={false} header={<AppHeader title="Access Restricted" showBack />}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 32,
+              backgroundColor: '#FEF2F2',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <ShieldAlert size={32} color="#DC2626" />
+          </View>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: '800',
+              color: '#0F172A',
+              marginBottom: 8,
+              textAlign: 'center',
+            }}
+          >
+            Faculty & Admin Only
+          </Text>
+          <Text
+            style={{
+              fontSize: 13.5,
+              color: '#64748B',
+              textAlign: 'center',
+              lineHeight: 20,
+              marginBottom: 20,
+            }}
+          >
+            This section is reserved for Quick2Learn teachers and administrators. Please switch to your student portal.
+          </Text>
+          <Button variant="primary" onPress={() => router.replace('/(app)/(tabs)' as any)}>
+            Return to Student Home
+          </Button>
+        </View>
+      </Screen>
+    );
   }
 
   const [activeSection, setActiveSection] = useState<TeachTabSection>('today');
