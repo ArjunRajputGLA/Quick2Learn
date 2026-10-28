@@ -349,7 +349,7 @@ export async function GET(req: NextRequest) {
       features: ["HD Video Lectures", "Structured Notes", "Chapter Tests"],
       enrolledCount: 0,
       isPublished: true,
-      faculty: "Er. Dinesh Singh Rajput",
+      faculty: "Mr. Dinesh Singh Rajput",
       rating: 5.0,
       reviewsCount: 1,
       createdAt: new Date().toISOString(),

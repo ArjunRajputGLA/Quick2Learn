@@ -131,7 +131,7 @@ function AdminLoginFormContent() {
               A Building With Four Walls And Tomorrow Inside
             </h1>
             <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-md">
-              Premier Mathematics & Science Coaching Academy in Mathura since 2001. Mentored by Er. Dinesh Singh Rajput & Mrs. Namita Singh Rajput.
+              Premier Mathematics & Science Coaching Academy in Mathura since 2001. Mentored by Mr. Dinesh Singh Rajput & Mrs. Namita Singh Rajput.
             </p>
           </div>
 
@@ -171,7 +171,7 @@ function AdminLoginFormContent() {
                       ? "/images/assets/dinesh-singh-rajput.jpeg"
                       : "/images/assets/namita-singh-rajput.jpeg"
                   }
-                  alt={activePreset === "admin" ? "Er. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput"}
+                  alt={activePreset === "admin" ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput"}
                   fill
                   className="object-cover"
                 />
@@ -180,7 +180,7 @@ function AdminLoginFormContent() {
               {/* Title & Role Info */}
               <div className="text-center mt-2.5 space-y-0.5">
                 <div className="text-base font-bold text-slate-800">
-                  {activePreset === "admin" ? "Er. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput"}
+                  {activePreset === "admin" ? "Mr. Dinesh Singh Rajput" : "Mrs. Namita Singh Rajput"}
                 </div>
                 <div className="text-xs font-semibold text-blue-600 flex items-center justify-center gap-1">
                   {activePreset === "admin" ? (
