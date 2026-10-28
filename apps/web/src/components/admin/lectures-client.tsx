@@ -158,32 +158,32 @@ function LecturesClientContent({
   return (
     <div className="space-y-4">
       {/* Search & Filters Header */}
-      <div className="rounded-2xl border border-border bg-white p-4 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs space-y-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
           {/* Search bar */}
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 flex-1 max-w-md">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-1.5 flex-1 max-w-md">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search lectures by title or YouTube ID..."
-                className="pl-9 h-9 text-body-sm"
+                className="pl-8 h-7.5 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
               />
             </div>
-            <Button type="submit" size="sm" variant="outline" className="h-9">
+            <Button type="submit" size="sm" variant="outline" className="h-7.5 text-xs px-2.5 border-slate-200 rounded-lg">
               Search
             </Button>
           </form>
 
           {/* Quick Playlist Map Action Button & Total */}
-          <div className="flex items-center gap-2.5">
-            <span className="text-body-xs font-semibold px-2 py-1 rounded bg-surface-subtle text-ink-muted">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60">
               {totalCount} videos
             </span>
             <Link href="/admin/lectures/playlist-map">
-              <Button size="sm" variant="outline" className="gap-1.5 font-semibold text-primary border-primary/30 hover:bg-primary/5">
-                <FolderPlus className="w-4 h-4" />
+              <Button size="sm" variant="outline" className="h-7.5 px-2.5 text-xs gap-1.5 font-semibold text-blue-600 border-blue-200 hover:bg-blue-50 rounded-lg">
+                <FolderPlus className="w-3.5 h-3.5" />
                 <span>Map Entire Playlist</span>
               </Button>
             </Link>
@@ -191,9 +191,9 @@ function LecturesClientContent({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 flex-wrap text-body-xs pt-1 border-t border-border">
-          <span className="font-bold text-ink-muted flex items-center gap-1">
-            <ListFilter className="w-3.5 h-3.5" /> Filters:
+        <div className="flex items-center gap-1.5 flex-wrap text-xs pt-1.5 border-t border-slate-100">
+          <span className="font-bold text-slate-400 flex items-center gap-1 text-[10px] uppercase tracking-wider">
+            <ListFilter className="w-3 h-3" /> Filters:
           </span>
 
           {/* Needs Review Filter */}
@@ -205,10 +205,10 @@ function LecturesClientContent({
                 searchParams.get("needsReview") === "true" ? null : "true",
               )
             }
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
               searchParams.get("needsReview") === "true"
                 ? "bg-amber-100 text-amber-800 border border-amber-300"
-                : "bg-surface-subtle text-ink-muted hover:text-ink border border-border"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
             }`}
           >
             Needs Review
@@ -223,10 +223,10 @@ function LecturesClientContent({
                 searchParams.get("unmapped") === "true" ? null : "true",
               )
             }
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
               searchParams.get("unmapped") === "true"
                 ? "bg-rose-100 text-rose-800 border border-rose-300"
-                : "bg-surface-subtle text-ink-muted hover:text-ink border border-border"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
             }`}
           >
             Unmapped
@@ -241,10 +241,10 @@ function LecturesClientContent({
                 searchParams.get("isShort") === "true" ? null : "true",
               )
             }
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
               searchParams.get("isShort") === "true"
-                ? "bg-primary/15 text-primary border border-primary/30"
-                : "bg-surface-subtle text-ink-muted hover:text-ink border border-border"
+                ? "bg-blue-100 text-blue-800 border border-blue-300"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
             }`}
           >
             Shorts Only
@@ -259,10 +259,10 @@ function LecturesClientContent({
                 searchParams.get("isPublished") === "false" ? null : "false",
               )
             }
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
               searchParams.get("isPublished") === "false"
                 ? "bg-slate-200 text-slate-800 border border-slate-300"
-                : "bg-surface-subtle text-ink-muted hover:text-ink border border-border"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
             }`}
           >
             Unpublished Only
@@ -272,7 +272,7 @@ function LecturesClientContent({
           <select
             value={searchParams.get("classLevel") || "all"}
             onChange={(e) => handleFilterChange("classLevel", e.target.value)}
-            className="px-2 py-1 rounded-md border border-border bg-white text-ink font-semibold"
+            className="h-6.5 text-[11px] px-2 rounded-lg border border-slate-200 bg-white text-slate-800 font-semibold"
           >
             <option value="all">All Classes</option>
             <option value="9">Class 9</option>
@@ -286,7 +286,7 @@ function LecturesClientContent({
             <button
               type="button"
               onClick={() => router.push("/admin/lectures")}
-              className="text-xs text-primary font-semibold hover:underline ml-auto"
+              className="text-[11px] text-blue-600 font-semibold hover:underline ml-auto"
             >
               Reset all filters
             </button>
@@ -463,37 +463,37 @@ function LecturesClientContent({
       )}
 
       {/* Videos TanStack/Dense Table */}
-      <div className="rounded-2xl border border-border bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-body-sm text-ink border-collapse">
-            <thead className="bg-surface-subtle border-b border-border text-[11px] font-bold text-ink-muted uppercase tracking-wider select-none">
+          <table className="w-full text-left text-xs text-slate-800 border-collapse">
+            <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
               <tr>
-                <th className="py-3 px-3.5 w-10 text-center">
+                <th className="py-2 px-3 w-8 text-center">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    className="text-ink-muted hover:text-ink"
+                    className="text-slate-400 hover:text-slate-700"
                     title="Select all"
                   >
                     {selectedIds.length === initialVideos.length && initialVideos.length > 0 ? (
-                      <CheckSquare className="w-4 h-4 text-primary" />
+                      <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
                     ) : (
-                      <Square className="w-4 h-4" />
+                      <Square className="w-3.5 h-3.5" />
                     )}
                   </button>
                 </th>
-                <th className="py-3 px-3.5">Video Title & ID</th>
-                <th className="py-3 px-3.5">Class / Subject</th>
-                <th className="py-3 px-3.5">Mapped Chapter</th>
-                <th className="py-3 px-3.5">Duration</th>
-                <th className="py-3 px-3.5">Flags</th>
-                <th className="py-3 px-3.5 text-right">View</th>
+                <th className="py-2 px-3">Video Title &amp; ID</th>
+                <th className="py-2 px-3">Class / Subject</th>
+                <th className="py-2 px-3">Mapped Chapter</th>
+                <th className="py-2 px-3">Duration</th>
+                <th className="py-2 px-3">Flags</th>
+                <th className="py-2 px-3 text-right">View</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-slate-100">
               {initialVideos.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-ink-muted">
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
                     No videos match the current filters.
                   </td>
                 </tr>
@@ -505,28 +505,28 @@ function LecturesClientContent({
                     <tr
                       key={video.id}
                       className={`transition-colors ${
-                        isSelected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-surface-subtle/80"
+                        isSelected ? "bg-blue-50/40" : "hover:bg-slate-50/70"
                       }`}
                     >
-                      <td className="py-3 px-3.5 text-center">
+                      <td className="py-2 px-3 text-center">
                         <button
                           type="button"
                           onClick={() => toggleSelectOne(video.id)}
-                          className="text-ink-muted hover:text-ink"
+                          className="text-slate-400 hover:text-slate-700"
                         >
                           {isSelected ? (
-                            <CheckSquare className="w-4 h-4 text-primary" />
+                            <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
                           ) : (
-                            <Square className="w-4 h-4" />
+                            <Square className="w-3.5 h-3.5" />
                           )}
                         </button>
                       </td>
 
-                      <td className="py-3 px-3.5 max-w-md">
-                        <div className="font-semibold text-ink line-clamp-2 leading-snug">
+                      <td className="py-2 px-3 max-w-md">
+                        <div className="font-semibold text-slate-900 text-xs line-clamp-1">
                           {video.title}
                         </div>
-                        <div className="flex items-center gap-2 text-body-xs font-mono text-ink-muted mt-0.5">
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 mt-0.5">
                           <span>ID: {video.id}</span>
                           {video.publishedAt && (
                             <span>
@@ -536,59 +536,59 @@ function LecturesClientContent({
                         </div>
                       </td>
 
-                      <td className="py-3 px-3.5 whitespace-nowrap text-body-xs">
+                      <td className="py-2 px-3 whitespace-nowrap text-xs">
                         {video.classLevel ? (
-                          <span className="font-semibold text-ink">
+                          <span className="font-semibold text-slate-800">
                             Class {video.classLevel}
                           </span>
                         ) : (
-                          <span className="text-rose-600 font-semibold italic">Unset</span>
+                          <span className="text-rose-600 font-semibold italic text-[11px]">Unset</span>
                         )}
-                        <span className="text-ink-muted block text-[11px]">
+                        <span className="text-slate-400 block text-[10px]">
                           {subjectName || "Unassigned"}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3.5 max-w-xs text-body-xs">
+                      <td className="py-2 px-3 max-w-xs text-xs">
                         {chapterTitle ? (
-                          <span className="text-ink font-medium truncate block">
+                          <span className="text-slate-700 font-medium truncate block">
                             {chapterTitle}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                          <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                             Unmapped
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3 px-3.5 whitespace-nowrap font-mono text-body-xs text-ink-muted">
+                      <td className="py-2 px-3 whitespace-nowrap font-mono text-xs text-slate-500">
                         {Math.floor(video.durationSeconds / 60)}m {video.durationSeconds % 60}s
                       </td>
 
-                      <td className="py-3 px-3.5 whitespace-nowrap space-x-1">
+                      <td className="py-2 px-3 whitespace-nowrap space-x-1">
                         {video.needsReview && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                             Review
                           </span>
                         )}
                         {video.isShort && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                             Short
                           </span>
                         )}
                         {!video.isPublished && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                          <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                             Hidden
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                      <td className="py-2 px-3 text-right whitespace-nowrap">
                         <a
                           href={`https://youtube.com/watch?v=${video.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center p-1.5 rounded hover:bg-neutral-subtle text-ink-muted hover:text-ink"
+                          className="inline-flex items-center p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors"
                           title="Open on YouTube"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />

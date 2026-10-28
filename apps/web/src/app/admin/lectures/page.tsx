@@ -42,12 +42,21 @@ export default async function AdminLecturesPage({ searchParams }: AdminLecturesP
   const { subjects, chapters } = await getAdminSubjectChapterOptions(current.user);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      <div className="border-b border-border pb-4">
-        <h1 className="text-display-xs font-bold text-ink">Lectures & YouTube Content</h1>
-        <p className="text-body-sm text-ink-muted mt-1">
-          Review synced videos, map them to syllabus chapters, manage shorts, and publish status. Total: {total} videos.
-        </p>
+    <div className="space-y-3 max-w-7xl mx-auto pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Lectures &amp; YouTube Content
+            </h1>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 font-semibold">
+              {total} videos
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Review synced videos, map them to syllabus chapters, manage shorts, and publish status.
+          </p>
+        </div>
       </div>
 
       <LecturesClient
@@ -59,3 +68,4 @@ export default async function AdminLecturesPage({ searchParams }: AdminLecturesP
     </div>
   );
 }
+

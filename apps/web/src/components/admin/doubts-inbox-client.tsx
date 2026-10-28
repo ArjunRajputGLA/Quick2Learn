@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import {
   listAdminDoubtsAction,
   getDoubtThreadAction,
@@ -346,19 +345,19 @@ export function DoubtsInboxClient({
   });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-7xl mx-auto p-4 md:p-6 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-6.5rem)] max-w-7xl mx-auto overflow-hidden space-y-3">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 shrink-0">
         <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold tracking-tight text-ink">
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               Doubts Inbox
             </h1>
-            <Badge variant="accent" className="text-xs px-2.5 py-0.5 font-bold">
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
               {openCount} Unanswered
-            </Badge>
+            </span>
           </div>
-          <p className="text-sm text-ink-muted mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             1-on-1 student doubts sorted oldest first for rapid teacher resolution.
           </p>
         </div>
@@ -366,21 +365,21 @@ export function DoubtsInboxClient({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowNewCannedModal(true)}
-            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface border border-border text-ink hover:bg-surface-subtle transition-colors shadow-xs"
+            className="inline-flex items-center h-8 px-3 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
-            <Sparkles size={14} className="mr-1.5 text-primary" />
-            + New Saved Reply
+            <Sparkles size={13} className="mr-1.5 text-blue-600" />
+            <span>+ New Saved Reply</span>
           </button>
           <button
             onClick={() => reloadDoubts()}
             disabled={isRefreshing}
-            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface border border-border text-ink hover:bg-surface-subtle transition-colors shadow-xs"
+            className="inline-flex items-center h-8 px-3 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <Loader2
-              size={14}
-              className={`mr-1.5 text-primary ${isRefreshing ? "animate-spin" : ""}`}
+              size={13}
+              className={`mr-1.5 text-blue-600 ${isRefreshing ? "animate-spin" : ""}`}
             />
-            Refresh
+            <span>Refresh</span>
           </button>
         </div>
       </div>

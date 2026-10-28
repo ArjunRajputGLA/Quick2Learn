@@ -118,25 +118,25 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
     .reduce((sum, p) => sum + p.payment.amountPaise, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <h1 className="text-display-xs font-bold text-ink">Payments & Collections</h1>
-          <p className="text-body-sm text-ink-muted mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Payments &amp; Collections</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
             View verified payment transactions, generate receipts, and export date-range reconciliation reports.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="gap-1.5 font-bold border-border bg-white"
+            className="h-8 px-3 text-xs gap-1.5 font-semibold border-slate-200 bg-white hover:bg-slate-50 rounded-lg shadow-2xs"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5 text-slate-500" />
             <span>Export CSV</span>
           </Button>
         </div>
@@ -145,16 +145,16 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
       {/* Filter Bar */}
       <form
         onSubmit={handleFilterSubmit}
-        className="p-4 rounded-2xl border border-border bg-white shadow-xs space-y-3"
+        className="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-xs space-y-2.5"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
           <div className="relative md:col-span-2">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search receipt #, student name, email..."
-              className="pl-9 h-9 text-body-xs"
+              className="pl-8 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
             />
           </div>
 
@@ -162,7 +162,7 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink font-medium h-9"
+              className="w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium h-8"
             >
               <option value="all">All Statuses</option>
               <option value="paid">Paid</option>
@@ -176,7 +176,7 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink font-medium h-9"
+              className="w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium h-8"
             >
               <option value="all">All Payment Methods</option>
               <option value="razorpay">Razorpay (Online)</option>
@@ -186,8 +186,8 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button type="submit" size="sm" className="h-9 font-bold flex-1">
+          <div className="flex items-center gap-1.5">
+            <Button type="submit" size="sm" className="h-8 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex-1 shadow-2xs">
               Apply
             </Button>
             <Button
@@ -195,7 +195,7 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
               variant="outline"
               size="sm"
               onClick={handleReset}
-              className="h-9 text-xs"
+              className="h-8 text-xs border-slate-200 rounded-lg hover:bg-slate-50"
             >
               Reset
             </Button>
@@ -203,8 +203,8 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
         </div>
 
         {/* Date range row */}
-        <div className="flex items-center gap-3 pt-2 border-t border-border/60 text-body-xs">
-          <span className="font-semibold text-ink-muted flex items-center gap-1">
+        <div className="flex items-center gap-2.5 pt-2 border-t border-slate-100 text-xs">
+          <span className="font-semibold text-slate-500 flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" /> Date Range:
           </span>
           <div className="flex items-center gap-2">
@@ -212,89 +212,89 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="h-8 text-xs py-1"
+              className="h-7 text-xs py-0.5 px-2 rounded-md"
             />
-            <span className="text-ink-muted">to</span>
+            <span className="text-slate-400">to</span>
             <Input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="h-8 text-xs py-1"
+              className="h-7 text-xs py-0.5 px-2 rounded-md"
             />
           </div>
         </div>
       </form>
 
       {/* Summary Stats Pill */}
-      <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-subtle border border-border text-body-sm">
-        <span className="text-ink-muted">
-          Showing <span className="font-bold text-ink">{payments.length}</span> payment records
+      <div className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-200/80 text-xs shadow-2xs">
+        <span className="text-slate-500">
+          Showing <span className="font-bold text-slate-900">{payments.length}</span> payment records
         </span>
-        <span className="font-semibold text-ink">
+        <span className="font-semibold text-slate-700">
           Filtered Collections:{" "}
-          <span className="font-bold font-mono text-emerald-700">
+          <span className="font-bold font-mono text-emerald-600">
             {formatINR(totalCollectedPaise)}
           </span>
         </span>
       </div>
 
       {/* Payments Table */}
-      <div className="rounded-2xl border border-border bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-body-sm text-ink border-collapse">
-            <thead className="bg-surface-subtle border-b border-border text-[11px] font-bold text-ink-muted uppercase tracking-wider">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Receipt #</th>
-                <th className="py-3 px-4">Student</th>
-                <th className="py-3 px-4">Batch</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Method</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4 text-right">Receipt</th>
+                <th className="py-2.5 px-3.5">Receipt #</th>
+                <th className="py-2.5 px-3.5">Student</th>
+                <th className="py-2.5 px-3.5">Batch</th>
+                <th className="py-2.5 px-3.5">Amount</th>
+                <th className="py-2.5 px-3.5">Method</th>
+                <th className="py-2.5 px-3.5">Status</th>
+                <th className="py-2.5 px-3.5">Date</th>
+                <th className="py-2.5 px-3.5 text-right">Receipt</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-slate-100">
               {payments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-ink-muted">
+                  <td colSpan={8} className="py-10 text-center text-slate-400">
                     No payment records match the query.
                   </td>
                 </tr>
               ) : (
                 payments.map(({ payment, studentName, studentEmail, studentPhone, batchTitle }) => (
-                  <tr key={payment.id} className="hover:bg-surface-subtle/80 transition-colors">
-                    <td className="py-3.5 px-4 font-mono text-body-xs font-semibold text-primary">
+                  <tr key={payment.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-2.5 px-3.5 font-mono text-xs font-semibold text-blue-600">
                       {payment.receiptNo || "—"}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap">
                       <Link
                         href={`/admin/students/${payment.studentId}`}
-                        className="font-bold text-ink hover:text-primary transition-colors block"
+                        className="font-bold text-slate-900 hover:text-blue-600 transition-colors block"
                       >
                         {studentName || "Student"}
                       </Link>
-                      <p className="text-[11px] text-ink-muted truncate max-w-[180px]">
+                      <p className="text-[11px] text-slate-500 truncate max-w-[180px]">
                         {studentPhone ? `${studentEmail} · ${studentPhone}` : studentEmail}
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4 max-w-xs text-body-xs text-ink truncate">
+                    <td className="py-2.5 px-3.5 max-w-xs text-xs text-slate-700 truncate">
                       {batchTitle || "General Course"}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap font-bold font-mono text-ink">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap font-bold font-mono text-slate-900">
                       {formatINR(payment.amountPaise)}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap text-body-xs uppercase font-medium">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap text-xs uppercase font-medium text-slate-600">
                       {payment.method.replace(/_/g, " ")}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold uppercase ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                           payment.status === "paid"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : payment.status === "failed"
@@ -302,11 +302,20 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
                             : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
-                        {payment.status}
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            payment.status === "paid"
+                              ? "bg-emerald-500"
+                              : payment.status === "failed"
+                              ? "bg-rose-500"
+                              : "bg-amber-500"
+                          }`}
+                        />
+                        <span className="capitalize">{payment.status}</span>
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap text-body-xs text-ink-muted">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap text-xs text-slate-500">
                       {new Date(payment.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -314,11 +323,11 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
                       })}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td className="py-2.5 px-3.5 text-right whitespace-nowrap">
                       <Link
                         href={`/dashboard/payments/${payment.id}`}
                         target="_blank"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-semibold"
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline font-semibold"
                       >
                         <span>View</span>
                         <ExternalLink className="w-3 h-3" />

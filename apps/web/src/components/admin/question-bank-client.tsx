@@ -569,69 +569,71 @@ export function QuestionBankClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 max-w-7xl mx-auto pb-8">
       {/* HEADER & TOP ACTIONS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-border shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-ink tracking-tight flex items-center gap-2">
-            <span>Question Bank</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Question Bank
+            </h1>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 font-semibold">
               {questions.length} Questions
             </span>
-          </h1>
-          <p className="text-body-sm text-ink-muted mt-1">
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
             Build and manage Maths and Science question banks with LaTeX, MCQs, case-studies, and bulk XLSX imports.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={handleDownloadTemplate}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border bg-white text-ink text-body-sm font-semibold hover:bg-surface-subtle transition-all"
+            className="flex items-center gap-1.5 h-7.5 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all shadow-2xs"
             title="Download Excel Import Template"
           >
-            <Download className="w-4 h-4 text-ink-muted" />
+            <Download className="w-3.5 h-3.5 text-slate-400" />
             <span>Download Template</span>
           </button>
 
           <button
             type="button"
             onClick={() => setImportOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border bg-white text-ink text-body-sm font-semibold hover:bg-surface-subtle transition-all"
+            className="flex items-center gap-1.5 h-7.5 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all shadow-2xs"
           >
-            <Upload className="w-4 h-4 text-primary" />
-            <span>Import XLSX / CSV</span>
+            <Upload className="w-3.5 h-3.5 text-blue-600" />
+            <span>Import XLSX</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90 transition-all"
+            className="flex items-center gap-1.5 h-7.5 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-2xs hover:bg-blue-700 transition-all"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
             <span>Add Question</span>
           </button>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-border shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-ink-muted text-xs font-bold uppercase tracking-wider">
-          <Filter className="w-3.5 h-3.5" />
+      <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5">
+        <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+          <Filter className="w-3 h-3" />
           <span>Filters</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {/* Class Filter */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Class</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Class</label>
             <select
               value={selectedClass}
               onChange={(e) =>
                 setSelectedClass(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))
               }
-              className="w-full text-body-sm px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink"
+              className="w-full h-7 text-xs px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
             >
               <option value="all">All Classes</option>
               <option value="9">Class 9</option>
@@ -643,14 +645,14 @@ export function QuestionBankClient({
 
           {/* Subject Filter */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Subject</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Subject</label>
             <select
               value={selectedSubject}
               onChange={(e) => {
                 setSelectedSubject(e.target.value);
                 setSelectedChapter("all");
               }}
-              className="w-full text-body-sm px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink"
+              className="w-full h-7 text-xs px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
             >
               <option value="all">All Subjects</option>
               {subjects.map((s) => (
@@ -663,11 +665,11 @@ export function QuestionBankClient({
 
           {/* Chapter Filter */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Chapter</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Chapter</label>
             <select
               value={selectedChapter}
               onChange={(e) => setSelectedChapter(e.target.value)}
-              className="w-full text-body-sm px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink"
+              className="w-full h-7 text-xs px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
             >
               <option value="all">All Chapters</option>
               {filteredChapters.map((c) => (
@@ -680,11 +682,11 @@ export function QuestionBankClient({
 
           {/* Type Filter */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Type</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Type</label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full text-body-sm px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink"
+              className="w-full h-7 text-xs px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
             >
               <option value="all">All Types</option>
               <option value="mcq_single">Single Choice MCQ</option>
@@ -698,11 +700,11 @@ export function QuestionBankClient({
 
           {/* Difficulty Filter */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Difficulty</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Difficulty</label>
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="w-full text-body-sm px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink"
+              className="w-full h-7 text-xs px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
             >
               <option value="all">All Difficulties</option>
               <option value="easy">Easy</option>
@@ -713,15 +715,15 @@ export function QuestionBankClient({
 
           {/* Search Query */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-muted mb-1">Search Stem / Tag</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Search Stem / Tag</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-body-sm pl-8 pr-2.5 py-1.5 rounded-lg border border-border bg-white text-ink placeholder:text-ink-muted/60"
+                className="w-full h-7 text-xs pl-7 pr-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -729,12 +731,12 @@ export function QuestionBankClient({
       </div>
 
       {/* QUESTIONS LIST */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {filteredQuestions.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-border p-12 text-center space-y-3">
-            <HelpCircle className="w-10 h-10 text-ink-muted mx-auto" />
-            <h3 className="text-body font-bold text-ink">No questions found</h3>
-            <p className="text-body-sm text-ink-muted max-w-sm mx-auto">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-8 text-center space-y-2">
+            <HelpCircle className="w-8 h-8 text-slate-300 mx-auto" />
+            <h3 className="text-xs font-bold text-slate-900">No questions found</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               No questions matched your current filter criteria. You can clear filters or add a new question.
             </p>
           </div>
@@ -742,105 +744,107 @@ export function QuestionBankClient({
           filteredQuestions.map((q, idx) => (
             <div
               key={q.id}
-              className="bg-white rounded-2xl border border-border p-5 shadow-xs space-y-3 hover:border-primary/30 transition-all"
+              className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-2xs space-y-2 hover:border-blue-200 transition-all"
             >
               {/* Question Header Chips */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-2.5">
-                <div className="flex flex-wrap items-center gap-1.5 text-caption">
-                  <span className="font-mono font-bold text-ink-muted">#{idx + 1}</span>
-                  <Badge variant="primary" className="text-[11px] font-bold uppercase">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="font-mono font-bold text-slate-400 text-[11px]">#{idx + 1}</span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200/60">
                     Class {q.classLevel}
-                  </Badge>
-                  <span className="text-ink-muted font-bold text-xs">{q.subjectName}</span>
+                  </span>
+                  <span className="text-slate-700 font-semibold text-[11px]">{q.subjectName}</span>
                   {q.chapterTitle && (
-                    <span className="text-ink-muted/80 text-xs">· {q.chapterTitle}</span>
+                    <span className="text-slate-400 text-[11px]">· {q.chapterTitle}</span>
                   )}
-                  <Badge
-                    variant={
+                  <span
+                    className={`capitalize text-[10px] font-bold px-1.5 py-0.2 rounded ${
                       q.difficulty === "easy"
-                        ? "success"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : q.difficulty === "medium"
-                        ? "accent"
-                        : "critical"
-                    }
-                    className="capitalize text-[11px]"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : "bg-rose-50 text-rose-700 border border-rose-200"
+                    }`}
                   >
                     {q.difficulty}
-                  </Badge>
-                  <span className="text-xs px-2 py-0.5 rounded bg-surface-subtle font-mono font-semibold text-ink">
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 font-mono font-medium text-slate-700">
                     +{q.marks} / -{q.negativeMarks} marks
                   </span>
-                  <span className="text-[11px] text-ink-muted capitalize">
+                  <span className="text-[10px] text-slate-500 capitalize">
                     {q.type.replace(/_/g, " ")}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(q)}
-                    className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                     title="Edit Question"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3 h-3" />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteQuestion(q.id)}
-                    className="p-1.5 rounded-lg text-ink-muted hover:text-critical hover:bg-critical/10 transition-colors"
+                    className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                     title="Delete Question"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
               {/* Case Study Passage (if present) */}
               {q.caseGroup?.passage && (
-                <div className="p-3.5 rounded-xl bg-surface-subtle border border-border/60 text-body-sm text-ink space-y-1">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-ink-muted">
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60 text-xs text-slate-800 space-y-0.5">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
                     Case Study Passage
                   </span>
-                  <MathText content={q.caseGroup.passage} className="block text-body-sm text-ink leading-relaxed" />
+                  <MathText content={q.caseGroup.passage} className="block text-xs leading-relaxed" />
                 </div>
               )}
 
               {/* Question Stem with KaTeX */}
-              <div className="text-body text-ink font-medium leading-relaxed">
+              <div className="text-xs sm:text-sm text-slate-900 font-medium leading-relaxed">
                 <MathText content={q.stem} className="block" />
               </div>
 
               {/* Options Grid (for MCQs) */}
               {q.options && q.options.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  {q.options.map((opt) => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
+                  {q.options.map((opt, optIndex) => {
                     const isCorrect =
                       q.correct === opt.id ||
                       (Array.isArray(q.correct) && q.correct.includes(opt.id));
 
+                    // Format clean label: A, B, C, D instead of OPT_0
+                    const label = String.fromCharCode(65 + optIndex);
+
                     return (
                       <div
                         key={opt.id}
-                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-body-sm transition-all ${
+                        className={`flex items-start gap-2 py-1 px-2.5 rounded-lg border text-xs transition-all ${
                           isCorrect
-                            ? "border-emerald-500 bg-emerald-50/50 text-emerald-900 font-semibold"
-                            : "border-border/80 bg-white text-ink"
+                            ? "border-emerald-300 bg-emerald-50/60 text-emerald-950 font-semibold"
+                            : "border-slate-200/80 bg-white text-slate-800"
                         }`}
                       >
                         <span
-                          className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs uppercase font-bold shrink-0 ${
+                          className={`w-4.5 h-4.5 rounded flex items-center justify-center font-mono text-[10px] font-bold shrink-0 ${
                             isCorrect
                               ? "bg-emerald-600 text-white"
-                              : "bg-surface-subtle text-ink-muted"
+                              : "bg-slate-100 text-slate-600 border border-slate-200/60"
                           }`}
                         >
-                          {opt.id}
+                          {label}
                         </span>
                         <div className="flex-1 min-w-0">
                           <MathText content={opt.text} />
                         </div>
                         {isCorrect && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
                         )}
                       </div>
                     );
@@ -850,19 +854,19 @@ export function QuestionBankClient({
 
               {/* Solution preview if present */}
               {q.solution && (
-                <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200 text-body-sm text-amber-950 space-y-1">
+                <div className="p-2 rounded-lg bg-amber-50/50 border border-amber-200/60 text-[11px] text-amber-950 space-y-0.5">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800">
-                    Solution & Explanation
+                    Solution &amp; Explanation
                   </span>
-                  <MathText content={q.solution} className="block text-body-sm leading-relaxed" />
+                  <MathText content={q.solution} className="block text-[11px] leading-relaxed" />
                 </div>
               )}
 
               {/* Footer source & tags */}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 pt-0.5">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {q.source && (
-                    <span className="px-2 py-0.5 rounded bg-surface-subtle font-medium">
+                    <span className="px-1.5 py-0.2 rounded bg-slate-100 font-medium text-slate-600">
                       Source: {q.source}
                     </span>
                   )}

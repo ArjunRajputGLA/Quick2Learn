@@ -149,20 +149,20 @@ export function AnnouncementsClient({
       )}
 
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <h1 className="text-display-xs font-bold text-ink">Announcements & Notices</h1>
-          <p className="text-body-sm text-ink-muted">
-            Post markdown announcements for the whole institute, public visitors, or specific batches.
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Announcements &amp; Notices</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Post announcements for the whole institute, public visitors, or specific batches.
           </p>
         </div>
 
         <Button
           onClick={() => setIsComposeOpen(true)}
           size="sm"
-          className="gap-1.5 font-bold shadow-xs shrink-0"
+          className="h-8 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           <span>New Announcement</span>
         </Button>
       </div>

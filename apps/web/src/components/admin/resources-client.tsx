@@ -229,10 +229,15 @@ export function ResourcesClient({
       )}
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200/80 pb-2.5">
         <div>
-          <h1 className="text-display-xs font-bold text-ink">Study Materials & Notes</h1>
-          <p className="text-body-sm text-ink-muted">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Study Materials &amp; Notes</h1>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+              {filteredResources.length} Resources
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
             Upload PDFs directly to S3/MinIO and attach them to chapters, batches, or video lectures.
           </p>
         </div>
@@ -240,34 +245,34 @@ export function ResourcesClient({
         <Button
           onClick={() => setIsUploadOpen(true)}
           size="sm"
-          className="gap-1.5 font-bold shadow-xs shrink-0"
+          className="h-7.5 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs shrink-0 cursor-pointer"
         >
-          <Upload className="w-4 h-4" />
+          <Upload className="w-3.5 h-3.5" />
           <span>Upload PDF Document</span>
         </Button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border bg-white shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search resources by title..."
-            className="pl-9 h-9 text-body-xs"
+            className="pl-8 h-7.5 text-xs bg-slate-50/50 border-slate-200 rounded-lg focus:bg-white"
           />
         </div>
 
-        <div className="flex items-center gap-2 text-body-xs flex-wrap">
-          <span className="font-semibold text-ink-muted flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Filter:
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          <span className="font-semibold text-slate-500 flex items-center gap-1 text-[11px]">
+            <Filter className="w-3 h-3" /> Filter:
           </span>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink font-medium"
+            className="h-7.5 px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="all">All Types</option>
             <option value="notes">Notes</option>
@@ -279,7 +284,7 @@ export function ResourcesClient({
           <select
             value={filterVisibility}
             onChange={(e) => setFilterVisibility(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink font-medium"
+            className="h-7.5 px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="all">All Access</option>
             <option value="public">Public Only</option>
@@ -471,76 +476,76 @@ export function ResourcesClient({
       )}
 
       {/* Resources Table */}
-      <div className="rounded-2xl border border-border bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-body-sm text-ink border-collapse">
-            <thead className="bg-surface-subtle border-b border-border text-[11px] font-bold text-ink-muted uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-800 border-collapse">
+            <thead className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Title & Key</th>
-                <th className="py-3 px-4">Type</th>
-                <th className="py-3 px-4">Access</th>
-                <th className="py-3 px-4">Attached Target</th>
-                <th className="py-3 px-4">Created Date</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-2 px-3">Title &amp; Key</th>
+                <th className="py-2 px-3">Type</th>
+                <th className="py-2 px-3">Access</th>
+                <th className="py-2 px-3">Attached Target</th>
+                <th className="py-2 px-3">Created Date</th>
+                <th className="py-2 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-slate-100">
               {filteredResources.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-ink-muted">
+                  <td colSpan={6} className="py-8 text-center text-xs text-slate-400">
                     No resources match the selected criteria.
                   </td>
                 </tr>
               ) : (
                 filteredResources.map(({ resource, chapterTitle, batchTitle }) => (
-                  <tr key={resource.id} className="hover:bg-surface-subtle/80 transition-colors">
-                    <td className="py-3.5 px-4 max-w-sm">
-                      <div className="font-bold text-ink truncate">{resource.title}</div>
-                      <p className="text-body-xs font-mono text-ink-muted truncate">
+                  <tr key={resource.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-2 px-3 max-w-sm">
+                      <div className="font-semibold text-xs text-slate-900 truncate">{resource.title}</div>
+                      <p className="text-[11px] font-mono text-slate-400 truncate">
                         {resource.storageKey}
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold uppercase bg-surface-subtle text-ink-muted border border-border">
+                    <td className="py-2 px-3 whitespace-nowrap">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-100 text-slate-600 border border-slate-200">
                         {resource.type.replace(/_/g, " ")}
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2 px-3 whitespace-nowrap">
                       {resource.visibility === "public" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Globe className="w-3 h-3" /> Public
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Globe className="w-2.5 h-2.5" /> Public
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                          <Lock className="w-3 h-3" /> Enrolled Only
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                          <Lock className="w-2.5 h-2.5" /> Enrolled Only
                         </span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 text-body-xs text-ink-muted max-w-xs">
+                    <td className="py-2 px-3 text-[11px] text-slate-500 max-w-xs">
                       {chapterTitle && (
-                        <span className="truncate block font-medium text-ink">
+                        <span className="truncate block font-medium text-slate-800">
                           Chapter: {chapterTitle}
                         </span>
                       )}
                       {batchTitle && (
-                        <span className="truncate block font-medium text-ink">
+                        <span className="truncate block font-medium text-slate-800">
                           Batch: {batchTitle}
                         </span>
                       )}
                       {resource.videoId && (
-                        <span className="truncate block font-mono text-primary">
+                        <span className="truncate block font-mono text-blue-600">
                           Video: {resource.videoId}
                         </span>
                       )}
                       {!chapterTitle && !batchTitle && !resource.videoId && (
-                        <span className="italic text-ink-muted">Standalone</span>
+                        <span className="italic text-slate-400">Standalone</span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap text-body-xs text-ink-muted">
+                    <td className="py-2 px-3 whitespace-nowrap text-[11px] text-slate-500">
                       {new Date(resource.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -548,7 +553,7 @@ export function ResourcesClient({
                       })}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td className="py-2 px-3 text-right whitespace-nowrap">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -558,10 +563,10 @@ export function ResourcesClient({
                             title: resource.title,
                           })
                         }
-                        className="text-ink-muted hover:text-critical h-8 w-8 p-0"
+                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-7 w-7 p-0 cursor-pointer rounded-lg"
                         title="Delete resource"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -585,4 +590,4 @@ export function ResourcesClient({
       />
     </div>
   );
-}
+} 

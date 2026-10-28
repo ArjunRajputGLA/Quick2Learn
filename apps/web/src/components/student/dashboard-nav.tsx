@@ -104,9 +104,12 @@ export function DashboardNav({ user }: DashboardNavProps) {
         {/* Brand & Wordmark */}
         <div className="p-5 border-b border-border">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
-              Q2L
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo.png"
+              alt="Quick2Learn"
+              className="w-9 h-9 rounded-lg object-contain shadow-xs group-hover:scale-105 transition-transform shrink-0"
+            />
             <div>
               <span className="font-extrabold text-ink text-base tracking-tight block">
                 Quick2Learn
@@ -189,9 +192,12 @@ export function DashboardNav({ user }: DashboardNavProps) {
       {/* MOBILE TOP BAR */}
       <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-border px-4 py-2.5 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-white font-black text-sm">
-            Q2L
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo.png"
+            alt="Quick2Learn"
+            className="w-7 h-7 rounded-md object-contain shrink-0"
+          />
           <span className="font-bold text-ink text-sm">Quick2Learn</span>
         </Link>
         <div className="flex items-center gap-2">

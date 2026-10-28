@@ -202,26 +202,26 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
       )}
 
       {/* Header and Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-border bg-white shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-xl border border-slate-200/80 bg-white shadow-xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by student name or phone..."
-            className="pl-9 h-9 text-body-xs"
+            className="pl-8 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
           />
         </div>
 
-        <div className="flex items-center gap-2 text-body-xs">
-          <span className="font-semibold text-ink-muted flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Status:
+        <div className="flex items-center gap-2 text-xs">
+          <span className="font-semibold text-slate-500 flex items-center gap-1 text-[11px]">
+            <Filter className="w-3 h-3" /> Status:
           </span>
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white text-ink font-medium"
+            className="h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium text-xs"
           >
             <option value="all">All Statuses ({enquiries.length})</option>
             <option value="new">New</option>
@@ -233,7 +233,7 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
           <Button
             size="sm"
             onClick={() => setIsAddOpen(true)}
-            className="gap-1.5 font-semibold bg-primary text-white hover:bg-primary-hover shadow-xs"
+            className="h-8 px-3 text-xs gap-1.5 font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-lg shadow-2xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Enquiry</span>
@@ -242,23 +242,23 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
       </div>
 
       {/* Enquiries Table */}
-      <div className="rounded-2xl border border-border bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-body-sm text-ink border-collapse">
-            <thead className="bg-surface-subtle border-b border-border text-[11px] font-bold text-ink-muted uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-800 border-collapse">
+            <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Prospective Student</th>
-                <th className="py-3 px-4">Class & Board</th>
-                <th className="py-3 px-4">Message / Notes</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Received</th>
-                <th className="py-3 px-4 text-right">Quick Contact & Actions</th>
+                <th className="py-2.5 px-3.5">Prospective Student</th>
+                <th className="py-2.5 px-3.5">Class &amp; Board</th>
+                <th className="py-2.5 px-3.5">Message / Notes</th>
+                <th className="py-2.5 px-3.5">Status</th>
+                <th className="py-2.5 px-3.5">Received</th>
+                <th className="py-2.5 px-3.5 text-right">Quick Contact &amp; Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-ink-muted">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     No enquiries match the current filter.
                   </td>
                 </tr>
@@ -268,31 +268,31 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                   const isEnrolled = enq.status === "enrolled";
 
                   return (
-                    <tr key={enq.id} className="hover:bg-surface-subtle/80 transition-colors">
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="font-bold text-ink">{enq.name}</div>
-                        <div className="text-body-xs font-mono text-ink-muted mt-0.5">
+                    <tr key={enq.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
+                        <div className="font-bold text-slate-900">{enq.name}</div>
+                        <div className="text-[11px] font-mono text-slate-500">
                           {enq.phone}
                         </div>
                         {enq.email && (
-                          <div className="text-[11px] text-ink-muted truncate max-w-[180px]">
+                          <div className="text-[10px] text-slate-400 truncate max-w-[180px]">
                             {enq.email}
                           </div>
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap text-body-xs">
-                        <span className="font-semibold text-ink">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap text-xs">
+                        <span className="font-semibold text-slate-800">
                           {enq.classLevel ? `Class ${enq.classLevel}` : "Class unset"}
                         </span>
                         {enq.board && (
-                          <span className="text-ink-muted uppercase font-medium ml-1">
+                          <span className="text-slate-400 uppercase font-medium ml-1">
                             ({enq.board})
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 max-w-xs text-body-xs">
+                      <td className="py-2.5 px-3.5 max-w-xs text-xs">
                         {editingNoteEnquiryId === enq.id ? (
                           <div className="space-y-1.5">
                             <Input
@@ -323,12 +323,12 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                         ) : (
                           <div>
                             {enq.message && (
-                              <p className="text-ink line-clamp-1 italic text-[11px]">
-                                "{enq.message}"
+                              <p className="text-slate-700 line-clamp-1 italic text-[11px]">
+                                &ldquo;{enq.message}&rdquo;
                               </p>
                             )}
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-ink-muted line-clamp-1 text-[11px]">
+                              <span className="text-slate-400 line-clamp-1 text-[11px]">
                                 {enq.notes || "No staff notes yet"}
                               </span>
                               <button
@@ -337,7 +337,7 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                                   setEditingNoteEnquiryId(enq.id);
                                   setTempNote(enq.notes || "");
                                 }}
-                                className="p-0.5 text-ink-muted hover:text-ink shrink-0"
+                                className="p-0.5 text-slate-400 hover:text-slate-700 shrink-0"
                                 title="Edit staff notes"
                               >
                                 <Edit2 className="w-3 h-3" />
@@ -347,7 +347,7 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
                         <select
                           value={enq.status}
                           onChange={(e) =>
@@ -356,14 +356,14 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                               e.target.value as "new" | "contacted" | "enrolled" | "closed",
                             )
                           }
-                          className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             enq.status === "new"
-                              ? "bg-amber-100 text-amber-800 border border-amber-300"
+                              ? "bg-amber-50 text-amber-800 border border-amber-200"
                               : enq.status === "contacted"
-                              ? "bg-blue-100 text-blue-800 border border-blue-300"
+                              ? "bg-blue-50 text-blue-800 border border-blue-200"
                               : enq.status === "enrolled"
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                              : "bg-neutral-subtle text-ink-muted border border-border"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              : "bg-slate-100 text-slate-600 border border-slate-200"
                           }`}
                         >
                           <option value="new">New</option>
@@ -373,22 +373,22 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                         </select>
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap text-body-xs text-ink-muted">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap text-xs text-slate-400">
                         {new Date(enq.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                         })}
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Quick Call */}
                           <a
                             href={`tel:${cleanPhone}`}
-                            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface-subtle text-ink-muted hover:text-ink"
+                            className="p-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-colors"
                             title="Call Student / Parent"
                           >
-                            <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                            <Phone className="w-3 h-3 text-emerald-600" />
                           </a>
 
                           {/* Quick WhatsApp */}
@@ -398,10 +398,10 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                             )}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface-subtle text-ink-muted hover:text-ink"
+                            className="p-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-colors"
                             title="Chat on WhatsApp"
                           >
-                            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                            <MessageSquare className="w-3 h-3 text-emerald-600" />
                           </a>
 
                           {/* Convert to Student */}
@@ -410,13 +410,13 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                               size="sm"
                               variant="outline"
                               onClick={() => setToConvert(enq)}
-                              className="h-7 text-xs font-semibold gap-1 text-primary border-primary/30 hover:bg-primary/5"
+                              className="h-7 text-xs font-semibold gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
                             >
-                              <UserCheck className="w-3.5 h-3.5" />
+                              <UserCheck className="w-3 h-3" />
                               <span>Convert</span>
                             </Button>
                           ) : (
-                            <span className="text-body-xs text-emerald-700 font-semibold px-2">
+                            <span className="text-xs text-emerald-700 font-semibold px-2">
                               Converted
                             </span>
                           )}

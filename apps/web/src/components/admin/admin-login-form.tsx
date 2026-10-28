@@ -26,8 +26,8 @@ function AdminLoginFormContent() {
 
 
   const [activePreset, setActivePreset] = useState<"admin" | "teacher">("admin");
-  const [identifier, setIdentifier] = useState("admin@quick2learn.in");
-  const [password, setPassword] = useState("AdminPassword123");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,15 +36,6 @@ function AdminLoginFormContent() {
   const fillCredentials = (role: "admin" | "teacher") => {
     setActivePreset(role);
     setErrorMsg(null);
-    if (role === "admin") {
-      setIdentifier("admin@quick2learn.in");
-      setPassword("AdminPassword123");
-      toast.info("Selected Administrator (Er. Dinesh Singh Rajput)");
-    } else {
-      setIdentifier("teacher@quick2learn.in");
-      setPassword("TeacherPassword123");
-      toast.info("Selected Senior Faculty (Mrs. Namita Singh Rajput)");
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,19 +93,15 @@ function AdminLoginFormContent() {
     <div className="flex-1 flex flex-col justify-between" suppressHydrationWarning>
       {/* 1. TOP NAVBAR / BRAND HEADER */}
       <header className="w-full px-6 sm:px-12 py-5 flex items-center justify-between" suppressHydrationWarning>
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative h-10 w-36 sm:w-44">
-            <Image
-              src="/images/website logo(white background compatible).png"
-              alt="Quick2Learn Mathura"
-              fill
-              priority
-              className="object-contain object-left"
-            />
-          </div>
-          <span className="hidden sm:inline-block text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            Control Plane
-          </span>
+        <Link href="/" className="flex items-center group" aria-label="Quick2Learn Home">
+          <Image
+            src="/images/assets/unnamed-removebg-preview.png"
+            alt="Quick2Learn Mathura"
+            width={180}
+            height={40}
+            priority
+            className="h-8 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+          />
         </Link>
 
         <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
