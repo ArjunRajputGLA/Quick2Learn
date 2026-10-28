@@ -93,7 +93,7 @@ export default async function AdminEditBatchPage({ params }: EditBatchPageProps)
   }));
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <Link

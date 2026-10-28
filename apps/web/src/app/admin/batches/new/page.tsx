@@ -14,18 +14,18 @@ export default async function AdminNewBatchPage() {
   const { subjects, faculty, chapters } = await getAdminBatchEditorData(current.user);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      <div className="flex items-center gap-3 border-b border-border pb-4">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      <div className="flex items-center gap-3 border-b border-slate-200/80 pb-4">
         <Link
           href="/admin/batches"
-          className="p-2 rounded-lg border border-border bg-white text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+          className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors shadow-2xs"
           title="Back to batches"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-display-xs font-bold text-ink">Create New Batch</h1>
-          <p className="text-body-xs text-ink-muted">
+          <h1 className="text-lg font-bold text-slate-900">Create New Batch</h1>
+          <p className="text-xs text-slate-500">
             Configure course overview, syllabus modules, outcomes, and fee instalment plans.
           </p>
         </div>

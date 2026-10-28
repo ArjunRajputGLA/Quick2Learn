@@ -569,7 +569,7 @@ export function QuestionBankClient({
   };
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto pb-8">
+    <div className="space-y-3 w-full pb-8">
       {/* HEADER & TOP ACTIONS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80">
         <div>
@@ -889,24 +889,40 @@ export function QuestionBankClient({
 
       {/* QUESTION EDITOR MODAL */}
       {editorOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-border shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col my-8">
+        <div
+          onClick={() => setEditorOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+          >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <h2 className="text-body-lg font-bold text-ink">
-                {editingQuestion ? "Edit Question" : "Add Question to Bank"}
-              </h2>
+            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">
+                    {editingQuestion ? "Edit Question" : "Add Question to Bank"}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Configure question stems with LaTeX math, diagrams, option choices, and step-by-step solutions.
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setEditorOpen(false)}
-                className="p-1 rounded-lg text-ink-muted hover:text-ink"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSaveQuestion} className="flex-1 overflow-y-auto p-6 space-y-5">
+            <form onSubmit={handleSaveQuestion} className="flex-1 overflow-y-auto p-5 space-y-3.5">
               {/* Duplicate Warning Alert */}
               {duplicateWarning.isDuplicate && (
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-body-sm flex items-start gap-2.5">
@@ -922,13 +938,13 @@ export function QuestionBankClient({
               )}
 
               {/* Class, Subject, Chapter */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Class</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Class</label>
                   <select
                     value={formClassLevel}
                     onChange={(e) => setFormClassLevel(parseInt(e.target.value, 10))}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value={9}>Class 9</option>
                     <option value={10}>Class 10</option>
@@ -938,11 +954,11 @@ export function QuestionBankClient({
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Subject</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Subject</label>
                   <select
                     value={formSubjectId}
                     onChange={(e) => setFormSubjectId(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     {subjects.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -953,11 +969,11 @@ export function QuestionBankClient({
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Chapter</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Chapter</label>
                   <select
                     value={formChapterId}
                     onChange={(e) => setFormChapterId(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="">General / No Chapter</option>
                     {formAvailableChapters.map((c) => (
@@ -970,13 +986,13 @@ export function QuestionBankClient({
               </div>
 
               {/* Question Type, Difficulty, Marks */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Type</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Type</label>
                   <select
                     value={formType}
                     onChange={(e) => setFormType(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="mcq_single">Single Choice MCQ</option>
                     <option value="mcq_multi">Multiple Choice MCQ</option>
@@ -988,11 +1004,11 @@ export function QuestionBankClient({
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Difficulty</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Difficulty</label>
                   <select
                     value={formDifficulty}
                     onChange={(e) => setFormDifficulty(e.target.value as any)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -1001,26 +1017,26 @@ export function QuestionBankClient({
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Marks (+)</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Marks (+)</label>
                   <input
                     type="number"
                     step="0.25"
                     min="0"
                     value={formMarks}
                     onChange={(e) => setFormMarks(parseFloat(e.target.value) || 0)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium text-center"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Negative Marks (-)</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Negative Marks (-)</label>
                   <input
                     type="number"
                     step="0.25"
                     min="0"
                     value={formNegativeMarks}
                     onChange={(e) => setFormNegativeMarks(parseFloat(e.target.value) || 0)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                    className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium text-center"
                   />
                 </div>
               </div>
@@ -1172,78 +1188,78 @@ export function QuestionBankClient({
               )}
 
               {/* Solution & Explanation */}
-              <div className="space-y-2">
-                <label className="block text-caption font-bold text-ink">
-                  Solution & Explanation (Supports LaTeX)
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-semibold text-slate-700">
+                  Solution &amp; Explanation (Supports LaTeX)
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2.5}
                   placeholder="Step-by-step mathematical derivation or reason..."
                   value={formSolution}
                   onChange={(e) => setFormSolution(e.target.value)}
-                  className="w-full text-body-sm p-3 rounded-xl border border-border font-mono text-ink"
+                  className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white font-mono text-slate-800"
                 />
                 {formSolution.trim() && (
-                  <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200">
+                  <div className="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
                       Live Solution Preview
                     </span>
-                    <MathText content={formSolution} className="block text-body-sm text-amber-950 mt-1" />
+                    <MathText content={formSolution} className="block text-xs text-amber-950 mt-1" />
                   </div>
                 )}
               </div>
 
               {/* Source, Tags, Competency */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Source</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Source</label>
                   <input
                     type="text"
                     placeholder="e.g. Dinesh Sir — Ch 6 deck"
                     value={formSource}
                     onChange={(e) => setFormSource(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Tags (Comma-separated)</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Tags (Comma-separated)</label>
                   <input
                     type="text"
                     placeholder="Calculus, Integrals, Board 2026"
                     value={formTags}
                     onChange={(e) => setFormTags(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-caption font-bold text-ink mb-1">Competency</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Competency</label>
                   <input
                     type="text"
                     placeholder="Application, Analysis, Recall"
                     value={formCompetency}
                     onChange={(e) => setFormCompetency(e.target.value)}
-                    className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                    className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   />
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditorOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-border text-body-sm font-semibold text-ink hover:bg-surface-subtle"
+                  className="h-8 px-3 text-xs rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 py-2 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90 flex items-center gap-2"
+                  className="h-8 px-3.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs flex items-center gap-1.5 transition-all"
                 >
-                  {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingQuestion ? "Save Changes" : "Create Question"}</span>
                 </button>
               </div>
@@ -1254,25 +1270,33 @@ export function QuestionBankClient({
 
       {/* IMPORT XLSX / CSV MODAL */}
       {importOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-border shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col my-8">
+        <div
+          onClick={() => setImportOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+          >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <div>
-                <h2 className="text-body-lg font-bold text-ink flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-primary" />
-                  <span>Import Questions from XLSX / CSV</span>
-                </h2>
-                <p className="text-caption text-ink-muted">
-                  One row per question. LaTeX formulas in cells are kept exactly as typed.
-                </p>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Import Questions from XLSX / CSV</h2>
+                  <p className="text-xs text-slate-500">
+                    Bulk import questions with LaTeX equations, options, difficulty, and solutions.
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setImportOpen(false)}
-                className="p-1 rounded-lg text-ink-muted hover:text-ink"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -517,8 +517,8 @@ export function AdminNav({ user, children }: AdminNavProps) {
           </div>
         )}
 
-        {/* 3. MAIN CONTENT AREA (Elevated layer on top of unified header/sidebar with curved top-left corner) */}
-        <main className="flex-1 min-w-0 bg-white rounded-tl-[24px] sm:rounded-tl-[32px] border-t border-l border-slate-200/80 shadow-sm overflow-y-auto p-4 sm:p-5 lg:p-6 relative">
+        {/* 3. MAIN CONTENT AREA (Elevated layer on top of unified header/sidebar with curved top-left corner, fully stretched and relaxed) */}
+        <main className="flex-1 min-w-0 w-full bg-white rounded-tl-[24px] sm:rounded-tl-[32px] border-t border-l border-slate-200/80 shadow-sm overflow-y-auto p-4 sm:p-5 lg:p-6 relative transition-all duration-200 ease-in-out">
           {children}
         </main>
       </div>

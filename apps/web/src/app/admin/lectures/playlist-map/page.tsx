@@ -14,7 +14,7 @@ export default async function AdminPlaylistMapPage() {
   const { playlists, subjects, chapters } = await getAdminPlaylistMapData(current.user);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       <div className="flex items-center gap-3 border-b border-border pb-4">
         <Link
           href="/admin/lectures"

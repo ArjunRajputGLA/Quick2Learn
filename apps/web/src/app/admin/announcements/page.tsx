@@ -13,7 +13,7 @@ export default async function AdminAnnouncementsPage() {
   const batches = await getAdminBatchOptions(current.user);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-4 w-full pb-8">
       <AnnouncementsClient
         announcements={announcements as AnnouncementItem[]}
         batches={batches}

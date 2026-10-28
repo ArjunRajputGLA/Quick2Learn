@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   Loader2,
   FolderPlus,
   Search,
+  X,
 } from "lucide-react";
 
 export interface LectureItem {
@@ -83,6 +84,11 @@ function LecturesClientContent({
   // Filter state directly from URL
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
 
+  // Sync with URL when external searchParam changes
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
+
   const handleFilterChange = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value === null || value === "" || value === "all") {
@@ -93,6 +99,19 @@ function LecturesClientContent({
     params.delete("page");
     router.push(`/admin/lectures?${params.toString()}`);
   };
+
+  // Live real-time search on typing (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentParam = searchParams.get("search") || "";
+      const trimmed = searchQuery.trim();
+      if (trimmed !== currentParam.trim()) {
+        handleFilterChange("search", trimmed || null);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,16 +179,29 @@ function LecturesClientContent({
       {/* Search & Filters Header */}
       <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs space-y-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-          {/* Search bar */}
+          {/* Search bar (live search) */}
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-1.5 flex-1 max-w-md">
             <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search lectures by title or YouTube ID..."
-                className="pl-8 h-7.5 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
+                placeholder="Search lectures by title or YouTube ID... (shows live)"
+                className="pl-8 pr-7 h-7.5 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    handleFilterChange("search", null);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
             <Button type="submit" size="sm" variant="outline" className="h-7.5 text-xs px-2.5 border-slate-200 rounded-lg">
               Search

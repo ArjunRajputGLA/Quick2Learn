@@ -19,12 +19,18 @@ export default async function AdminContentPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      <div className="border-b border-border pb-4">
-        <h1 className="text-display-xs font-bold text-ink">Website Content & Settings</h1>
-        <p className="text-body-sm text-ink-muted mt-1">
-          Manage faculty profiles, student testimonials, board exam results (hall of fame), and site-wide configuration.
-        </p>
+    <div className="space-y-4 w-full pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Website Content &amp; Settings
+            </h1>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage faculty profiles, student testimonials, board exam results (hall of fame), and site-wide configuration.
+          </p>
+        </div>
       </div>
 
       <ContentManagerClient

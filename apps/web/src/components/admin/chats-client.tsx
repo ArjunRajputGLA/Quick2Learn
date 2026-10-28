@@ -281,7 +281,7 @@ export function ChatsClient({
   });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] max-w-7xl mx-auto space-y-3">
+    <div className="flex flex-col h-[calc(100vh-6.5rem)] w-full space-y-3">
       {/* 1. Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80 shrink-0">
         <div>

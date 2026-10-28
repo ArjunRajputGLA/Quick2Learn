@@ -12,7 +12,7 @@ export default async function AdminEnquiriesPage() {
   const enquiries = await getAdminEnquiriesList(current.user);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       <div className="border-b border-border pb-4">
         <h1 className="text-display-xs font-bold text-ink">Admissions Enquiries</h1>
         <p className="text-body-sm text-ink-muted mt-1">

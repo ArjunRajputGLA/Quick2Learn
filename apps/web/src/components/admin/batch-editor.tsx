@@ -496,10 +496,47 @@ export function BatchEditor({
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-8 max-w-5xl mx-auto pb-16">
+    <form onSubmit={handleSave} className="space-y-6 max-w-4xl mx-auto pb-12">
+      {/* Top Action Header Bar */}
+      <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-xs">
+        <div>
+          <span className="text-xs font-semibold text-slate-800 block">
+            {initialBatch ? `Editing: ${initialBatch.title}` : "New Batch Configuration"}
+          </span>
+          <span className="text-[11px] text-slate-500">
+            Configure syllabus modules, learning outcomes, and fee plans.
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/admin/batches")}
+            disabled={isSubmitting}
+            className="h-8 px-3 text-xs rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || uploadingCover}
+            className="h-8 px-3.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs gap-1.5"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <span>Save & Publish Batch</span>
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Alert Notices */}
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-critical/10 border border-critical/30 text-critical text-body-sm flex items-start gap-3">
+        <div className="p-4 rounded-xl bg-critical/10 border border-critical/30 text-rose-500 text-body-sm flex items-start gap-3">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="font-medium">{errorMsg}</div>
         </div>
@@ -513,16 +550,16 @@ export function BatchEditor({
       )}
 
       {/* 1. Basic Information */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-5">
-        <div className="flex items-center gap-2 border-b border-border pb-3">
-          <BookOpen className="w-5 h-5 text-primary" />
-          <h2 className="text-body-md font-bold text-ink">1. Basic Information</h2>
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-5">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <BookOpen className="w-5 h-5 text-blue-600" />
+          <h2 className="text-sm font-bold text-slate-900">1. Basic Information</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-body-xs font-semibold text-ink">
-              Batch Title <span className="text-critical">*</span>
+            <label className="text-[11px] font-semibold text-slate-700">
+              Batch Title <span className="text-rose-500">*</span>
             </label>
             <Input
               value={title}
@@ -534,13 +571,13 @@ export function BatchEditor({
 
           <div className="space-y-1.5 md:col-span-2">
             <div className="flex items-center justify-between">
-              <label className="text-body-xs font-semibold text-ink">
-                URL Slug <span className="text-critical">*</span>
+              <label className="text-[11px] font-semibold text-slate-700">
+                URL Slug <span className="text-rose-500">*</span>
               </label>
               <button
                 type="button"
                 onClick={generateSlug}
-                className="text-xs text-primary hover:underline font-semibold"
+                className="text-xs text-blue-600 hover:underline font-semibold"
               >
                 Auto-generate from title
               </button>
@@ -554,7 +591,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-body-xs font-semibold text-ink">Subtitle</label>
+            <label className="text-[11px] font-semibold text-slate-700">Subtitle</label>
             <Input
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
@@ -563,11 +600,11 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Class Level</label>
+            <label className="text-[11px] font-semibold text-slate-700">Class Level</label>
             <select
               value={classLevel}
               onChange={(e) => setClassLevel(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium"
             >
               {[9, 10, 11, 12].map((lvl) => (
                 <option key={lvl} value={lvl}>
@@ -578,11 +615,11 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Board</label>
+            <label className="text-[11px] font-semibold text-slate-700">Board</label>
             <select
               value={board}
               onChange={(e) => setBoard(e.target.value as "cbse" | "icse" | "isc")}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium uppercase"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium uppercase"
             >
               <option value="cbse">CBSE</option>
               <option value="icse">ICSE</option>
@@ -591,13 +628,13 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">
-              Subject <span className="text-critical">*</span>
+            <label className="text-[11px] font-semibold text-slate-700">
+              Subject <span className="text-rose-500">*</span>
             </label>
             <select
               value={subjectId}
               onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium"
               required
             >
               {subjects.map((sub) => (
@@ -609,11 +646,11 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Faculty In-charge</label>
+            <label className="text-[11px] font-semibold text-slate-700">Faculty In-charge</label>
             <select
               value={facultyId}
               onChange={(e) => setFacultyId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium"
             >
               <option value="">None / Unassigned</option>
               {faculty.map((f) => (
@@ -625,11 +662,11 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Delivery Mode</label>
+            <label className="text-[11px] font-semibold text-slate-700">Delivery Mode</label>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as "offline" | "online" | "hybrid")}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium"
             >
               <option value="offline">Offline (In-center)</option>
               <option value="online">Online Live</option>
@@ -638,7 +675,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Total Seats</label>
+            <label className="text-[11px] font-semibold text-slate-700">Total Seats</label>
             <Input
               type="number"
               min={1}
@@ -648,7 +685,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-body-xs font-semibold text-ink">Schedule Text</label>
+            <label className="text-[11px] font-semibold text-slate-700">Schedule Text</label>
             <Input
               value={scheduleText}
               onChange={(e) => setScheduleText(e.target.value)}
@@ -658,7 +695,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-body-xs font-semibold text-ink">Location / Classroom</label>
+            <label className="text-[11px] font-semibold text-slate-700">Location / Classroom</label>
             <Input
               value={locationText}
               onChange={(e) => setLocationText(e.target.value)}
@@ -667,7 +704,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Start Date</label>
+            <label className="text-[11px] font-semibold text-slate-700">Start Date</label>
             <Input
               type="date"
               value={startDate}
@@ -677,7 +714,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">End Date (Optional)</label>
+            <label className="text-[11px] font-semibold text-slate-700">End Date (Optional)</label>
             <Input
               type="date"
               value={endDate}
@@ -686,13 +723,13 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-body-xs font-semibold text-ink">Status</label>
+            <label className="text-[11px] font-semibold text-slate-700">Status</label>
             <select
               value={status}
               onChange={(e) =>
                 setStatus(e.target.value as "draft" | "open" | "closed" | "completed")
               }
-              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-body-sm text-ink font-medium"
+              className="w-full px-2.5 h-8.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium"
             >
               <option value="draft">Draft (Hidden from public)</option>
               <option value="open">Open (Admissions Active)</option>
@@ -707,16 +744,16 @@ export function BatchEditor({
                 type="checkbox"
                 checked={isFeatured}
                 onChange={(e) => setIsFeatured(e.target.checked)}
-                className="w-4 h-4 rounded text-primary focus:ring-primary/20"
+                className="w-4 h-4 rounded text-blue-600 focus:ring-primary/20"
               />
-              <span className="text-body-sm font-semibold text-ink">
+              <span className="text-xs font-semibold text-slate-800">
                 Featured on Homepage
               </span>
             </label>
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-body-xs font-semibold text-ink">
+            <label className="text-[11px] font-semibold text-slate-700">
               WhatsApp Group Link (Students only)
             </label>
             <Input
@@ -730,17 +767,17 @@ export function BatchEditor({
       </div>
 
       {/* 2. Cover Image Upload */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-5">
-        <div className="flex items-center gap-2 border-b border-border pb-3">
-          <ImageIcon className="w-5 h-5 text-primary" />
-          <h2 className="text-body-md font-bold text-ink">2. Cover Image</h2>
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-5">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <ImageIcon className="w-5 h-5 text-blue-600" />
+          <h2 className="text-sm font-bold text-slate-900">2. Cover Image</h2>
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="w-32 h-20 rounded-xl bg-surface-subtle border border-border flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-32 h-20 rounded-xl bg-slate-50/70 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
             {coverKey ? (
-              <div className="p-2 text-center text-body-xs text-ink-muted">
-                <span className="font-semibold text-primary block truncate max-w-[120px]">
+              <div className="p-2 text-center text-xs text-slate-500">
+                <span className="font-semibold text-blue-600 block truncate max-w-[120px]">
                   {coverKey.split("/").pop()}
                 </span>
                 Uploaded
@@ -751,7 +788,7 @@ export function BatchEditor({
           </div>
 
           <div className="space-y-1.5">
-            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-white hover:bg-surface-subtle text-body-xs font-semibold text-ink cursor-pointer transition-colors">
+            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50/70 text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors">
               <Upload className="w-4 h-4" />
               <span>{uploadingCover ? "Uploading image..." : "Upload Cover Image"}</span>
               <input
@@ -762,7 +799,7 @@ export function BatchEditor({
                 className="hidden"
               />
             </label>
-            <p className="text-body-xs text-ink-muted">
+            <p className="text-xs text-slate-500">
               JPG, PNG, or WebP. Aspect ratio ~16:9 recommended. Max 25 MB.
             </p>
             {coverKey && (
@@ -775,13 +812,13 @@ export function BatchEditor({
       </div>
 
       {/* 3. Description with Live Math/Markdown Preview */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-primary" />
-            <h2 className="text-body-md font-bold text-ink">3. Description & Syllabus Overview</h2>
+            <Layers className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900">3. Description & Syllabus Overview</h2>
           </div>
-          <div className="flex rounded-lg border border-border p-0.5 bg-surface-subtle">
+          <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50/70">
             <button
               type="button"
               onClick={() => setPreviewTab("edit")}
@@ -805,46 +842,47 @@ export function BatchEditor({
 
         {previewTab === "edit" ? (
           <Textarea
-            rows={6}
+            rows={5}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Write description in markdown. Math formulas e.g. $F = ma$ or $$\int f(x)dx$$ are supported."
-            className="font-mono text-body-sm"
+            placeholder="Write description in markdown. Math formulas e.g. $F = ma$ or $\int f(x)dx$ are supported."
+            className="text-xs text-slate-800 rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white p-3 leading-relaxed"
           />
         ) : (
-          <div className="p-4 rounded-xl border border-border bg-surface-subtle min-h-[140px] text-body-sm text-ink prose max-w-none">
+          <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 min-h-[120px] text-xs text-slate-800 prose max-w-none">
             <MathText content={description} />
           </div>
         )}
       </div>
 
       {/* 4. Learning Outcomes */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-            <h2 className="text-body-md font-bold text-ink">4. Learning Outcomes ({outcomes.length})</h2>
+            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900">4. Learning Outcomes ({outcomes.length})</h2>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addOutcome} className="gap-1 text-xs">
             <Plus className="w-3.5 h-3.5" /> Add Outcome
           </Button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {outcomes.map((outcome, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <span className="text-body-xs font-bold font-mono text-ink-muted w-5">
-                {idx + 1}.
+              <span className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200/80 text-slate-600 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                {idx + 1}
               </span>
               <Input
                 value={outcome}
                 onChange={(e) => updateOutcome(idx, e.target.value)}
                 placeholder="e.g. Master all 14 chapters with step-by-step numerical solving"
+                className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
               />
               <button
                 type="button"
                 onClick={() => removeOutcome(idx)}
-                className="p-2 text-ink-muted hover:text-critical transition-colors"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
                 title="Remove outcome"
               >
                 <Trash2 className="w-4 h-4" />
@@ -855,11 +893,11 @@ export function BatchEditor({
       </div>
 
       {/* 5. Syllabus Builder */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-5">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-primary" />
-            <h2 className="text-body-md font-bold text-ink">5. Syllabus Builder ({syllabus.length} Modules)</h2>
+            <Layers className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900">5. Syllabus Builder ({syllabus.length} Modules)</h2>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addModule} className="gap-1 text-xs">
             <Plus className="w-3.5 h-3.5" /> Add Module
@@ -870,19 +908,19 @@ export function BatchEditor({
           {syllabus.map((mod, modIdx) => (
             <div
               key={modIdx}
-              className="p-4 rounded-xl border border-border bg-surface-subtle space-y-3"
+              className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <Input
                   value={mod.module}
                   onChange={(e) => updateModuleName(modIdx, e.target.value)}
                   placeholder="Module Name (e.g. Term 1: Electrostatics & Magnetism)"
-                  className="font-bold text-body-sm bg-white"
+                  className="h-8 text-xs font-bold rounded-lg border-slate-200 bg-white text-slate-800"
                 />
                 <button
                   type="button"
                   onClick={() => removeModule(modIdx)}
-                  className="p-2 text-ink-muted hover:text-critical shrink-0"
+                  className="p-2 text-ink-muted hover:text-rose-500 shrink-0"
                   title="Remove module"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -893,17 +931,17 @@ export function BatchEditor({
                 value={mod.notes || ""}
                 onChange={(e) => updateModuleNotes(modIdx, e.target.value)}
                 placeholder="Module notes (e.g. 8 Weeks · 24 Lectures · 2 Unit Tests)"
-                className="text-body-xs bg-white"
+                className="h-7.5 text-xs rounded-lg border-slate-200 bg-white text-slate-600"
               />
 
               {/* Chapters in this module */}
-              <div className="space-y-2 pt-2 border-t border-border/50">
+              <div className="space-y-2 pt-2 border-t border-slate-200/50">
                 <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider">
                   Chapters in this Module
                 </p>
 
                 {mod.chapters.length === 0 ? (
-                  <p className="text-body-xs text-ink-muted italic py-1">
+                  <p className="text-xs text-slate-500 italic py-1">
                     No chapters added yet to this module.
                   </p>
                 ) : (
@@ -911,7 +949,7 @@ export function BatchEditor({
                     {mod.chapters.map((chap, cIdx) => (
                       <div
                         key={cIdx}
-                        className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-border text-body-sm"
+                        className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-slate-200 text-body-sm"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-body-xs font-mono text-ink-muted">
@@ -923,7 +961,7 @@ export function BatchEditor({
                               type="checkbox"
                               checked={chap.hasFreePreview || false}
                               onChange={() => toggleChapterPreview(modIdx, cIdx)}
-                              className="w-3.5 h-3.5 rounded text-primary"
+                              className="w-3.5 h-3.5 rounded text-blue-600"
                             />
                             <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                               Free Preview
@@ -953,7 +991,7 @@ export function BatchEditor({
                           <button
                             type="button"
                             onClick={() => removeChapterFromModule(modIdx, cIdx)}
-                            className="p-1 text-ink-muted hover:text-critical"
+                            className="p-1 text-ink-muted hover:text-rose-500"
                             title="Remove chapter"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -969,7 +1007,7 @@ export function BatchEditor({
                   <select
                     id={`chap-select-${modIdx}`}
                     defaultValue=""
-                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-body-xs text-ink"
                   >
                     <option value="" disabled>
                       Select an existing chapter to attach...
@@ -1005,11 +1043,11 @@ export function BatchEditor({
       </div>
 
       {/* 6. FAQs Editor */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-primary" />
-            <h2 className="text-body-md font-bold text-ink">6. Frequently Asked Questions ({faqs.length})</h2>
+            <HelpCircle className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900">6. Frequently Asked Questions ({faqs.length})</h2>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addFaq} className="gap-1 text-xs">
             <Plus className="w-3.5 h-3.5" /> Add FAQ
@@ -1018,18 +1056,18 @@ export function BatchEditor({
 
         <div className="space-y-3">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="p-3 rounded-xl border border-border bg-surface-subtle space-y-2">
+            <div key={idx} className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Input
                   value={faq.question}
                   onChange={(e) => updateFaq(idx, "question", e.target.value)}
                   placeholder="Question (e.g. Can I attend backup classes if I miss a lecture?)"
-                  className="font-bold text-body-sm bg-white"
+                  className="h-8 text-xs font-bold rounded-lg border-slate-200 bg-white text-slate-800"
                 />
                 <button
                   type="button"
                   onClick={() => removeFaq(idx)}
-                  className="p-1.5 text-ink-muted hover:text-critical shrink-0"
+                  className="p-1.5 text-ink-muted hover:text-rose-500 shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -1039,7 +1077,7 @@ export function BatchEditor({
                 value={faq.answer}
                 onChange={(e) => updateFaq(idx, "answer", e.target.value)}
                 placeholder="Answer text..."
-                className="text-body-xs bg-white"
+                className="text-xs rounded-lg border-slate-200 bg-white text-slate-700 p-2.5"
               />
             </div>
           ))}
@@ -1047,15 +1085,15 @@ export function BatchEditor({
       </div>
 
       {/* 7. Fee Plans & Instalment Schedule */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-5">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <IndianRupee className="w-5 h-5 text-primary" />
-            <h2 className="text-body-md font-bold text-ink">
+            <IndianRupee className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900">
               7. Fee Plans & Instalment Schedule ({feePlans.length})
             </h2>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={addFeePlan} className="gap-1 text-xs">
+          <Button type="button" variant="outline" size="sm" onClick={addFeePlan} className="gap-1 text-xs h-7 px-2.5 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold shadow-2xs">
             <Plus className="w-3.5 h-3.5" /> Add Fee Plan
           </Button>
         </div>
@@ -1071,31 +1109,31 @@ export function BatchEditor({
             return (
               <div
                 key={pIdx}
-                className="p-5 rounded-xl border border-border bg-surface-subtle space-y-4"
+                className="p-4.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3.5"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
                   <div className="flex items-center gap-3">
                     <Input
                       value={plan.name}
                       onChange={(e) => updateFeePlan(pIdx, "name", e.target.value)}
                       placeholder="Plan Name (e.g. Full Payment, 3 Instalments)"
-                      className="font-bold text-body-sm bg-white"
+                      className="h-8 text-xs font-bold rounded-lg border-slate-200 bg-white text-slate-800 min-w-[200px]"
                     />
                     <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
                       <input
                         type="checkbox"
                         checked={plan.isActive}
                         onChange={(e) => updateFeePlan(pIdx, "isActive", e.target.checked)}
-                        className="w-4 h-4 rounded text-primary"
+                        className="w-3.5 h-3.5 rounded text-blue-600"
                       />
-                      <span className="text-body-xs font-semibold text-ink">Active</span>
+                      <span className="text-[11px] font-semibold text-slate-700">Active</span>
                     </label>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => removeFeePlan(pIdx)}
-                    className="p-1.5 text-ink-muted hover:text-critical self-end sm:self-center"
+                    className="p-1.5 text-slate-400 hover:text-rose-500 self-end sm:self-center"
                     title="Remove fee plan"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1104,37 +1142,37 @@ export function BatchEditor({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Total Fee (₹)</label>
+                    <label className="text-[11px] font-semibold text-slate-700">Total Fee (₹)</label>
                     <Input
                       type="number"
                       value={plan.totalINR}
                       onChange={(e) => updateFeePlan(pIdx, "totalINR", Number(e.target.value))}
-                      className="bg-white font-mono font-bold"
+                      className="h-8 text-xs rounded-lg border-slate-200 bg-white font-mono font-bold text-slate-900"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">
+                    <label className="text-[11px] font-semibold text-slate-700">
                       Original / Strike-through Fee (₹)
                     </label>
                     <Input
                       type="number"
                       value={plan.originalINR || 0}
                       onChange={(e) => updateFeePlan(pIdx, "originalINR", Number(e.target.value))}
-                      className="bg-white font-mono"
+                      className="h-8 text-xs rounded-lg border-slate-200 bg-white font-mono text-slate-600"
                     />
                   </div>
                 </div>
 
                 {/* Instalments list */}
-                <div className="space-y-2.5 pt-2">
+                <div className="space-y-2.5 pt-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                       Instalment Schedule
                     </p>
                     <button
                       type="button"
                       onClick={() => addInstalmentToPlan(pIdx)}
-                      className="text-xs text-primary hover:underline font-semibold"
+                      className="text-xs text-blue-600 hover:underline font-semibold"
                     >
                       + Add Instalment
                     </button>
@@ -1144,7 +1182,7 @@ export function BatchEditor({
                     {plan.instalments.map((ins, insIdx) => (
                       <div
                         key={insIdx}
-                        className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center p-2 rounded-lg bg-white border border-border"
+                        className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center p-2 rounded-lg bg-white border border-slate-200/80"
                       >
                         <div className="sm:col-span-5">
                           <Input
@@ -1153,7 +1191,7 @@ export function BatchEditor({
                               updateInstalment(pIdx, insIdx, "name", e.target.value)
                             }
                             placeholder="Instalment Label (e.g. Month 1)"
-                            className="text-body-xs font-medium"
+                            className="h-7.5 text-xs rounded-md border-slate-200 bg-slate-50/50 hover:bg-white text-slate-800 font-medium"
                           />
                         </div>
                         <div className="sm:col-span-3">
@@ -1164,7 +1202,7 @@ export function BatchEditor({
                               updateInstalment(pIdx, insIdx, "amountINR", Number(e.target.value))
                             }
                             placeholder="Amount ₹"
-                            className="text-body-xs font-mono font-semibold"
+                            className="h-7.5 text-xs font-mono font-semibold rounded-md border-slate-200 bg-slate-50/50 hover:bg-white text-slate-800"
                           />
                         </div>
                         <div className="sm:col-span-3">
@@ -1174,16 +1212,16 @@ export function BatchEditor({
                             onChange={(e) =>
                               updateInstalment(pIdx, insIdx, "dueDate", e.target.value)
                             }
-                            className="text-body-xs"
+                            className="h-7.5 text-xs rounded-md border-slate-200 bg-slate-50/50 hover:bg-white text-slate-800"
                           />
                         </div>
                         <div className="sm:col-span-1 text-right">
                           <button
                             type="button"
                             onClick={() => removeInstalmentFromPlan(pIdx, insIdx)}
-                            className="p-1 text-ink-muted hover:text-critical"
+                            className="p-1 text-slate-400 hover:text-rose-500"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -1192,15 +1230,15 @@ export function BatchEditor({
 
                   {/* Instalment total sum status indicator */}
                   <div
-                    className={`flex items-center justify-between p-2.5 rounded-lg text-body-xs font-semibold ${
+                    className={`flex items-center justify-between p-2 rounded-lg text-xs font-semibold ${
                       isSumValid
                         ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                         : "bg-amber-50 text-amber-800 border border-amber-200"
                     }`}
                   >
-                    <span>
-                      Sum of instalments: ₹{instalmentSum.toLocaleString("en-IN")} / Total Fee: ₹
-                      {plan.totalINR.toLocaleString("en-IN")}
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      Sum of instalments: ₹{instalmentSum.toLocaleString("en-IN")} / Total Fee: ₹{plan.totalINR.toLocaleString("en-IN")}
                     </span>
                     {!isSumValid && (
                       <span className="text-amber-700 font-bold">
@@ -1215,13 +1253,14 @@ export function BatchEditor({
         </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="sticky bottom-4 z-20 flex items-center justify-between p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-border shadow-lg">
+      {/* Action Footer (docked cleanly at end of form, never covers inputs) */}
+      <div className="flex items-center justify-between pt-5 border-t border-slate-200/80 mt-8">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push("/admin/batches")}
           disabled={isSubmitting}
+          className="h-8 px-3.5 text-xs rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
         >
           Cancel
         </Button>
@@ -1230,11 +1269,11 @@ export function BatchEditor({
           <Button
             type="submit"
             disabled={isSubmitting || uploadingCover}
-            className="gap-2 font-bold px-6 shadow-sm"
+            className="h-8.5 px-5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs gap-1.5"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Saving Batch...</span>
               </>
             ) : (

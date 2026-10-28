@@ -345,7 +345,7 @@ export function DoubtsInboxClient({
   });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] max-w-7xl mx-auto overflow-hidden space-y-3">
+    <div className="flex flex-col h-[calc(100vh-6.5rem)] w-full overflow-hidden space-y-3">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 shrink-0">
         <div>
@@ -919,8 +919,14 @@ export function DoubtsInboxClient({
 
       {/* New Saved Canned Reply Modal */}
       {showNewCannedModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-border shadow-2xl max-w-md w-full p-5">
+        <div
+          onClick={() => setShowNewCannedModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-md w-full p-5 animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-base font-bold text-ink">Create Saved Canned Reply</h3>
               <button

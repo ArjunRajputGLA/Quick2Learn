@@ -190,8 +190,14 @@ export function StudentParentsSection({
 
       {/* Link Parent Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div
+          onClick={() => setModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 space-y-4 animate-in zoom-in-95 duration-150"
+          >
             <div>
               <h3 className="text-body-md font-bold text-ink">Link Parent to {studentName}</h3>
               <p className="text-body-xs text-ink-muted mt-1">

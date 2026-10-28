@@ -86,7 +86,7 @@ export function TestsManagerClient({ initialTests, batches }: TestsManagerClient
   };
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto pb-8">
+    <div className="space-y-3 w-full pb-8">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80">
         <div>

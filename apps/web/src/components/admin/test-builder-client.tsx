@@ -308,44 +308,45 @@ export function TestBuilderClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/admin/tests"
-            className="p-2 rounded-xl border border-border hover:bg-surface-subtle transition-colors text-ink-muted hover:text-ink"
+            className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-500 hover:text-slate-800 shadow-2xs"
+            title="Back to tests"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-black text-ink tracking-tight">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               {initialTest ? `Edit Test: ${initialTest.title}` : "Build New Test"}
             </h1>
-            <p className="text-xs text-ink-muted">
+            <p className="text-xs text-slate-500">
               Configure timing, question set, student solution rules, and publish to enrolled students.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setPreviewOpen(true)}
             disabled={chosenQuestions.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-white text-ink text-body-sm font-semibold hover:bg-surface-subtle transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all disabled:opacity-50"
           >
-            <Eye className="w-4 h-4 text-primary" />
-            <span>Preview as Student</span>
+            <Eye className="w-3.5 h-3.5 text-blue-600" />
+            <span>Preview</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSaveTest(false)}
             disabled={isPending}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-white text-ink text-body-sm font-semibold hover:bg-surface-subtle transition-all"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5" />
             <span>Save Draft</span>
           </button>
 
@@ -353,69 +354,80 @@ export function TestBuilderClient({
             type="button"
             onClick={() => handleSaveTest(true)}
             disabled={isPending || chosenQuestions.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-2xs hover:bg-blue-700 transition-all disabled:opacity-50"
           >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
             <span>Publish & Push</span>
           </button>
         </div>
       </div>
 
       {/* TWO COLUMN GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
         {/* LEFT COLUMN: SETTINGS */}
-        <div className="lg:col-span-1 space-y-5">
+        <div className="xl:col-span-5 space-y-4">
           {/* Basic Info Card */}
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
-            <h2 className="text-body font-bold text-ink">Test Configuration</h2>
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-xs space-y-3.5">
+            <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2.5">
+              Test Configuration
+            </h2>
 
             <div>
-              <label className="block text-caption font-bold text-ink mb-1">Test Title</label>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Test Title</label>
               <input
                 type="text"
                 placeholder="e.g. Chapter 6: Quadratic Equations Mastery"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
               />
             </div>
 
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Batch Assignment</label>
-              <select
-                value={batchId}
-                onChange={(e) => setBatchId(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
-              >
-                <option value="">Free Practice Test (All Students)</option>
-                {batches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Batch Assignment</label>
+                <select
+                  value={batchId}
+                  onChange={(e) => setBatchId(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
+                >
+                  <option value="">Free Practice Test</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Subject</label>
+                <select
+                  value={subjectId}
+                  onChange={(e) => setSubjectId(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
+                >
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-caption font-bold text-ink mb-1">Subject</label>
-              <select
-                value={subjectId}
-                onChange={(e) => setSubjectId(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
-              >
-                {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">
-                Chapters Covered (Optional)
-              </label>
-              <div className="max-h-36 overflow-y-auto p-2 rounded-xl border border-border bg-surface-subtle/40 space-y-1">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Chapters Covered (Optional)
+                </label>
+                {selectedChapterIds.length > 0 && (
+                  <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                    {selectedChapterIds.length} chosen
+                  </span>
+                )}
+              </div>
+              <div className="max-h-36 overflow-y-auto p-2 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1">
                 {chapters
                   .filter((c) => !subjectId || c.subjectId === subjectId)
                   .map((c) => {
@@ -423,7 +435,9 @@ export function TestBuilderClient({
                     return (
                       <label
                         key={c.id}
-                        className="flex items-center gap-2 text-xs text-ink cursor-pointer hover:bg-white p-1 rounded"
+                        className={`flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded-md transition-colors ${
+                          isChecked ? "bg-blue-50/70 text-blue-900 font-medium" : "text-slate-700 hover:bg-white"
+                        }`}
                       >
                         <input
                           type="checkbox"
@@ -435,7 +449,7 @@ export function TestBuilderClient({
                               setSelectedChapterIds(selectedChapterIds.filter((id) => id !== c.id));
                             }
                           }}
-                          className="rounded text-primary focus:ring-primary w-3.5 h-3.5"
+                          className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                         />
                         <span className="truncate">Ch {c.number}: {c.title}</span>
                       </label>
@@ -444,92 +458,96 @@ export function TestBuilderClient({
               </div>
             </div>
 
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Kind</label>
-              <select
-                value={kind}
-                onChange={(e) => setKind(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
-              >
-                <option value="chapter_test">Chapter Test</option>
-                <option value="unit_test">Unit Test</option>
-                <option value="mock">Full Mock Exam</option>
-                <option value="practice">Daily Practice Test</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Kind</label>
+                <select
+                  value={kind}
+                  onChange={(e) => setKind(e.target.value)}
+                  className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
+                >
+                  <option value="chapter_test">Chapter Test</option>
+                  <option value="unit_test">Unit Test</option>
+                  <option value="mock">Full Mock</option>
+                  <option value="practice">Daily Practice</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Duration (Minutes)</label>
-              <div className="flex items-center gap-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Duration</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="5"
+                    max="360"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 30)}
+                    className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium text-center"
+                  />
+                  <span className="text-[11px] text-slate-500 shrink-0">mins</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Attempts</label>
                 <input
                   type="number"
-                  min="5"
-                  max="360"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 30)}
-                  className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                  min="1"
+                  max="10"
+                  value={attemptsAllowed}
+                  onChange={(e) => setAttemptsAllowed(parseInt(e.target.value, 10) || 1)}
+                  className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium text-center"
                 />
-                <span className="text-xs text-ink-muted">mins</span>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Attempts Allowed</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={attemptsAllowed}
-                onChange={(e) => setAttemptsAllowed(parseInt(e.target.value, 10) || 1)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
-              />
             </div>
           </div>
 
           {/* Timing & Window Card */}
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
-            <h2 className="text-body font-bold text-ink flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-ink-muted" />
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-xs space-y-3.5">
+            <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2.5 flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-slate-400" />
               <span>Availability Window</span>
             </h2>
 
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Starts At (Optional)</label>
-              <input
-                type="datetime-local"
-                value={startsAt}
-                onChange={(e) => setStartsAt(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Starts At (Optional)</label>
+                <input
+                  type="datetime-local"
+                  value={startsAt}
+                  onChange={(e) => setStartsAt(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
+                />
+              </div>
 
-            <div>
-              <label className="block text-caption font-bold text-ink mb-1">Ends At (Optional)</label>
-              <input
-                type="datetime-local"
-                value={endsAt}
-                onChange={(e) => setEndsAt(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
-              />
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Ends At (Optional)</label>
+                <input
+                  type="datetime-local"
+                  value={endsAt}
+                  onChange={(e) => setEndsAt(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
+                />
+              </div>
             </div>
           </div>
 
           {/* Rules Card */}
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
-            <h2 className="text-body font-bold text-ink flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-ink-muted" />
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-xs space-y-3.5">
+            <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2.5 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-slate-400" />
               <span>Anti-Cheating & Solutions</span>
             </h2>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={shuffleQuestions}
                   onChange={(e) => setShuffleQuestions(e.target.checked)}
-                  className="w-4 h-4 text-primary rounded"
+                  className="w-3.5 h-3.5 text-blue-600 rounded"
                 />
-                <span className="text-body-sm text-ink font-medium">Shuffle questions for each student</span>
+                <span className="text-xs text-slate-700 font-medium">Shuffle questions for each student</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -537,18 +555,18 @@ export function TestBuilderClient({
                   type="checkbox"
                   checked={shuffleOptions}
                   onChange={(e) => setShuffleOptions(e.target.checked)}
-                  className="w-4 h-4 text-primary rounded"
+                  className="w-3.5 h-3.5 text-blue-600 rounded"
                 />
-                <span className="text-body-sm text-ink font-medium">Shuffle option choices (A/B/C/D)</span>
+                <span className="text-xs text-slate-700 font-medium">Shuffle option choices (A/B/C/D)</span>
               </label>
             </div>
 
             <div>
-              <label className="block text-caption font-bold text-ink mb-1">Show Solutions & Explanations</label>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Show Solutions & Explanations</label>
               <select
                 value={showSolutions}
                 onChange={(e) => setShowSolutions(e.target.value)}
-                className="w-full text-body-sm px-3 py-2 rounded-xl border border-border bg-white text-ink"
+                className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
               >
                 <option value="after_submit">Immediately after student submits</option>
                 <option value="after_end">Only after test window ends (scheduled date)</option>
@@ -559,21 +577,21 @@ export function TestBuilderClient({
         </div>
 
         {/* RIGHT COLUMN: QUESTIONS SELECTION */}
-        <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
+        <div className="xl:col-span-7 space-y-4">
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-xs space-y-3.5">
             {/* Questions header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
               <div>
-                <h2 className="text-body font-bold text-ink flex items-center gap-2">
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <span>Questions in Test</span>
-                  <Badge variant="primary" className="font-bold">
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
                     {chosenQuestions.length} Selected
-                  </Badge>
-                  <span className="text-xs font-mono font-bold text-ink-muted">
+                  </span>
+                  <span className="text-xs font-mono font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
                     Total Marks: {totalMarks}
                   </span>
                 </h2>
-                <p className="text-caption text-ink-muted mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Pick questions manually from the bank or use the auto-picker to compose by difficulty.
                 </p>
               </div>
@@ -582,16 +600,16 @@ export function TestBuilderClient({
                 <button
                   type="button"
                   onClick={() => setAutoPickOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-white text-body-sm font-semibold text-ink hover:bg-surface-subtle transition-all"
+                  className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-2xs"
                 >
-                  <Wand2 className="w-3.5 h-3.5 text-primary" />
+                  <Wand2 className="w-3.5 h-3.5 text-blue-600" />
                   <span>Auto-Pick</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPickerOpen(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90 transition-all"
+                  className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-2xs hover:bg-blue-700 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Pick from Bank</span>
@@ -601,23 +619,45 @@ export function TestBuilderClient({
 
             {/* Questions List */}
             {chosenQuestions.length === 0 ? (
-              <div className="py-12 text-center space-y-3">
-                <HelpCircle className="w-8 h-8 text-ink-muted mx-auto" />
-                <div className="text-body-sm font-bold text-ink">No questions added yet</div>
-                <p className="text-caption text-ink-muted max-w-sm mx-auto">
-                  Click &ldquo;Pick from Bank&rdquo; to browse existing questions or &ldquo;Auto-Pick&rdquo; to select balanced questions automatically.
-                </p>
+              <div className="py-12 px-4 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+                  <HelpCircle className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-slate-900">No Questions Added to this Test</h3>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Select balanced questions from your institute question bank, or let the auto-picker compose questions by difficulty level.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(true)}
+                    className="flex items-center gap-1.5 px-3.5 h-8 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-2xs hover:bg-blue-700 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Pick from Bank</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAutoPickOpen(true)}
+                    className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all shadow-2xs"
+                  >
+                    <Wand2 className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Auto-Pick Questions</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
                 {chosenQuestions.map((q, idx) => (
                   <div
                     key={q.questionId}
-                    className="p-4 rounded-xl border border-border bg-surface-subtle/50 space-y-2 hover:border-primary/30 transition-all"
+                    className="p-4 rounded-xl border border-slate-200 bg-slate-50/70/50 space-y-2 hover:border-blue-500/30 transition-all"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-white border border-border flex items-center justify-center font-mono font-bold text-xs text-ink-muted">
+                        <span className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center font-mono font-bold text-xs text-slate-500">
                           {idx + 1}
                         </span>
                         <Badge
@@ -632,14 +672,14 @@ export function TestBuilderClient({
                         >
                           {q.difficulty}
                         </Badge>
-                        <span className="text-[11px] text-ink-muted capitalize">
+                        <span className="text-[11px] text-slate-500 capitalize">
                           {q.type.replace(/_/g, " ")}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
-                          <label className="text-[11px] text-ink-muted">Marks:</label>
+                          <label className="text-[11px] text-slate-500">Marks:</label>
                           <input
                             type="number"
                             step="0.5"
@@ -653,7 +693,7 @@ export function TestBuilderClient({
                                 )
                               );
                             }}
-                            className="w-14 text-center text-xs py-1 px-1.5 rounded-lg border border-border bg-white font-mono font-bold"
+                            className="w-14 text-center text-xs py-1 px-1.5 rounded-lg border border-slate-200 bg-white font-mono font-bold"
                           />
                         </div>
 
@@ -662,14 +702,14 @@ export function TestBuilderClient({
                           onClick={() =>
                             setChosenQuestions((prev) => prev.filter((_, i) => i !== idx))
                           }
-                          className="p-1 rounded-lg text-ink-muted hover:text-critical hover:bg-critical/10"
+                          className="p-1 rounded-lg text-slate-500 hover:text-critical hover:bg-critical/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="text-body-sm text-ink pl-8">
+                    <div className="text-body-sm text-slate-900 pl-8">
                       <MathText content={q.stem} className="line-clamp-2" />
                     </div>
                   </div>
@@ -682,36 +722,42 @@ export function TestBuilderClient({
 
       {/* MANUAL PICKER MODAL */}
       {pickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-border shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col my-8">
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <h2 className="text-body-lg font-bold text-ink">Pick Questions from Bank</h2>
+        <div
+          onClick={() => setPickerOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/70">
+              <h2 className="text-sm font-bold text-slate-900">Pick Questions from Bank</h2>
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
-                className="p-1 rounded-lg text-ink-muted hover:text-ink"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Picker Filters */}
-            <div className="p-4 border-b border-border bg-surface-subtle flex flex-wrap items-center gap-3">
+            <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-wrap items-center gap-3">
               <div className="flex-1 min-w-[200px] relative">
-                <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search questions..."
                   value={pickerSearch}
                   onChange={(e) => setPickerSearch(e.target.value)}
-                  className="w-full text-body-sm pl-8 pr-3 py-1.5 rounded-lg border border-border bg-white text-ink"
+                  className="w-full text-body-sm pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-900"
                 />
               </div>
 
               <select
                 value={pickerFilterDiff}
                 onChange={(e) => setPickerFilterDiff(e.target.value)}
-                className="text-body-sm px-3 py-1.5 rounded-lg border border-border bg-white text-ink"
+                className="text-body-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-900"
               >
                 <option value="all">All Difficulties</option>
                 <option value="easy">Easy</option>
@@ -722,7 +768,7 @@ export function TestBuilderClient({
               <select
                 value={pickerFilterChapter}
                 onChange={(e) => setPickerFilterChapter(e.target.value)}
-                className="text-body-sm px-3 py-1.5 rounded-lg border border-border bg-white text-ink"
+                className="text-body-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-900"
               >
                 <option value="all">All Chapters</option>
                 {availableChapters.map((c) => (
@@ -744,15 +790,15 @@ export function TestBuilderClient({
                     onClick={() => handleToggleQuestion(q)}
                     className={`p-3.5 rounded-xl border text-body-sm flex items-start gap-3 cursor-pointer transition-all ${
                       isSelected
-                        ? "border-primary bg-primary/5 text-ink"
-                        : "border-border hover:bg-surface-subtle text-ink"
+                        ? "border-blue-500 bg-blue-50/50 text-slate-900"
+                        : "border-slate-200 hover:bg-slate-50/70 text-slate-900"
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 ${
                         isSelected
-                          ? "bg-primary border-primary text-white"
-                          : "border-border bg-white"
+                          ? "bg-blue-600 border-blue-500 text-white"
+                          : "border-slate-200 bg-white"
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5" />}
@@ -772,9 +818,9 @@ export function TestBuilderClient({
                         >
                           {q.difficulty}
                         </Badge>
-                        <span className="text-xs text-ink-muted">+{q.marks} marks</span>
+                        <span className="text-xs text-slate-500">+{q.marks} marks</span>
                         {q.chapterTitle && (
-                          <span className="text-xs text-ink-muted truncate">· {q.chapterTitle}</span>
+                          <span className="text-xs text-slate-500 truncate">· {q.chapterTitle}</span>
                         )}
                       </div>
                       <MathText content={q.stem} className="line-clamp-2 text-body-sm" />
@@ -784,14 +830,14 @@ export function TestBuilderClient({
               })}
             </div>
 
-            <div className="p-4 border-t border-border flex items-center justify-between">
-              <span className="text-xs text-ink-muted">
+            <div className="p-4 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-xs text-slate-500">
                 {chosenQuestions.length} question(s) chosen in test
               </span>
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
-                className="px-5 py-2 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90"
+                className="px-5 py-2 rounded-xl bg-blue-600 text-white text-body-sm font-bold shadow-xs hover:bg-blue-700"
               >
                 Done
               </button>
@@ -802,69 +848,79 @@ export function TestBuilderClient({
 
       {/* AUTO-PICK MODAL */}
       {autoPickOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-border shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-body font-bold text-ink flex items-center gap-2">
-                <Wand2 className="w-4 h-4 text-primary" />
+        <div
+          onClick={() => setAutoPickOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-md w-full p-5 space-y-3.5 animate-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Wand2 className="w-4 h-4 text-blue-600" />
                 <span>Auto-Pick Questions</span>
               </h3>
-              <button onClick={() => setAutoPickOpen(false)} className="p-1 text-ink-muted">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setAutoPickOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-caption text-ink-muted">
+            <p className="text-xs text-slate-500">
               Specify the number of questions to randomly pick from the question bank for this subject:
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div>
-                <label className="block text-caption font-bold text-ink mb-1">Easy Questions</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Easy Questions</label>
                 <input
                   type="number"
                   min="0"
                   value={autoEasy}
                   onChange={(e) => setAutoEasy(parseInt(e.target.value, 10) || 0)}
-                  className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-caption font-bold text-ink mb-1">Medium Questions</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Medium Questions</label>
                 <input
                   type="number"
                   min="0"
                   value={autoMedium}
                   onChange={(e) => setAutoMedium(parseInt(e.target.value, 10) || 0)}
-                  className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-caption font-bold text-ink mb-1">Hard Questions</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Hard Questions</label>
                 <input
                   type="number"
                   min="0"
                   value={autoHard}
                   onChange={(e) => setAutoHard(parseInt(e.target.value, 10) || 0)}
-                  className="w-full text-body-sm px-3 py-2 rounded-xl border border-border text-ink"
+                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setAutoPickOpen(false)}
-                className="px-4 py-2 rounded-xl border border-border text-body-sm font-semibold"
+                className="h-8 px-3 text-xs rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleExecuteAutoPick}
-                className="px-5 py-2 rounded-xl bg-primary text-white text-body-sm font-bold shadow-xs hover:bg-primary/90"
+                className="h-8 px-3.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs transition-all"
               >
                 Auto-Pick {autoEasy + autoMedium + autoHard} Questions
               </button>
@@ -875,8 +931,14 @@ export function TestBuilderClient({
 
       {/* PREVIEW AS STUDENT MODAL */}
       {previewOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl border border-border shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+        <div
+          onClick={() => setPreviewOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+          >
             {/* Student Exam Header */}
             <div className="bg-neutral-900 text-white p-4 sm:p-5 flex items-center justify-between">
               <div>
@@ -904,8 +966,8 @@ export function TestBuilderClient({
             </div>
 
             {/* Question Palette Bar */}
-            <div className="bg-surface-subtle border-b border-border p-3 overflow-x-auto flex items-center gap-2">
-              <span className="text-[11px] font-bold text-ink-muted uppercase mr-1 shrink-0">
+            <div className="bg-slate-50/70 border-b border-slate-200 p-3 overflow-x-auto flex items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase mr-1 shrink-0">
                 Palette:
               </span>
               {chosenQuestions.map((_, i) => (
@@ -914,8 +976,8 @@ export function TestBuilderClient({
                   onClick={() => setPreviewActiveIndex(i)}
                   className={`w-8 h-8 rounded-xl font-mono text-xs font-bold transition-all shrink-0 ${
                     previewActiveIndex === i
-                      ? "bg-primary text-white shadow-xs"
-                      : "bg-white border border-border text-ink hover:bg-surface"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-white border border-slate-200 text-slate-900 hover:bg-surface"
                   }`}
                 >
                   {i + 1}
@@ -926,17 +988,17 @@ export function TestBuilderClient({
             {/* Question Active Screen */}
             {chosenQuestions[previewActiveIndex] && (
               <div className="p-6 overflow-y-auto flex-1 space-y-6">
-                <div className="flex items-center justify-between text-caption font-bold text-ink-muted border-b border-border pb-3">
+                <div className="flex items-center justify-between text-caption font-bold text-slate-500 border-b border-slate-200 pb-3">
                   <span>
                     Question {previewActiveIndex + 1} of {chosenQuestions.length}
                   </span>
-                  <span className="font-mono text-ink">
+                  <span className="font-mono text-slate-900">
                     Marks: +{chosenQuestions[previewActiveIndex].marksOverride ?? chosenQuestions[previewActiveIndex].marks} / -{chosenQuestions[previewActiveIndex].negativeMarks}
                   </span>
                 </div>
 
                 {/* Question Stem with KaTeX */}
-                <div className="text-body text-ink font-medium leading-relaxed">
+                <div className="text-body text-slate-900 font-medium leading-relaxed">
                   <MathText content={chosenQuestions[previewActiveIndex].stem} className="block" />
                 </div>
 
@@ -947,17 +1009,17 @@ export function TestBuilderClient({
                     {chosenQuestions[previewActiveIndex].options.map((opt: any) => (
                       <label
                         key={opt.id}
-                        className="flex items-start gap-3 p-3.5 rounded-2xl border border-border hover:border-primary/50 cursor-pointer transition-all"
+                        className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-blue-500/50 cursor-pointer transition-all"
                       >
                         <input
                           type="radio"
                           name={`preview_q_${previewActiveIndex}`}
-                          className="w-4 h-4 text-primary mt-1"
+                          className="w-4 h-4 text-blue-600 mt-1"
                         />
-                        <span className="w-6 h-6 rounded-full bg-surface-subtle font-mono text-xs font-bold flex items-center justify-center uppercase shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-slate-50/70 font-mono text-xs font-bold flex items-center justify-center uppercase shrink-0">
                           {opt.id}
                         </span>
-                        <div className="flex-1 min-w-0 text-body-sm text-ink">
+                        <div className="flex-1 min-w-0 text-body-sm text-slate-900">
                           <MathText content={opt.text} />
                         </div>
                       </label>
@@ -969,7 +1031,7 @@ export function TestBuilderClient({
                       type="text"
                       placeholder="Student enters answer here..."
                       disabled
-                      className="w-full max-w-sm text-body-sm px-3.5 py-2.5 rounded-xl border border-border bg-surface-subtle text-ink"
+                      className="w-full max-w-sm text-body-sm px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900"
                     />
                   </div>
                 )}
@@ -977,12 +1039,12 @@ export function TestBuilderClient({
             )}
 
             {/* Exam Navigation Footer */}
-            <div className="p-4 border-t border-border bg-white flex items-center justify-between">
+            <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setPreviewActiveIndex((i) => Math.max(0, i - 1))}
                 disabled={previewActiveIndex === 0}
-                className="px-4 py-2 rounded-xl border border-border text-body-sm font-semibold text-ink disabled:opacity-40"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-body-sm font-semibold text-slate-900 disabled:opacity-40"
               >
                 Previous
               </button>
@@ -994,7 +1056,7 @@ export function TestBuilderClient({
                     setPreviewActiveIndex((i) => Math.min(chosenQuestions.length - 1, i + 1))
                   }
                   disabled={previewActiveIndex === chosenQuestions.length - 1}
-                  className="px-4 py-2 rounded-xl bg-primary text-white text-body-sm font-bold disabled:opacity-40"
+                  className="px-4 py-2 rounded-xl bg-blue-600 text-white text-body-sm font-bold disabled:opacity-40"
                 >
                   Next
                 </button>

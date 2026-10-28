@@ -13,7 +13,7 @@ export default async function AdminResourcesPage() {
   const { chapters, batches } = await getAdminResourceOptions(current.user);
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto pb-8">
+    <div className="space-y-3 w-full pb-8">
       <ResourcesClient
         resources={resources as ResourceRow[]}
         chapters={chapters}

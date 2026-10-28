@@ -54,7 +54,7 @@ export default async function AdminStudentDetailPage({ params }: StudentPageProp
   const studentName = profile?.fullName || user.name || "Student";
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       {/* Top Bar Navigation & Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">

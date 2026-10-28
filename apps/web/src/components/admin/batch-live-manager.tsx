@@ -579,8 +579,14 @@ export function BatchLiveManager({
 
       {/* Create / Edit Live Session Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-border max-h-[90vh] overflow-y-auto">
+        <div
+          onClick={() => setIsModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/90 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
+          >
             <h3 className="text-lg font-black text-ink">
               {editingSession ? "Edit Live Session" : "Schedule Live Class"}
             </h3>
@@ -738,8 +744,14 @@ export function BatchLiveManager({
 
       {/* End Session & Attach Recording Modal */}
       {recordingModalSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-border">
+        <div
+          onClick={() => setRecordingModalSession(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 animate-in zoom-in-95 duration-150"
+          >
             <h3 className="text-lg font-black text-ink">End Live Session</h3>
             <p className="text-xs text-ink-muted mt-1">
               Ending "{recordingModalSession.title}". You can optionally attach the YouTube recording ID now or later.

@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Search,
   Filter,
+  X,
 } from "lucide-react";
 
 export interface ResourceRow {
@@ -295,42 +296,54 @@ export function ResourcesClient({
 
       {/* Upload Modal Drawer */}
       {isUploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+        <div
+          onClick={() => !isUploading && setIsUploadOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+        >
           <div
-            className="w-full max-w-lg rounded-2xl bg-white border border-border p-6 shadow-xl space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-xl bg-white border border-slate-200/90 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
             role="dialog"
             aria-modal="true"
           >
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-body-md font-bold text-ink flex items-center gap-2">
-                <Upload className="w-4 h-4 text-primary" />
-                <span>Upload PDF Study Material</span>
-              </h3>
+            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <Upload className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Upload PDF Study Material</h3>
+                  <p className="text-xs text-slate-500">
+                    Upload notes, worksheets, formula sheets, or PYQs for your students.
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsUploadOpen(false)}
-                className="text-ink-muted hover:text-ink text-sm"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-body-xs font-semibold text-ink">
-                  Document Title <span className="text-critical">*</span>
+            <form onSubmit={handleUploadSubmit} className="p-5 space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Document Title <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Chapter 1 Electric Charges Handwritten Formula Sheet"
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-body-xs font-semibold text-ink">Material Type</label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Material Type</label>
                   <select
                     value={resourceType}
                     onChange={(e) =>
@@ -338,7 +351,7 @@ export function ResourcesClient({
                         e.target.value as "notes" | "worksheet" | "pyq" | "formula_sheet",
                       )
                     }
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink font-medium"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="notes">Notes</option>
                     <option value="worksheet">Worksheet / DPP</option>
@@ -347,12 +360,12 @@ export function ResourcesClient({
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-body-xs font-semibold text-ink">Access / Visibility</label>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700">Access / Visibility</label>
                   <select
                     value={visibility}
                     onChange={(e) => setVisibility(e.target.value as "public" | "enrolled")}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink font-medium"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="public">Public (q2l-public)</option>
                     <option value="enrolled">Enrolled Only (q2l-private)</option>
@@ -361,18 +374,18 @@ export function ResourcesClient({
               </div>
 
               {/* Attachment selector */}
-              <div className="space-y-2 pt-1 border-t border-border">
-                <label className="text-body-xs font-semibold text-ink">Attach To:</label>
+              <div className="space-y-1.5 pt-1 border-t border-slate-100">
+                <label className="text-[11px] font-semibold text-slate-700">Attach To:</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["chapter", "batch", "video"] as const).map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setAttachType(t)}
-                      className={`py-1.5 text-xs font-semibold rounded-lg border capitalize transition-colors ${
+                      className={`h-7.5 text-xs font-semibold rounded-lg border capitalize transition-colors ${
                         attachType === t
-                          ? "bg-primary text-white border-primary"
-                          : "bg-surface-subtle text-ink-muted border-border hover:bg-neutral-subtle"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
                       {t}
@@ -384,7 +397,7 @@ export function ResourcesClient({
                   <select
                     value={selectedChapterId}
                     onChange={(e) => setSelectedChapterId(e.target.value)}
-                    className="w-full mt-2 px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="">Choose a Chapter...</option>
                     {chapters.map((c) => (
@@ -399,7 +412,7 @@ export function ResourcesClient({
                   <select
                     value={selectedBatchId}
                     onChange={(e) => setSelectedBatchId(e.target.value)}
-                    className="w-full mt-2 px-2.5 py-1.5 rounded-lg border border-border bg-white text-body-xs text-ink"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="">Choose a Batch...</option>
                     {batches.map((b) => (
@@ -415,17 +428,17 @@ export function ResourcesClient({
                     value={videoId}
                     onChange={(e) => setVideoId(e.target.value)}
                     placeholder="Enter YouTube Video ID (e.g. dQw4w9WgXcQ)"
-                    className="mt-2 text-body-xs font-mono"
+                    className="h-8 text-xs font-mono rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                   />
                 )}
               </div>
 
               {/* PDF File Picker */}
-              <div className="space-y-1.5 pt-1 border-t border-border">
-                <label className="text-body-xs font-semibold text-ink">
-                  PDF Document (Max 25 MB) <span className="text-critical">*</span>
+              <div className="space-y-1 pt-1 border-t border-slate-100">
+                <label className="text-[11px] font-semibold text-slate-700">
+                  PDF Document (Max 25 MB) <span className="text-rose-500">*</span>
                 </label>
-                <div className="p-4 rounded-xl border-2 border-dashed border-border bg-surface-subtle hover:bg-neutral-subtle/50 text-center cursor-pointer transition-colors relative">
+                <div className="p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30 text-center cursor-pointer transition-colors relative">
                   <input
                     type="file"
                     accept="application/pdf,.pdf"
@@ -434,23 +447,24 @@ export function ResourcesClient({
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     required
                   />
-                  <FileText className="w-8 h-8 text-primary mx-auto mb-1.5" />
-                  <p className="text-body-xs font-semibold text-ink">
+                  <FileText className="w-7 h-7 text-blue-600 mx-auto mb-1.5" />
+                  <p className="text-xs font-semibold text-slate-800">
                     {file ? file.name : "Click to select or drag PDF file here"}
                   </p>
-                  <p className="text-[11px] text-ink-muted mt-0.5">
+                  <p className="text-[11px] text-slate-400 mt-0.5">
                     {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "Strictly PDF only, up to 25 MB"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsUploadOpen(false)}
                   disabled={isUploading}
+                  className="h-8 px-3 text-xs rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
                 >
                   Cancel
                 </Button>
@@ -458,15 +472,15 @@ export function ResourcesClient({
                   type="submit"
                   size="sm"
                   disabled={isUploading || !file}
-                  className="gap-2 font-bold"
+                  className="h-8 px-3.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs gap-1.5 disabled:opacity-50"
                 >
                   {isUploading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                       <span>Uploading to S3...</span>
                     </>
                   ) : (
-                    <span>Upload & Attach</span>
+                    <span>Upload &amp; Attach</span>
                   )}
                 </Button>
               </div>

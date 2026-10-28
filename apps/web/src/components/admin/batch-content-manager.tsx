@@ -798,8 +798,14 @@ export function BatchContentManager({ batchId }: BatchContentManagerProps) {
 
       {/* MODAL 1: ADD LECTURES */}
       {showAddLectureModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+        <div
+          onClick={() => setShowAddLectureModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-2xl w-full p-5 space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-body-md font-bold text-ink">Add Lectures to {activeChapter?.title}</h3>
               <button type="button" onClick={() => setShowAddLectureModal(false)} className="text-ink-muted hover:text-ink font-bold">
@@ -921,8 +927,14 @@ export function BatchContentManager({ batchId }: BatchContentManagerProps) {
 
       {/* MODAL 2: BULK PDF UPLOAD */}
       {showBulkPdfModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-xl w-full p-6 space-y-4">
+        <div
+          onClick={() => setShowBulkPdfModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-xl w-full p-5 space-y-4 animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-body-md font-bold text-ink">Upload Notes & Study Material (PDF)</h3>
               <button type="button" onClick={() => setShowBulkPdfModal(false)} className="text-ink-muted hover:text-ink font-bold">
@@ -1022,8 +1034,14 @@ export function BatchContentManager({ batchId }: BatchContentManagerProps) {
 
       {/* MODAL 3: ZIP IMPORT (OLD APP MATERIAL) */}
       {showZipImportModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+        <div
+          onClick={() => setShowZipImportModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-2xl w-full p-5 space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <FileArchive className="w-5 h-5 text-amber-600" />
@@ -1113,8 +1131,14 @@ export function BatchContentManager({ batchId }: BatchContentManagerProps) {
 
       {/* MODAL 4: LINK PUBLIC LIBRARY CHAPTERS */}
       {showLinkChapterModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[85vh] flex flex-col">
+        <div
+          onClick={() => setShowLinkChapterModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-lg w-full p-5 space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-body-md font-bold text-ink">Link Public Library Chapters</h3>
               <button type="button" onClick={() => setShowLinkChapterModal(false)} className="text-ink-muted hover:text-ink font-bold">

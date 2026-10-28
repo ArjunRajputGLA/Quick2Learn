@@ -89,8 +89,14 @@ export function ManualEnrollModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-2xl bg-white border border-border p-6 shadow-xl space-y-5">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
+      >
         <div className="flex items-center justify-between pb-3 border-b border-border">
           <div className="flex items-center gap-2 text-primary font-bold text-body-lg">
             <GraduationCap className="w-5 h-5" />
@@ -220,8 +226,14 @@ export function RecordOfflinePaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-2xl bg-white border border-border p-6 shadow-xl space-y-5">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
+      >
         <div className="flex items-center justify-between pb-3 border-b border-border">
           <div className="flex items-center gap-2 text-primary font-bold text-body-lg">
             <CreditCard className="w-5 h-5" />
@@ -361,8 +373,14 @@ export function WaiveDueModal({ isOpen, onClose, due }: WaiveDueModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="w-full max-w-md rounded-2xl bg-white border border-border p-6 shadow-xl space-y-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+      >
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-xl bg-amber-50 text-warning shrink-0">
             <AlertTriangle className="w-5 h-5" />
@@ -448,8 +466,14 @@ export function AddNoteModal({ isOpen, onClose, studentId, studentName }: AddNot
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="w-full max-w-md rounded-2xl bg-white border border-border p-6 shadow-xl space-y-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+      >
         <div className="flex items-center gap-2 text-primary font-bold text-body-lg">
           <FileText className="w-5 h-5" />
           <span>Add Staff Note</span>

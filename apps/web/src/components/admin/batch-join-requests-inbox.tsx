@@ -16,6 +16,8 @@ import {
   Mail,
   GraduationCap,
   Loader2,
+  Search,
+  X,
 } from "lucide-react";
 
 export interface JoinRequestItem {
@@ -53,6 +55,7 @@ export function BatchJoinRequestsInbox({
 }: BatchJoinRequestsInboxProps) {
   const [requests, setRequests] = useState<JoinRequestItem[]>(initialRequests);
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+  const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   // Modal / Inline input state for approving or rejecting
@@ -115,14 +118,22 @@ export function BatchJoinRequestsInbox({
   };
 
   const filteredRequests = requests.filter((r) => {
-    if (filterStatus === "all") return true;
-    return r.status === filterStatus;
+    if (filterStatus !== "all" && r.status !== filterStatus) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = r.studentName.toLowerCase().includes(q);
+      const matchEmail = r.studentEmail.toLowerCase().includes(q);
+      const matchPhone = r.studentPhone ? r.studentPhone.includes(q) : false;
+      const matchBatch = r.batchTitle.toLowerCase().includes(q);
+      if (!matchName && !matchEmail && !matchPhone && !matchBatch) return false;
+    }
+    return true;
   });
 
   const pendingCount = requests.filter((r) => r.status === "pending").length;
 
   return (
-    <div className="space-y-6 rounded-2xl border border-border bg-white p-6 shadow-xs">
+    <div className="space-y-4 rounded-2xl border border-border bg-white p-6 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -155,6 +166,27 @@ export function BatchJoinRequestsInbox({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Live Search Bar for Requests */}
+      <div className="relative max-w-md">
+        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search requests by student name, email, phone, batch... (shows live)"
+          className="pl-8 pr-7 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            title="Clear search"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
       {/* Requests List */}

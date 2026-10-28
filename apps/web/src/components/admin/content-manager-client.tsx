@@ -348,161 +348,239 @@ export function ContentManagerClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Alert Notices */}
       {statusMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-body-sm flex items-center gap-2">
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span className="font-semibold">{statusMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-3.5 rounded-xl bg-critical/10 border border-critical/30 text-critical text-body-sm flex items-center gap-2">
+        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span className="font-semibold">{errorMessage}</span>
         </div>
       )}
 
       {/* Navigation Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-border pb-2 overflow-x-auto">
+      <div className="flex items-center gap-1.5 border-b border-slate-200/80 pb-2.5 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab("faculty")}
-          className={`flex items-center gap-2 px-3.5 py-2 text-body-sm font-semibold rounded-xl transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
             activeTab === "faculty"
-              ? "bg-primary text-white"
-              : "text-ink-muted hover:text-ink hover:bg-surface-subtle"
+              ? "bg-blue-600 text-white shadow-2xs font-bold"
+              : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
           }`}
         >
-          <Users className="w-4 h-4" />
-          <span>Faculty ({initialFaculty.length})</span>
+          <Users className="w-3.5 h-3.5" />
+          <span>Faculty</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === "faculty"
+                ? "bg-blue-700/80 text-white"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {initialFaculty.length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("testimonials")}
-          className={`flex items-center gap-2 px-3.5 py-2 text-body-sm font-semibold rounded-xl transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
             activeTab === "testimonials"
-              ? "bg-primary text-white"
-              : "text-ink-muted hover:text-ink hover:bg-surface-subtle"
+              ? "bg-blue-600 text-white shadow-2xs font-bold"
+              : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
           }`}
         >
-          <MessageSquareQuote className="w-4 h-4" />
-          <span>Testimonials ({initialTestimonials.length})</span>
+          <MessageSquareQuote className="w-3.5 h-3.5" />
+          <span>Testimonials</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === "testimonials"
+                ? "bg-blue-700/80 text-white"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {initialTestimonials.length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("results")}
-          className={`flex items-center gap-2 px-3.5 py-2 text-body-sm font-semibold rounded-xl transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
             activeTab === "results"
-              ? "bg-primary text-white"
-              : "text-ink-muted hover:text-ink hover:bg-surface-subtle"
+              ? "bg-blue-600 text-white shadow-2xs font-bold"
+              : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
           }`}
         >
-          <Award className="w-4 h-4" />
-          <span>Hall of Fame ({initialResults.length})</span>
+          <Award className="w-3.5 h-3.5" />
+          <span>Hall of Fame</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === "results"
+                ? "bg-blue-700/80 text-white"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {initialResults.length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("settings")}
-          className={`flex items-center gap-2 px-3.5 py-2 text-body-sm font-semibold rounded-xl transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
             activeTab === "settings"
-              ? "bg-primary text-white"
-              : "text-ink-muted hover:text-ink hover:bg-surface-subtle"
+              ? "bg-blue-600 text-white shadow-2xs font-bold"
+              : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
           }`}
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-3.5 h-3.5" />
           <span>Site Settings</span>
         </button>
       </div>
 
       {/* TAB 1: FACULTY */}
       {activeTab === "faculty" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-body-md font-bold text-ink">Faculty Directory</h2>
-            <Button size="sm" onClick={() => openFacultyModal()} className="gap-1.5 font-bold">
-              <Plus className="w-4 h-4" /> Add Faculty
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">Faculty Directory</h2>
+              <p className="text-[11px] text-slate-500">Manage instructor bios, designations, and public profile routes.</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => openFacultyModal()}
+              className="h-8 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Faculty
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {initialFaculty.map((f) => (
-              <div
-                key={f.id}
-                className="p-5 rounded-2xl border border-border bg-white shadow-xs space-y-3 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-body-md font-bold text-ink">{f.name}</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openFacultyModal(f)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
+          {initialFaculty.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center space-y-2">
+              <Users className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
+              <p className="text-xs text-slate-500">No faculty members found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+              {initialFaculty.map((f) => {
+                const initials = f.name
+                  .replace(/^(Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+/i, "")
+                  .split(/\s+/)
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase() || "FC";
+
+                return (
+                  <div
+                    key={f.id}
+                    className="p-4 rounded-xl border border-slate-200/80 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{f.name}</h3>
+                            <p className="text-[11px] font-semibold text-blue-600 truncate mt-0.5">{f.designation}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openFacultyModal(f)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors shrink-0"
+                          title="Edit Faculty"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                        {f.bio}
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="truncate max-w-[150px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">/{f.slug}</span>
+                      <span className="shrink-0 font-medium text-slate-500">
+                        Order: <strong className="text-slate-800">{f.sortOrder}</strong>
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-body-xs font-semibold text-primary">{f.designation}</p>
-                  <p className="text-body-xs text-ink-muted line-clamp-3 mt-2">{f.bio}</p>
-                </div>
-                <div className="text-[11px] font-mono text-ink-muted pt-2 border-t border-border flex items-center justify-between">
-                  <span>/{f.slug}</span>
-                  <span>Order: {f.sortOrder}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Faculty Edit Modal */}
           {facultyModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-              <div className="w-full max-w-lg rounded-2xl bg-white p-6 border border-border shadow-xl space-y-4">
-                <h3 className="text-body-md font-bold text-ink">
+            <div
+              onClick={() => setFacultyModalOpen(false)}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-xl bg-white p-5 border border-slate-200/90 shadow-2xl space-y-3.5 animate-in zoom-in-95 duration-150"
+              >
+                <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                   {editingFaculty ? "Edit Faculty Member" : "New Faculty Member"}
                 </h3>
-                <form onSubmit={handleSaveFaculty} className="space-y-3">
+                <form onSubmit={handleSaveFaculty} className="space-y-2.5">
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Full Name</label>
+                    <label className="text-xs font-semibold text-slate-700">Full Name</label>
                     <Input
                       value={facName}
                       onChange={(e) => setFacName(e.target.value)}
                       placeholder="e.g. Dinesh Sir"
+                      className="h-8 text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Designation</label>
+                    <label className="text-xs font-semibold text-slate-700">Designation</label>
                     <Input
                       value={facDesignation}
                       onChange={(e) => setFacDesignation(e.target.value)}
                       placeholder="e.g. Founder & Lead Mathematics Faculty"
+                      className="h-8 text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Biography</label>
+                    <label className="text-xs font-semibold text-slate-700">Biography</label>
                     <Textarea
                       rows={3}
                       value={facBio}
                       onChange={(e) => setFacBio(e.target.value)}
                       placeholder="25+ years legacy of training CBSE and board toppers..."
+                      className="text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => setFacultyModalOpen(false)}
+                      className="h-8 px-3 text-xs rounded-lg border-slate-200"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={isSubmitting}
+                      className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
+                    >
                       Save Faculty
                     </Button>
                   </div>
@@ -515,95 +593,157 @@ export function ContentManagerClient({
 
       {/* TAB 2: TESTIMONIALS */}
       {activeTab === "testimonials" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-body-md font-bold text-ink">Student Testimonials</h2>
-            <Button size="sm" onClick={() => openTestimonialModal()} className="gap-1.5 font-bold">
-              <Plus className="w-4 h-4" /> Add Testimonial
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">Student Testimonials</h2>
+              <p className="text-[11px] text-slate-500">Reviews and feedback showcased on public course pages and landing sections.</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => openTestimonialModal()}
+              className="h-8 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Testimonial
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {initialTestimonials.map((t) => (
-              <div
-                key={t.id}
-                className="p-5 rounded-2xl border border-border bg-white shadow-xs space-y-3 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-body-md font-bold text-ink">{t.studentName}</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openTestimonialModal(t)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
+          {initialTestimonials.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center space-y-2">
+              <MessageSquareQuote className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
+              <p className="text-xs text-slate-500">No testimonials found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+              {initialTestimonials.map((t) => {
+                const initials = t.studentName
+                  .split(/\s+/)
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase() || "ST";
+
+                return (
+                  <div
+                    key={t.id}
+                    className="p-4 rounded-xl border border-slate-200/80 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{t.studentName}</h3>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                Class {t.classLevel}
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
+                                {t.year}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openTestimonialModal(t)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors shrink-0"
+                          title="Edit Testimonial"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 text-xs text-slate-600 italic line-clamp-3 leading-relaxed">
+                        &ldquo;{t.quote}&rdquo;
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold font-sans text-[11px]">
+                        ✓ Verified Student
+                      </span>
+                      <span className="font-medium text-slate-500">
+                        Order: <strong className="text-slate-800">{t.sortOrder}</strong>
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-body-xs font-semibold text-ink-muted">
-                    Class {t.classLevel} · Batch of {t.year}
-                  </p>
-                  <p className="text-body-xs text-ink italic mt-2">"{t.quote}"</p>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Testimonial Edit Modal */}
           {testModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-              <div className="w-full max-w-lg rounded-2xl bg-white p-6 border border-border shadow-xl space-y-4">
-                <h3 className="text-body-md font-bold text-ink">
+            <div
+              onClick={() => setTestModalOpen(false)}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-xl bg-white p-5 border border-slate-200/90 shadow-2xl space-y-3.5 animate-in zoom-in-95 duration-150"
+              >
+                <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                   {editingTestimonial ? "Edit Testimonial" : "New Testimonial"}
                 </h3>
-                <form onSubmit={handleSaveTestimonial} className="space-y-3">
+                <form onSubmit={handleSaveTestimonial} className="space-y-2.5">
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Student Name</label>
+                    <label className="text-xs font-semibold text-slate-700">Student Name</label>
                     <Input
                       value={testName}
                       onChange={(e) => setTestName(e.target.value)}
+                      className="h-8 text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-body-xs font-semibold text-ink">Class Level</label>
+                      <label className="text-xs font-semibold text-slate-700">Class Level</label>
                       <Input
                         type="number"
                         value={testClass}
                         onChange={(e) => setTestClass(Number(e.target.value))}
+                        className="h-8 text-xs rounded-lg border-slate-200"
                         required
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-body-xs font-semibold text-ink">Year</label>
+                      <label className="text-xs font-semibold text-slate-700">Year</label>
                       <Input
                         type="number"
                         value={testYear}
                         onChange={(e) => setTestYear(Number(e.target.value))}
+                        className="h-8 text-xs rounded-lg border-slate-200"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Student Quote</label>
+                    <label className="text-xs font-semibold text-slate-700">Student Quote</label>
                     <Textarea
                       rows={3}
                       value={testQuote}
                       onChange={(e) => setTestQuote(e.target.value)}
+                      className="text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => setTestModalOpen(false)}
+                      className="h-8 px-3 text-xs rounded-lg border-slate-200"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={isSubmitting}
+                      className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
+                    >
                       Save Testimonial
                     </Button>
                   </div>
@@ -616,98 +756,155 @@ export function ContentManagerClient({
 
       {/* TAB 3: RESULTS & HALL OF FAME */}
       {activeTab === "results" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-body-md font-bold text-ink">Hall of Fame & Exam Results</h2>
-            <Button size="sm" onClick={() => openResultModal()} className="gap-1.5 font-bold">
-              <Plus className="w-4 h-4" /> Add Result
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">Hall of Fame &amp; Exam Results</h2>
+              <p className="text-[11px] text-slate-500">Board exam high scorers and merit achievers displayed on homepage results banner.</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => openResultModal()}
+              className="h-8 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Result
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {initialResults.map((r) => (
-              <div
-                key={r.id}
-                className="p-5 rounded-2xl border border-border bg-white shadow-xs space-y-3"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-body-md font-bold text-ink">{r.studentName}</h3>
-                    <p className="text-body-xs text-ink-muted">
-                      {r.exam} ({r.year})
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openResultModal(r)}
-                    className="h-8 w-8 p-0"
+          {initialResults.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center space-y-2">
+              <Award className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
+              <p className="text-xs text-slate-500">No student results records found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+              {initialResults.map((r) => {
+                const initials = r.studentName
+                  .split(/\s+/)
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase() || "ST";
+
+                return (
+                  <div
+                    key={r.id}
+                    className="p-4 rounded-xl border border-slate-200/80 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
                   >
-                    <Edit className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-                <div className="p-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-body-sm font-bold font-mono">
-                  {r.scoreText}
-                </div>
-              </div>
-            ))}
-          </div>
+                    <div className="space-y-2.5">
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{r.studentName}</h3>
+                            <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">
+                              {r.exam} ({r.year})
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openResultModal(r)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors shrink-0"
+                          title="Edit Result"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 text-center">
+                        <span className="text-xs font-bold font-mono text-amber-900 tracking-tight">
+                          {r.scoreText}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className={`inline-flex items-center gap-1 font-sans text-[11px] ${r.isFeatured ? "text-amber-600 font-bold" : "text-slate-500 font-medium"}`}>
+                        {r.isFeatured ? "★ Featured Banner" : "Standard"}
+                      </span>
+                      <span className="font-medium text-slate-500">
+                        Order: <strong className="text-slate-800">{r.sortOrder}</strong>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Result Edit Modal */}
           {resultModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-              <div className="w-full max-w-lg rounded-2xl bg-white p-6 border border-border shadow-xl space-y-4">
-                <h3 className="text-body-md font-bold text-ink">
+            <div
+              onClick={() => setResultModalOpen(false)}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-xl bg-white p-5 border border-slate-200/90 shadow-2xl space-y-3.5 animate-in zoom-in-95 duration-150"
+              >
+                <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                   {editingResult ? "Edit Result Record" : "New Result Record"}
                 </h3>
-                <form onSubmit={handleSaveResult} className="space-y-3">
+                <form onSubmit={handleSaveResult} className="space-y-2.5">
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">Student Name</label>
+                    <label className="text-xs font-semibold text-slate-700">Student Name</label>
                     <Input
                       value={resName}
                       onChange={(e) => setResName(e.target.value)}
+                      className="h-8 text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-body-xs font-semibold text-ink">Exam</label>
+                      <label className="text-xs font-semibold text-slate-700">Exam</label>
                       <Input
                         value={resExam}
                         onChange={(e) => setResExam(e.target.value)}
                         placeholder="CBSE 12th Board"
+                        className="h-8 text-xs rounded-lg border-slate-200"
                         required
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-body-xs font-semibold text-ink">Year</label>
+                      <label className="text-xs font-semibold text-slate-700">Year</label>
                       <Input
                         type="number"
                         value={resYear}
                         onChange={(e) => setResYear(Number(e.target.value))}
+                        className="h-8 text-xs rounded-lg border-slate-200"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-body-xs font-semibold text-ink">
+                    <label className="text-xs font-semibold text-slate-700">
                       Score Text (e.g. 100/100 or 98.4%)
                     </label>
                     <Input
                       value={resScore}
                       onChange={(e) => setResScore(e.target.value)}
+                      className="h-8 text-xs rounded-lg border-slate-200"
                       required
                     />
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => setResultModalOpen(false)}
+                      className="h-8 px-3 text-xs rounded-lg border-slate-200"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={isSubmitting}
+                      className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
+                    >
                       Save Result
                     </Button>
                   </div>
@@ -720,12 +917,12 @@ export function ContentManagerClient({
 
       {/* TAB 4: SITE SETTINGS */}
       {activeTab === "settings" && (
-        <div className="space-y-6 max-w-3xl">
+        <div className="space-y-4 max-w-3xl">
           {/* Announcement Bar */}
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-body-md font-bold text-ink flex items-center gap-2">
-                <Globe className="w-4 h-4 text-primary" />
+          <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs space-y-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-blue-600" />
                 <span>Global Announcement Bar (Top of Site)</span>
               </h3>
               <label className="flex items-center gap-1.5 cursor-pointer">
@@ -735,40 +932,43 @@ export function ContentManagerClient({
                   onChange={(e) =>
                     setAnnouncementBar({ ...announcementBar, enabled: e.target.checked })
                   }
-                  className="w-4 h-4 rounded text-primary"
+                  className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-body-xs font-semibold text-ink">Show Bar</span>
+                <span className="text-[11px] font-semibold text-slate-700">Show Bar</span>
               </label>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Bar Text</label>
+                <label className="text-[11px] font-semibold text-slate-700">Bar Text</label>
                 <Input
                   value={announcementBar.text || ""}
                   onChange={(e) =>
                     setAnnouncementBar({ ...announcementBar, text: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">Link Label</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Link Label</label>
                   <Input
                     value={announcementBar.link_text || ""}
                     onChange={(e) =>
                       setAnnouncementBar({ ...announcementBar, link_text: e.target.value })
                     }
+                    className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">Link Destination</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Link Destination</label>
                   <Input
                     value={announcementBar.link_url || ""}
                     onChange={(e) =>
                       setAnnouncementBar({ ...announcementBar, link_url: e.target.value })
                     }
+                    className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                   />
                 </div>
               </div>
@@ -778,6 +978,7 @@ export function ContentManagerClient({
                   size="sm"
                   onClick={() => handleSaveSetting("announcement_bar", announcementBar)}
                   disabled={isSubmitting}
+                  className="h-8 px-3.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
                 >
                   Save Announcement Bar
                 </Button>
@@ -786,47 +987,51 @@ export function ContentManagerClient({
           </div>
 
           {/* Contact Details */}
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-            <h3 className="text-body-md font-bold text-ink flex items-center gap-2 border-b border-border pb-3">
-              <Phone className="w-4 h-4 text-primary" />
-              <span>Contact & Helpdesk</span>
+          <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs space-y-3.5">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <Phone className="w-4 h-4 text-blue-600" />
+              <span>Contact &amp; Helpdesk</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Phone</label>
+                <label className="text-[11px] font-semibold text-slate-700">Phone</label>
                 <Input
                   value={contactSettings.phone || ""}
                   onChange={(e) =>
                     setContactSettings({ ...contactSettings, phone: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">WhatsApp</label>
+                <label className="text-[11px] font-semibold text-slate-700">WhatsApp</label>
                 <Input
                   value={contactSettings.whatsapp || ""}
                   onChange={(e) =>
                     setContactSettings({ ...contactSettings, whatsapp: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Email</label>
+                <label className="text-[11px] font-semibold text-slate-700">Email</label>
                 <Input
                   value={contactSettings.email || ""}
                   onChange={(e) =>
                     setContactSettings({ ...contactSettings, email: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Support Hours</label>
+                <label className="text-[11px] font-semibold text-slate-700">Support Hours</label>
                 <Input
                   value={contactSettings.support_hours || ""}
                   onChange={(e) =>
                     setContactSettings({ ...contactSettings, support_hours: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
             </div>
@@ -836,6 +1041,7 @@ export function ContentManagerClient({
                 size="sm"
                 onClick={() => handleSaveSetting("contact", contactSettings)}
                 disabled={isSubmitting}
+                className="h-8 px-3.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
               >
                 Save Contact Details
               </Button>
@@ -843,47 +1049,51 @@ export function ContentManagerClient({
           </div>
 
           {/* Social Links */}
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-            <h3 className="text-body-md font-bold text-ink flex items-center gap-2 border-b border-border pb-3">
-              <Globe className="w-4 h-4 text-primary" />
+          <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs space-y-3.5">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <Globe className="w-4 h-4 text-blue-600" />
               <span>Social Channels</span>
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">YouTube Channel URL</label>
+                <label className="text-[11px] font-semibold text-slate-700">YouTube Channel URL</label>
                 <Input
                   value={socialSettings.youtube || ""}
                   onChange={(e) =>
                     setSocialSettings({ ...socialSettings, youtube: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Facebook URL</label>
+                <label className="text-[11px] font-semibold text-slate-700">Facebook URL</label>
                 <Input
                   value={socialSettings.facebook || ""}
                   onChange={(e) =>
                     setSocialSettings({ ...socialSettings, facebook: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Instagram URL</label>
+                <label className="text-[11px] font-semibold text-slate-700">Instagram URL</label>
                 <Input
                   value={socialSettings.instagram || ""}
                   onChange={(e) =>
                     setSocialSettings({ ...socialSettings, instagram: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Twitter / X URL</label>
+                <label className="text-[11px] font-semibold text-slate-700">Twitter / X URL</label>
                 <Input
                   value={socialSettings.twitter || ""}
                   onChange={(e) =>
                     setSocialSettings({ ...socialSettings, twitter: e.target.value })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
             </div>
@@ -893,6 +1103,7 @@ export function ContentManagerClient({
                 size="sm"
                 onClick={() => handleSaveSetting("socials", socialSettings)}
                 disabled={isSubmitting}
+                className="h-8 px-3.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
               >
                 Save Social Links
               </Button>
@@ -900,15 +1111,15 @@ export function ContentManagerClient({
           </div>
 
           {/* Hero Tiles */}
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-xs space-y-4">
-            <h3 className="text-body-md font-bold text-ink flex items-center gap-2 border-b border-border pb-3">
-              <Globe className="w-4 h-4 text-primary" />
-              <span>Hero Tiles & Hall of Fame Banner</span>
+          <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs space-y-3.5">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <Globe className="w-4 h-4 text-blue-600" />
+              <span>Hero Tiles &amp; Hall of Fame Banner</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Results Headline</label>
+                <label className="text-[11px] font-semibold text-slate-700">Results Headline</label>
                 <Input
                   value={heroTilesSettings.results_title || ""}
                   onChange={(e) =>
@@ -917,10 +1128,11 @@ export function ContentManagerClient({
                       results_title: e.target.value,
                     })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Results Subtitle</label>
+                <label className="text-[11px] font-semibold text-slate-700">Results Subtitle</label>
                 <Input
                   value={heroTilesSettings.results_subtitle || ""}
                   onChange={(e) =>
@@ -929,6 +1141,7 @@ export function ContentManagerClient({
                       results_subtitle: e.target.value,
                     })
                   }
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
             </div>
@@ -938,6 +1151,7 @@ export function ContentManagerClient({
                 size="sm"
                 onClick={() => handleSaveSetting("hero_tiles", heroTilesSettings)}
                 disabled={isSubmitting}
+                className="h-8 px-3.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-2xs"
               >
                 Save Hero Tiles
               </Button>

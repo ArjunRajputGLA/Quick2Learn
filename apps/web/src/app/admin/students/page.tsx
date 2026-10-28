@@ -4,9 +4,8 @@ import { formatINR } from "@quick2learn/shared";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { RegisterStudentModal } from "@/components/admin/register-student-modal";
+import { StudentsFilterBar } from "@/components/admin/students-filter-bar";
 import {
-  Search,
-  Filter,
   ArrowRight,
   UserPlus,
 } from "lucide-react";
@@ -57,7 +56,7 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
   ]);
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto pb-8">
+    <div className="space-y-4 w-full pb-8">
       {/* 1. Header matching inspiration */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div>
@@ -173,81 +172,13 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
         </Link>
       </div>
 
-      {/* 3. Filter and Search Bar */}
-      <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-xs space-y-2.5">
-        <form method="GET" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-          {/* Search */}
-          <div className="relative lg:col-span-2">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              name="q"
-              defaultValue={searchQuery || ""}
-              placeholder="Search by name, email, phone..."
-              suppressHydrationWarning
-              className="w-full pl-8 pr-3 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
-          </div>
-
-          {/* Class Filter */}
-          <select
-            name="class"
-            defaultValue={classLevel ? String(classLevel) : ""}
-            suppressHydrationWarning
-            className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-          >
-            <option value="">All Classes (IX–XII)</option>
-            <option value="9">Class IX (9th)</option>
-            <option value="10">Class X (10th)</option>
-            <option value="11">Class XI (11th)</option>
-            <option value="12">Class XII (12th)</option>
-          </select>
-
-          {/* Board Filter */}
-          <select
-            name="board"
-            defaultValue={board || ""}
-            suppressHydrationWarning
-            className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-          >
-            <option value="">All Boards</option>
-            <option value="cbse">CBSE</option>
-            <option value="icse">ICSE</option>
-            <option value="isc">ISC</option>
-          </select>
-
-          {/* Dues Filter */}
-          <select
-            name="dues"
-            defaultValue={sp.dues || ""}
-            suppressHydrationWarning
-            className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-          >
-            <option value="">All Fee Statuses</option>
-            <option value="true">Has Pending Dues</option>
-            <option value="false">All Paid Up</option>
-          </select>
-
-          {/* Action Row & Showing Counter */}
-          <div className="sm:col-span-2 lg:col-span-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100">
-            <div className="text-xs text-slate-500">
-              Showing <span className="font-semibold text-slate-800">{students.length}</span> of{" "}
-              <span className="font-semibold text-slate-800">{total}</span> records
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/admin/students">
-                <Button type="button" variant="outline" size="sm" className="h-7.5 px-3 text-xs rounded-lg font-medium border-slate-200">
-                  Reset Filters
-                </Button>
-              </Link>
-              <Button type="submit" size="sm" className="h-7.5 px-3 text-xs gap-1.5 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs">
-                <Filter className="w-3 h-3" />
-                Apply Filters
-              </Button>
-            </div>
-          </div>
-        </form>
-      </div>
+      {/* 3. Filter and Search Bar (Real-time live search as you type) */}
+      <StudentsFilterBar
+        initialSearch={searchQuery}
+        initialClass={classLevel}
+        initialBoard={board}
+        initialDues={hasDues}
+      />
 
       {/* 4. Students Table */}
       <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">

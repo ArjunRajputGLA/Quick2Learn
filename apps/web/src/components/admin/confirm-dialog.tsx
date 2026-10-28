@@ -39,49 +39,57 @@ export function ConfirmDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div
+      onClick={() => !isBusy && onCancel()}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+    >
       <div
-        className="w-full max-w-md rounded-2xl bg-white border border-border p-6 shadow-xl space-y-4 animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-xl bg-white border border-slate-200/90 p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-start gap-3.5">
+        <div className="flex items-start gap-3">
           <div
-            className={`p-2.5 rounded-xl shrink-0 ${
-              isDestructive ? "bg-critical/10 text-critical" : "bg-warning/10 text-warning"
+            className={`p-2 rounded-lg shrink-0 ${
+              isDestructive ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-amber-50 text-amber-600 border border-amber-100"
             }`}
           >
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-body-lg font-bold text-ink leading-tight">{title}</h3>
-            <p className="text-body-sm text-ink-muted leading-relaxed">{description}</p>
+            <h3 className="text-sm font-bold text-slate-900 leading-tight">{title}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
           </div>
         </div>
 
         {affectedItemName && (
-          <div className="p-3 rounded-xl bg-surface-subtle border border-border text-body-sm text-ink font-semibold">
-            Target: <span className="font-mono text-primary">{affectedItemName}</span>
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-semibold">
+            Target: <span className="font-mono text-blue-600">{affectedItemName}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2.5 pt-2">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onCancel}
             disabled={isBusy}
+            className="h-8 px-3 text-xs rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
           >
             Cancel
           </Button>
           <Button
             type="button"
-            variant="primary"
             size="sm"
             onClick={handleConfirm}
             disabled={isBusy}
-            className={isDestructive ? "bg-critical hover:bg-rose-700 text-white" : ""}
+            className={`h-8 px-3.5 text-xs font-semibold rounded-lg shadow-2xs ${
+              isDestructive
+                ? "bg-rose-600 hover:bg-rose-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
           >
             {isBusy ? (
               <>

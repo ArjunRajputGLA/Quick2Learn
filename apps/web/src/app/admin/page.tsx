@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
   const firstName = session.user.name ? session.user.name.split(" ")[0] : "Admin";
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto">
+    <div className="space-y-5 w-full">
       {/* 1. GREETING HEADER (Matching Inspiration Screenshot 2) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

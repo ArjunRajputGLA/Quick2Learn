@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   Search,
   ExternalLink,
   Calendar,
+  X,
 } from "lucide-react";
 
 export interface PaymentRow {
@@ -48,15 +49,53 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
   const [fromDate, setFromDate] = useState(searchParams.get("fromDate") || "");
   const [toDate, setToDate] = useState(searchParams.get("toDate") || "");
 
+  // Sync state if URL changes externally
+  useEffect(() => {
+    setSearch(searchParams.get("search") || "");
+    setStatus(searchParams.get("status") || "all");
+    setMethod(searchParams.get("method") || "all");
+    setFromDate(searchParams.get("fromDate") || "");
+    setToDate(searchParams.get("toDate") || "");
+  }, [searchParams]);
+
+  const executeFilter = (
+    newSearch?: string,
+    newStatus?: string,
+    newMethod?: string,
+    newFromDate?: string,
+    newToDate?: string
+  ) => {
+    const sVal = newSearch !== undefined ? newSearch : search;
+    const stVal = newStatus !== undefined ? newStatus : status;
+    const mVal = newMethod !== undefined ? newMethod : method;
+    const fVal = newFromDate !== undefined ? newFromDate : fromDate;
+    const tVal = newToDate !== undefined ? newToDate : toDate;
+
+    const params = new URLSearchParams();
+    if (sVal.trim()) params.set("search", sVal.trim());
+    if (stVal && stVal !== "all") params.set("status", stVal);
+    if (mVal && mVal !== "all") params.set("method", mVal);
+    if (fVal) params.set("fromDate", fVal);
+    if (tVal) params.set("toDate", tVal);
+
+    router.replace(`/admin/payments?${params.toString()}`, { scroll: false });
+  };
+
+  // Live real-time search on typing (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentSearch = searchParams.get("search") || "";
+      if (search.trim() !== currentSearch.trim()) {
+        executeFilter(search);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const handleFilterSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const params = new URLSearchParams();
-    if (search.trim()) params.set("search", search.trim());
-    if (status && status !== "all") params.set("status", status);
-    if (method && method !== "all") params.set("method", method);
-    if (fromDate) params.set("fromDate", fromDate);
-    if (toDate) params.set("toDate", toDate);
-    router.push(`/admin/payments?${params.toString()}`);
+    executeFilter();
   };
 
   const handleReset = () => {
@@ -153,15 +192,31 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search receipt #, student name, email..."
-              className="pl-8 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
+              placeholder="Search receipt #, student name, email... (shows live)"
+              className="pl-8 pr-7 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  executeFilter("");
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
 
           <div>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                executeFilter(undefined, e.target.value);
+              }}
               className="w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium h-8"
             >
               <option value="all">All Statuses</option>
@@ -175,7 +230,10 @@ function PaymentsClientContent({ payments }: PaymentsClientProps) {
           <div>
             <select
               value={method}
-              onChange={(e) => setMethod(e.target.value)}
+              onChange={(e) => {
+                setMethod(e.target.value);
+                executeFilter(undefined, undefined, e.target.value);
+              }}
               className="w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-xs text-slate-800 font-medium h-8"
             >
               <option value="all">All Payment Methods</option>

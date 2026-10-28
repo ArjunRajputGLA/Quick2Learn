@@ -445,47 +445,54 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
 
       {/* Add Enquiry Modal */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-subtle">
+        <div
+          onClick={() => setIsAddOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl border border-slate-200/90 shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+          >
+            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                   <Plus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-body-base font-bold text-ink">Record New Admissions Enquiry</h3>
-                  <p className="text-body-xs text-ink-muted">Add a prospective student walk-in or telephone lead.</p>
+                  <h3 className="text-sm font-bold text-slate-900">Record New Admissions Enquiry</h3>
+                  <p className="text-xs text-slate-500">Add a prospective student walk-in or telephone lead.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddOpen(false)}
-                className="text-ink-muted hover:text-ink p-1.5 rounded-lg hover:bg-surface transition-colors"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateEnquiry} className="p-6 space-y-4 overflow-y-auto">
+            <form onSubmit={handleCreateEnquiry} className="p-5 space-y-3.5 overflow-y-auto">
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">
-                  Student Name <span className="text-critical">*</span>
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Student Name <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   required
                   placeholder="e.g. Priya Sharma"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">
-                    Phone (10 Digits) <span className="text-critical">*</span>
+                  <label className="text-[11px] font-semibold text-slate-700">
+                    Phone (10 Digits) <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-muted">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-400">
                       +91
                     </span>
                     <Input
@@ -493,7 +500,7 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                       type="tel"
                       maxLength={10}
                       placeholder="9876543210"
-                      className="pl-11"
+                      className="pl-9 h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, ""))}
                     />
@@ -501,23 +508,24 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">Email (Optional)</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Email (Optional)</label>
                   <Input
                     type="email"
                     placeholder="priya@gmail.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
+                    className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">Target Class</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Target Class</label>
                   <select
                     value={newClass}
                     onChange={(e) => setNewClass(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium"
                   >
                     <option value="9">Class IX (9th)</option>
                     <option value="10">Class X (10th)</option>
@@ -527,11 +535,11 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-body-xs font-semibold text-ink">Board</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Board</label>
                   <select
                     value={newBoard}
                     onChange={(e) => setNewBoard(e.target.value as "cbse" | "icse" | "isc")}
-                    className="w-full px-3 py-2 text-body-sm rounded-xl border border-border bg-white text-ink uppercase"
+                    className="w-full px-2.5 h-8 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 font-medium uppercase"
                   >
                     <option value="cbse">CBSE</option>
                     <option value="icse">ICSE</option>
@@ -541,45 +549,48 @@ export function EnquiriesClient({ enquiries }: EnquiriesClientProps) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Inquiry Message / Subject</label>
+                <label className="text-[11px] font-semibold text-slate-700">Inquiry Message / Subject</label>
                 <Input
                   placeholder="e.g. Interested in Class 12 Physics & Maths batch"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-body-xs font-semibold text-ink">Counselor / Follow-up Notes</label>
+                <label className="text-[11px] font-semibold text-slate-700">Counselor / Follow-up Notes</label>
                 <Input
                   placeholder="e.g. Walk-in at campus. Callback scheduled for Saturday."
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
+                  className="h-8 text-xs rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800"
                 />
               </div>
 
-              <div className="pt-3 border-t border-border flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsAddOpen(false)}
                   disabled={isSubmittingNew}
+                  className="h-8 px-3 text-xs rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmittingNew}
-                  className="gap-2 font-semibold bg-primary text-white hover:bg-primary-hover"
+                  className="h-8 px-3.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-2xs gap-1.5"
                 >
                   {isSubmittingNew ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       <span>Saving...</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
                       <span>Record Enquiry</span>
                     </>
                   )}
