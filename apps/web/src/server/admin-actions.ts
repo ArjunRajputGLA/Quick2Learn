@@ -20,8 +20,11 @@ import { updateEnquiry, createEnquiry } from "./data/enquiries";
 import { updateSetting } from "./data/settings";
 import { recordOfflinePayment } from "./payments/service";
 import { syncYouTubeChannel } from "./youtube/sync";
-import { presignedPut } from "./storage";
-import { db, schema, eq, and, sql, or, desc } from "@quick2learn/db";
+import { presignedPut, getBucketForKey, s3 } from "./storage";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import fs from "fs";
+import path from "path";
+import { db, schema, eq, and, sql, or, desc, asc } from "@quick2learn/db";
 import { revalidateDataTag, safeRevalidatePath as revalidatePath } from "./data/cached-home";
 import {
   getBatchJoinRequests,
@@ -188,10 +191,13 @@ export async function getPresignedUploadUrlAction(
   const isPdf = contentType === "application/pdf" || cleanName.endsWith(".pdf");
   const isImage = contentType.startsWith("image/");
 
-  if (folder.startsWith("resources/") && !isPdf) {
+  if (folder === "doubts") {
+    if (!isImage && !isPdf) {
+      return { success: false, error: "Only image files (JPEG, PNG, WEBP) and PDF documents are allowed in chat." };
+    }
+  } else if (folder.startsWith("resources/") && !isPdf) {
     return { success: false, error: "Only PDF documents can be uploaded as study materials." };
-  }
-  if (!folder.startsWith("resources/") && !isImage) {
+  } else if (!folder.startsWith("resources/") && !isImage) {
     return { success: false, error: "Only image files (JPEG, PNG, WEBP) are allowed for this media type." };
   }
 
@@ -203,6 +209,88 @@ export async function getPresignedUploadUrlAction(
   } catch (err: unknown) {
     console.error("[getPresignedUploadUrlAction] Presigned URL generation failed:", err);
     return { success: false, error: "Failed to generate upload URL." };
+  }
+}
+
+export async function uploadChatAttachmentAction(
+  formData: FormData
+): Promise<ActionResult<{ key: string; url: string; filename: string; isPdf: boolean }>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const file = formData.get("file") as File | null;
+    if (!file) {
+      return { success: false, error: "No file was selected for upload." };
+    }
+
+    const filename = file.name || "attachment";
+    const contentType = file.type || "application/octet-stream";
+    const sizeBytes = file.size;
+
+    if (sizeBytes > 25 * 1024 * 1024) {
+      return { success: false, error: "File exceeds 25 MB limit." };
+    }
+
+    const cleanName = filename.toLowerCase().replace(/[^a-z0-9._-]/g, "_");
+    const isPdf = contentType === "application/pdf" || cleanName.endsWith(".pdf");
+    const isImage = contentType.startsWith("image/");
+
+    if (!isImage && !isPdf) {
+      return {
+        success: false,
+        error: "Only image files (PNG, JPG, WEBP) and PDF documents are allowed in chat.",
+      };
+    }
+
+    const uniqueKey = `doubts/${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${cleanName}`;
+
+    // Read file bytes
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 1. Try uploading to S3 / Cloud storage if configured
+    try {
+      const bucket = getBucketForKey(uniqueKey);
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: uniqueKey,
+          ContentType: contentType,
+          Body: buffer,
+        })
+      );
+    } catch (s3Err) {
+      console.warn("[uploadChatAttachmentAction] S3 unreachable or unconfigured, persisting locally:", s3Err);
+    }
+
+    // 2. Persist locally to public/uploads/doubts for instant, zero-failure serving
+    try {
+      const targetDir = path.join(process.cwd(), "public", "uploads", "doubts");
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      const filePath = path.join(process.cwd(), "public", "uploads", uniqueKey);
+      fs.writeFileSync(filePath, buffer);
+    } catch (fsErr) {
+      console.warn("[uploadChatAttachmentAction] Local file write warning:", fsErr);
+    }
+
+    const publicUrl = `/uploads/${uniqueKey}`;
+
+    return {
+      success: true,
+      data: {
+        key: uniqueKey,
+        url: publicUrl,
+        filename,
+        isPdf,
+      },
+    };
+  } catch (err: unknown) {
+    console.error("[uploadChatAttachmentAction] Upload failed:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to upload file",
+    };
   }
 }
 
@@ -1654,5 +1742,184 @@ export async function createCannedReplyAction(input: any): Promise<ActionResult<
     return { success: false, error: err instanceof Error ? err.message : "Failed to create canned reply" };
   }
 }
+
+export interface ChatStudentOption {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  classLevel: number | null;
+  board: string | null;
+  batches: Array<{ id: string; title: string }>;
+}
+
+export async function listChatStudentsAction(): Promise<ActionResult<ChatStudentOption[]>> {
+  await requireRole(["admin", "teacher"]);
+  try {
+    const students = await db
+      .select({
+        id: schema.user.id,
+        name: schema.user.name,
+        email: schema.user.email,
+        phone: schema.profiles.phone,
+        classLevel: schema.profiles.classLevel,
+        board: schema.profiles.board,
+      })
+      .from(schema.user)
+      .innerJoin(schema.profiles, eq(schema.user.id, schema.profiles.userId))
+      .where(eq(schema.profiles.role, "student"))
+      .orderBy(asc(schema.user.name));
+
+    const enrollments = await db
+      .select({
+        studentId: schema.enrollments.studentId,
+        batchId: schema.batches.id,
+        batchTitle: schema.batches.title,
+      })
+      .from(schema.enrollments)
+      .innerJoin(schema.batches, eq(schema.enrollments.batchId, schema.batches.id))
+      .where(eq(schema.enrollments.status, "active"));
+
+    const batchMap = new Map<string, Array<{ id: string; title: string }>>();
+    for (const e of enrollments) {
+      const list = batchMap.get(e.studentId) || [];
+      list.push({ id: e.batchId, title: e.batchTitle });
+      batchMap.set(e.studentId, list);
+    }
+
+    const data: ChatStudentOption[] = students.map((s) => ({
+      ...s,
+      name: s.name || "Student",
+      batches: batchMap.get(s.id) || [],
+    }));
+
+    return { success: true, data };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to load students list",
+    };
+  }
+}
+
+export async function startStudentChatAction(input: {
+  studentId: string;
+  subjectId?: string;
+  batchId?: string;
+  title?: string;
+  initialMessage?: string;
+}): Promise<ActionResult<{ doubtId: string; isNew: boolean }>> {
+  const current = await requireRole(["admin", "teacher"]);
+  try {
+    if (!input.studentId) {
+      return { success: false, error: "Please select a student to chat with." };
+    }
+
+    // Verify student exists
+    const [studentUser] = await db
+      .select({
+        id: schema.user.id,
+        name: schema.user.name,
+      })
+      .from(schema.user)
+      .where(eq(schema.user.id, input.studentId));
+
+    if (!studentUser) {
+      return { success: false, error: "Selected student profile not found." };
+    }
+
+    // Check if there is an existing conversation with this student
+    const [existing] = await db
+      .select({ id: schema.doubts.id, status: schema.doubts.status })
+      .from(schema.doubts)
+      .where(
+        and(
+          eq(schema.doubts.studentId, input.studentId),
+          input.batchId ? eq(schema.doubts.batchId, input.batchId) : undefined
+        )
+      )
+      .orderBy(desc(schema.doubts.lastActivityAt))
+      .limit(1);
+
+    if (existing && !input.initialMessage?.trim()) {
+      return { success: true, data: { doubtId: existing.id, isNew: false } };
+    }
+
+    if (existing && input.initialMessage?.trim()) {
+      await db.insert(schema.doubtMessages).values({
+        doubtId: existing.id,
+        authorId: current.user.id,
+        body: input.initialMessage.trim(),
+        attachmentKeys: [],
+      });
+
+      await db
+        .update(schema.doubts)
+        .set({
+          status: "answered",
+          assignedTeacherId: current.user.id,
+          lastActivityAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.doubts.id, existing.id));
+
+      revalidatePath("/admin/chats");
+      return { success: true, data: { doubtId: existing.id, isNew: false } };
+    }
+
+    // Create a brand new conversation thread
+    let targetSubjectId = input.subjectId;
+    if (!targetSubjectId) {
+      const [firstSub] = await db
+        .select({ id: schema.subjects.id })
+        .from(schema.subjects)
+        .orderBy(asc(schema.subjects.sortOrder))
+        .limit(1);
+      targetSubjectId = firstSub?.id;
+    }
+
+    if (!targetSubjectId) {
+      return { success: false, error: "No active subject found to link chat." };
+    }
+
+    const conversationTitle = (input.title || `Chat with ${studentUser.name || "Student"}`).trim();
+
+    const [newDoubt] = await db
+      .insert(schema.doubts)
+      .values({
+        studentId: input.studentId,
+        batchId: input.batchId || null,
+        subjectId: targetSubjectId,
+        sourceType: "general",
+        title: conversationTitle,
+        status: input.initialMessage?.trim() ? "answered" : "open",
+        assignedTeacherId: current.user.id,
+        lastActivityAt: new Date(),
+      })
+      .returning({ id: schema.doubts.id });
+
+    if (!newDoubt) {
+      throw new Error("Failed to create new chat thread");
+    }
+
+    if (input.initialMessage?.trim()) {
+      await db.insert(schema.doubtMessages).values({
+        doubtId: newDoubt.id,
+        authorId: current.user.id,
+        body: input.initialMessage.trim(),
+        attachmentKeys: [],
+      });
+    }
+
+    revalidatePath("/admin/chats");
+    return { success: true, data: { doubtId: newDoubt.id, isNew: true } };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to start chat with student",
+    };
+  }
+}
+
 
 

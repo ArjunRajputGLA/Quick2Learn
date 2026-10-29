@@ -8,6 +8,7 @@ import { StudentsFilterBar } from "@/components/admin/students-filter-bar";
 import {
   ArrowRight,
   UserPlus,
+  MessageSquare,
 } from "lucide-react";
 
 export const revalidate = 0;
@@ -271,12 +272,29 @@ export default async function AdminStudentsPage({ searchParams }: StudentsPagePr
                         {st.onboardedAt ? new Date(st.onboardedAt).toLocaleDateString("en-IN") : "Pending"}
                       </td>
                       <td className="py-2.5 px-3.5 text-right whitespace-nowrap">
-                        <Link href={`/admin/students/${st.userId}`}>
-                          <Button variant="outline" size="sm" className="h-7 px-2.5 gap-1 text-[11px] font-semibold rounded-md border-slate-200 hover:bg-slate-50 text-slate-700">
-                            <span>Manage</span>
-                            <ArrowRight className="w-3 h-3 text-slate-400" />
-                          </Button>
-                        </Link>
+                        <div className="inline-flex items-center gap-1.5 justify-end">
+                          <Link href={`/admin/chats?studentId=${st.userId}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2.5 gap-1 text-[11px] font-semibold rounded-md border-slate-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50/70 shadow-2xs"
+                              title={`Chat with ${st.fullName}`}
+                            >
+                              <MessageSquare className="w-3 h-3" />
+                              <span>Chat</span>
+                            </Button>
+                          </Link>
+                          <Link href={`/admin/students/${st.userId}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2.5 gap-1 text-[11px] font-semibold rounded-md border-slate-200 hover:bg-slate-50 text-slate-700 shadow-2xs"
+                            >
+                              <span>Manage</span>
+                              <ArrowRight className="w-3 h-3 text-slate-400" />
+                            </Button>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );

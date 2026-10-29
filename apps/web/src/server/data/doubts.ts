@@ -96,13 +96,21 @@ export async function generateDoubtPresignedPutUrls(
  */
 export async function resolveAttachmentUrls(keys: string[]): Promise<string[]> {
   if (!keys || keys.length === 0) return [];
+  const fs = await import("fs");
+  const path = await import("path");
+
   const urls = await Promise.all(
     keys.map(async (key) => {
       try {
+        // If file exists locally on disk in public/uploads/${key}, return direct local URL
+        const localPath = path.join(process.cwd(), "public", "uploads", key);
+        if (fs.existsSync(localPath)) {
+          return `/uploads/${key}`;
+        }
         return await presignedGet(key, 86400); // 24 hours validity
       } catch (err) {
         console.warn(`[resolveAttachmentUrls] Failed to get signed URL for ${key}:`, err);
-        return "";
+        return `/uploads/${key}`;
       }
     })
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/server/auth/session";
 import { getAdminStudentDetails, getAdminAvailableBatchesWithPlans } from "@/server/data/admin";
 import { formatINR } from "@quick2learn/shared";
+import { Button } from "@/components/ui/button";
 import { StudentDetailClient, WaiveDueButton } from "@/components/admin/student-detail-client";
 import { StudentParentsSection } from "@/components/admin/student-parents-section";
 import {
@@ -16,6 +17,7 @@ import {
   Clock,
   CheckCircle2,
   FileText,
+  MessageSquare,
 } from "lucide-react";
 
 export const metadata = {
@@ -89,12 +91,25 @@ export default async function AdminStudentDetailPage({ params }: StudentPageProp
           </div>
         </div>
 
-        <StudentDetailClient
-          studentId={user.id}
-          studentName={studentName}
-          availableBatches={availableBatches}
-          dues={duesListForClient}
-        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href={`/admin/chats?studentId=${user.id}`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 gap-1.5 text-xs font-semibold rounded-lg border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-700 shadow-2xs transition-colors"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Message Student</span>
+            </Button>
+          </Link>
+
+          <StudentDetailClient
+            studentId={user.id}
+            studentName={studentName}
+            availableBatches={availableBatches}
+            dues={duesListForClient}
+          />
+        </div>
       </div>
 
       {/* Profile & Key Metrics Grid */}
