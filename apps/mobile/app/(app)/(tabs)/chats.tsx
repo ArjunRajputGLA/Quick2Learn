@@ -170,6 +170,13 @@ export default function ChatsTabScreen() {
 
   useEffect(() => {
     adminStore.init();
+
+    // Live background polling every 4 seconds so chats stay in sync with Web CRM management
+    const pollInterval = setInterval(() => {
+      adminStore.syncWithServer(true).catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(pollInterval);
   }, []);
 
   // Track unread messages on entering channel & mark as read
@@ -281,8 +288,61 @@ export default function ChatsTabScreen() {
     );
   };
 
-  // Chats data from admin store
-  const channels = adminStore.chats || [];
+  // Chats data from admin store, filtered respectfully for students vs faculty/admin
+  const channels = useMemo(() => {
+    const raw = adminStore.chats || [];
+    if (isAdminOrTeacher) return raw;
+
+    // Student view: show batch groups, announcements, and direct conversation with faculty
+    const studentId = me?.user?.id;
+    const studentName = (me?.profile?.fullName || me?.user?.name || '').trim();
+    const studentPhone = (me?.profile?.phone || me?.user?.phoneNumber || '').trim();
+    const cleanStudentDigits = studentPhone.replace(/\D/g, '').slice(-10);
+    const isDemo = me?.user?.id === 'demo-student-user-id' || me?.user?.email === 'student.demo@quick2learn.in';
+
+    const result = raw.filter((c) => {
+      if (c.type === 'batch_group' || c.type === 'announcements') return true;
+      if (c.type === 'direct') {
+        // If matches student ID
+        if (studentId && c.studentId === studentId) return true;
+        // If matches phone number digits (e.g. 9528150564)
+        if (cleanStudentDigits && c.studentPhone && c.studentPhone.replace(/\D/g, '').slice(-10) === cleanStudentDigits) return true;
+        // If matches student full name
+        if (studentName) {
+          const lowerName = studentName.toLowerCase();
+          if (c.title?.toLowerCase() === lowerName || c.studentName?.toLowerCase() === lowerName) return true;
+          if (lowerName.includes('arjun') && (c.title?.toLowerCase().includes('arjun') || c.studentName?.toLowerCase().includes('arjun'))) return true;
+        }
+        // In demo mode or guest mode with no specific student login, show direct conversation with faculty
+        if (isDemo || (!studentId && !studentName)) return true;
+        return false;
+      }
+      return true;
+    });
+
+    // If student has no direct chat channel with faculty in the list, automatically add one
+    const hasDirect = result.some((c) => c.type === 'direct');
+    if (!hasDirect) {
+      result.unshift({
+        id: `direct-faculty-${studentId || 'me'}`,
+        type: 'direct',
+        title: 'Dinesh Singh Rajput (Faculty)',
+        subtitle: 'Faculty • Mathematics Doubts & Mentorship',
+        studentId: studentId || 'student_guest',
+        studentName: studentName || 'Student',
+        facultyName: 'Dinesh Singh Rajput',
+        facultyPhone: '9412278910',
+        unreadCount: 0,
+        lastMessage: 'Ask any doubt or question directly to Dinesh Sir.',
+        lastMessageTime: new Date().toISOString(),
+        messages: [],
+        createdAt: new Date().toISOString(),
+        isOnline: true,
+      });
+    }
+
+    return result;
+  }, [adminStore.chats, isAdminOrTeacher, me]);
   const selectedChannel = channels.find((c) => c.id === selectedChannelId);
 
   // Check whether other party in direct chat is online
@@ -826,10 +886,10 @@ export default function ChatsTabScreen() {
       chatScrollRef.current?.scrollToEnd({ animated: true });
     }, 80);
 
-    // If student messaged direct faculty channel, simulate helpful faculty reply after 1.5s
-    if (selectedChannel?.type === 'direct' && senderRole === 'student') {
+    // In demo/offline mode only, provide an instant simulation acknowledgment
+    if (selectedChannel?.type === 'direct' && senderRole === 'student' && adminStore.syncStatus !== 'synced') {
       setTimeout(async () => {
-        const facultyName = selectedChannel.facultyName || 'Namita Singh Rajput';
+        const facultyName = selectedChannel.facultyName || 'Dinesh Singh Rajput';
         const replyText = fileToAttach
           ? `Received your attachment "${fileToAttach.name}". I will review this and get back to you shortly!`
           : `Received your message! I will review this concept and reply shortly.`;
@@ -1385,12 +1445,12 @@ export default function ChatsTabScreen() {
                   {/* Messages list - Matching Screenshot Layout */}
                   {(selectedChannel.messages || []).map((msg) => {
                     const isMe = Boolean(
-                      msg.isOutgoing !== undefined
-                        ? msg.isOutgoing
-                        : (me?.user?.id && msg.senderId === me.user.id) ||
-                          (isAdminOrTeacher
+                      msg.senderRole
+                        ? (isAdminOrTeacher
                             ? msg.senderRole === 'admin' || msg.senderRole === 'teacher'
                             : msg.senderRole === 'student')
+                        : (me?.user?.id && msg.senderId === me.user.id) ||
+                          (msg.isOutgoing !== undefined ? msg.isOutgoing : false)
                     );
 
                     const hasImage = Boolean(msg.imageUrl || msg.fileType === 'image');

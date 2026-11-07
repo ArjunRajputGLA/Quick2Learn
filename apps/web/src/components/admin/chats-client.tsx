@@ -154,6 +154,32 @@ export function ChatsClient({
     };
   }, [selectedChatId]);
 
+  // Periodic background poll so web management reflects messages sent from mobile in real-time
+  useEffect(() => {
+    if (!selectedChatId) return;
+
+    const pollTimer = setInterval(() => {
+      getDoubtThreadAction(selectedChatId)
+        .then((res) => {
+          if (res.success && res.data) {
+            setActiveThread((prev) => {
+              if (!prev) return res.data;
+              if (
+                res.data.messages.length !== prev.messages.length ||
+                res.data.doubt.status !== prev.doubt.status
+              ) {
+                return res.data;
+              }
+              return prev;
+            });
+          }
+        })
+        .catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(pollTimer);
+  }, [selectedChatId]);
+
   // Refresh chats list
   const reloadChats = (targetStatus = statusFilter) => {
     startRefreshTransition(async () => {

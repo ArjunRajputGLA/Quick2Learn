@@ -24,6 +24,7 @@ import {
 } from "@/server/admin-actions";
 import { registerStudent } from "@/server/data/admin";
 import { createEnquiry } from "@/server/data/enquiries";
+import { resolveAttachmentUrls } from "@/server/data/doubts";
 
 /**
  * GET /api/v1/admin/sync
@@ -355,52 +356,114 @@ export async function GET(req: NextRequest) {
       createdAt: new Date().toISOString(),
     }));
 
-    // 9. Chats / Doubts
+    // 9. Chats / Doubts (synced between Web CRM and Mobile App)
+    const hostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const origin = `${protocol}://${hostHeader.replace("0.0.0.0", "localhost")}`;
+
     const dbDoubts = await db
       .select({
         id: schema.doubts.id,
         title: schema.doubts.title,
         status: schema.doubts.status,
         studentId: schema.doubts.studentId,
-        studentName: schema.profiles.fullName,
+        userName: schema.user.name,
+        profileName: schema.profiles.fullName,
         studentPhone: schema.profiles.phone,
         createdAt: schema.doubts.createdAt,
+        lastActivityAt: schema.doubts.lastActivityAt,
       })
       .from(schema.doubts)
+      .leftJoin(schema.user, eq(schema.doubts.studentId, schema.user.id))
       .leftJoin(schema.profiles, eq(schema.doubts.studentId, schema.profiles.userId))
-      .limit(30);
+      .orderBy(desc(schema.doubts.lastActivityAt))
+      .limit(60);
 
     const mappedChats = await Promise.all(
       dbDoubts.map(async (d) => {
+        const studentDisplayName = d.profileName || d.userName || "Student";
+
         const msgs = await db
           .select({
             id: schema.doubtMessages.id,
             authorId: schema.doubtMessages.authorId,
             body: schema.doubtMessages.body,
+            attachmentKeys: schema.doubtMessages.attachmentKeys,
             createdAt: schema.doubtMessages.createdAt,
           })
           .from(schema.doubtMessages)
           .where(eq(schema.doubtMessages.doubtId, d.id))
           .orderBy(schema.doubtMessages.createdAt);
 
+        const mappedMessages = await Promise.all(
+          msgs.map(async (m) => {
+            const isStudent = m.authorId === d.studentId;
+            const senderName = isStudent ? studentDisplayName : "Dinesh Sir (Faculty)";
+            const senderRole: "student" | "admin" = isStudent ? "student" : "admin";
+
+            const keys = (m.attachmentKeys as string[]) || [];
+            let resolvedUrls: string[] = [];
+            if (keys.length > 0) {
+              resolvedUrls = await resolveAttachmentUrls(keys);
+            }
+
+            // Map first attachment into imageUrl or fileUrl for mobile rendering
+            let imageUrl: string | undefined;
+            let fileUrl: string | undefined;
+            let fileName: string | undefined;
+            let fileType: "image" | "pdf" | "document" | undefined;
+
+            if (resolvedUrls.length > 0) {
+              const rawUrl = resolvedUrls[0]!;
+              const absoluteUrl = rawUrl.startsWith("/") ? `${origin}${rawUrl}` : rawUrl;
+              const isPdf = rawUrl.toLowerCase().includes(".pdf");
+
+              if (isPdf) {
+                fileType = "pdf";
+                fileUrl = absoluteUrl;
+                fileName =
+                  rawUrl.split("/").pop()?.split("?")[0]?.replace(/^\d+-[a-z0-9]+-/, "") ||
+                  "Document.pdf";
+              } else {
+                fileType = "image";
+                imageUrl = absoluteUrl;
+                fileUrl = absoluteUrl;
+                fileName =
+                  rawUrl.split("/").pop()?.split("?")[0]?.replace(/^\d+-[a-z0-9]+-/, "") ||
+                  "Image.png";
+              }
+            }
+
+            return {
+              id: m.id,
+              senderId: m.authorId,
+              senderName,
+              senderRole,
+              senderType: senderRole,
+              text: m.body,
+              imageUrl,
+              fileUrl,
+              fileName,
+              fileType,
+              createdAt: m.createdAt.toISOString(),
+            };
+          })
+        );
+
+        const lastMsg = mappedMessages[mappedMessages.length - 1];
+
         return {
           id: d.id,
           type: "direct" as const,
-          title: d.studentName || d.title,
+          title: studentDisplayName || d.title,
           studentId: d.studentId,
-          studentName: d.studentName || "Student",
+          studentName: studentDisplayName,
           studentPhone: d.studentPhone || undefined,
+          facultyName: "Dinesh Singh Rajput",
           unreadCount: 0,
-          lastMessage: msgs[msgs.length - 1]?.body || d.title,
-          lastMessageTime: msgs[msgs.length - 1]?.createdAt?.toISOString() || d.createdAt.toISOString(),
-          messages: msgs.map((m) => ({
-            id: m.id,
-            senderId: m.authorId,
-            senderName: m.authorId === d.studentId ? (d.studentName || "Student") : "Dinesh Sir (Faculty)",
-            senderRole: (m.authorId === d.studentId ? "student" : "admin") as "student" | "admin" | "teacher",
-            text: m.body,
-            createdAt: m.createdAt.toISOString(),
-          })),
+          lastMessage: lastMsg?.text || (lastMsg?.fileName ? `📎 ${lastMsg.fileName}` : d.title),
+          lastMessageTime: lastMsg?.createdAt || (d.lastActivityAt || d.createdAt).toISOString(),
+          messages: mappedMessages,
           createdAt: d.createdAt.toISOString(),
         };
       })
@@ -836,18 +899,90 @@ export async function POST(req: NextRequest) {
       }
 
       case "send_chat_message": {
-        if (payload?.channelId && payload?.text) {
-          const [msg] = await db
-            .insert(schema.doubtMessages)
-            .values({
-              doubtId: payload.channelId,
-              authorId: "usr-admin-dinesh",
-              body: payload.text,
-            })
-            .returning();
-          result = msg;
+        if (payload?.channelId && (payload?.text || payload?.imageUrl || payload?.attachment)) {
+          const doubtId = payload.channelId;
+          let [doubt] = await db
+            .select()
+            .from(schema.doubts)
+            .where(eq(schema.doubts.id, doubtId))
+            .limit(1);
+
+          // If doubt doesn't exist yet (e.g. newly started chat channel in mobile), create it in DB
+          if (!doubt) {
+            const studentId =
+              payload.studentId ||
+              (payload.senderRole === "student" ? (session?.user?.id || "student_9528150564") : "student_9528150564");
+            const [firstSub] = await db.select({ id: schema.subjects.id }).from(schema.subjects).limit(1);
+            if (firstSub) {
+              const [createdDoubt] = await db
+                .insert(schema.doubts)
+                .values({
+                  studentId,
+                  subjectId: firstSub.id,
+                  sourceType: "general",
+                  title: payload.title || `Direct Chat with ${payload.senderName || "Student"}`,
+                  status: payload.senderRole === "student" ? "open" : "answered",
+                  assignedTeacherId: "usr-admin-dinesh",
+                  lastActivityAt: new Date(),
+                })
+                .returning();
+              doubt = createdDoubt;
+            }
+          }
+
+          if (doubt) {
+            // In admin website management, staff can NEVER send as a student
+            const isStudentSender =
+              !isStaff &&
+              (payload.senderRole === "student" || (session?.user?.id && session.user.id === doubt.studentId));
+
+            const authorId = isStudentSender
+              ? doubt.studentId
+              : (session?.user?.id || "usr-admin-dinesh");
+
+            const attachmentKeys: string[] = [];
+            if (payload.attachmentKey) {
+              attachmentKeys.push(payload.attachmentKey);
+            }
+            if (payload.imageUrl) {
+              const match = String(payload.imageUrl).match(/doubts\/[^/?#]+/);
+              if (match) attachmentKeys.push(match[0]);
+            }
+            if (payload.attachment?.fileUrl) {
+              const match = String(payload.attachment.fileUrl).match(/doubts\/[^/?#]+/);
+              if (match && !attachmentKeys.includes(match[0])) attachmentKeys.push(match[0]);
+            }
+
+            const messageText = (payload.text || "").trim() || (attachmentKeys.length ? "See attached document/photo." : "Message");
+            const now = new Date();
+
+            const [msg] = await db
+              .insert(schema.doubtMessages)
+              .values({
+                doubtId: doubt.id,
+                authorId,
+                body: messageText,
+                attachmentKeys,
+                createdAt: now,
+              })
+              .returning();
+
+            await db
+              .update(schema.doubts)
+              .set({
+                status: isStudentSender ? "open" : "answered",
+                assignedTeacherId: !isStudentSender ? authorId : doubt.assignedTeacherId,
+                lastActivityAt: now,
+                updatedAt: now,
+              })
+              .where(eq(schema.doubts.id, doubt.id));
+
+            revalidatePath("/admin/chats");
+            revalidatePath("/admin/doubts");
+            revalidatePath("/dashboard/chats");
+            result = msg;
+          }
         }
-        revalidatePath("/admin/doubts");
         break;
       }
 

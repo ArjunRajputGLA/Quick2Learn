@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { requireRole } from "./auth/session";
+import { requireRole, getAdminSession, requireOnboardedUser } from "./auth/session";
 import {
   manualEnrollStudent,
   registerStudent,
@@ -215,7 +215,11 @@ export async function getPresignedUploadUrlAction(
 export async function uploadChatAttachmentAction(
   formData: FormData
 ): Promise<ActionResult<{ key: string; url: string; filename: string; isPdf: boolean }>> {
-  await requireRole(["admin", "teacher"]);
+  const adminSession = await getAdminSession();
+  const isStaff = adminSession && (adminSession.role === "admin" || adminSession.role === "teacher");
+  if (!isStaff) {
+    await requireOnboardedUser();
+  }
   try {
     const file = formData.get("file") as File | null;
     if (!file) {
@@ -1917,6 +1921,57 @@ export async function startStudentChatAction(input: {
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to start chat with student",
+    };
+  }
+}
+
+export async function studentReplyChatAction(
+  doubtId: string,
+  body: string,
+  attachmentKeys: string[] = []
+): Promise<ActionResult<any>> {
+  const current = await requireOnboardedUser();
+  try {
+    const { addDoubtMessage } = await import("./data/doubts");
+    const authUser = {
+      id: current.user.id,
+      name: current.user.name,
+      email: current.user.email,
+      role: current.role,
+    };
+    const result = await addDoubtMessage(authUser, doubtId, {
+      body,
+      attachmentKeys,
+    });
+    revalidatePath("/dashboard/chats");
+    revalidatePath("/admin/chats");
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to send message",
+    };
+  }
+}
+
+export async function getStudentChatThreadAction(
+  doubtId: string
+): Promise<ActionResult<any>> {
+  const current = await requireOnboardedUser();
+  try {
+    const { getDoubtThread } = await import("./data/doubts");
+    const authUser = {
+      id: current.user.id,
+      name: current.user.name,
+      email: current.user.email,
+      role: current.role,
+    };
+    const result = await getDoubtThread(authUser, doubtId);
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to load chat thread",
     };
   }
 }

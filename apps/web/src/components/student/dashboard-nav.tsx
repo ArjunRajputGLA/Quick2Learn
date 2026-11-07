@@ -12,6 +12,7 @@ import {
   LogOut,
   ExternalLink,
   BookOpen,
+  MessageSquare,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -56,6 +57,12 @@ export const NAV_ITEMS = [
     name: "Payments",
     href: "/dashboard/payments",
     icon: CreditCard,
+    exact: false,
+  },
+  {
+    name: "Faculty Chat",
+    href: "/dashboard/chats",
+    icon: MessageSquare,
     exact: false,
   },
   {
@@ -142,7 +149,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
 
         {/* Navigation Links */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter(
+            (item) => !(user.role === "admin" || user.role === "teacher" ? item.href === "/dashboard/chats" : false)
+          ).map((item) => {
             const isActive = getIsActive(item.href, item.exact);
             const Icon = item.icon;
             return (
@@ -216,7 +225,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border flex items-center justify-around py-1.5 px-0.5 shadow-lg select-none"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter(
+          (item) => !(user.role === "admin" || user.role === "teacher" ? item.href === "/dashboard/chats" : false)
+        ).map((item) => {
           const isActive = getIsActive(item.href, item.exact);
           const Icon = item.icon;
           return (

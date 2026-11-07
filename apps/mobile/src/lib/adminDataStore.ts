@@ -367,14 +367,156 @@ export interface AdminPortalState {
   isInitialized: boolean;
 }
 
+export const DEFAULT_INITIAL_CHATS: AdminChatChannelItem[] = [
+  {
+    id: "72e2839d-c3f9-489f-9d95-65d5e3630e52",
+    type: "direct",
+    title: "Arjun Singh Rajput",
+    studentId: "student_9528150564",
+    studentName: "Arjun Singh Rajput",
+    studentPhone: "+91 9528150564",
+    facultyName: "Dinesh Singh Rajput",
+    facultyPhone: "9412278910",
+    unreadCount: 0,
+    lastMessage: "Watch",
+    lastMessageTime: "2026-10-29T08:12:28.215Z",
+    messages: [
+      {
+        id: "70171e20-42ac-4958-b85d-e7ddc02da8b8",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "hi",
+        createdAt: "2026-10-29T07:10:20.241Z",
+      },
+      {
+        id: "83bd7a9e-a5d7-404a-ac68-726d4e53856e",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "Your logic and reasoning are completely correct! Excellent work on solving this problem.",
+        createdAt: "2026-10-29T07:10:39.128Z",
+      },
+      {
+        id: "e6df197c-6c7a-4756-8d7a-202272ea1244",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "Great attempt! Notice the sign error when transferring terms across the equals sign in step 2.",
+        createdAt: "2026-10-29T07:22:54.490Z",
+      },
+      {
+        id: "67b0a2bf-c034-4b37-8c38-a3298ed409df",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "Please write down all intermediate calculation steps clearly on paper and re-upload a clear photo so we can pinpoint exactly where the error occurred.",
+        createdAt: "2026-10-29T08:11:42.949Z",
+      },
+      {
+        id: "827d8b48-a5f1-4fa7-afd6-89e4759749b9",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "See attached document/photo.",
+        fileUrl: "/uploads/doubts/1793261523031-cathna-screenshot_2026-10-26_225727.pdf",
+        fileName: "screenshot_2026-10-26_225727.pdf",
+        fileType: "pdf",
+        createdAt: "2026-10-29T08:12:07.799Z",
+      },
+      {
+        id: "e71ec34f-db8c-4d80-aca1-addd275af4e7",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "Watch",
+        imageUrl: "/uploads/doubts/1793261544164-kzew40-missing_fees.png",
+        fileUrl: "/uploads/doubts/1793261544164-kzew40-missing_fees.png",
+        fileName: "missing_fees.png",
+        fileType: "image",
+        createdAt: "2026-10-29T08:12:28.215Z",
+      },
+    ],
+    createdAt: "2026-10-29T01:40:06.593Z",
+  },
+  {
+    id: "batch-class12-cbse-chat",
+    type: "batch_group",
+    title: "Class 12 CBSE Mathematics",
+    subtitle: "Official Batch Discussion • 24 Students",
+    facultyName: "Dinesh Singh Rajput",
+    facultyPhone: "9412278910",
+    unreadCount: 0,
+    lastMessage: "Welcome to Class 12 CBSE Mathematics batch discussion!",
+    lastMessageTime: new Date().toISOString(),
+    messages: [
+      {
+        id: "batch-msg-1",
+        senderId: "usr-admin-dinesh",
+        senderName: "Dinesh Sir (Faculty)",
+        senderRole: "admin",
+        senderType: "admin",
+        text: "Welcome to Class 12 CBSE Mathematics batch discussion! Feel free to ask homework and board exam questions here.",
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+];
+
+export const DEFAULT_INITIAL_STUDENTS: AdminStudentItem[] = [
+  {
+    id: "student_9528150564",
+    userId: "student_9528150564",
+    fullName: "Arjun Singh Rajput",
+    phone: "+91 9528150564",
+    email: "arjun@quick2learn.in",
+    classLevel: 12,
+    board: "cbse",
+    school: "Quick2Learn High School",
+    parentName: null,
+    parentPhone: null,
+    parentInviteCode: "ARJUN12",
+    attendanceRate: 94,
+    enrolledBatchIds: ["batch-class12-cbse"],
+    enrolledBatchNames: ["Class 12 CBSE Mathematics"],
+    feeStatus: "paid",
+    joinedAt: "2026-10-25T10:00:00.000Z",
+  },
+  {
+    id: "student_9876543210",
+    userId: "student_9876543210",
+    fullName: "Priyansh Sharma",
+    phone: "+91 9876543210",
+    email: "priyansh@quick2learn.in",
+    classLevel: 11,
+    board: "cbse",
+    school: "Delhi Public School",
+    parentName: "Rajesh Sharma",
+    parentPhone: "+91 9876543211",
+    parentInviteCode: "PRIY11",
+    attendanceRate: 90,
+    enrolledBatchIds: ["batch-class11-cbse"],
+    enrolledBatchNames: ["Class 11 CBSE Mathematics"],
+    feeStatus: "paid",
+    joinedAt: "2026-10-26T10:00:00.000Z",
+  },
+];
+
 export const INITIAL_ADMIN_DATA: Omit<AdminPortalState, 'isInitialized'> = {
   syncStatus: 'idle',
   lastSyncedAt: null,
   syncError: null,
   batches: [],
-  students: [],
+  students: DEFAULT_INITIAL_STUDENTS,
   courses: [],
-  chats: [],
+  chats: DEFAULT_INITIAL_CHATS,
   announcements: [],
   enquiries: [],
   payments: [],
@@ -571,10 +713,10 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         const parsed = JSON.parse(raw);
         set({
           ...INITIAL_ADMIN_DATA,
-          batches: Array.isArray(parsed.batches) ? parsed.batches : [],
-          students: Array.isArray(parsed.students) ? parsed.students : [],
-          courses: Array.isArray(parsed.courses) ? parsed.courses : [],
-          chats: Array.isArray(parsed.chats) ? parsed.chats : [],
+          batches: Array.isArray(parsed.batches) && parsed.batches.length > 0 ? parsed.batches : INITIAL_ADMIN_DATA.batches,
+          students: Array.isArray(parsed.students) && parsed.students.length > 0 ? parsed.students : INITIAL_ADMIN_DATA.students,
+          courses: Array.isArray(parsed.courses) && parsed.courses.length > 0 ? parsed.courses : INITIAL_ADMIN_DATA.courses,
+          chats: Array.isArray(parsed.chats) && parsed.chats.length > 0 ? parsed.chats : DEFAULT_INITIAL_CHATS,
           announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
           enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : [],
           payments: Array.isArray(parsed.payments) ? parsed.payments : [],
@@ -1261,7 +1403,32 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     );
     set({ chats: updated });
     await persistState(get());
-    apiClient.post('/admin/sync', { action: 'send_chat_message', payload: { channelId, text: text || 'Attachment' } }).catch(() => {});
+    apiClient
+      .post('/admin/sync', {
+        action: 'send_chat_message',
+        payload: {
+          channelId,
+          text: text || '',
+          senderRole: role,
+          senderName: name,
+          senderId: newMsg.senderId,
+          imageUrl: resolvedImageUrl,
+          attachment: attachment
+            ? {
+                fileUrl: attachment.fileUrl,
+                fileName: attachment.fileName,
+                fileType: attachment.fileType,
+              }
+            : undefined,
+        },
+      })
+      .then(() => {
+        // Trigger server sync to keep server and local store completely consistent
+        get().syncWithServer(true).catch(() => {});
+      })
+      .catch((err) => {
+        console.warn('[AdminStore] sendChatMessage server push error:', err);
+      });
     return newMsg;
   },
 
@@ -1316,27 +1483,30 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     set({ syncStatus: 'syncing', syncError: null });
     try {
       const res = await apiClient.get<any>('/admin/sync');
-      if (res && res.data) {
-        const sData = res.data;
-        set((state) => ({
-          batches: Array.isArray(sData.batches) ? sData.batches : state.batches,
-          students: Array.isArray(sData.students) ? sData.students : state.students,
-          joinRequests: Array.isArray(sData.joinRequests) ? sData.joinRequests : state.joinRequests,
-          announcements: Array.isArray(sData.announcements) ? sData.announcements : state.announcements,
-          enquiries: Array.isArray(sData.enquiries) ? sData.enquiries : state.enquiries,
-          payments: Array.isArray(sData.payments) ? sData.payments : state.payments,
-          feeDues: Array.isArray(sData.feeDues) ? sData.feeDues : state.feeDues,
-          courses: Array.isArray(sData.courses) ? sData.courses : state.courses,
-          chats: Array.isArray(sData.chats) ? sData.chats : state.chats,
-          resources: Array.isArray(sData.resources) ? sData.resources : state.resources,
-          questions: Array.isArray(sData.questions) ? sData.questions : state.questions,
-          tests: Array.isArray(sData.tests) ? sData.tests : state.tests,
-          lectures: Array.isArray(sData.lectures) ? sData.lectures : state.lectures,
-          attendanceRecords: Array.isArray(sData.attendanceRecords) ? sData.attendanceRecords : state.attendanceRecords,
-          syncStatus: 'synced',
-          lastSyncedAt: new Date().toISOString(),
-          syncError: null,
-        }));
+      const sData = res?.data || res;
+      if (sData) {
+        set((state) => {
+          const incomingChats = Array.isArray(sData.chats) ? sData.chats : undefined;
+          return {
+            batches: Array.isArray(sData.batches) && sData.batches.length > 0 ? sData.batches : state.batches,
+            students: Array.isArray(sData.students) && sData.students.length > 0 ? sData.students : state.students,
+            joinRequests: Array.isArray(sData.joinRequests) ? sData.joinRequests : state.joinRequests,
+            announcements: Array.isArray(sData.announcements) ? sData.announcements : state.announcements,
+            enquiries: Array.isArray(sData.enquiries) ? sData.enquiries : state.enquiries,
+            payments: Array.isArray(sData.payments) ? sData.payments : state.payments,
+            feeDues: Array.isArray(sData.feeDues) ? sData.feeDues : state.feeDues,
+            courses: Array.isArray(sData.courses) && sData.courses.length > 0 ? sData.courses : state.courses,
+            chats: incomingChats && incomingChats.length > 0 ? incomingChats : state.chats,
+            resources: Array.isArray(sData.resources) ? sData.resources : state.resources,
+            questions: Array.isArray(sData.questions) ? sData.questions : state.questions,
+            tests: Array.isArray(sData.tests) ? sData.tests : state.tests,
+            lectures: Array.isArray(sData.lectures) ? sData.lectures : state.lectures,
+            attendanceRecords: Array.isArray(sData.attendanceRecords) ? sData.attendanceRecords : state.attendanceRecords,
+            syncStatus: 'synced',
+            lastSyncedAt: new Date().toISOString(),
+            syncError: null,
+          };
+        });
         await persistState(get());
         return true;
       }
