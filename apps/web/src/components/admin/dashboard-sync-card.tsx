@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, CheckCircle2, AlertCircle, Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,11 @@ interface DashboardSyncCardProps {
 export function DashboardSyncCard({ lastSync }: DashboardSyncCardProps) {
   const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSyncNow = async () => {
     setIsSyncing(true);
@@ -67,12 +72,14 @@ export function DashboardSyncCard({ lastSync }: DashboardSyncCardProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center py-0.5">
         <div className="p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/60">
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Last Synced</div>
-          <div className="text-xs font-bold text-slate-900 mt-0.5">
+          <div className="text-xs font-bold text-slate-900 mt-0.5" suppressHydrationWarning>
             {lastSync?.startedAt
-              ? new Date(lastSync.startedAt).toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
+              ? mounted
+                ? new Date(lastSync.startedAt).toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Recent"
               : "Never"}
           </div>
         </div>

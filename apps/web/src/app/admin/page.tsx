@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/server/auth/session";
-import { getAdminDashboardKPIs } from "@/server/data/admin";
+import {
+  getAdminDashboardKPIs,
+  FALLBACK_ADMIN_KPIS,
+  type AdminDashboardKPIs,
+} from "@/server/data/admin";
+import { isDatabaseConfigured } from "@quick2learn/db";
 import { formatINR } from "@quick2learn/shared";
 import { DashboardSyncCard } from "@/components/admin/dashboard-sync-card";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
@@ -34,7 +39,15 @@ export default async function AdminDashboardPage() {
     redirect("/admin/batches");
   }
 
-  const kpis = await getAdminDashboardKPIs(session.user);
+  let kpis: AdminDashboardKPIs = FALLBACK_ADMIN_KPIS;
+  let isDbFallback = !isDatabaseConfigured();
+
+  try {
+    kpis = await getAdminDashboardKPIs(session.user);
+  } catch (err) {
+    console.warn("Failed to load live KPIs on dashboard, using fallback:", err);
+    isDbFallback = true;
+  }
 
   // Time-based greeting
   const hour = new Date().getHours();
@@ -43,6 +56,27 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-5 w-full">
+      {/* Fallback notice if running in demo / offline mode on Vercel */}
+      {isDbFallback && (
+        <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-start gap-3 shadow-2xs">
+          <div className="p-1 rounded-lg bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <div className="font-bold text-amber-950 flex items-center gap-1.5">
+              <span>Demo / Fallback Mode Active</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200/80 font-semibold text-amber-900">
+                Offline Safe
+              </span>
+            </div>
+            <p className="text-[11px] text-amber-800 leading-relaxed">
+              The dashboard is currently displaying demo statistics because a live PostgreSQL database is not connected to this Vercel deployment.
+              To link your production database, add your PostgreSQL connection string as <code className="font-mono font-bold bg-amber-200/70 px-1 py-0.5 rounded text-amber-950">DATABASE_URL</code> in your Vercel Project Environment Variables.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 1. GREETING HEADER (Matching Inspiration Screenshot 2) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

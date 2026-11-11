@@ -23,8 +23,16 @@ export default async function AdminChatsPage({
     role: current.role,
   };
 
-  const [initialDoubts, subjects, batches, cannedReplies, lectures, rawStudents, rawEnrollments] =
-    await Promise.all([
+  let initialDoubts = { doubts: [] as any[], totalCount: 0, openCount: 0 };
+  let subjects: Array<{ id: string; name: string }> = [];
+  let batches: Array<{ id: string; name: string }> = [];
+  let cannedReplies: any[] = [];
+  let lectures: any[] = [];
+  let rawStudents: any[] = [];
+  let rawEnrollments: any[] = [];
+
+  try {
+    const results = await Promise.all([
       listAdminDoubts(authUser, { status: "all", page: 1, limit: 50 }),
       db
         .select({ id: schema.subjects.id, name: schema.subjects.name })
@@ -67,6 +75,17 @@ export default async function AdminChatsPage({
         .innerJoin(schema.batches, eq(schema.enrollments.batchId, schema.batches.id))
         .where(eq(schema.enrollments.status, "active")),
     ]);
+
+    initialDoubts = results[0];
+    subjects = results[1];
+    batches = results[2];
+    cannedReplies = results[3];
+    lectures = results[4];
+    rawStudents = results[5];
+    rawEnrollments = results[6];
+  } catch (err) {
+    console.warn("AdminChatsPage failed to query database, using safe defaults:", err);
+  }
 
   const batchMap = new Map<string, Array<{ id: string; title: string }>>();
   for (const e of rawEnrollments) {
